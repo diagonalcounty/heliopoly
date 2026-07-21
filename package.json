@@ -1,0 +1,22 @@
+{
+  "name": "heliopoly",
+  "private": true,
+  "version": "0.0.4",
+  "description": "Heliopoly — Free Enterprise In Space. Local browser + AI board game.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -p tsconfig.json --noEmit && vite build",
+    "preview": "vite preview",
+    "selfplay": "tsx src/selfplay.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3",
+    "vite": "^7.0.4"
+  },
+  "allowScripts": {
+    "esbuild@0.28.1": true
+  }
+}

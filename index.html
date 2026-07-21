@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#0b1020" />
+    <title>Heliopoly v0.0.4</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header class="top">
+        <div class="top-row">
+          <div>
+            <h1>Heliopoly <span class="badge">v0.0.4</span></h1>
+            <p class="tagline">Free Enterprise In Space · local POC</p>
+          </div>
+          <button
+            id="btn-handbook-header"
+            type="button"
+            class="handbook-launch"
+            title="Open Flight Handbook"
+          >
+            Flight Handbook
+          </button>
+        </div>
+      </header>
+
+      <div class="layout">
+        <section class="board-panel">
+          <canvas id="board" width="900" height="900" aria-label="Game board"></canvas>
+        </section>
+
+        <aside class="side">
+          <section class="card handbook-card">
+            <h2>Reference</h2>
+            <button
+              id="btn-handbook"
+              type="button"
+              class="primary handbook-launch-full"
+            >
+              📖 Flight Handbook
+            </button>
+            <p class="hint">
+              In-game rules (Civilopedia-style). Esc, ✕, or click outside to close.
+            </p>
+          </section>
+
+          <section class="card" id="setup-card">
+            <h2>New game</h2>
+            <label>
+              Total pilots (2–6)
+              <input id="player-count" type="number" min="2" max="6" value="4" />
+            </label>
+            <label class="check">
+              <input id="include-human" type="checkbox" checked />
+              Seat 1 is human
+            </label>
+            <fieldset class="propellant-field">
+              <legend>Your propellant</legend>
+              <label class="check">
+                <input
+                  type="radio"
+                  name="propellant"
+                  id="prop-methane"
+                  value="methane"
+                  checked
+                />
+                Methane (CH₄) — stable
+              </label>
+              <label class="check">
+                <input
+                  type="radio"
+                  name="propellant"
+                  id="prop-hydrogen"
+                  value="hydrogen"
+                />
+                Hydrogen (H₂) — efficient, boil-off risk
+              </label>
+            </fieldset>
+            <button id="btn-new" type="button" class="primary">Launch</button>
+            <button id="btn-selfplay" type="button">Self-play burst</button>
+          </section>
+
+          <section class="card">
+            <h2>Turn</h2>
+            <div id="turn-info" class="mono">No game yet.</div>
+            <div class="actions">
+              <button id="btn-refuel" type="button" disabled>Refuel</button>
+              <button id="btn-roll" type="button" class="primary" disabled>Roll</button>
+              <button id="btn-buy" type="button" disabled>Buy</button>
+              <button id="btn-station" type="button" disabled>Place station</button>
+              <button id="btn-end" type="button" disabled>End turn</button>
+            </div>
+          </section>
+
+          <section class="card">
+            <h2>Players</h2>
+            <div id="players"></div>
+          </section>
+
+          <section class="card log-card">
+            <h2>Log</h2>
+            <div id="log" class="mono log"></div>
+          </section>
+        </aside>
+      </div>
+    </div>
+
+    <div id="handbook-root" class="handbook hidden" aria-hidden="true"></div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
