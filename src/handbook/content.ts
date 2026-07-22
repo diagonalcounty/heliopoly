@@ -21,16 +21,15 @@ export const HANDBOOK_TOPICS: HandbookTopic[] = [
     title: "Board legend (symbols)",
     html: `
 <ul>
-  <li><strong>Cyan disc</strong> — planet (Mercury, Venus, Mars, Earth)</li>
-  <li><strong>Orange disc</strong> — Jupiter system moon</li>
-  <li><strong>Yellow disc</strong> — Saturn system moon</li>
-  <li><strong>Gold disc</strong> — orbital station deed (Elon, Holst, Daktulios) or beacon-style hub</li>
-  <li><strong>Green Earth</strong> — home; not purchasable; cheapest / free refuel</li>
-  <li><strong>Dim small disc / ·</strong> — blank transit or belt (Gravity Duel possible)</li>
-  <li><strong>Colored ring</strong> around a body — that pilot’s claim (their ship color)</li>
-  <li><strong>White square with bar</strong> on a body — <strong>fuel depot</strong> you built (not the big orbital station deed)</li>
+  <li><strong>Painted planets</strong> — Earth (oceans/clouds), Mars (red + ice cap), Venus (cream clouds), Mercury (grey craters)</li>
+  <li><strong>Orange moons</strong> — Jupiter system (Io, Europa, Ganymede, Callisto)</li>
+  <li><strong>Yellow moons</strong> — Saturn system (Titan, Enceladus, …)</li>
+  <li><strong>Ring stations</strong> — habitat ring + solar panels (Elon, Holst Space Station, Daktulios) — not plain circles</li>
+  <li><strong>Diamond pips</strong> — blank belt/transit (red-tint = combat lanes)</li>
+  <li><strong>Colored halo</strong> around a body — your claim (pilot color)</li>
+  <li><strong>Blue fuel-tank badge</strong> on a corner of a body — player-built <strong>fuel depot</strong></li>
   <li><strong>Triangle</strong> — ship (gold outline while hopping)</li>
-  <li><strong>Dashed circles</strong> — orbital rings (distance from the Sun)</li>
+  <li><strong>Dashed circles</strong> — orbital rings from the Sun</li>
 </ul>
 `,
   },

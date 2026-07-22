@@ -20,6 +20,7 @@ import type {
   PlayerAction,
   PropellantId,
 } from "./core/types";
+import { bodyRadius, drawBodyIcon, drawFuelDepotIcon } from "./bodyIcons";
 import { mountHandbook } from "./handbook/handbook";
 
 let state: GameState | null = null;
@@ -711,37 +712,13 @@ function drawBoard(): void {
   for (const node of nodes) {
     const x = px(node);
     const y = py(node);
-    let r = 10;
-    let fill = "#3a4a6e";
-    if (node.kind === "planet") {
-      r = 15;
-      fill = "#6ec8ff";
-    }
-    if (node.kind === "moon") {
-      r = 11;
-      fill = "#c792ea";
-      if (node.paint === "jupiter-moon") fill = "#ff9f43";
-      if (node.paint === "saturn-moon") fill = "#f6e58d";
-    }
-    if (node.kind === "federation") {
-      r = 13;
-      fill = "#ffc857";
-    }
-    if (node.kind === "dock") {
-      r = 12;
-      fill = "#5ddea0";
-    }
-    if (node.kind === "gravity") {
-      r = 8;
-      fill = "#1a1a28";
-    }
-    if (node.id === "earth") fill = "#5ddea0";
+    const baseR = bodyRadius(node);
 
     if (highlight.has(node.id)) {
       ctx.beginPath();
-      ctx.arc(x, y, r + 8, 0, Math.PI * 2);
-      ctx.strokeStyle = "rgba(255,200,87,0.9)";
-      ctx.lineWidth = 2;
+      ctx.arc(x, y, baseR + 10, 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(255,200,87,0.95)";
+      ctx.lineWidth = 2.5;
       ctx.stroke();
     }
 
@@ -750,46 +727,34 @@ function drawBoard(): void {
       const owner = state.players.find((p) => p.id === ownerId);
       if (owner) {
         ctx.beginPath();
-        ctx.arc(x, y, r + 5, 0, Math.PI * 2);
+        ctx.arc(x, y, baseR + 6, 0, Math.PI * 2);
         ctx.strokeStyle = owner.color;
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 3.5;
         ctx.stroke();
       }
     }
 
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI * 2);
-    ctx.fillStyle = fill;
-    ctx.fill();
+    const r = drawBodyIcon(ctx, node, x, y);
+
     if (state?.stations[node.id]) {
-      // Fuel depot — clear white square with crossbar
-      ctx.fillStyle = "#fff";
-      ctx.fillRect(x - 5, y - 5, 10, 10);
-      ctx.strokeStyle = "#0b1020";
-      ctx.lineWidth = 1.5;
-      ctx.strokeRect(x - 5, y - 5, 10, 10);
-      ctx.beginPath();
-      ctx.moveTo(x - 3, y);
-      ctx.lineTo(x + 3, y);
-      ctx.stroke();
+      drawFuelDepotIcon(ctx, x + r * 0.55, y - r * 0.55);
     }
 
-    ctx.fillStyle = "rgba(232,238,252,0.95)";
-    ctx.font = "bold 12px system-ui";
+    ctx.fillStyle = "rgba(232,238,252,0.96)";
+    ctx.font = "bold 11px system-ui";
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
     const gv = gravityClassOf(node);
     const label =
       node.kind === "space"
-        ? "·"
+        ? ""
         : gv > 0
-          ? `${node.name} g${gv}`
+          ? `${node.name}`
           : node.name;
-    // Keep label on-canvas
-    const ly = Math.min(h - 4, y + r + 4);
+    const ly = Math.min(h - 4, y + r + 6);
     const lx = Math.max(4, Math.min(w - 4, x));
-    if (node.kind !== "space") {
-      ctx.strokeStyle = "rgba(5,8,20,0.85)";
+    if (label) {
+      ctx.strokeStyle = "rgba(5,8,20,0.9)";
       ctx.lineWidth = 3;
       ctx.strokeText(label, lx, ly);
       ctx.fillText(label, lx, ly);
