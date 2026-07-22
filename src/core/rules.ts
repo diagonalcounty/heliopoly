@@ -607,14 +607,21 @@ function movePlayer(state: GameState, steps: number): void {
   }
   p.position = path.endId;
 
-  // Completing a full path back to Earth = +1 board rotation
+  // Completing a full path back to Earth = +1 board rotation + depot resupply
   if (path.endId === "earth" && p.circuitActive) {
     state.boardRotations += 1;
     p.circuitActive = false;
+    const resupply = state.config.stationsEach; // typically 3
+    p.stationsInHand += resupply;
     pushLog(
       state,
       `Board rotation ${state.boardRotations} complete (${p.name} returned to Earth).`,
     );
+    pushLog(
+      state,
+      `${p.name} resupplies at Earth: +${resupply} fuel depot(s) in hand (now ${p.stationsInHand}).`,
+    );
+    delta(state, `+${resupply} fuel depots (Earth resupply)`);
   }
 
   resolveLanding(state, false);

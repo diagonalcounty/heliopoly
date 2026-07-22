@@ -64,6 +64,16 @@ export const HANDBOOK_TOPICS: HandbookTopic[] = [
 `,
   },
   {
+    id: "depots",
+    title: "Fuel depots",
+    html: `
+<p>You start with <strong>3 fuel depots</strong> in hand. Place them on <strong>planets or moons you own</strong> (not on hub stations like Holst/Elon/Daktulios).</p>
+<p>Depots boost rent and enable free refuel on that body (for you).</p>
+<p><strong>Earth resupply:</strong> each time you complete a full board circuit and return to Earth, you receive <strong>+3 depots</strong> in hand again (so you can expand the network each loop). Placed depots stay on the map until feral/elimination.</p>
+<p>If a claim goes feral or you are eliminated, depots on those claims are <strong>destroyed</strong>.</p>
+`,
+  },
+  {
     id: "feral",
     title: "Feral claims",
     html: `
