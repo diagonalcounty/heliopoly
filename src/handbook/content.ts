@@ -77,10 +77,10 @@ export const HANDBOOK_TOPICS: HandbookTopic[] = [
     id: "feral",
     title: "Feral claims",
     html: `
-<p>Each pilot has a <strong>neglect clock</strong> in “rotations” (full loops of the board path).</p>
+<p>Each pilot has a <strong>neglect clock</strong>.</p>
 <ul>
-  <li><strong>While you are out flying:</strong> only <em>your</em> completed circuits advance your neglect clock.</li>
-  <li><strong>While you sit on Earth:</strong> you do <em>not</em> advance your own clock by camping — instead <strong>each opponent circuit</strong> adds +1 to your neglect clock.</li>
+  <li><strong>Your full board circuit</strong> (return to Earth after leaving) → +1.</li>
+  <li>If you <strong>end a turn without rolling</strong> (camp anywhere), then each time <strong>another pilot reaches Earth</strong>, you get +1 neglect.</li>
 </ul>
 <p>If you do not <strong>land on</strong> a claim for <strong>10 neglect rotations</strong> after purchase (or last visit / depot build), it is <strong>overdue</strong>.</p>
 <p>When <strong>you</strong> roll movement dice, each overdue claim checks feral:</p>
@@ -101,11 +101,17 @@ export const HANDBOOK_TOPICS: HandbookTopic[] = [
 `,
   },
   {
-    id: "leave-burn",
-    title: "Leave burns & rent",
+    id: "turn-flow",
+    title: "Roll, break, move & sell",
     html: `
-<p>Landing is free. Leaving a gravity well costs fuel.</p>
-<p>If you cannot leave an <strong>opponent’s</strong> claim, you stay and <strong>pay rent again</strong> (by design).</p>
+<ol>
+  <li><strong>Roll</strong> — 2d6 is your <em>maximum</em> travel (no move yet).</li>
+  <li><strong>Break</strong> — optional: shave spaces (−1 space = 0.5 fuel, −2 = 1 fuel, …).</li>
+  <li><strong>Move</strong> — travel (dice − break). Button switches from Roll → Move.</li>
+  <li>After landing: <strong>Buy</strong> / <strong>Sell claim</strong> (½ price, depot scrapped) / Depot / End turn.</li>
+</ol>
+<p>Landing is free. Leaving a gravity well costs fuel. Failed leave on an enemy claim charges rent again.</p>
+<p>Earth landing grants <strong>⍼400</strong> and circuit resupply; use break to land short of a full roll when you need home.</p>
 `,
   },
   {

@@ -85,8 +85,19 @@ const btnSelf = document.getElementById("btn-selfplay") as HTMLButtonElement;
 const btnRefuel = document.getElementById("btn-refuel") as HTMLButtonElement;
 const btnRoll = document.getElementById("btn-roll") as HTMLButtonElement;
 const btnBuy = document.getElementById("btn-buy") as HTMLButtonElement;
+const btnSell = document.getElementById("btn-sell") as HTMLButtonElement;
 const btnStation = document.getElementById("btn-station") as HTMLButtonElement;
 const btnEnd = document.getElementById("btn-end") as HTMLButtonElement;
+const rollResultEl = document.getElementById("roll-result")!;
+const breakRow = document.getElementById("break-row")!;
+const breakCountEl = document.getElementById("break-count")!;
+const breakCostEl = document.getElementById("break-cost")!;
+const btnBreakMinus = document.getElementById(
+  "btn-break-minus",
+) as HTMLButtonElement;
+const btnBreakPlus = document.getElementById(
+  "btn-break-plus",
+) as HTMLButtonElement;
 const playerCountInput = document.getElementById(
   "player-count",
 ) as HTMLInputElement;
@@ -375,10 +386,12 @@ async function applyActionAnimated(
   const from = actor.position;
   let after = applyAction(before, action);
 
-  if (action.type === "roll") {
+  if (action.type === "move") {
     const afterActor = after.players.find((p) => p.id === actor.id)!;
     const moved = afterActor.position !== from;
-    const steps = after.lastRoll?.total ?? 0;
+    const br = before.breakSpaces;
+    const total = before.lastRoll?.total ?? 0;
+    const steps = Math.max(0, total - br);
     if (moved && steps > 0) {
       const path = walkMovePath(before.board, from, steps);
       await animatePath(actor.id, path.frames, actor.agent === "ai");
@@ -685,10 +698,32 @@ btnRefuel.addEventListener("click", () => {
   const legal = getLegalActions(state);
   void act({ type: "refuel", amount: Math.min(legal.refuelMax, 10) });
 });
-btnRoll.addEventListener("click", () => void act({ type: "roll" }));
+btnRoll.addEventListener("click", () => {
+  if (!state) return;
+  if (state.phase === "await_move") void act({ type: "move" });
+  else void act({ type: "roll" });
+});
 btnBuy.addEventListener("click", () => void act({ type: "buy" }));
+btnSell.addEventListener("click", () => {
+  if (!state) return;
+  const legal = getLegalActions(state);
+  if (legal.sell && legal.sellNodeId) {
+    void act({ type: "sell", nodeId: legal.sellNodeId });
+  }
+});
 btnStation.addEventListener("click", () => void act({ type: "place_station" }));
 btnEnd.addEventListener("click", () => void act({ type: "end_turn" }));
+btnBreakMinus.addEventListener("click", () => {
+  if (!state || state.phase !== "await_move") return;
+  void act({ type: "set_break", spaces: Math.max(0, state.breakSpaces - 1) });
+});
+btnBreakPlus.addEventListener("click", () => {
+  if (!state || state.phase !== "await_move" || !state.lastRoll) return;
+  void act({
+    type: "set_break",
+    spaces: Math.min(state.lastRoll.total, state.breakSpaces + 1),
+  });
+});
 
 for (const btn of document.querySelectorAll<HTMLButtonElement>("[data-stance]")) {
   btn.addEventListener("click", () => {
@@ -725,12 +760,12 @@ function renderSide(): void {
   const leaveCost = leaveBurnCost(node, previewSteps, p.propellant);
   const prop = PROPELLANTS[p.propellant];
 
-  // Rankings
+  // Rankings: cash (spendable) + net worth (assets)
   const ranks = rankings(state);
   rankingsEl.innerHTML = ranks
     .map((r) => {
       const lead = r.rank === 1 ? " lead" : "";
-      return `<div class="rank-row${lead}"><span>#${r.rank} ${r.player.name}</span><span>${formatMoney(r.worth)}</span></div>`;
+      return `<div class="rank-row${lead}"><span>#${r.rank} ${r.player.name}</span><span><span class="cash">${formatMoney(r.player.cash)} cash</span> · NW ${formatMoney(r.worth)}</span></div>`;
     })
     .join("");
 
@@ -771,12 +806,42 @@ function renderSide(): void {
     state.phase !== "game_over" &&
     state.phase !== "await_duel";
   btnRefuel.disabled = !can || !legal.refuel;
-  btnRoll.disabled = !can || !legal.roll;
+  const rollOrMove =
+    state.phase === "await_move" ? legal.move : legal.roll;
+  btnRoll.disabled = !can || !rollOrMove;
+  btnRoll.textContent =
+    state.phase === "await_move"
+      ? `Move (${(state.lastRoll?.total ?? 0) - legal.breakSpaces})`
+      : "Roll";
   btnBuy.disabled = !can || !legal.buy;
+  btnSell.disabled = !can || !legal.sell;
   btnStation.disabled = !can || !legal.placeStation;
   btnEnd.disabled = !can || !legal.endTurn;
   btnNew.disabled = animating;
   btnSelf.disabled = animating;
+
+  if (state.phase === "await_move" && state.lastRoll) {
+    rollResultEl.classList.remove("hidden");
+    rollResultEl.textContent = `Dice ${state.lastRoll.d1}+${state.lastRoll.d2}=${state.lastRoll.total} · break ${legal.breakSpaces} · move ${state.lastRoll.total - legal.breakSpaces} · leave burn ~${legal.leaveBurnPreview}`;
+    breakRow.classList.remove("hidden");
+    breakCountEl.textContent = String(legal.breakSpaces);
+    breakCostEl.textContent =
+      legal.breakSpaces > 0
+        ? `−${legal.breakFuelCost} fuel`
+        : "0 fuel";
+    btnBreakMinus.disabled = !can || legal.breakSpaces <= 0;
+    btnBreakPlus.disabled =
+      !can || legal.breakSpaces >= legal.maxBreak;
+  } else {
+    rollResultEl.classList.add("hidden");
+    breakRow.classList.add("hidden");
+  }
+
+  if (legal.sell) {
+    btnSell.textContent = `Sell (${formatMoney(legal.sellValue)})`;
+  } else {
+    btnSell.textContent = "Sell claim";
+  }
 
   if (legal.buy) btnBuy.textContent = `Buy (${formatMoney(legal.buyPrice)})`;
   else {

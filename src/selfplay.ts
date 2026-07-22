@@ -35,8 +35,12 @@ function playGame(seed: number, players: number): {
     }
     let action = heuristicAI(state);
     const legal = getLegalActions(state);
+    if (state.phase === "await_move" && action.type !== "move" && action.type !== "set_break") {
+      action = { type: "move" };
+    }
     if (action.type === "end_turn" && !legal.endTurn) action = { type: "roll" };
     if (action.type === "roll" && !legal.roll) action = { type: "end_turn" };
+    if (action.type === "move" && !legal.move) action = { type: "set_break", spaces: 0 };
     state = applyAction(state, action);
     turns++;
   }

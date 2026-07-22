@@ -110,9 +110,8 @@ function touchClaim(state: GameState, nodeId: string, owner?: Player): void {
 }
 
 /**
- * A pilot finished a full board circuit (returned to Earth after leaving).
- * - Their own neglect clock advances (they were out on the board).
- * - Any pilot currently camping on Earth gets +1 neglect from this opponent loop.
+ * Pilot finished a full board circuit (returned to Earth after leaving).
+ * Own neglect +1; depot resupply; tick neglect for anyone who skipped rolling.
  */
 function onCircuitComplete(state: GameState, pilot: Player): void {
   state.boardRotations += 1;
@@ -121,19 +120,11 @@ function onCircuitComplete(state: GameState, pilot: Player): void {
 
   pushLog(
     state,
-    `Circuit complete: ${pilot.name} (their neglect clock ${pilot.neglectClock}). Board loops: ${state.boardRotations}.`,
+    `Circuit complete: ${pilot.name} (neglect ${pilot.neglectClock}). Board loops: ${state.boardRotations}.`,
   );
 
-  for (const other of state.players) {
-    if (other.id === pilot.id || other.eliminated) continue;
-    if (other.position === "earth") {
-      other.neglectClock += 1;
-      pushLog(
-        state,
-        `${other.name} camps Earth — opponent circuit counts (+1 neglect → ${other.neglectClock}).`,
-      );
-    }
-  }
+  // Anyone who skipped their roll (camping anywhere) takes a foe Earth-pass tick
+  tickNeglectForSkippers(state, pilot.id, `${pilot.name} reached Earth`);
 
   const resupply = state.config.stationsEach;
   pilot.stationsInHand += resupply;
@@ -142,6 +133,28 @@ function onCircuitComplete(state: GameState, pilot: Player): void {
     `${pilot.name} resupplies at Earth: +${resupply} fuel depot(s) in hand (now ${pilot.stationsInHand}).`,
   );
   delta(state, `+${resupply} fuel depots (Earth resupply)`);
+}
+
+/** +1 neglect for every pilot who skipped rolling (except the one who just hit Earth). */
+function tickNeglectForSkippers(
+  state: GameState,
+  exceptId: string,
+  reason: string,
+): void {
+  for (const other of state.players) {
+    if (other.id === exceptId || other.eliminated) continue;
+    if (!other.skippedRoll) continue;
+    other.neglectClock += 1;
+    pushLog(
+      state,
+      `${other.name} skipped roll — ${reason} counts (+1 neglect → ${other.neglectClock}).`,
+    );
+  }
+}
+
+/** Fuel cost to break N spaces: 0.5 per space. */
+export function breakFuelCost(spaces: number): number {
+  return Math.max(0, spaces) * 0.5;
 }
 
 function releaseClaimToBank(state: GameState, nodeId: string): void {
@@ -260,6 +273,7 @@ function advanceTurn(state: GameState): void {
   state.currentPlayerIndex = idx;
   state.phase = "await_action";
   state.lastRoll = null;
+  state.breakSpaces = 0;
   state.pendingDuel = null;
 
   if (forceEndByRounds(state)) return;
@@ -267,14 +281,15 @@ function advanceTurn(state: GameState): void {
   const p = currentPlayer(state);
   if (p.skipTurns > 0) {
     p.skipTurns -= 1;
+    p.skippedRoll = true; // skipped turn counts as non-roll for feral
     pushLog(state, `${p.name} loses this turn (Gravity Duel forfeit).`);
     delta(state, `${p.name}: skipped turn`);
-    // End their "turn" immediately
     state.turnDeltas = [`${p.name}: skipped turn (duel loss)`];
     advanceTurn(state);
     return;
   }
 
+  p.rolledThisTurn = false;
   state.turnDeltas = [];
   pushLog(state, `— Round ${state.round}: ${p.name}'s turn —`);
 }
@@ -334,8 +349,15 @@ export function getLegalActions(state: GameState): LegalActions {
     refuelMax: 0,
     refuelCostPer: 0,
     roll: false,
+    move: false,
+    maxBreak: 0,
+    breakSpaces: 0,
+    breakFuelCost: 0,
     buy: false,
     buyPrice: 0,
+    sell: false,
+    sellNodeId: null,
+    sellValue: 0,
     placeStation: false,
     endTurn: false,
     leaveBurnPreview: 0,
@@ -351,8 +373,6 @@ export function getLegalActions(state: GameState): LegalActions {
     const d = state.pendingDuel;
     const isChallenger = p.id === d.challengerId;
     const isDefender = p.id === d.defenderId;
-    // Only current player is challenger usually — defender may be AI resolved in apply
-    // Human may be either; legal for active player seat if they still need stance/roll
     let needStance = false;
     let needRoll = false;
     if (isChallenger) {
@@ -369,7 +389,6 @@ export function getLegalActions(state: GameState): LegalActions {
         d.defenderStance !== null &&
         d.defenderRoll === null;
     }
-    // Turn seat stays on challenger; defender actions applied via AI or when seat is defender
     return {
       ...empty,
       duelStance: needStance,
@@ -379,9 +398,6 @@ export function getLegalActions(state: GameState): LegalActions {
 
   const fuel = refuelInfo(state);
   const node = getNode(state.board, p.position);
-  const previewSteps = state.lastRoll?.total ?? 7;
-  const leaveBurnPreview = leaveBurnCost(node, previewSteps, p.propellant);
-
   const ownsHere = state.owners[node.id] === p.id;
   const canStation =
     ownsHere &&
@@ -389,17 +405,55 @@ export function getLegalActions(state: GameState): LegalActions {
     !state.stations[node.id] &&
     p.stationsInHand > 0;
 
+  const sellValue = ownsHere && isPurchasable(node)
+    ? Math.floor((node.price ?? 0) / 2)
+    : 0;
+  const canSell = ownsHere && isPurchasable(node) && sellValue > 0;
+
+  if (state.phase === "await_move" && state.lastRoll) {
+    const maxBreak = state.lastRoll.total;
+    const br = Math.min(Math.max(0, state.breakSpaces), maxBreak);
+    const steps = state.lastRoll.total - br;
+    const bCost = breakFuelCost(br);
+    const leavePreview = leaveBurnCost(node, Math.max(1, steps), p.propellant);
+    const canAffordBreak = p.fuel + 1e-9 >= bCost;
+    return {
+      ...empty,
+      refuel: false,
+      roll: false,
+      move: canAffordBreak,
+      maxBreak,
+      breakSpaces: br,
+      breakFuelCost: bCost,
+      leaveBurnPreview: leavePreview,
+      sell: canSell,
+      sellNodeId: canSell ? node.id : null,
+      sellValue,
+      placeStation: canStation,
+      endTurn: false,
+    };
+  }
+
+  const previewSteps = state.lastRoll?.total ?? 7;
+  const leaveBurnPreview = leaveBurnCost(node, previewSteps, p.propellant);
+
   if (state.phase === "await_action") {
     return {
       refuel: fuel.allowed && fuel.max > 0,
       refuelMax: fuel.max,
       refuelCostPer: fuel.costPer,
       roll: true,
+      move: false,
+      maxBreak: 0,
+      breakSpaces: 0,
+      breakFuelCost: 0,
       buy: false,
       buyPrice: 0,
-      // Allow building a fuel depot on your claim at the start of turn (not only post-land)
+      sell: canSell,
+      sellNodeId: canSell ? node.id : null,
+      sellValue,
       placeStation: canStation,
-      endTurn: true, // camp / skip roll (e.g. Earth)
+      endTurn: true,
       leaveBurnPreview,
       duelStance: false,
       duelRoll: false,
@@ -414,8 +468,15 @@ export function getLegalActions(state: GameState): LegalActions {
     refuelMax: fuel.max,
     refuelCostPer: fuel.costPer,
     roll: false,
+    move: false,
+    maxBreak: 0,
+    breakSpaces: 0,
+    breakFuelCost: 0,
     buy: canBuy,
     buyPrice: node.price ?? 0,
+    sell: canSell,
+    sellNodeId: canSell ? node.id : null,
+    sellValue,
     placeStation: canStation,
     endTurn: true,
     leaveBurnPreview,
@@ -818,6 +879,67 @@ function doPlaceStation(state: GameState): void {
   delta(state, `+depot ${getNode(state.board, p.position).name}`);
 }
 
+/** Sell claim underfoot for half price; depot destroyed. */
+function doSell(state: GameState, nodeId: string): void {
+  const p = currentPlayer(state);
+  const node = getNode(state.board, nodeId);
+  if (state.owners[nodeId] !== p.id || !isPurchasable(node)) {
+    pushLog(state, `${p.name} cannot sell ${node.name}.`);
+    return;
+  }
+  const value = Math.floor((node.price ?? 0) / 2);
+  p.cash += value;
+  p.properties = p.properties.filter((id) => id !== nodeId);
+  const hadDepot = !!state.stations[nodeId];
+  releaseClaimToBank(state, nodeId);
+  if (p.ephemerisBodyId === nodeId) {
+    p.ephemerisBodyId = p.properties[0] ?? null;
+  }
+  pushLog(
+    state,
+    `${p.name} sells ${node.name} for ${formatMoney(value)}${hadDepot ? " (depot scrapped)" : ""}.`,
+  );
+  delta(state, `+${formatMoney(value)} sold ${node.name}`);
+}
+
+function doSetBreak(state: GameState, spaces: number): void {
+  if (state.phase !== "await_move" || !state.lastRoll) return;
+  const max = state.lastRoll.total;
+  state.breakSpaces = Math.min(max, Math.max(0, Math.floor(spaces)));
+}
+
+function doMove(state: GameState): void {
+  const p = currentPlayer(state);
+  if (state.phase !== "await_move" || !state.lastRoll) return;
+  const total = state.lastRoll.total;
+  const br = Math.min(state.breakSpaces, total);
+  const cost = breakFuelCost(br);
+  if (p.fuel + 1e-9 < cost) {
+    pushLog(state, `${p.name} cannot afford break (${cost} fuel for −${br} spaces).`);
+    return;
+  }
+  if (br > 0) {
+    p.fuel -= cost;
+    // Avoid float dust
+    p.fuel = Math.round(p.fuel * 2) / 2;
+    pushLog(
+      state,
+      `${p.name} breaks −${br} space(s) for ${cost} fuel (roll ${total} → move ${total - br}).`,
+    );
+    delta(state, `−${cost} fuel break (−${br} spaces)`);
+  }
+  const steps = total - br;
+  state.breakSpaces = 0;
+  if (steps <= 0) {
+    pushLog(state, `${p.name} breaks full roll — stays put.`);
+    delta(state, `stay (full break)`);
+    state.phase = "await_post_land";
+    return;
+  }
+  movePlayer(state, steps);
+  if (state.pendingDuel) autoDuelAi(state);
+}
+
 function autoDuelAi(state: GameState): void {
   const d = state.pendingDuel;
   if (!d) return;
@@ -888,27 +1010,53 @@ export function applyAction(state: GameState, action: PlayerAction): GameState {
       if (next.phase !== "await_action") break;
       const roll = roll2d6(next, p);
       next.lastRoll = roll;
+      next.breakSpaces = 0;
+      p.rolledThisTurn = true;
+      p.skippedRoll = false;
       pushLog(
         next,
-        `${p.name} rolls ${roll.d1}+${roll.d2}=${roll.total}${roll.doubles ? " (doubles)" : ""}.`,
+        `${p.name} rolls ${roll.d1}+${roll.d2}=${roll.total}${roll.doubles ? " (doubles)" : ""} — choose break, then Move.`,
       );
       delta(next, `roll ${roll.total}`);
-      // Feral checks on this pilot's movement roll (all overdue deeds)
       checkFeralOnOwnerRoll(next, p);
-      movePlayer(next, roll.total);
-      if (next.pendingDuel) autoDuelAi(next);
+      next.phase = "await_move";
       break;
     }
+    case "set_break":
+      doSetBreak(next, action.spaces);
+      break;
+    case "move":
+      doMove(next);
+      break;
     case "buy":
       if (next.phase === "await_post_land") doBuy(next);
       break;
+    case "sell":
+      if (
+        next.phase === "await_action" ||
+        next.phase === "await_move" ||
+        next.phase === "await_post_land"
+      ) {
+        doSell(next, action.nodeId);
+      }
+      break;
     case "place_station":
-      if (next.phase === "await_post_land" || next.phase === "await_action") {
+      if (
+        next.phase === "await_post_land" ||
+        next.phase === "await_action" ||
+        next.phase === "await_move"
+      ) {
         doPlaceStation(next);
       }
       break;
     case "end_turn":
       if (next.phase === "await_post_land" || next.phase === "await_action") {
+        if (!p.rolledThisTurn) {
+          p.skippedRoll = true;
+          pushLog(next, `${p.name} ends turn without rolling (camping).`);
+        } else {
+          p.skippedRoll = false;
+        }
         advanceTurn(next);
       }
       break;

@@ -109,14 +109,27 @@
           <section class="card" id="turn-card">
             <h2>Turn</h2>
             <div id="turn-info" class="mono">No game yet.</div>
+            <div id="roll-result" class="roll-result mono hidden"></div>
+            <div class="break-row hidden" id="break-row">
+              <button type="button" id="btn-break-label" class="break-label" disabled>
+                Break
+              </button>
+              <div class="break-stepper">
+                <button type="button" id="btn-break-minus" disabled>−</button>
+                <span id="break-count" class="break-count">0</span>
+                <button type="button" id="btn-break-plus" disabled>+</button>
+              </div>
+              <span id="break-cost" class="break-cost mono"></span>
+            </div>
             <div class="actions">
               <button id="btn-refuel" type="button" disabled>Refuel</button>
               <button id="btn-roll" type="button" class="primary" disabled>
                 Roll
               </button>
               <button id="btn-buy" type="button" disabled>Buy</button>
+              <button id="btn-sell" type="button" disabled>Sell claim</button>
               <button id="btn-station" type="button" disabled>
-                Place station
+                Fuel depot
               </button>
               <button id="btn-end" type="button" disabled>End turn</button>
             </div>

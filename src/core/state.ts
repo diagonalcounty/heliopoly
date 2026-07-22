@@ -52,6 +52,8 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
       ephemerisBodyId: null,
       circuitActive: false,
       neglectClock: 0,
+      skippedRoll: false,
+      rolledThisTurn: false,
     });
   }
 
@@ -76,6 +78,7 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
     phase: "await_action",
     round: 1,
     lastRoll: null,
+    breakSpaces: 0,
     log: [
       `Heliopoly · Free Enterprise In Space`,
       `Game start: ${count} pilots · seed ${seed} · bank ${formatMoney(config.startingCash)} each`,

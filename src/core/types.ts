@@ -67,15 +67,21 @@ export interface Player {
   /** True after leaving Earth until next full circuit completes. */
   circuitActive: boolean;
   /**
-   * Neglect clock for feral (in “rotations”).
+   * Neglect clock for feral.
    * +1 when this pilot completes a full board circuit.
-   * +1 per opponent circuit while this pilot is camping on Earth.
+   * +1 when an opponent lands on/passes Earth while this pilot
+   * skipped rolling on their last turn (camping anywhere).
    */
   neglectClock: number;
+  /** True if this pilot ended their last turn without rolling. */
+  skippedRoll: boolean;
+  /** True if they rolled on the current turn. */
+  rolledThisTurn: boolean;
 }
 
 export type TurnPhase =
   | "await_action"
+  | "await_move" // rolled; choose break then move
   | "await_post_land"
   | "await_duel"
   | "game_over";
@@ -145,6 +151,8 @@ export interface GameState {
   phase: TurnPhase;
   round: number;
   lastRoll: LastRoll | null;
+  /** Spaces of break (slowdown) after roll, before move. */
+  breakSpaces: number;
   log: string[];
   /** Structured +/- lines for the pilot whose turn just ended / is active. */
   turnDeltas: string[];
@@ -172,7 +180,10 @@ export interface GameState {
 export type PlayerAction =
   | { type: "refuel"; amount: number }
   | { type: "roll" }
+  | { type: "set_break"; spaces: number }
+  | { type: "move" }
   | { type: "buy" }
+  | { type: "sell"; nodeId: string }
   | { type: "place_station" }
   | { type: "end_turn" }
   | { type: "duel_stance"; stance: DuelStance }
@@ -183,8 +194,17 @@ export interface LegalActions {
   refuelMax: number;
   refuelCostPer: number;
   roll: boolean;
+  move: boolean;
+  /** Spaces to shave off the roll (0 … lastRoll.total). */
+  maxBreak: number;
+  breakSpaces: number;
+  /** Fuel cost for current break (0.5 per space). */
+  breakFuelCost: number;
   buy: boolean;
   buyPrice: number;
+  sell: boolean;
+  sellNodeId: string | null;
+  sellValue: number;
   placeStation: boolean;
   endTurn: boolean;
   leaveBurnPreview: number;

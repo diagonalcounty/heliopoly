@@ -725,3 +725,59 @@ button:not(:disabled):active {
   line-height: 1.45;
   margin: 0 0 16px;
 }
+
+.roll-result {
+  margin: 8px 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #0d1426;
+  border: 1px solid var(--border);
+  color: var(--accent-2);
+  font-size: 0.9rem;
+}
+.break-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0 4px;
+  flex-wrap: wrap;
+}
+.break-label {
+  min-height: 40px;
+  padding: 8px 12px;
+  border-radius: 10px 0 0 10px;
+  background: #2a2040;
+  border: 1px solid var(--border);
+  color: var(--accent);
+  font-weight: 700;
+}
+.break-stepper {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: 0 10px 10px 0;
+  overflow: hidden;
+}
+.break-stepper button {
+  min-width: 40px;
+  min-height: 40px;
+  border: none;
+  border-radius: 0;
+  background: var(--btn);
+}
+.break-count {
+  min-width: 36px;
+  text-align: center;
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--text);
+}
+.break-cost {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.rank-row .cash {
+  color: var(--ok);
+  font-size: 0.75rem;
+}
