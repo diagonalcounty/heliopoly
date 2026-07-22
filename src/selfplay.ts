@@ -12,7 +12,7 @@ function playGame(seed: number, players: number): {
     playerCount: players,
     humanSeat: false,
     seed,
-    maxRounds: 50,
+    maxRounds: 0,
   });
 
   let turns = 0;

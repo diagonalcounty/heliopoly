@@ -95,8 +95,7 @@ export const HANDBOOK_TOPICS: HandbookTopic[] = [
     id: "how-to-win",
     title: "How to win",
     html: `
-<p><strong>Last pilot flying</strong> if others bankrupt or strand.</p>
-<p>At the <strong>round limit</strong>, highest net worth among survivors (cash + deeds + depots).</p>
+<p><strong>Last pilot flying wins</strong> (others bankrupt or strand). There is <strong>no round limit</strong>.</p>
 <p>Eliminated pilots’ deeds return to the <strong>bank</strong> (available again); depots are lost.</p>
 `,
   },

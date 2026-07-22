@@ -13,7 +13,7 @@ export const DEFAULT_CONFIG: GameConfig = {
   startingFuel: 20,
   stationsEach: 3,
   maxFuel: 25,
-  maxRounds: 40,
+  maxRounds: 0, // 0 = no round limit; game ends by elimination only
 };
 
 function pickAiPropellant(index: number, seed: number): PropellantId {
