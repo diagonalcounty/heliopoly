@@ -78,18 +78,20 @@ export function inspectBody(
     else lines.push(`Refuel here: none`);
   }
 
-  // Feral half-life
+  // Feral: uses owner neglect clock (own circuits while active; opponents’ circuits while camping Earth)
   if (ownerId && isPurchasable(node)) {
-    const care = state.claimCareRotations[nodeId] ?? state.boardRotations;
-    const age = state.boardRotations - care;
+    const owner = state.players.find((p) => p.id === ownerId)!;
+    const care = state.claimCareRotations[nodeId] ?? owner.neglectClock;
+    const age = owner.neglectClock - care;
     const left = Math.max(0, FERAL_ROTATIONS - age);
+    lines.push(`Owner neglect clock: ${owner.neglectClock}`);
     if (left > 0) {
       lines.push(
-        `Feral risk starts in ${left} board rotation(s) without a visit (at ${FERAL_ROTATIONS} overdue → 50% on owner’s roll)`,
+        `Feral risk in ~${left} neglect rotation(s) (own loops while out; if camping Earth, each opponent loop counts)`,
       );
     } else {
       lines.push(
-        `FERAL WINDOW OPEN (overdue ${age} rot) — 50% on owner’s movement roll (15% if monopoly)`,
+        `FERAL WINDOW OPEN (overdue ${age}) — 50% on owner’s movement roll (15% if monopoly)`,
       );
     }
   }

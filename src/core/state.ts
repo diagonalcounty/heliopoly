@@ -51,6 +51,7 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
       rentWaiversAgainst: [],
       ephemerisBodyId: null,
       circuitActive: false,
+      neglectClock: 0,
     });
   }
 

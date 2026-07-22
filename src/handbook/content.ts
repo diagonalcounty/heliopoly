@@ -77,14 +77,18 @@ export const HANDBOOK_TOPICS: HandbookTopic[] = [
     id: "feral",
     title: "Feral claims",
     html: `
-<p>If you do not <strong>land on</strong> a claim for <strong>10 board rotations</strong> after purchase (or last visit / depot build), it is <strong>overdue</strong>.</p>
-<p>When <strong>you</strong> roll movement dice, each overdue claim you own rolls a feral check:</p>
+<p>Each pilot has a <strong>neglect clock</strong> in “rotations” (full loops of the board path).</p>
 <ul>
-  <li><strong>50%</strong> chance it goes <strong>feral</strong> (unowned again; depot destroyed)</li>
-  <li><strong>15%</strong> if you hold the <strong>full system monopoly</strong> including that claim</li>
+  <li><strong>While you are out flying:</strong> only <em>your</em> completed circuits advance your neglect clock.</li>
+  <li><strong>While you sit on Earth:</strong> you do <em>not</em> advance your own clock by camping — instead <strong>each opponent circuit</strong> adds +1 to your neglect clock.</li>
 </ul>
-<p>Checks run on <strong>your movement roll only</strong> (not every pilot’s roll), for <strong>all</strong> of your overdue properties.</p>
-<p><strong>Resets the timer:</strong> landing on your claim, or placing a fuel depot.</p>
+<p>If you do not <strong>land on</strong> a claim for <strong>10 neglect rotations</strong> after purchase (or last visit / depot build), it is <strong>overdue</strong>.</p>
+<p>When <strong>you</strong> roll movement dice, each overdue claim checks feral:</p>
+<ul>
+  <li><strong>50%</strong> → feral (unowned; depot destroyed)</li>
+  <li><strong>15%</strong> if you hold that system’s full monopoly</li>
+</ul>
+<p><strong>Resets care:</strong> land on your claim, or place a fuel depot.</p>
 `,
   },
   {

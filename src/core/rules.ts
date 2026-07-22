@@ -101,8 +101,47 @@ function rentDue(state: GameState, nodeId: string, ownerId: string): number {
   return Math.floor(base * mult * stationBonus);
 }
 
-function touchClaim(state: GameState, nodeId: string): void {
-  state.claimCareRotations[nodeId] = state.boardRotations;
+function touchClaim(state: GameState, nodeId: string, owner?: Player): void {
+  const o =
+    owner ??
+    state.players.find((p) => p.id === state.owners[nodeId]) ??
+    currentPlayer(state);
+  state.claimCareRotations[nodeId] = o.neglectClock;
+}
+
+/**
+ * A pilot finished a full board circuit (returned to Earth after leaving).
+ * - Their own neglect clock advances (they were out on the board).
+ * - Any pilot currently camping on Earth gets +1 neglect from this opponent loop.
+ */
+function onCircuitComplete(state: GameState, pilot: Player): void {
+  state.boardRotations += 1;
+  pilot.circuitActive = false;
+  pilot.neglectClock += 1;
+
+  pushLog(
+    state,
+    `Circuit complete: ${pilot.name} (their neglect clock ${pilot.neglectClock}). Board loops: ${state.boardRotations}.`,
+  );
+
+  for (const other of state.players) {
+    if (other.id === pilot.id || other.eliminated) continue;
+    if (other.position === "earth") {
+      other.neglectClock += 1;
+      pushLog(
+        state,
+        `${other.name} camps Earth — opponent circuit counts (+1 neglect → ${other.neglectClock}).`,
+      );
+    }
+  }
+
+  const resupply = state.config.stationsEach;
+  pilot.stationsInHand += resupply;
+  pushLog(
+    state,
+    `${pilot.name} resupplies at Earth: +${resupply} fuel depot(s) in hand (now ${pilot.stationsInHand}).`,
+  );
+  delta(state, `+${resupply} fuel depots (Earth resupply)`);
 }
 
 function releaseClaimToBank(state: GameState, nodeId: string): void {
@@ -118,7 +157,7 @@ function checkFeralOnOwnerRoll(state: GameState, owner: Player): void {
   const overdue = owner.properties.filter((nodeId) => {
     const care = state.claimCareRotations[nodeId];
     if (care === undefined) return false;
-    return state.boardRotations - care >= FERAL_ROTATIONS;
+    return owner.neglectClock - care >= FERAL_ROTATIONS;
   });
   if (overdue.length === 0) return;
 
@@ -128,19 +167,19 @@ function checkFeralOnOwnerRoll(state: GameState, owner: Player): void {
     const mono =
       !!sys && hasSystemMonopoly(state.owners, owner.id, sys.id as SystemId);
     const chance = mono ? FERAL_CHANCE_MONOPOLY : FERAL_CHANCE;
+    const age = owner.neglectClock - (state.claimCareRotations[nodeId] ?? 0);
     if (mulberryNext(state) >= chance) {
       pushLog(
         state,
-        `${node.name} stays held (${Math.round(chance * 100)}% feral check failed).`,
+        `${node.name} stays held (overdue ${age} rot, ${Math.round(chance * 100)}% feral resisted).`,
       );
       continue;
     }
-    // Go feral
     owner.properties = owner.properties.filter((id) => id !== nodeId);
     releaseClaimToBank(state, nodeId);
     pushLog(
       state,
-      `${node.name} goes FERAL — claim abandoned (no visit for ${FERAL_ROTATIONS}+ rotations). Fuel depot lost if any.`,
+      `${node.name} goes FERAL — no visit for ${FERAL_ROTATIONS}+ neglect rotations (clock ${owner.neglectClock}). Depot lost if any.`,
     );
     delta(state, `feral: ${node.name}`);
     if (owner.ephemerisBodyId === nodeId) {
@@ -607,21 +646,8 @@ function movePlayer(state: GameState, steps: number): void {
   }
   p.position = path.endId;
 
-  // Completing a full path back to Earth = +1 board rotation + depot resupply
   if (path.endId === "earth" && p.circuitActive) {
-    state.boardRotations += 1;
-    p.circuitActive = false;
-    const resupply = state.config.stationsEach; // typically 3
-    p.stationsInHand += resupply;
-    pushLog(
-      state,
-      `Board rotation ${state.boardRotations} complete (${p.name} returned to Earth).`,
-    );
-    pushLog(
-      state,
-      `${p.name} resupplies at Earth: +${resupply} fuel depot(s) in hand (now ${p.stationsInHand}).`,
-    );
-    delta(state, `+${resupply} fuel depots (Earth resupply)`);
+    onCircuitComplete(state, p);
   }
 
   resolveLanding(state, false);

@@ -66,6 +66,12 @@ export interface Player {
   ephemerisBodyId: string | null;
   /** True after leaving Earth until next full circuit completes. */
   circuitActive: boolean;
+  /**
+   * Neglect clock for feral (in “rotations”).
+   * +1 when this pilot completes a full board circuit.
+   * +1 per opponent circuit while this pilot is camping on Earth.
+   */
+  neglectClock: number;
 }
 
 export type TurnPhase =
@@ -149,14 +155,11 @@ export interface GameState {
   lastDuelResult: DuelResult | null;
   /** nodeId → encounter memory */
   encounterMem: Record<string, NodeEncounterMem>;
-  /**
-   * Full board circuits completed (any pilot returning to Earth after leaving).
-   * One rotation = one pass through the entire board path.
-   */
+  /** Total circuits completed by anyone (display / stats). */
   boardRotations: number;
   /**
-   * Per claim: boardRotations at last visit / purchase / fuel-station reset.
-   * Key = nodeId.
+   * Per claim: owner.neglectClock at last visit / purchase / depot.
+   * Overdue when owner.neglectClock - care >= FERAL_ROTATIONS.
    */
   claimCareRotations: Record<string, number>;
   winnerId: string | null;

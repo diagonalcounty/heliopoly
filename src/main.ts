@@ -680,7 +680,7 @@ function renderSide(): void {
     state.lastRoll
       ? `Last roll: ${state.lastRoll.d1}+${state.lastRoll.d2}=${state.lastRoll.total}`
       : "Last roll: —",
-    `Board rotations: ${state.boardRotations} (feral after ${FERAL_ROTATIONS}+ without visit)`,
+    `Neglect clock: ${p.neglectClock} (feral after ${FERAL_ROTATIONS}+ without visit; Earth camp → foe loops count)`,
     p.ephemerisBodyId
       ? `Ephemeris: ${getNode(state.board, p.ephemerisBodyId).name}`
       : "Ephemeris: Earth (until first claim)",
