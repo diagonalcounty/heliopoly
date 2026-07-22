@@ -3,13 +3,16 @@ import { formatMoney } from "./currency";
 import { gravityClassOf, leaveBurnCost } from "./fuel";
 import { walkMovePath } from "./path";
 import { PROPELLANTS } from "./propellant";
+import { reseedForActivePilot } from "./seed";
 import {
   cloneState,
   currentPlayer,
   livingPlayers,
 } from "./state";
 import type {
+  DuelStance,
   GameState,
+  LastRoll,
   LegalActions,
   Player,
   PlayerAction,
@@ -23,6 +26,10 @@ function pushLog(state: GameState, msg: string): void {
   if (state.log.length > 200) state.log.splice(0, state.log.length - 200);
 }
 
+function delta(state: GameState, line: string): void {
+  state.turnDeltas.push(line);
+}
+
 function mulberryNext(state: GameState): number {
   let s = state.rngState | 0;
   s = (s + 0x6d2b79f5) | 0;
@@ -34,6 +41,40 @@ function mulberryNext(state: GameState): number {
 
 function rngInt(state: GameState, min: number, maxInclusive: number): number {
   return min + Math.floor(mulberryNext(state) * (maxInclusive - min + 1));
+}
+
+function roll2d6(state: GameState, pilot: Player): LastRoll {
+  const crumb = reseedForActivePilot(state, pilot);
+  const d1 = rngInt(state, 1, 6);
+  const d2 = rngInt(state, 1, 6);
+  const total = d1 + d2;
+  state.diceTotals.push(total);
+  pushLog(state, `  ↺ ${crumb}`);
+  return { d1, d2, total, doubles: d1 === d2 };
+}
+
+export function meanDiceTotal(state: GameState): number {
+  if (state.diceTotals.length === 0) return 7;
+  const sum = state.diceTotals.reduce((a, b) => a + b, 0);
+  return sum / state.diceTotals.length;
+}
+
+export function netWorth(state: GameState, p: Player): number {
+  let deeds = 0;
+  for (const id of p.properties) {
+    deeds += getNode(state.board, id).price ?? 0;
+  }
+  const stationsPlaced = p.properties.filter((id) => state.stations[id]).length;
+  return p.cash + deeds + stationsPlaced * 500 + p.stationsInHand * 500;
+}
+
+export function rankings(
+  state: GameState,
+): { player: Player; worth: number; rank: number }[] {
+  const alive = livingPlayers(state)
+    .map((player) => ({ player, worth: netWorth(state, player) }))
+    .sort((a, b) => b.worth - a.worth);
+  return alive.map((row, i) => ({ ...row, rank: i + 1 }));
 }
 
 function groupOwnedCount(
@@ -60,15 +101,6 @@ function rentDue(state: GameState, nodeId: string, ownerId: string): number {
   return Math.floor(base * mult * stationBonus);
 }
 
-function netWorth(state: GameState, p: Player): number {
-  let deeds = 0;
-  for (const id of p.properties) {
-    deeds += getNode(state.board, id).price ?? 0;
-  }
-  const stationsPlaced = p.properties.filter((id) => state.stations[id]).length;
-  return p.cash + deeds + stationsPlaced * 500 + p.stationsInHand * 500;
-}
-
 function eliminate(
   state: GameState,
   player: Player,
@@ -77,6 +109,7 @@ function eliminate(
   if (player.eliminated) return;
   player.eliminated = true;
   pushLog(state, `${player.name} eliminated: ${reason}`);
+  delta(state, `OUT ${player.name}: ${reason}`);
   for (const prop of [...player.properties]) {
     delete state.owners[prop];
   }
@@ -96,11 +129,13 @@ function checkWinner(state: GameState): void {
   if (alive.length === 1) {
     state.winnerId = alive[0].id;
     state.phase = "game_over";
+    state.endReason = `${alive[0].name} is the last pilot flying.`;
     pushLog(state, `Winner: ${alive[0].name}`);
     return;
   }
   if (alive.length === 0) {
     state.phase = "game_over";
+    state.endReason = "No survivors among the stars.";
     pushLog(state, "No survivors.");
   }
 }
@@ -113,14 +148,17 @@ function forceEndByRounds(state: GameState): boolean {
   alive.sort((a, b) => netWorth(state, b) - netWorth(state, a));
   state.winnerId = alive[0].id;
   state.phase = "game_over";
+  state.endReason = `Charter term ended (round ${state.config.maxRounds}). ${alive[0].name} leads with ${formatMoney(netWorth(state, alive[0]))}.`;
   pushLog(
     state,
-    `Round limit (${state.config.maxRounds}): ${alive[0].name} wins on net worth (${formatMoney(netWorth(state, alive[0]))}).`,
+    `Round limit: ${alive[0].name} wins on net worth (${formatMoney(netWorth(state, alive[0]))}).`,
   );
   return true;
 }
 
 function advanceTurn(state: GameState): void {
+  if (state.phase === "game_over") return;
+  // Preserve turn deltas for UI until next action of new player starts
   const n = state.players.length;
   let idx = state.currentPlayerIndex;
   let guarded = 0;
@@ -133,8 +171,22 @@ function advanceTurn(state: GameState): void {
   state.currentPlayerIndex = idx;
   state.phase = "await_action";
   state.lastRoll = null;
+  state.pendingDuel = null;
+
   if (forceEndByRounds(state)) return;
+
   const p = currentPlayer(state);
+  if (p.skipTurns > 0) {
+    p.skipTurns -= 1;
+    pushLog(state, `${p.name} loses this turn (Gravity Duel forfeit).`);
+    delta(state, `${p.name}: skipped turn`);
+    // End their "turn" immediately
+    state.turnDeltas = [`${p.name}: skipped turn (duel loss)`];
+    advanceTurn(state);
+    return;
+  }
+
+  state.turnDeltas = [];
   pushLog(state, `— Round ${state.round}: ${p.name}'s turn —`);
 }
 
@@ -144,7 +196,7 @@ export function refuelInfo(state: GameState): {
   costPer: number;
 } {
   const p = currentPlayer(state);
-  if (p.eliminated || state.phase === "game_over") {
+  if (p.eliminated || state.phase === "game_over" || state.phase === "await_duel") {
     return { allowed: false, max: 0, costPer: 0 };
   }
   const node = getNode(state.board, p.position);
@@ -198,11 +250,43 @@ export function getLegalActions(state: GameState): LegalActions {
     placeStation: false,
     endTurn: false,
     leaveBurnPreview: 0,
+    duelStance: false,
+    duelRoll: false,
   };
   if (state.phase === "game_over") return empty;
 
   const p = currentPlayer(state);
   if (p.eliminated) return empty;
+
+  if (state.phase === "await_duel" && state.pendingDuel) {
+    const d = state.pendingDuel;
+    const isChallenger = p.id === d.challengerId;
+    const isDefender = p.id === d.defenderId;
+    // Only current player is challenger usually — defender may be AI resolved in apply
+    // Human may be either; legal for active player seat if they still need stance/roll
+    let needStance = false;
+    let needRoll = false;
+    if (isChallenger) {
+      needStance = d.challengerStance === null;
+      needRoll =
+        d.challengerStance !== null &&
+        d.defenderStance !== null &&
+        d.challengerRoll === null;
+    }
+    if (isDefender) {
+      needStance = d.defenderStance === null;
+      needRoll =
+        d.challengerStance !== null &&
+        d.defenderStance !== null &&
+        d.defenderRoll === null;
+    }
+    // Turn seat stays on challenger; defender actions applied via AI or when seat is defender
+    return {
+      ...empty,
+      duelStance: needStance,
+      duelRoll: needRoll,
+    };
+  }
 
   const fuel = refuelInfo(state);
   const node = getNode(state.board, p.position);
@@ -220,6 +304,8 @@ export function getLegalActions(state: GameState): LegalActions {
       placeStation: false,
       endTurn: false,
       leaveBurnPreview,
+      duelStance: false,
+      duelRoll: false,
     };
   }
 
@@ -242,6 +328,8 @@ export function getLegalActions(state: GameState): LegalActions {
     placeStation: canStation,
     endTurn: true,
     leaveBurnPreview,
+    duelStance: false,
+    duelRoll: false,
   };
 }
 
@@ -249,21 +337,153 @@ function applyLeaveRisk(state: GameState, p: Player, nodeName: string): void {
   const def = PROPELLANTS[p.propellant];
   if (def.leaveRisk <= 0) return;
   if (mulberryNext(state) > def.leaveRisk) return;
-
   const loss = Math.min(p.fuel, rngInt(state, 1, 2));
   if (loss <= 0) return;
   p.fuel -= loss;
-  if (p.propellant === "hydrogen") {
-    pushLog(
-      state,
-      `${p.name} H₂ boil-off leaving ${nodeName}: −${loss} fuel (risk event).`,
-    );
-  } else {
-    pushLog(
-      state,
-      `${p.name} CH₄ feed glitch leaving ${nodeName}: −${loss} fuel (rare).`,
-    );
+  const msg =
+    p.propellant === "hydrogen"
+      ? `${p.name} H₂ boil-off leaving ${nodeName}: −${loss} fuel`
+      : `${p.name} CH₄ glitch leaving ${nodeName}: −${loss} fuel`;
+  pushLog(state, msg);
+  delta(state, `−${loss} fuel (${p.propellant})`);
+}
+
+function othersOnNode(state: GameState, nodeId: string, exceptId: string): Player[] {
+  return state.players.filter(
+    (x) => !x.eliminated && x.position === nodeId && x.id !== exceptId,
+  );
+}
+
+function pickDefender(
+  state: GameState,
+  nodeId: string,
+  challengerId: string,
+): Player | null {
+  const others = othersOnNode(state, nodeId, challengerId);
+  if (others.length === 0) return null;
+  const mem = state.encounterMem[nodeId];
+  if (mem?.lastRollerId) {
+    const lr = others.find((o) => o.id === mem.lastRollerId);
+    if (lr) return lr;
   }
+  if (mem?.championId) {
+    const ch = others.find((o) => o.id === mem.championId);
+    if (ch) return ch;
+  }
+  return others[0] ?? null;
+}
+
+function beginDuel(
+  state: GameState,
+  challenger: Player,
+  defender: Player,
+  nodeId: string,
+): void {
+  state.pendingDuel = {
+    nodeId,
+    challengerId: challenger.id,
+    defenderId: defender.id,
+    challengerStance: null,
+    defenderStance: null,
+    challengerRoll: null,
+    defenderRoll: null,
+  };
+  state.phase = "await_duel";
+  // Keep turn on challenger for UI; AI defender resolved in apply/auto
+  const idx = state.players.findIndex((p) => p.id === challenger.id);
+  if (idx >= 0) state.currentPlayerIndex = idx;
+  pushLog(
+    state,
+    `Gravity Duel on ${getNode(state.board, nodeId).name}: ${challenger.name} vs ${defender.name}!`,
+  );
+  delta(state, `Duel vs ${defender.name}`);
+}
+
+function resolveDuelIfComplete(state: GameState): void {
+  const d = state.pendingDuel;
+  if (!d) return;
+  if (
+    !d.challengerStance ||
+    !d.defenderStance ||
+    !d.challengerRoll ||
+    !d.defenderRoll
+  ) {
+    return;
+  }
+
+  const c = state.players.find((p) => p.id === d.challengerId)!;
+  const def = state.players.find((p) => p.id === d.defenderId)!;
+  const ct = d.challengerRoll.total;
+  const dt = d.defenderRoll.total;
+  const mean = meanDiceTotal(state);
+
+  pushLog(
+    state,
+    `Reveal: ${c.name} ${d.challengerStance.toUpperCase()} ${ct} · ${def.name} ${d.defenderStance.toUpperCase()} ${dt} · mean ${mean.toFixed(2)}`,
+  );
+
+  let winner: Player | null = null;
+  let loser: Player | null = null;
+
+  if (d.challengerStance === "low" && d.defenderStance === "low") {
+    if (ct < dt) {
+      winner = c;
+      loser = def;
+    } else if (dt < ct) {
+      winner = def;
+      loser = c;
+    }
+  } else if (d.challengerStance === "high" && d.defenderStance === "high") {
+    if (ct > dt) {
+      winner = c;
+      loser = def;
+    } else if (dt > ct) {
+      winner = def;
+      loser = c;
+    }
+  } else {
+    const cDist = Math.abs(ct - mean);
+    const dDist = Math.abs(dt - mean);
+    if (cDist < dDist) {
+      winner = c;
+      loser = def;
+    } else if (dDist < cDist) {
+      winner = def;
+      loser = c;
+    }
+  }
+
+  const mem = state.encounterMem[d.nodeId] ?? {
+    lastRollerId: null,
+    championId: null,
+  };
+  // Last to roll: challenger (arriver) for next multi-ship rule on tie or otherwise
+  mem.lastRollerId = d.challengerId;
+
+  if (!winner || !loser) {
+    pushLog(state, `Gravity Duel: TIE — both hold the transit. No forfeit.`);
+    delta(state, `Duel TIE — both occupy`);
+    mem.championId = null;
+    state.encounterMem[d.nodeId] = mem;
+    state.pendingDuel = null;
+    state.phase = "await_post_land";
+    return;
+  }
+
+  mem.championId = winner.id;
+  state.encounterMem[d.nodeId] = mem;
+
+  loser.skipTurns += 1;
+  if (!winner.rentWaiversAgainst.includes(loser.id)) {
+    winner.rentWaiversAgainst.push(loser.id);
+  }
+  pushLog(
+    state,
+    `${winner.name} wins Gravity Duel! ${loser.name} loses a turn; ${winner.name} gets a free pass on ${loser.name}'s claims.`,
+  );
+  delta(state, `Duel WIN ${winner.name} / ${loser.name} skips + waiver`);
+  state.pendingDuel = null;
+  state.phase = "await_post_land";
 }
 
 function movePlayer(state: GameState, steps: number): void {
@@ -273,21 +493,22 @@ function movePlayer(state: GameState, steps: number): void {
   const g = gravityClassOf(startNode);
   const burn = leaveBurnCost(startNode, steps, p.propellant);
 
-  // Leave costs fuel; insertion is free (no cost on arrival).
   if (burn > 0) {
     if (p.fuel < burn) {
       pushLog(
         state,
-        `${p.name} cannot leave ${startNode.name} (g${g}): need ${burn} fuel for roll ${steps} on ${PROPELLANTS[p.propellant].short}, have ${p.fuel}.`,
+        `${p.name} cannot leave ${startNode.name} (g${g}): need ${burn} fuel, have ${p.fuel}.`,
       );
+      delta(state, `stuck on ${startNode.name} (no leave fuel)`);
       resolveLanding(state, true);
       return;
     }
     p.fuel -= burn;
     pushLog(
       state,
-      `${p.name} burns ${burn} fuel leaving ${startNode.name} (g${g} · ${PROPELLANTS[p.propellant].short} · roll ${steps}).`,
+      `${p.name} burns ${burn} fuel leaving ${startNode.name} (g${g} · ${PROPELLANTS[p.propellant].short}).`,
     );
+    delta(state, `−${burn} fuel leave ${startNode.name}`);
     applyLeaveRisk(state, p, startNode.name);
   }
 
@@ -317,32 +538,45 @@ function resolveLanding(state: GameState, stayed: boolean): void {
       state,
       `${p.name} collects ${formatMoney(node.landingBonus)} from ${node.name}.`,
     );
+    delta(state, `+${formatMoney(node.landingBonus)} ${node.name}`);
   }
 
   const ownerId = state.owners[node.id];
   if (ownerId && ownerId !== p.id && isPurchasable(node)) {
     const owner = state.players.find((x) => x.id === ownerId)!;
-    const rent = rentDue(state, node.id, ownerId);
-    if (p.cash >= rent) {
-      p.cash -= rent;
-      owner.cash += rent;
+    const waiverIdx = p.rentWaiversAgainst.indexOf(owner.id);
+    if (waiverIdx >= 0) {
+      p.rentWaiversAgainst.splice(waiverIdx, 1);
       pushLog(
         state,
-        `${p.name} pays ${formatMoney(rent)} rent to ${owner.name}.`,
+        `${p.name} uses Gravity Duel free pass — no rent to ${owner.name}.`,
       );
+      delta(state, `rent waived vs ${owner.name}`);
     } else {
-      owner.cash += p.cash;
-      pushLog(
-        state,
-        `${p.name} cannot pay ${formatMoney(rent)} rent.`,
-      );
-      for (const prop of p.properties) {
-        state.owners[prop] = owner.id;
-        owner.properties.push(prop);
+      const rent = rentDue(state, node.id, ownerId);
+      if (p.cash >= rent) {
+        p.cash -= rent;
+        owner.cash += rent;
+        pushLog(
+          state,
+          `${p.name} pays ${formatMoney(rent)} rent to ${owner.name}.`,
+        );
+        delta(state, `−${formatMoney(rent)} rent → ${owner.name}`);
+      } else {
+        owner.cash += p.cash;
+        pushLog(
+          state,
+          `${p.name} cannot pay ${formatMoney(rent)} rent.`,
+        );
+        delta(state, `bankrupt to ${owner.name}`);
+        for (const prop of p.properties) {
+          state.owners[prop] = owner.id;
+          owner.properties.push(prop);
+        }
+        p.properties = [];
+        eliminate(state, p, "bankruptcy");
+        return;
       }
-      p.properties = [];
-      eliminate(state, p, "bankruptcy");
-      return;
     }
   }
 
@@ -355,9 +589,18 @@ function resolveLanding(state: GameState, stayed: boolean): void {
     return;
   }
 
-  if (state.phase !== "game_over") {
-    state.phase = "await_post_land";
+  if (state.phase === "game_over") return;
+
+  // Gravity Duel only on transit
+  if (!stayed && node.kind === "space") {
+    const defender = pickDefender(state, node.id, p.id);
+    if (defender) {
+      beginDuel(state, p, defender, node.id);
+      return;
+    }
   }
+
+  state.phase = "await_post_land";
 }
 
 function canRefuelAtAll(state: GameState, p: Player): boolean {
@@ -383,17 +626,19 @@ function doRefuel(state: GameState, amount: number): void {
   }
   p.cash -= cost;
   p.fuel += qty;
-
   const node = getNode(state.board, p.position);
   const ownerId = state.owners[node.id];
   if (cost > 0 && ownerId && ownerId !== p.id) {
     const owner = state.players.find((x) => x.id === ownerId);
     if (owner) owner.cash += cost;
   }
-
   pushLog(
     state,
     `${p.name} refuels +${qty} fuel${cost ? ` for ${formatMoney(cost)}` : " (free)"}.`,
+  );
+  delta(
+    state,
+    `+${qty} fuel${cost ? ` (−${formatMoney(cost)})` : " free"}`,
   );
 }
 
@@ -408,10 +653,18 @@ function doBuy(state: GameState): void {
   p.cash -= legal.buyPrice;
   state.owners[node.id] = p.id;
   p.properties.push(node.id);
+  if (!p.ephemerisBodyId) {
+    p.ephemerisBodyId = node.id;
+    pushLog(
+      state,
+      `${p.name}'s ephemeris anchor is now ${node.name} (first claim).`,
+    );
+  }
   pushLog(
     state,
     `${p.name} claims ${node.name} for ${formatMoney(legal.buyPrice)}.`,
   );
+  delta(state, `−${formatMoney(legal.buyPrice)} claim ${node.name}`);
 }
 
 function doPlaceStation(state: GameState): void {
@@ -427,33 +680,86 @@ function doPlaceStation(state: GameState): void {
     state,
     `${p.name} places a fuel station on ${getNode(state.board, p.position).name}.`,
   );
+  delta(state, `+station ${getNode(state.board, p.position).name}`);
+}
+
+function autoDuelAi(state: GameState): void {
+  const d = state.pendingDuel;
+  if (!d) return;
+  const c = state.players.find((p) => p.id === d.challengerId)!;
+  const def = state.players.find((p) => p.id === d.defenderId)!;
+
+  const pickStance = (pl: Player): DuelStance => {
+    // Slight fuel bias
+    return pl.fuel > 12 ? "high" : "low";
+  };
+
+  if (c.agent === "ai" && d.challengerStance === null) {
+    d.challengerStance = pickStance(c);
+  }
+  if (def.agent === "ai" && d.defenderStance === null) {
+    d.defenderStance = pickStance(def);
+  }
+  if (
+    d.challengerStance &&
+    d.defenderStance &&
+    d.challengerRoll === null &&
+    c.agent === "ai"
+  ) {
+    d.challengerRoll = roll2d6(state, c);
+    pushLog(
+      state,
+      `${c.name} rolls duel dice ${d.challengerRoll.d1}+${d.challengerRoll.d2}=${d.challengerRoll.total}.`,
+    );
+  }
+  if (
+    d.challengerStance &&
+    d.defenderStance &&
+    d.defenderRoll === null &&
+    def.agent === "ai"
+  ) {
+    d.defenderRoll = roll2d6(state, def);
+    pushLog(
+      state,
+      `${def.name} rolls duel dice ${d.defenderRoll.d1}+${d.defenderRoll.d2}=${d.defenderRoll.total}.`,
+    );
+  }
+  resolveDuelIfComplete(state);
 }
 
 export function applyAction(state: GameState, action: PlayerAction): GameState {
   const next = cloneState(state);
   if (next.phase === "game_over") return next;
 
+  // Auto-progress AI duel sides whenever we enter apply
+  if (next.phase === "await_duel") {
+    autoDuelAi(next);
+    if (next.phase !== "await_duel") return next;
+  }
+
   const p = currentPlayer(next);
-  if (p.eliminated) {
+  if (p.eliminated && action.type !== "duel_stance" && action.type !== "duel_roll") {
     advanceTurn(next);
     return next;
   }
 
   switch (action.type) {
     case "refuel":
-      doRefuel(next, action.amount);
+      if (next.phase === "await_action" || next.phase === "await_post_land") {
+        doRefuel(next, action.amount);
+      }
       break;
     case "roll": {
       if (next.phase !== "await_action") break;
-      const d1 = rngInt(next, 1, 6);
-      const d2 = rngInt(next, 1, 6);
-      const roll = { d1, d2, total: d1 + d2, doubles: d1 === d2 };
+      const roll = roll2d6(next, p);
       next.lastRoll = roll;
       pushLog(
         next,
-        `${p.name} rolls ${d1}+${d2}=${roll.total}${roll.doubles ? " (doubles — solar weather TBD)" : ""}.`,
+        `${p.name} rolls ${roll.d1}+${roll.d2}=${roll.total}${roll.doubles ? " (doubles)" : ""}.`,
       );
+      delta(next, `roll ${roll.total}`);
       movePlayer(next, roll.total);
+      if (next.pendingDuel) autoDuelAi(next);
       break;
     }
     case "buy":
@@ -465,28 +771,104 @@ export function applyAction(state: GameState, action: PlayerAction): GameState {
     case "end_turn":
       if (next.phase === "await_post_land") advanceTurn(next);
       break;
+    case "duel_stance": {
+      const d = next.pendingDuel;
+      if (!d || next.phase !== "await_duel") break;
+      if (p.id === d.challengerId && d.challengerStance === null) {
+        d.challengerStance = action.stance;
+        pushLog(next, `${p.name} locks a secret stance.`);
+      } else if (p.id === d.defenderId && d.defenderStance === null) {
+        d.defenderStance = action.stance;
+        pushLog(next, `${p.name} locks a secret stance.`);
+      }
+      autoDuelAi(next);
+      break;
+    }
+    case "duel_roll": {
+      const d = next.pendingDuel;
+      if (!d || next.phase !== "await_duel") break;
+      if (
+        d.challengerStance === null ||
+        d.defenderStance === null
+      ) {
+        break;
+      }
+      if (p.id === d.challengerId && d.challengerRoll === null) {
+        d.challengerRoll = roll2d6(next, p);
+        pushLog(
+          next,
+          `${p.name} rolls duel ${d.challengerRoll.d1}+${d.challengerRoll.d2}=${d.challengerRoll.total}.`,
+        );
+      } else if (p.id === d.defenderId && d.defenderRoll === null) {
+        d.defenderRoll = roll2d6(next, p);
+        pushLog(
+          next,
+          `${p.name} rolls duel ${d.defenderRoll.d1}+${d.defenderRoll.d2}=${d.defenderRoll.total}.`,
+        );
+      }
+      autoDuelAi(next);
+      resolveDuelIfComplete(next);
+      break;
+    }
   }
 
   return next;
 }
 
+/** Flush AI duel until needs human or done. */
+export function resolveDuelAiFully(state: GameState): GameState {
+  let s = state;
+  let guard = 0;
+  while (s.phase === "await_duel" && s.pendingDuel && guard++ < 20) {
+    const before = JSON.stringify(s.pendingDuel);
+    const n = cloneState(s);
+    autoDuelAi(n);
+    resolveDuelIfComplete(n);
+    s = n;
+    if (JSON.stringify(s.pendingDuel) === before && s.phase === "await_duel") {
+      // Needs human input
+      break;
+    }
+  }
+  return s;
+}
+
 export function runUntilHumanOrEnd(
   state: GameState,
   choose: (s: GameState) => PlayerAction,
-  maxSteps = 500,
+  maxSteps = 800,
 ): GameState {
   let s = state;
   let steps = 0;
   while (steps < maxSteps && s.phase !== "game_over") {
+    s = resolveDuelAiFully(s);
+    if (s.phase === "game_over") break;
+
     const p = currentPlayer(s);
-    if (!p.eliminated && p.agent === "human") break;
+    if (s.phase === "await_duel" && s.pendingDuel) {
+      const d = s.pendingDuel;
+      const humanInDuel =
+        (s.players.find((x) => x.id === d.challengerId)?.agent === "human" &&
+          (d.challengerStance === null ||
+            (d.challengerStance &&
+              d.defenderStance &&
+              d.challengerRoll === null))) ||
+        (s.players.find((x) => x.id === d.defenderId)?.agent === "human" &&
+          (d.defenderStance === null ||
+            (d.challengerStance &&
+              d.defenderStance &&
+              d.defenderRoll === null)));
+      if (humanInDuel) break;
+    }
+
+    if (!p.eliminated && p.agent === "human" && s.phase !== "await_duel") break;
     if (p.eliminated) {
       s = applyAction(s, { type: "end_turn" });
-      if (currentPlayer(s).eliminated && s.phase !== "game_over") {
-        const n = cloneState(s);
-        advanceTurnPublic(n);
-        s = n;
-      }
+      steps++;
+      continue;
+    }
+    if (s.phase === "await_duel") {
+      s = applyAction(s, { type: "duel_stance", stance: "low" });
       steps++;
       continue;
     }
@@ -499,4 +881,20 @@ export function runUntilHumanOrEnd(
 
 export function advanceTurnPublic(state: GameState): void {
   advanceTurn(state);
+}
+
+export function resignGame(state: GameState, playerId: string): GameState {
+  const next = cloneState(state);
+  const p = next.players.find((x) => x.id === playerId);
+  if (!p || next.phase === "game_over") return next;
+  next.phase = "game_over";
+  next.endReason = `${p.name} abandoned the charter.`;
+  const others = livingPlayers(next).filter((x) => x.id !== playerId);
+  if (others.length === 1) next.winnerId = others[0].id;
+  else if (others.length > 1) {
+    others.sort((a, b) => netWorth(next, b) - netWorth(next, a));
+    next.winnerId = others[0].id;
+  }
+  pushLog(next, next.endReason);
+  return next;
 }

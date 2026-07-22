@@ -13,37 +13,33 @@ export type GravityClass = 0 | 1 | 2 | 3 | 4;
 
 export type PropellantId = "methane" | "hydrogen";
 
+export type DuelStance = "low" | "high";
+
+export type EphemerisStat = "nearest" | "furthest" | "average";
+
 export interface BoardNode {
   id: string;
   name: string;
   kind: NodeKind;
-  /** Next node ids along the directed flight path. Usually length 1. */
   next: string[];
-  /** Normalized board coords for rendering (0–1). */
   x: number;
   y: number;
-  /** Deed price if purchasable. */
+  /** Orbital ring index for drawing (0 = innermost). */
+  ring?: number;
   price?: number;
-  /** Base rent if purchasable. */
   rent?: number;
-  /** Property group for monopoly multipliers. */
   group?: string;
-  /** Cash paid by bank on landing (station / Earth bonus). */
   landingBonus?: number;
-  /**
-   * If true, leaving this node costs fuel (insertion is always free).
-   * Prefer setting via gravityClass > 0.
-   */
   fuelToLeave?: boolean;
-  /** Gravity of the body for leave-burn calc. */
   gravityClass?: GravityClass;
-  /** Fuel available for free/paid refuel on this node type (handled in rules). */
   refuel?: "free" | "paid" | "station" | "none";
 }
 
 export interface Board {
   nodes: Record<string, BoardNode>;
   startId: string;
+  /** Distinct ring radii used for orbital drawing (normalized). */
+  rings: number[];
 }
 
 export type AgentKind = "human" | "ai";
@@ -57,29 +53,31 @@ export interface Player {
   fuel: number;
   position: string;
   propellant: PropellantId;
-  /** Property node ids owned. */
   properties: string[];
-  /** Fuel stations still in hand (not yet placed). */
   stationsInHand: number;
   eliminated: boolean;
+  /** Skip this many full turns. */
+  skipTurns: number;
+  /** One-shot rent waivers vs owner player ids. */
+  rentWaiversAgainst: string[];
+  /** First purchasable claim id — ephemeris body for seeding. */
+  ephemerisBodyId: string | null;
 }
 
 export type TurnPhase =
-  | "await_action" // refuel / roll
-  | "await_post_land" // buy / station / end
+  | "await_action"
+  | "await_post_land"
+  | "await_duel"
   | "game_over";
 
 export interface GameConfig {
   playerCount: number;
-  /** If true, player 0 is human; rest AI. If false, all AI. */
   humanSeat: boolean;
-  /** Propellant for human seat (ignored if no human). */
   humanPropellant: PropellantId;
   startingCash: number;
   startingFuel: number;
   stationsEach: number;
   maxFuel: number;
-  /** Max full rounds before richest living player wins (0 = no limit). */
   maxRounds: number;
   seed?: number;
 }
@@ -91,21 +89,48 @@ export interface LastRoll {
   doubles: boolean;
 }
 
+/** Pending Gravity Duel (dice) on a transit node. */
+export interface PendingDuel {
+  nodeId: string;
+  /** Arriving pilot (challenger). */
+  challengerId: string;
+  /** Defender (occupant / last roller / champion). */
+  defenderId: string;
+  challengerStance: DuelStance | null;
+  defenderStance: DuelStance | null;
+  challengerRoll: LastRoll | null;
+  defenderRoll: LastRoll | null;
+}
+
+/** Per-transit-node memory after duels. */
+export interface NodeEncounterMem {
+  /** Last pilot who rolled in a duel here (tie → used as next defender). */
+  lastRollerId: string | null;
+  /** Last decisive winner, if any. */
+  championId: string | null;
+}
+
 export interface GameState {
   board: Board;
   players: Player[];
-  /** Node id → owner player id */
   owners: Record<string, string>;
-  /** Node id → has fuel station */
   stations: Record<string, boolean>;
   currentPlayerIndex: number;
   phase: TurnPhase;
   round: number;
   lastRoll: LastRoll | null;
   log: string[];
+  /** Structured +/- lines for the pilot whose turn just ended / is active. */
+  turnDeltas: string[];
+  /** History of 2d6 totals this game (movement + duels). */
+  diceTotals: number[];
+  pendingDuel: PendingDuel | null;
+  /** nodeId → encounter memory */
+  encounterMem: Record<string, NodeEncounterMem>;
   winnerId: string | null;
+  /** How the game ended, for end screen. */
+  endReason: string | null;
   config: GameConfig;
-  /** RNG state for reproducibility */
   rngState: number;
 }
 
@@ -114,7 +139,9 @@ export type PlayerAction =
   | { type: "roll" }
   | { type: "buy" }
   | { type: "place_station" }
-  | { type: "end_turn" };
+  | { type: "end_turn" }
+  | { type: "duel_stance"; stance: DuelStance }
+  | { type: "duel_roll" };
 
 export interface LegalActions {
   refuel: boolean;
@@ -125,6 +152,7 @@ export interface LegalActions {
   buyPrice: number;
   placeStation: boolean;
   endTurn: boolean;
-  /** Preview leave burn if rolling `forSteps` (default last roll or typical 7). */
   leaveBurnPreview: number;
+  duelStance: boolean;
+  duelRoll: boolean;
 }

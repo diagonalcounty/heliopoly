@@ -8,7 +8,7 @@
     />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="theme-color" content="#0b1020" />
-    <title>Heliopoly v0.0.4</title>
+    <title>Heliopoly v0.0.5</title>
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
@@ -16,90 +16,114 @@
       <header class="top">
         <div class="top-row">
           <div>
-            <h1>Heliopoly <span class="badge">v0.0.4</span></h1>
+            <h1>Heliopoly <span class="badge">v0.0.5</span></h1>
             <p class="tagline">Free Enterprise In Space · local POC</p>
           </div>
-          <button
-            id="btn-handbook-header"
-            type="button"
-            class="handbook-launch"
-            title="Open Flight Handbook"
-          >
-            Flight Handbook
-          </button>
+          <div class="top-actions">
+            <button
+              id="btn-handbook-header"
+              type="button"
+              class="handbook-launch"
+            >
+              Ops Manual
+            </button>
+            <button id="btn-quit" type="button" class="quit-btn hidden">
+              Quit
+            </button>
+          </div>
         </div>
       </header>
 
       <div class="layout">
         <section class="board-panel">
-          <canvas id="board" width="900" height="900" aria-label="Game board"></canvas>
+          <canvas
+            id="board"
+            width="900"
+            height="900"
+            aria-label="Solar system board"
+          ></canvas>
         </section>
 
         <aside class="side">
+          <section class="card rank-card">
+            <h2>Charter standings</h2>
+            <div id="rankings" class="rankings mono">—</div>
+            <div id="turn-deltas" class="turn-deltas mono"></div>
+          </section>
+
           <section class="card handbook-card">
-            <h2>Reference</h2>
             <button
               id="btn-handbook"
               type="button"
-              class="primary handbook-launch-full"
+              class="handbook-launch-full"
             >
-              📖 Flight Handbook
+              📖 Helios Ops Manual
             </button>
-            <p class="hint">
-              In-game rules (Civilopedia-style). Esc, ✕, or click outside to close.
-            </p>
           </section>
 
           <section class="card" id="setup-card">
-            <h2>New game</h2>
-            <label>
-              Total pilots (2–6)
-              <input id="player-count" type="number" min="2" max="6" value="4" />
-            </label>
-            <label class="check">
-              <input id="include-human" type="checkbox" checked />
-              Seat 1 is human
-            </label>
-            <fieldset class="propellant-field">
-              <legend>Your propellant</legend>
-              <label class="check">
+            <button
+              type="button"
+              id="setup-toggle"
+              class="setup-toggle hidden"
+            >
+              New game ▾
+            </button>
+            <div id="setup-body">
+              <h2>New game</h2>
+              <label>
+                Total pilots (2–6)
                 <input
-                  type="radio"
-                  name="propellant"
-                  id="prop-methane"
-                  value="methane"
-                  checked
+                  id="player-count"
+                  type="number"
+                  min="2"
+                  max="6"
+                  value="4"
                 />
-                Methane (CH₄) — stable
               </label>
               <label class="check">
-                <input
-                  type="radio"
-                  name="propellant"
-                  id="prop-hydrogen"
-                  value="hydrogen"
-                />
-                Hydrogen (H₂) — efficient, boil-off risk
+                <input id="include-human" type="checkbox" checked />
+                Seat 1 is human
               </label>
-            </fieldset>
-            <button id="btn-new" type="button" class="primary">Launch</button>
-            <button id="btn-selfplay" type="button">Self-play burst</button>
+              <fieldset class="propellant-field">
+                <legend>Your propellant</legend>
+                <label class="check">
+                  <input
+                    type="radio"
+                    name="propellant"
+                    value="methane"
+                    checked
+                  />
+                  Methane (CH₄)
+                </label>
+                <label class="check">
+                  <input type="radio" name="propellant" value="hydrogen" />
+                  Hydrogen (H₂)
+                </label>
+              </fieldset>
+              <button id="btn-new" type="button" class="primary">Launch</button>
+              <button id="btn-selfplay" type="button">Self-play burst</button>
+            </div>
           </section>
 
-          <section class="card">
+          <section class="card" id="turn-card">
             <h2>Turn</h2>
             <div id="turn-info" class="mono">No game yet.</div>
             <div class="actions">
               <button id="btn-refuel" type="button" disabled>Refuel</button>
-              <button id="btn-roll" type="button" class="primary" disabled>Roll</button>
+              <button id="btn-roll" type="button" class="primary" disabled>
+                Roll
+              </button>
               <button id="btn-buy" type="button" disabled>Buy</button>
-              <button id="btn-station" type="button" disabled>Place station</button>
+              <button id="btn-station" type="button" disabled>
+                Place station
+              </button>
               <button id="btn-end" type="button" disabled>End turn</button>
             </div>
           </section>
 
           <section class="card">
-            <h2>Players</h2>
+            <h2>Pilots</h2>
             <div id="players"></div>
           </section>
 
@@ -112,6 +136,54 @@
     </div>
 
     <div id="handbook-root" class="handbook hidden" aria-hidden="true"></div>
+
+    <!-- Gravity Duel modal -->
+    <div id="duel-root" class="handbook hidden" aria-hidden="true">
+      <div class="handbook-backdrop" id="duel-backdrop"></div>
+      <div class="handbook-panel duel-panel" role="dialog" aria-modal="true">
+        <header class="handbook-header">
+          <div>
+            <p class="handbook-kicker">Crossing vectors</p>
+            <h2>Gravity Duel</h2>
+          </div>
+        </header>
+        <div class="duel-body">
+          <p id="duel-matchup" class="duel-matchup"></p>
+          <p id="duel-status" class="mono"></p>
+          <p class="hint">
+            Stances stay secret until both pilots have rolled 2d6.
+          </p>
+          <div class="duel-actions" id="duel-actions">
+            <button type="button" data-stance="low" class="primary">
+              Pick LOW
+            </button>
+            <button type="button" data-stance="high" class="primary">
+              Pick HIGH
+            </button>
+            <button type="button" id="duel-roll" class="primary" disabled>
+              Roll 2d6
+            </button>
+          </div>
+          <p id="duel-dice" class="mono duel-dice"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- End game (KQ-inspired) -->
+    <div id="end-root" class="end-screen hidden" aria-hidden="true">
+      <div class="end-inner">
+        <p class="end-kicker">The charter is sealed</p>
+        <h2 id="end-title">Heliopoly</h2>
+        <p id="end-story" class="end-story"></p>
+        <div id="end-ranks" class="end-ranks mono"></div>
+        <div class="end-actions">
+          <button type="button" id="end-again" class="primary">
+            Play again
+          </button>
+          <button type="button" id="end-close">Return</button>
+        </div>
+      </div>
+    </div>
 
     <script type="module" src="/src/main.ts"></script>
   </body>

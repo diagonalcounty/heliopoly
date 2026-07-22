@@ -1,6 +1,19 @@
 import type { Board, BoardNode, GravityClass } from "./types";
 
-/** Simplified board: inner system ring + Jupiter moon loop. Original layout. */
+/** Place a body on an orbital ring (normalized coords, sun at 0.5,0.5). */
+function onRing(
+  ringIndex: number,
+  angleDeg: number,
+  ringRadii: number[],
+): { x: number; y: number; ring: number } {
+  const r = ringRadii[Math.min(ringIndex, ringRadii.length - 1)] ?? 0.2;
+  const a = ((angleDeg - 90) * Math.PI) / 180; // 0° = top
+  return {
+    x: 0.5 + r * Math.cos(a),
+    y: 0.5 + r * Math.sin(a),
+    ring: ringIndex,
+  };
+}
 
 function n(
   partial: Omit<BoardNode, "next" | "refuel" | "fuelToLeave" | "gravityClass"> & {
@@ -22,65 +35,88 @@ function n(
 }
 
 /**
- * Layout is abstract (not a commercial board clone).
- * Path: Earth → Mercury → Venus → Beacon I → Mars → dock → Jupiter loop → Earth.
+ * Orbital-ring layout (visual B) + directed flight path.
+ * Rings: 0 Mercury … outer Jupiter system.
  */
 export function createV0Board(): Board {
+  // Normalized radii from sun center
+  const ringRadii = [0.12, 0.2, 0.28, 0.36, 0.44, 0.52];
+
+  const pos = {
+    mercury: onRing(0, 20, ringRadii),
+    s1: onRing(0, 55, ringRadii),
+    venus: onRing(1, 100, ringRadii),
+    s2: onRing(1, 140, ringRadii),
+    earth: onRing(2, 180, ringRadii),
+    s3: onRing(2, 220, ringRadii),
+    fs1: onRing(2, 260, ringRadii),
+    s4: onRing(3, 300, ringRadii),
+    mars: onRing(3, 340, ringRadii),
+    dock: onRing(3, 20, ringRadii),
+    s5: onRing(4, 50, ringRadii),
+    j_approach: onRing(4, 80, ringRadii),
+    j_grav_in: onRing(5, 100, ringRadii),
+    io: onRing(5, 130, ringRadii),
+    europa: onRing(5, 160, ringRadii),
+    ganymede: onRing(5, 200, ringRadii),
+    callisto: onRing(5, 240, ringRadii),
+    fs2: onRing(5, 280, ringRadii),
+    j_exit: onRing(4, 310, ringRadii),
+    s6: onRing(3, 200, ringRadii),
+    s7: onRing(2, 150, ringRadii),
+    s8: onRing(2, 120, ringRadii),
+  };
+
   const nodes: BoardNode[] = [
     n({
       id: "earth",
       name: "Earth",
       kind: "planet",
-      x: 0.5,
-      y: 0.88,
+      ...pos.earth,
       landingBonus: 500,
       refuel: "free",
       gravityClass: 3,
       price: 0,
     }),
-    n({ id: "s1", name: "Transit", kind: "space", x: 0.32, y: 0.82 }),
+    n({ id: "s1", name: "Transit", kind: "space", ...pos.s1 }),
     n({
       id: "mercury",
       name: "Mercury",
       kind: "planet",
-      x: 0.18,
-      y: 0.7,
+      ...pos.mercury,
       price: 400,
       rent: 50,
       group: "inner",
       gravityClass: 2,
       refuel: "station",
     }),
-    n({ id: "s2", name: "Transit", kind: "space", x: 0.12, y: 0.55 }),
+    n({ id: "s2", name: "Transit", kind: "space", ...pos.s2 }),
     n({
       id: "venus",
       name: "Venus",
       kind: "planet",
-      x: 0.14,
-      y: 0.38,
+      ...pos.venus,
       price: 500,
       rent: 70,
       group: "inner",
       gravityClass: 3,
       refuel: "station",
     }),
-    n({ id: "s3", name: "Transit", kind: "space", x: 0.22, y: 0.24 }),
+    n({ id: "s3", name: "Transit", kind: "space", ...pos.s3 }),
     n({
       id: "fs1",
       name: "Charter Beacon I",
       kind: "federation",
-      x: 0.38,
-      y: 0.14,
+      ...pos.fs1,
       landingBonus: 300,
       refuel: "none",
     }),
-    n({ id: "s4", name: "Transit", kind: "space", x: 0.55, y: 0.1 }),
+    n({ id: "s4", name: "Transit", kind: "space", ...pos.s4 }),
     n({
       id: "mars",
       name: "Mars",
       kind: "planet",
-      x: 0.72,
-      y: 0.16,
+      ...pos.mars,
       price: 600,
       rent: 80,
       group: "mars",
@@ -91,35 +127,31 @@ export function createV0Board(): Board {
       id: "dock",
       name: "Mars Space Dock",
       kind: "dock",
-      x: 0.86,
-      y: 0.28,
+      ...pos.dock,
       price: 450,
       rent: 40,
       group: "docks",
       refuel: "paid",
       gravityClass: 0,
     }),
-    n({ id: "s5", name: "Transit", kind: "space", x: 0.9, y: 0.44 }),
+    n({ id: "s5", name: "Transit", kind: "space", ...pos.s5 }),
     n({
       id: "j_approach",
       name: "Jupiter Approach",
       kind: "space",
-      x: 0.88,
-      y: 0.6,
+      ...pos.j_approach,
     }),
     n({
       id: "j_grav_in",
       name: "Jupiter Gravity",
       kind: "gravity",
-      x: 0.78,
-      y: 0.72,
+      ...pos.j_grav_in,
     }),
     n({
       id: "io",
       name: "Io",
       kind: "moon",
-      x: 0.68,
-      y: 0.78,
+      ...pos.io,
       price: 350,
       rent: 45,
       group: "jupiter",
@@ -130,8 +162,7 @@ export function createV0Board(): Board {
       id: "europa",
       name: "Europa",
       kind: "moon",
-      x: 0.58,
-      y: 0.72,
+      ...pos.europa,
       price: 400,
       rent: 55,
       group: "jupiter",
@@ -142,8 +173,7 @@ export function createV0Board(): Board {
       id: "ganymede",
       name: "Ganymede",
       kind: "moon",
-      x: 0.55,
-      y: 0.58,
+      ...pos.ganymede,
       price: 550,
       rent: 90,
       group: "jupiter",
@@ -154,8 +184,7 @@ export function createV0Board(): Board {
       id: "callisto",
       name: "Callisto",
       kind: "moon",
-      x: 0.65,
-      y: 0.48,
+      ...pos.callisto,
       price: 500,
       rent: 75,
       group: "jupiter",
@@ -166,8 +195,7 @@ export function createV0Board(): Board {
       id: "fs2",
       name: "Charter Beacon II",
       kind: "federation",
-      x: 0.78,
-      y: 0.5,
+      ...pos.fs2,
       landingBonus: 400,
       refuel: "none",
     }),
@@ -175,12 +203,11 @@ export function createV0Board(): Board {
       id: "j_exit",
       name: "Jupiter Exit",
       kind: "space",
-      x: 0.7,
-      y: 0.36,
+      ...pos.j_exit,
     }),
-    n({ id: "s6", name: "Transit", kind: "space", x: 0.58, y: 0.28 }),
-    n({ id: "s7", name: "Home Stretch", kind: "space", x: 0.5, y: 0.4 }),
-    n({ id: "s8", name: "Transit", kind: "space", x: 0.5, y: 0.62 }),
+    n({ id: "s6", name: "Transit", kind: "space", ...pos.s6 }),
+    n({ id: "s7", name: "Home Stretch", kind: "space", ...pos.s7 }),
+    n({ id: "s8", name: "Transit", kind: "space", ...pos.s8 }),
   ];
 
   const byId: Record<string, BoardNode> = {};
@@ -215,7 +242,7 @@ export function createV0Board(): Board {
     byId[from].next = [to];
   }
 
-  return { nodes: byId, startId: "earth" };
+  return { nodes: byId, startId: "earth", rings: ringRadii };
 }
 
 export function getNode(board: Board, id: string): BoardNode {

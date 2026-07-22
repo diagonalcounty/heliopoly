@@ -4,17 +4,30 @@ import { formatMoney } from "./core/currency";
 import { gravityClassOf, leaveBurnCost } from "./core/fuel";
 import { walkMovePath } from "./core/path";
 import { PROPELLANTS } from "./core/propellant";
-import { applyAction, getLegalActions } from "./core/rules";
+import {
+  applyAction,
+  getLegalActions,
+  meanDiceTotal,
+  netWorth,
+  rankings,
+  resignGame,
+  resolveDuelAiFully,
+} from "./core/rules";
 import { createGame, currentPlayer } from "./core/state";
-import type { GameState, PlayerAction, PropellantId } from "./core/types";
+import type {
+  DuelStance,
+  GameState,
+  PlayerAction,
+  PropellantId,
+} from "./core/types";
 import { mountHandbook } from "./handbook/handbook";
 
 let state: GameState | null = null;
-/** While animating, ship drawn at this node instead of logical state. */
 let visualNode: Record<string, string> = {};
 let animating = false;
+/** Snapshot of deltas after a pilot ends their turn. */
+let lastTurnSummary: string[] = [];
 
-/** Dwell on each resting space (ms). Pass-through gravity is shorter. */
 const DWELL_STOP_MS = 420;
 const DWELL_PASS_MS = 140;
 const DWELL_AI_STOP_MS = 280;
@@ -24,18 +37,26 @@ const handbook = mountHandbook(
   document.getElementById("handbook-root") as HTMLElement,
 );
 
-document.getElementById("btn-handbook")?.addEventListener("click", () => {
-  handbook.open();
-});
-document.getElementById("btn-handbook-header")?.addEventListener("click", () => {
-  handbook.open();
-});
-
 const canvas = document.getElementById("board") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d")!;
 const logEl = document.getElementById("log")!;
 const playersEl = document.getElementById("players")!;
 const turnInfo = document.getElementById("turn-info")!;
+const rankingsEl = document.getElementById("rankings")!;
+const turnDeltasEl = document.getElementById("turn-deltas")!;
+const setupCard = document.getElementById("setup-card")!;
+const setupBody = document.getElementById("setup-body")!;
+const setupToggle = document.getElementById("setup-toggle")!;
+const btnQuit = document.getElementById("btn-quit")!;
+const duelRoot = document.getElementById("duel-root")!;
+const duelMatchup = document.getElementById("duel-matchup")!;
+const duelStatus = document.getElementById("duel-status")!;
+const duelDice = document.getElementById("duel-dice")!;
+const duelRollBtn = document.getElementById("duel-roll") as HTMLButtonElement;
+const endRoot = document.getElementById("end-root")!;
+const endTitle = document.getElementById("end-title")!;
+const endStory = document.getElementById("end-story")!;
+const endRanks = document.getElementById("end-ranks")!;
 
 const btnNew = document.getElementById("btn-new") as HTMLButtonElement;
 const btnSelf = document.getElementById("btn-selfplay") as HTMLButtonElement;
@@ -62,11 +83,14 @@ function selectedPropellant(): PropellantId {
   return el?.value === "hydrogen" ? "hydrogen" : "methane";
 }
 
+function setSetupCollapsed(collapsed: boolean): void {
+  setupCard.classList.toggle("collapsed", collapsed);
+  setupToggle.classList.toggle("hidden", !collapsed);
+  setupBody.classList.toggle("hidden", collapsed);
+}
+
 function setBusy(busy: boolean): void {
   animating = busy;
-  for (const b of [btnRefuel, btnRoll, btnBuy, btnStation, btnEnd, btnNew, btnSelf]) {
-    if (busy) b.disabled = true;
-  }
   if (!busy) renderSide();
 }
 
@@ -74,9 +98,6 @@ function shipNodeId(playerId: string, logicalPos: string): string {
   return visualNode[playerId] ?? logicalPos;
 }
 
-/**
- * Show ship hop along path frames (each die stop, plus brief gravity flashes).
- */
 async function animatePath(
   playerId: string,
   frames: { nodeId: string; passThrough: boolean }[],
@@ -93,13 +114,129 @@ async function animatePath(
   delete visualNode[playerId];
 }
 
+function humanDuelNeedsInput(s: GameState): boolean {
+  const d = s.pendingDuel;
+  if (!d || s.phase !== "await_duel") return false;
+  const c = s.players.find((p) => p.id === d.challengerId)!;
+  const def = s.players.find((p) => p.id === d.defenderId)!;
+  if (c.agent === "human") {
+    if (d.challengerStance === null) return true;
+    if (
+      d.challengerStance &&
+      d.defenderStance &&
+      d.challengerRoll === null
+    )
+      return true;
+  }
+  if (def.agent === "human") {
+    if (d.defenderStance === null) return true;
+    if (
+      d.challengerStance &&
+      d.defenderStance &&
+      d.defenderRoll === null
+    )
+      return true;
+  }
+  return false;
+}
+
+function updateDuelModal(s: GameState | null): void {
+  if (!s || s.phase !== "await_duel" || !s.pendingDuel) {
+    duelRoot.classList.add("hidden");
+    duelRoot.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("handbook-open");
+    return;
+  }
+  const d = s.pendingDuel;
+  const c = s.players.find((p) => p.id === d.challengerId)!;
+  const def = s.players.find((p) => p.id === d.defenderId)!;
+  duelRoot.classList.remove("hidden");
+  duelRoot.setAttribute("aria-hidden", "false");
+  document.body.classList.add("handbook-open");
+  duelMatchup.textContent = `${c.name} vs ${def.name} · ${getNode(s.board, d.nodeId).name}`;
+  const mean = meanDiceTotal(s);
+  duelStatus.textContent = [
+    `Mean of game 2d6 totals: ${mean.toFixed(2)}`,
+    `Your stance: hidden until both have rolled`,
+    d.challengerStance && d.defenderStance
+      ? "Both stances locked — roll when ready"
+      : "Choose LOW or HIGH",
+  ].join("\n");
+
+  const humanIsC = c.agent === "human";
+  const humanIsD = def.agent === "human";
+  const needStance =
+    (humanIsC && d.challengerStance === null) ||
+    (humanIsD && d.defenderStance === null);
+  const needRoll =
+    d.challengerStance !== null &&
+    d.defenderStance !== null &&
+    ((humanIsC && d.challengerRoll === null) ||
+      (humanIsD && d.defenderRoll === null));
+
+  for (const btn of duelRoot.querySelectorAll<HTMLButtonElement>(
+    "[data-stance]",
+  )) {
+    btn.disabled = !needStance || animating;
+  }
+  duelRollBtn.disabled = !needRoll || animating;
+
+  const parts: string[] = [];
+  if (d.challengerRoll)
+    parts.push(
+      `${c.name}: ${d.challengerRoll.d1}+${d.challengerRoll.d2}=${d.challengerRoll.total}`,
+    );
+  if (d.defenderRoll)
+    parts.push(
+      `${def.name}: ${d.defenderRoll.d1}+${d.defenderRoll.d2}=${d.defenderRoll.total}`,
+    );
+  if (d.challengerRoll && d.defenderRoll && d.challengerStance && d.defenderStance) {
+    parts.push(
+      `Stances: ${c.name}=${d.challengerStance} · ${def.name}=${d.defenderStance}`,
+    );
+  }
+  duelDice.textContent = parts.join("\n");
+}
+
+function showEndScreen(s: GameState): void {
+  const winner = s.players.find((p) => p.id === s.winnerId);
+  endTitle.textContent = winner
+    ? `${winner.name} Prevails`
+    : "The Charter Closes";
+  endStory.textContent =
+    s.endReason ??
+    "Among the orbital lanes, one enterprise outlasted the rest.";
+  const rows = [...s.players]
+    .filter((p) => !p.eliminated || p.id === s.winnerId)
+    .sort((a, b) => netWorth(s, b) - netWorth(s, a));
+  endRanks.innerHTML = rows
+    .map((p, i) => {
+      const mark = p.id === s.winnerId ? " ★" : "";
+      return `<div>${i + 1}. ${p.name}${mark} — ${formatMoney(netWorth(s, p))}${p.eliminated ? " (out)" : ""}</div>`;
+    })
+    .join("");
+  // Include eliminated sorted by worth 0
+  const outs = s.players.filter((p) => p.eliminated && p.id !== s.winnerId);
+  if (outs.length) {
+    endRanks.innerHTML +=
+      `<div style="margin-top:8px;opacity:0.7">Fallen: ${outs.map((p) => p.name).join(", ")}</div>`;
+  }
+  endRoot.classList.remove("hidden");
+  endRoot.setAttribute("aria-hidden", "false");
+}
+
+function hideEndScreen(): void {
+  endRoot.classList.add("hidden");
+  endRoot.setAttribute("aria-hidden", "true");
+}
+
 async function applyActionAnimated(
   before: GameState,
   action: PlayerAction,
 ): Promise<GameState> {
   const actor = currentPlayer(before);
   const from = actor.position;
-  const after = applyAction(before, action);
+  let after = applyAction(before, action);
 
   if (action.type === "roll") {
     const afterActor = after.players.find((p) => p.id === actor.id)!;
@@ -107,41 +244,68 @@ async function applyActionAnimated(
     const steps = after.lastRoll?.total ?? 0;
     if (moved && steps > 0) {
       const path = walkMovePath(before.board, from, steps);
-      // Safety: path end should match rules
-      if (path.endId !== afterActor.position) {
-        console.warn("path/rules mismatch", path.endId, afterActor.position);
-      }
       await animatePath(actor.id, path.frames, actor.agent === "ai");
     }
   }
 
+  after = resolveDuelAiFully(after);
   return after;
 }
 
 async function runAiUntilHumanOrEnd(s: GameState): Promise<GameState> {
   let cur = s;
   let guard = 0;
-  while (guard++ < 500 && cur.phase !== "game_over") {
+  while (guard++ < 600 && cur.phase !== "game_over") {
+    cur = resolveDuelAiFully(cur);
+    if (cur.phase === "game_over") break;
+    if (humanDuelNeedsInput(cur)) break;
+
     const p = currentPlayer(cur);
-    if (!p.eliminated && p.agent === "human") break;
+    if (!p.eliminated && p.agent === "human" && cur.phase !== "await_duel") {
+      break;
+    }
     if (p.eliminated) {
       cur = applyAction(cur, { type: "end_turn" });
       state = cur;
       render();
       continue;
     }
+    if (cur.phase === "await_duel") {
+      // AI-only residual
+      const action = heuristicAI(cur);
+      cur = applyAction(cur, action);
+      cur = resolveDuelAiFully(cur);
+      state = cur;
+      render();
+      continue;
+    }
+
+    const beforeDeltas = cur.turnDeltas.length;
     const action = heuristicAI(cur);
+    const beforePlayer = currentPlayer(cur).id;
     cur = await applyActionAnimated(cur, action);
+    if (
+      currentPlayer(cur).id !== beforePlayer ||
+      action.type === "end_turn"
+    ) {
+      // turn advanced — keep summary from previous state's deltas if needed
+      if (cur.turnDeltas.length) lastTurnSummary = [...cur.turnDeltas];
+      else if (beforeDeltas) {
+        /* keep */
+      }
+    }
     state = cur;
     render();
-    // Brief pause between AI turns so the log is readable
-    if (action.type !== "roll") await sleep(180);
+    if (action.type !== "roll") await sleep(160);
   }
   return cur;
 }
 
 async function commitState(next: GameState): Promise<void> {
   state = next;
+  setSetupCollapsed(true);
+  btnQuit.classList.remove("hidden");
+  hideEndScreen();
   render();
   if (state.phase !== "game_over") {
     setBusy(true);
@@ -152,15 +316,75 @@ async function commitState(next: GameState): Promise<void> {
     }
   }
   render();
+  if (state.phase === "game_over") showEndScreen(state);
 }
 
 async function act(action: PlayerAction): Promise<void> {
   if (!state || state.phase === "game_over" || animating) return;
+
+  // Duel actions allowed for human even if not "current" seat for defender
+  if (action.type === "duel_stance" || action.type === "duel_roll") {
+    setBusy(true);
+    try {
+      // Temporarily set current player to the human who must act
+      let s = state;
+      if (s.pendingDuel) {
+        const d = s.pendingDuel;
+        const c = s.players.find((p) => p.id === d.challengerId)!;
+        const def = s.players.find((p) => p.id === d.defenderId)!;
+        let actorId = s.players[s.currentPlayerIndex].id;
+        if (action.type === "duel_stance") {
+          if (c.agent === "human" && d.challengerStance === null)
+            actorId = c.id;
+          else if (def.agent === "human" && d.defenderStance === null)
+            actorId = def.id;
+        } else {
+          if (
+            c.agent === "human" &&
+            d.challengerStance &&
+            d.defenderStance &&
+            d.challengerRoll === null
+          )
+            actorId = c.id;
+          else if (
+            def.agent === "human" &&
+            d.challengerStance &&
+            d.defenderStance &&
+            d.defenderRoll === null
+          )
+            actorId = def.id;
+        }
+        const idx = s.players.findIndex((p) => p.id === actorId);
+        if (idx >= 0) {
+          s = { ...s, currentPlayerIndex: idx };
+        }
+      }
+      let after = applyAction(s, action);
+      after = resolveDuelAiFully(after);
+      state = after;
+      render();
+      if (state.phase !== "game_over" && !humanDuelNeedsInput(state)) {
+        state = await runAiUntilHumanOrEnd(state);
+      }
+    } finally {
+      setBusy(false);
+    }
+    render();
+    if (state?.phase === "game_over") showEndScreen(state);
+    return;
+  }
+
   const p = currentPlayer(state);
   if (p.agent !== "human") return;
   setBusy(true);
   try {
+    const beforeId = p.id;
     const after = await applyActionAnimated(state, action);
+    if (action.type === "end_turn" || currentPlayer(after).id !== beforeId) {
+      lastTurnSummary = [...(state.turnDeltas.length ? state.turnDeltas : after.turnDeltas)];
+    } else {
+      lastTurnSummary = [...after.turnDeltas];
+    }
     state = after;
     render();
     if (state.phase !== "game_over") {
@@ -170,15 +394,16 @@ async function act(action: PlayerAction): Promise<void> {
     setBusy(false);
   }
   render();
+  if (state?.phase === "game_over") showEndScreen(state);
 }
 
 function startGame(human: boolean): void {
   if (animating) return;
-  const count = Number(playerCountInput.value) || 4;
   visualNode = {};
+  lastTurnSummary = [];
   void commitState(
     createGame({
-      playerCount: count,
+      playerCount: Number(playerCountInput.value) || 4,
       humanSeat: human,
       humanPropellant: selectedPropellant(),
       seed: Date.now() >>> 0,
@@ -186,21 +411,64 @@ function startGame(human: boolean): void {
   );
 }
 
+document.getElementById("btn-handbook")?.addEventListener("click", () => {
+  handbook.open();
+});
+document
+  .getElementById("btn-handbook-header")
+  ?.addEventListener("click", () => handbook.open());
+
+setupToggle.addEventListener("click", () => {
+  const open = setupCard.classList.contains("collapsed");
+  setSetupCollapsed(!open);
+});
+
 btnNew.addEventListener("click", () => startGame(includeHuman.checked));
 btnSelf.addEventListener("click", () => {
   if (animating) return;
   includeHuman.checked = false;
   visualNode = {};
-  // Instant burst for balance smoke — no animation
+  lastTurnSummary = [];
   let s = createGame({
     playerCount: Number(playerCountInput.value) || 4,
     humanSeat: false,
     seed: Date.now() >>> 0,
   });
-  for (let i = 0; i < 80 && s.phase !== "game_over"; i++) {
+  for (let i = 0; i < 100 && s.phase !== "game_over"; i++) {
+    s = resolveDuelAiFully(s);
+    if (s.phase === "game_over") break;
+    if (s.phase === "await_duel") {
+      s = applyAction(s, heuristicAI(s));
+      continue;
+    }
     s = applyAction(s, heuristicAI(s));
   }
   state = s;
+  setSetupCollapsed(true);
+  btnQuit.classList.remove("hidden");
+  render();
+  if (s.phase === "game_over") showEndScreen(s);
+});
+
+btnQuit.addEventListener("click", () => {
+  if (!state || animating) return;
+  if (!confirm("Abandon the charter and quit this game?")) return;
+  const human = state.players.find((p) => p.agent === "human");
+  state = resignGame(state, human?.id ?? state.players[0].id);
+  render();
+  showEndScreen(state);
+});
+
+document.getElementById("end-again")?.addEventListener("click", () => {
+  hideEndScreen();
+  setSetupCollapsed(false);
+  startGame(includeHuman.checked);
+});
+document.getElementById("end-close")?.addEventListener("click", () => {
+  hideEndScreen();
+  setSetupCollapsed(false);
+  state = null;
+  btnQuit.classList.add("hidden");
   render();
 });
 
@@ -209,23 +477,32 @@ btnRefuel.addEventListener("click", () => {
   const legal = getLegalActions(state);
   void act({ type: "refuel", amount: Math.min(legal.refuelMax, 10) });
 });
-btnRoll.addEventListener("click", () => {
-  void act({ type: "roll" });
-});
+btnRoll.addEventListener("click", () => void act({ type: "roll" }));
 btnBuy.addEventListener("click", () => void act({ type: "buy" }));
 btnStation.addEventListener("click", () => void act({ type: "place_station" }));
 btnEnd.addEventListener("click", () => void act({ type: "end_turn" }));
 
+for (const btn of document.querySelectorAll<HTMLButtonElement>("[data-stance]")) {
+  btn.addEventListener("click", () => {
+    const stance = btn.dataset.stance as DuelStance;
+    void act({ type: "duel_stance", stance });
+  });
+}
+duelRollBtn.addEventListener("click", () => void act({ type: "duel_roll" }));
+
 function render(): void {
   drawBoard();
   renderSide();
+  updateDuelModal(state);
 }
 
 function renderSide(): void {
   if (!state) {
-    turnInfo.textContent = "No game yet. Choose propellant and Launch.";
+    turnInfo.textContent = "No game yet. Launch when ready.";
     logEl.textContent = "";
     playersEl.innerHTML = "";
+    rankingsEl.textContent = "—";
+    turnDeltasEl.textContent = "";
     for (const b of [btnRefuel, btnRoll, btnBuy, btnStation, btnEnd]) {
       b.disabled = true;
     }
@@ -240,24 +517,50 @@ function renderSide(): void {
   const leaveCost = leaveBurnCost(node, previewSteps, p.propellant);
   const prop = PROPELLANTS[p.propellant];
 
+  // Rankings
+  const ranks = rankings(state);
+  rankingsEl.innerHTML = ranks
+    .map((r) => {
+      const lead = r.rank === 1 ? " lead" : "";
+      return `<div class="rank-row${lead}"><span>#${r.rank} ${r.player.name}</span><span>${formatMoney(r.worth)}</span></div>`;
+    })
+    .join("");
+
+  const deltas =
+    state.turnDeltas.length > 0 ? state.turnDeltas : lastTurnSummary;
+  turnDeltasEl.innerHTML = deltas.length
+    ? deltas
+        .map((line) => {
+          const neg = /−|-|rent|stuck|OUT|skip|burn|fuel leave/i.test(line);
+          return `<div class="${neg ? "neg" : ""}">${line}</div>`;
+        })
+        .join("")
+    : `<div style="opacity:0.5">Turn deltas appear here</div>`;
+
   turnInfo.textContent = [
-    animating ? "… ship moving …" : `Round ${state.round} · ${state.phase}`,
+    animating
+      ? "… ship moving …"
+      : state.phase === "await_duel"
+        ? "Gravity Duel in progress"
+        : `Round ${state.round} · ${state.phase}`,
     `${p.name} @ ${node.name} (g${g})`,
-    `${formatMoney(p.cash)} · fuel ${p.fuel}/${state.config.maxFuel} · ${prop.short}`,
+    `${formatMoney(p.cash)} · fuel ${p.fuel} · ${prop.short} · NW ${formatMoney(netWorth(state, p))}`,
     leaveCost > 0
-      ? `Leave burn @ roll ${previewSteps}: ${leaveCost} fuel (have ${p.fuel})`
-      : `Leave burn: free (no gravity well)`,
+      ? `Leave @${previewSteps}: ${leaveCost} fuel`
+      : `Leave: free`,
     state.lastRoll
       ? `Last roll: ${state.lastRoll.d1}+${state.lastRoll.d2}=${state.lastRoll.total}`
       : "Last roll: —",
-    state.winnerId
-      ? `WINNER: ${state.players.find((x) => x.id === state!.winnerId)?.name}`
-      : "",
-  ]
-    .filter(Boolean)
-    .join("\n");
+    p.ephemerisBodyId
+      ? `Ephemeris: ${getNode(state.board, p.ephemerisBodyId).name}`
+      : "Ephemeris: Earth (until first claim)",
+  ].join("\n");
 
-  const can = !animating && p.agent === "human" && state.phase !== "game_over";
+  const can =
+    !animating &&
+    p.agent === "human" &&
+    state.phase !== "game_over" &&
+    state.phase !== "await_duel";
   btnRefuel.disabled = !can || !legal.refuel;
   btnRoll.disabled = !can || !legal.roll;
   btnBuy.disabled = !can || !legal.buy;
@@ -272,30 +575,33 @@ function renderSide(): void {
   playersEl.innerHTML = state.players
     .map((pl) => {
       const active = pl.id === p.id && state!.phase !== "game_over";
-      const props = pl.properties.length;
       const plProp = PROPELLANTS[pl.propellant].short;
       const shown = shipNodeId(pl.id, pl.position);
       const at = getNode(state!.board, shown).name;
+      const nw = formatMoney(netWorth(state!, pl));
       return `<div class="player-row${active ? " active" : ""}${pl.eliminated ? " out" : ""}">
         <div class="swatch" style="background:${pl.color}"></div>
         <div>
-          <strong>${pl.name}</strong>${pl.eliminated ? " · OUT" : ""} · ${plProp}
-          <div>${formatMoney(pl.cash)} · ${pl.fuel} fuel · ${props} claims · sta ${pl.stationsInHand}</div>
-          <div style="color:#9aa8c7">${at}${shown !== pl.position ? " …" : ""}</div>
+          <strong>${pl.name}</strong>${pl.eliminated ? " · OUT" : ""} · ${plProp}${pl.skipTurns ? " · skip" : ""}
+          <div>${formatMoney(pl.cash)} · ${nw} NW · ${pl.fuel} fuel · ${pl.properties.length} claims</div>
+          <div style="color:#9aa8c7">${at}</div>
         </div>
       </div>`;
     })
     .join("");
 
   logEl.textContent = "";
-  for (const line of state.log.slice(-50)) {
+  for (const line of state.log.slice(-60)) {
     const div = document.createElement("div");
-    if (/Winner|claims|collects|Heliopoly/.test(line)) div.className = "ok";
+    if (/Winner|claims|collects|Heliopoly|wins Gravity/i.test(line))
+      div.className = "ok";
     else if (
-      /eliminated|bankruptcy|stranded|cannot leave|boil-off|glitch/.test(line)
+      /eliminated|bankruptcy|stranded|cannot leave|boil-off|forfeit|TIE/i.test(
+        line,
+      )
     )
       div.className = "bad";
-    else if (/rolls|Round|burns|pulled through/.test(line)) div.className = "warn";
+    else if (/rolls|Round|burns|Duel|seed/i.test(line)) div.className = "warn";
     div.textContent = line;
     logEl.appendChild(div);
   }
@@ -307,33 +613,49 @@ function drawBoard(): void {
   const h = canvas.height;
   ctx.clearRect(0, 0, w, h);
 
-  ctx.fillStyle = "#070b16";
+  ctx.fillStyle = "#050814";
   ctx.fillRect(0, 0, w, h);
-  ctx.fillStyle = "rgba(255,255,255,0.35)";
-  for (let i = 0; i < 80; i++) {
+
+  // stars
+  ctx.fillStyle = "rgba(255,255,255,0.4)";
+  for (let i = 0; i < 120; i++) {
     const x = ((i * 97) % w) + (i % 7);
     const y = ((i * 53) % h) + (i % 11);
-    ctx.fillRect(x, y, i % 5 === 0 ? 2 : 1, i % 5 === 0 ? 2 : 1);
+    ctx.fillRect(x, y, i % 6 === 0 ? 2 : 1, i % 6 === 0 ? 2 : 1);
   }
 
-  const sunX = w * 0.48;
-  const sunY = h * 0.48;
-  const grd = ctx.createRadialGradient(sunX, sunY, 4, sunX, sunY, 48);
-  grd.addColorStop(0, "#fff3c4");
-  grd.addColorStop(0.4, "#ffc857");
-  grd.addColorStop(1, "rgba(255,160,40,0)");
+  const board = state?.board ?? createV0Board();
+  const cx = w * 0.5;
+  const cy = h * 0.5;
+
+  // orbital rings
+  for (const rNorm of board.rings) {
+    const r = rNorm * Math.min(w, h);
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.strokeStyle = "rgba(110, 180, 255, 0.18)";
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 8]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // sun
+  const grd = ctx.createRadialGradient(cx, cy, 4, cx, cy, 42);
+  grd.addColorStop(0, "#fff8d0");
+  grd.addColorStop(0.35, "#ffc857");
+  grd.addColorStop(1, "rgba(255,140,40,0)");
   ctx.fillStyle = grd;
   ctx.beginPath();
-  ctx.arc(sunX, sunY, 48, 0, Math.PI * 2);
+  ctx.arc(cx, cy, 42, 0, Math.PI * 2);
   ctx.fill();
 
-  const board = state?.board ?? createV0Board();
   const nodes = nodeList(board);
-
   const px = (n: { x: number; y: number }) => n.x * w;
   const py = (n: { x: number; y: number }) => n.y * h;
 
-  ctx.strokeStyle = "rgba(110,200,255,0.35)";
+  // path chords
+  ctx.strokeStyle = "rgba(255, 200, 120, 0.28)";
   ctx.lineWidth = 2;
   for (const node of nodes) {
     for (const nextId of node.next) {
@@ -346,7 +668,6 @@ function drawBoard(): void {
     }
   }
 
-  // Highlight nodes currently occupied by a moving ship
   const highlight = new Set(Object.values(visualNode));
 
   for (const node of nodes) {
@@ -355,15 +676,15 @@ function drawBoard(): void {
     let r = 10;
     let fill = "#3a4a6e";
     if (node.kind === "planet") {
-      r = 16;
+      r = 15;
       fill = "#6ec8ff";
     }
     if (node.kind === "moon") {
-      r = 12;
+      r = 11;
       fill = "#c792ea";
     }
     if (node.kind === "federation") {
-      r = 14;
+      r = 13;
       fill = "#ffc857";
     }
     if (node.kind === "dock") {
@@ -379,7 +700,7 @@ function drawBoard(): void {
     if (highlight.has(node.id)) {
       ctx.beginPath();
       ctx.arc(x, y, r + 8, 0, Math.PI * 2);
-      ctx.strokeStyle = "rgba(255,200,87,0.85)";
+      ctx.strokeStyle = "rgba(255,200,87,0.9)";
       ctx.lineWidth = 2;
       ctx.stroke();
     }
@@ -406,12 +727,15 @@ function drawBoard(): void {
       ctx.strokeRect(x - 4, y - 4, 8, 8);
     }
 
-    ctx.fillStyle = "rgba(232,238,252,0.9)";
+    ctx.fillStyle = "rgba(232,238,252,0.92)";
     ctx.font = "11px system-ui";
     ctx.textAlign = "center";
     const gv = gravityClassOf(node);
-    const label = gv > 0 ? `${node.name} g${gv}` : node.name;
-    ctx.fillText(label, x, y + r + 14);
+    ctx.fillText(
+      gv > 0 ? `${node.name} g${gv}` : node.name,
+      x,
+      y + r + 13,
+    );
   }
 
   if (state) {
@@ -448,5 +772,6 @@ function drawBoard(): void {
   void isPurchasable;
 }
 
+setSetupCollapsed(false);
 drawBoard();
 renderSide();

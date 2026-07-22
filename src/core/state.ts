@@ -17,7 +17,6 @@ export const DEFAULT_CONFIG: GameConfig = {
 };
 
 function pickAiPropellant(index: number, seed: number): PropellantId {
-  // Alternate, slight seed bias so self-play mixes CH₄ / H₂
   const bit = (seed + index * 17) & 1;
   return bit === 0 ? "methane" : "hydrogen";
 }
@@ -48,6 +47,9 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
       properties: [],
       stationsInHand: config.stationsEach,
       eliminated: false,
+      skipTurns: 0,
+      rentWaiversAgainst: [],
+      ephemerisBodyId: null,
     });
   }
 
@@ -76,12 +78,17 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
       `Heliopoly · Free Enterprise In Space`,
       `Game start: ${count} pilots · seed ${seed} · bank ${formatMoney(config.startingCash)} each`,
       `Propellants: ${propSummary}`,
-      `Rule: landing is free; leaving a gravity well burns fuel (class × propellant).`,
+      `Land free · leave costs fuel · transit Gravity Duel (dice) · rankings in ⍼`,
       config.humanSeat
         ? "Seat 0 is human; others AI."
         : "Self-play: all seats AI.",
     ],
+    turnDeltas: [],
+    diceTotals: [],
+    pendingDuel: null,
+    encounterMem: {},
     winnerId: null,
+    endReason: null,
     config: { ...config, seed },
     rngState: seed || 1,
   };
@@ -102,11 +109,26 @@ export function cloneState(state: GameState): GameState {
     players: state.players.map((p) => ({
       ...p,
       properties: [...p.properties],
+      rentWaiversAgainst: [...p.rentWaiversAgainst],
     })),
     owners: { ...state.owners },
     stations: { ...state.stations },
     lastRoll: state.lastRoll ? { ...state.lastRoll } : null,
     log: [...state.log],
+    turnDeltas: [...state.turnDeltas],
+    diceTotals: [...state.diceTotals],
+    pendingDuel: state.pendingDuel
+      ? {
+          ...state.pendingDuel,
+          challengerRoll: state.pendingDuel.challengerRoll
+            ? { ...state.pendingDuel.challengerRoll }
+            : null,
+          defenderRoll: state.pendingDuel.defenderRoll
+            ? { ...state.pendingDuel.defenderRoll }
+            : null,
+        }
+      : null,
+    encounterMem: { ...state.encounterMem },
     config: { ...state.config },
   };
 }
