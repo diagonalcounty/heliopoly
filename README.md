@@ -1,43 +1,31 @@
-# Heliopoly
+# Solarquest app
 
-**Free Enterprise In Space**
+**Version:** 0.0.1  
+**Parent project:** vault `35 Software/Solarquest/`  
+**Release notes:** `../docs/RELEASE-v0.0.1.md`  
+**Changelog:** `../CHANGELOG.md`
 
-Local browser game: claim stations and moons, manage propellant, duel on transit lanes, and don’t get stranded. Single human pilot plus AI (or full self-play).
+Browser-first TypeScript implementation: pure game core + UI shell + Flight Handbook.
 
-**Version:** 0.0.5 · private GitHub (public planned later)
-
-## Play
+## Commands
 
 ```bash
 npm install
-npm run dev
+npm run dev        # http://localhost:5173/
+npm run selfplay   # headless AI games
+npm run build
+npm run typecheck
 ```
 
-| Command | What it does |
-|---------|----------------|
-| `npm run dev` | Browser UI |
-| `npm run selfplay` | Headless AI games |
-| `npm run build` | Static `dist/` |
-| `npm run typecheck` | TypeScript check |
+## Layout
 
-## What’s in 0.0.5
+| Path | Role |
+|------|------|
+| `src/core/` | Rules engine (no DOM) |
+| `src/handbook/` | In-game handbook content + modal |
+| `src/main.ts` | Browser shell |
+| `src/selfplay.ts` | CLI self-play |
 
-- **Orbital ring** board layout (solar-system look)
-- **Charter standings** with live net worth (`⍼`) + turn +/- deltas
-- Collapsed **New game** after launch; **Quit** + King’s Quest–inspired **end screen**
-- **Gravity Duel** (dice): secret Low/High, then 2d6; transit only; skip turn + rent waiver; ties share the lane
-- **Per-roll seed** from active pilot fuel (nearest prime), first-claim ephemeris body (N/F/Avg table), time
-- Leave burns, CH₄/H₂, ship hop animation, Helios Ops Manual
+This directory is intended to become a standalone git repository later.
 
-## Architecture
-
-```
-src/core/       Pure TS engine (no DOM)
-src/handbook/   Ops Manual
-src/main.ts     Shell + animation + modals
-src/selfplay.ts Headless runs
-```
-
-## License
-
-MIT — see [LICENSE](./LICENSE).
+**Publishing intent:** eventually **public** open source. Not yet — stay local or **private** on GitHub until the owner runs the pre-public checklist (license, branding, secrets, clean history). A private repo can be switched to public when ready.

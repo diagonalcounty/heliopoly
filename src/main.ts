@@ -608,6 +608,41 @@ function renderSide(): void {
   logEl.scrollTop = logEl.scrollHeight;
 }
 
+/** Map board unit coords → canvas pixels so every node + label fits. */
+function boardProjector(board: ReturnType<typeof createV0Board>, w: number, h: number) {
+  const nodes = nodeList(board);
+  let minX = 0.5;
+  let minY = 0.5;
+  let maxX = 0.5;
+  let maxY = 0.5;
+  for (const n of nodes) {
+    minX = Math.min(minX, n.x);
+    minY = Math.min(minY, n.y);
+    maxX = Math.max(maxX, n.x);
+    maxY = Math.max(maxY, n.y);
+  }
+  // Include full outer ring around sun (0.5, 0.5)
+  for (const r of board.rings) {
+    minX = Math.min(minX, 0.5 - r);
+    minY = Math.min(minY, 0.5 - r);
+    maxX = Math.max(maxX, 0.5 + r);
+    maxY = Math.max(maxY, 0.5 + r);
+  }
+  const bw = Math.max(0.01, maxX - minX);
+  const bh = Math.max(0.01, maxY - minY);
+  // Padding for labels / ships (pixels)
+  const margin = 48;
+  const scale = Math.min((w - 2 * margin) / bw, (h - 2 * margin) / bh);
+  const ox = (w - scale * bw) / 2 - scale * minX;
+  const oy = (h - scale * bh) / 2 - scale * minY;
+  const project = (x: number, y: number) => ({
+    x: ox + scale * x,
+    y: oy + scale * y,
+  });
+  const sun = project(0.5, 0.5);
+  return { project, sun, scale };
+}
+
 function drawBoard(): void {
   const w = canvas.width;
   const h = canvas.height;
@@ -625,15 +660,16 @@ function drawBoard(): void {
   }
 
   const board = state?.board ?? createV0Board();
-  const cx = w * 0.5;
-  const cy = h * 0.5;
+  const { project, sun, scale } = boardProjector(board, w, h);
+  const cx = sun.x;
+  const cy = sun.y;
 
-  // orbital rings
+  // orbital rings (same projector as nodes)
   for (const rNorm of board.rings) {
-    const r = rNorm * Math.min(w, h);
+    const r = rNorm * scale;
     ctx.beginPath();
     ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.strokeStyle = "rgba(110, 180, 255, 0.18)";
+    ctx.strokeStyle = "rgba(110, 180, 255, 0.22)";
     ctx.lineWidth = 1.5;
     ctx.setLineDash([4, 8]);
     ctx.stroke();
@@ -641,18 +677,19 @@ function drawBoard(): void {
   }
 
   // sun
-  const grd = ctx.createRadialGradient(cx, cy, 4, cx, cy, 42);
+  const sunR = Math.max(18, 28 * (scale / 900));
+  const grd = ctx.createRadialGradient(cx, cy, 3, cx, cy, sunR * 1.6);
   grd.addColorStop(0, "#fff8d0");
   grd.addColorStop(0.35, "#ffc857");
   grd.addColorStop(1, "rgba(255,140,40,0)");
   ctx.fillStyle = grd;
   ctx.beginPath();
-  ctx.arc(cx, cy, 42, 0, Math.PI * 2);
+  ctx.arc(cx, cy, sunR * 1.6, 0, Math.PI * 2);
   ctx.fill();
 
   const nodes = nodeList(board);
-  const px = (n: { x: number; y: number }) => n.x * w;
-  const py = (n: { x: number; y: number }) => n.y * h;
+  const px = (n: { x: number; y: number }) => project(n.x, n.y).x;
+  const py = (n: { x: number; y: number }) => project(n.x, n.y).y;
 
   // path chords
   ctx.strokeStyle = "rgba(255, 200, 120, 0.28)";
@@ -727,15 +764,26 @@ function drawBoard(): void {
       ctx.strokeRect(x - 4, y - 4, 8, 8);
     }
 
-    ctx.fillStyle = "rgba(232,238,252,0.92)";
-    ctx.font = "11px system-ui";
+    ctx.fillStyle = "rgba(232,238,252,0.95)";
+    ctx.font = "bold 12px system-ui";
     ctx.textAlign = "center";
+    ctx.textBaseline = "top";
     const gv = gravityClassOf(node);
-    ctx.fillText(
-      gv > 0 ? `${node.name} g${gv}` : node.name,
-      x,
-      y + r + 13,
-    );
+    const label =
+      node.kind === "space"
+        ? "·"
+        : gv > 0
+          ? `${node.name} g${gv}`
+          : node.name;
+    // Keep label on-canvas
+    const ly = Math.min(h - 4, y + r + 4);
+    const lx = Math.max(4, Math.min(w - 4, x));
+    if (node.kind !== "space") {
+      ctx.strokeStyle = "rgba(5,8,20,0.85)";
+      ctx.lineWidth = 3;
+      ctx.strokeText(label, lx, ly);
+      ctx.fillText(label, lx, ly);
+    }
   }
 
   if (state) {

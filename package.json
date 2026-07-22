@@ -1,5 +1,5 @@
 {
-  "name": "heliopoly",
+  "name": "solarquest",
   "private": true,
   "version": "0.0.5",
   "type": "module",
@@ -17,6 +17,5 @@
   },
   "allowScripts": {
     "esbuild@0.28.1": true
-  },
-  "description": "Heliopoly \u2014 Free Enterprise In Space. Local browser + AI board game."
+  }
 }

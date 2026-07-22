@@ -39,32 +39,34 @@ function n(
  * Rings: 0 Mercury … outer Jupiter system.
  */
 export function createV0Board(): Board {
-  // Normalized radii from sun center
-  const ringRadii = [0.12, 0.2, 0.28, 0.36, 0.44, 0.52];
+  // Keep max radius ≤ ~0.40 so nodes + labels stay inside the unit square
+  // (draw code also fit-zooms to the full graph with padding).
+  const ringRadii = [0.11, 0.18, 0.25, 0.32, 0.38, 0.4];
 
+  // Spread angles so labels don’t stack; path still follows `chain` below.
   const pos = {
-    mercury: onRing(0, 20, ringRadii),
-    s1: onRing(0, 55, ringRadii),
-    venus: onRing(1, 100, ringRadii),
-    s2: onRing(1, 140, ringRadii),
-    earth: onRing(2, 180, ringRadii),
-    s3: onRing(2, 220, ringRadii),
-    fs1: onRing(2, 260, ringRadii),
-    s4: onRing(3, 300, ringRadii),
-    mars: onRing(3, 340, ringRadii),
-    dock: onRing(3, 20, ringRadii),
-    s5: onRing(4, 50, ringRadii),
-    j_approach: onRing(4, 80, ringRadii),
-    j_grav_in: onRing(5, 100, ringRadii),
-    io: onRing(5, 130, ringRadii),
-    europa: onRing(5, 160, ringRadii),
-    ganymede: onRing(5, 200, ringRadii),
-    callisto: onRing(5, 240, ringRadii),
-    fs2: onRing(5, 280, ringRadii),
-    j_exit: onRing(4, 310, ringRadii),
-    s6: onRing(3, 200, ringRadii),
-    s7: onRing(2, 150, ringRadii),
-    s8: onRing(2, 120, ringRadii),
+    mercury: onRing(0, 15, ringRadii),
+    s1: onRing(0, 70, ringRadii),
+    venus: onRing(1, 110, ringRadii),
+    s2: onRing(1, 160, ringRadii),
+    earth: onRing(2, 200, ringRadii),
+    s3: onRing(2, 245, ringRadii),
+    fs1: onRing(2, 290, ringRadii),
+    s4: onRing(3, 330, ringRadii),
+    mars: onRing(3, 20, ringRadii),
+    dock: onRing(3, 55, ringRadii),
+    s5: onRing(4, 90, ringRadii),
+    j_approach: onRing(4, 125, ringRadii),
+    j_grav_in: onRing(5, 150, ringRadii),
+    io: onRing(5, 185, ringRadii),
+    europa: onRing(5, 220, ringRadii),
+    ganymede: onRing(5, 255, ringRadii),
+    callisto: onRing(5, 290, ringRadii),
+    fs2: onRing(5, 325, ringRadii),
+    j_exit: onRing(4, 0, ringRadii),
+    s6: onRing(3, 170, ringRadii),
+    s7: onRing(2, 140, ringRadii),
+    s8: onRing(1, 40, ringRadii),
   };
 
   const nodes: BoardNode[] = [
