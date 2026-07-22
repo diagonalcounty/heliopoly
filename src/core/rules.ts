@@ -5,6 +5,11 @@ import { walkMovePath } from "./path";
 import { PROPELLANTS } from "./propellant";
 import { reseedForActivePilot } from "./seed";
 import {
+  hasSystemMonopoly,
+  systemOfGroup,
+  type SystemId,
+} from "./systems";
+import {
   cloneState,
   currentPlayer,
   livingPlayers,
@@ -17,6 +22,13 @@ import type {
   Player,
   PlayerAction,
 } from "./types";
+
+/** Rotations without a visit before feral risk applies. */
+export const FERAL_ROTATIONS = 10;
+/** Chance on owner's movement roll when overdue (no monopoly). */
+export const FERAL_CHANCE = 0.5;
+/** Chance when owner holds full system monopoly including that deed. */
+export const FERAL_CHANCE_MONOPOLY = 0.15;
 
 export { walkMovePath } from "./path";
 export type { MovePath, PathFrame } from "./path";
@@ -77,28 +89,64 @@ export function rankings(
   return alive.map((row, i) => ({ ...row, rank: i + 1 }));
 }
 
-function groupOwnedCount(
-  state: GameState,
-  ownerId: string,
-  group: string | undefined,
-): number {
-  if (!group) return 1;
-  let n = 0;
-  for (const [nodeId, oid] of Object.entries(state.owners)) {
-    if (oid !== ownerId) continue;
-    const node = state.board.nodes[nodeId];
-    if (node?.group === group) n++;
-  }
-  return Math.max(1, n);
-}
-
 function rentDue(state: GameState, nodeId: string, ownerId: string): number {
   const node = getNode(state.board, nodeId);
   const base = node.rent ?? 0;
-  const owned = groupOwnedCount(state, ownerId, node.group);
-  const mult = owned === 1 ? 1 : owned === 2 ? 1.75 : owned === 3 ? 2.5 : 3.5;
+  const sys = systemOfGroup(node.group);
+  const monopoly =
+    !!sys && hasSystemMonopoly(state.owners, ownerId, sys.id as SystemId);
+  // Full system owned → rent doubles. Fuel depot still adds a bump.
+  const mult = monopoly ? 2 : 1;
   const stationBonus = state.stations[nodeId] ? 1.5 : 1;
   return Math.floor(base * mult * stationBonus);
+}
+
+function touchClaim(state: GameState, nodeId: string): void {
+  state.claimCareRotations[nodeId] = state.boardRotations;
+}
+
+function releaseClaimToBank(state: GameState, nodeId: string): void {
+  delete state.owners[nodeId];
+  if (state.stations[nodeId]) {
+    delete state.stations[nodeId];
+  }
+  delete state.claimCareRotations[nodeId];
+}
+
+/** Feral check on the rolling owner's deeds (movement roll only). */
+function checkFeralOnOwnerRoll(state: GameState, owner: Player): void {
+  const overdue = owner.properties.filter((nodeId) => {
+    const care = state.claimCareRotations[nodeId];
+    if (care === undefined) return false;
+    return state.boardRotations - care >= FERAL_ROTATIONS;
+  });
+  if (overdue.length === 0) return;
+
+  for (const nodeId of overdue) {
+    const node = getNode(state.board, nodeId);
+    const sys = systemOfGroup(node.group);
+    const mono =
+      !!sys && hasSystemMonopoly(state.owners, owner.id, sys.id as SystemId);
+    const chance = mono ? FERAL_CHANCE_MONOPOLY : FERAL_CHANCE;
+    if (mulberryNext(state) >= chance) {
+      pushLog(
+        state,
+        `${node.name} stays held (${Math.round(chance * 100)}% feral check failed).`,
+      );
+      continue;
+    }
+    // Go feral
+    owner.properties = owner.properties.filter((id) => id !== nodeId);
+    releaseClaimToBank(state, nodeId);
+    pushLog(
+      state,
+      `${node.name} goes FERAL — claim abandoned (no visit for ${FERAL_ROTATIONS}+ rotations). Fuel depot lost if any.`,
+    );
+    delta(state, `feral: ${node.name}`);
+    if (owner.ephemerisBodyId === nodeId) {
+      owner.ephemerisBodyId = owner.properties[0] ?? null;
+    }
+  }
 }
 
 function eliminate(
@@ -110,11 +158,13 @@ function eliminate(
   player.eliminated = true;
   pushLog(state, `${player.name} eliminated: ${reason}`);
   delta(state, `OUT ${player.name}: ${reason}`);
+  // Deeds return to bank; fuel depots destroyed
   for (const prop of [...player.properties]) {
-    delete state.owners[prop];
+    releaseClaimToBank(state, prop);
   }
   player.properties = [];
   player.cash = 0;
+  player.ephemerisBodyId = null;
   checkWinner(state);
   if (
     state.phase !== "game_over" &&
@@ -512,6 +562,11 @@ function movePlayer(state: GameState, steps: number): void {
     applyLeaveRisk(state, p, startNode.name);
   }
 
+  // Leaving Earth starts a circuit toward a full board rotation
+  if (startNode.id === "earth") {
+    p.circuitActive = true;
+  }
+
   const path = walkMovePath(state.board, pos, steps);
   for (const frame of path.frames) {
     if (frame.passThrough) {
@@ -522,6 +577,17 @@ function movePlayer(state: GameState, steps: number): void {
     }
   }
   p.position = path.endId;
+
+  // Completing a full path back to Earth = +1 board rotation
+  if (path.endId === "earth" && p.circuitActive) {
+    state.boardRotations += 1;
+    p.circuitActive = false;
+    pushLog(
+      state,
+      `Board rotation ${state.boardRotations} complete (${p.name} returned to Earth).`,
+    );
+  }
+
   resolveLanding(state, false);
 }
 
@@ -530,6 +596,11 @@ function resolveLanding(state: GameState, stayed: boolean): void {
   const node = getNode(state.board, p.position);
   if (!stayed) {
     pushLog(state, `${p.name} lands on ${node.name} (insertion free).`);
+  }
+
+  // Visit your own claim → reset feral care clock
+  if (state.owners[node.id] === p.id) {
+    touchClaim(state, node.id);
   }
 
   if (node.landingBonus && node.landingBonus > 0 && !stayed) {
@@ -542,6 +613,7 @@ function resolveLanding(state: GameState, stayed: boolean): void {
   }
 
   const ownerId = state.owners[node.id];
+  // Rent on landing OR on failed leave (stayed) — intentional second charge
   if (ownerId && ownerId !== p.id && isPurchasable(node)) {
     const owner = state.players.find((x) => x.id === ownerId)!;
     const waiverIdx = p.rentWaiversAgainst.indexOf(owner.id);
@@ -563,17 +635,13 @@ function resolveLanding(state: GameState, stayed: boolean): void {
         );
         delta(state, `−${formatMoney(rent)} rent → ${owner.name}`);
       } else {
+        // Creditor gets remaining cash only; deeds go to bank on eliminate
         owner.cash += p.cash;
         pushLog(
           state,
           `${p.name} cannot pay ${formatMoney(rent)} rent.`,
         );
         delta(state, `bankrupt to ${owner.name}`);
-        for (const prop of p.properties) {
-          state.owners[prop] = owner.id;
-          owner.properties.push(prop);
-        }
-        p.properties = [];
         eliminate(state, p, "bankruptcy");
         return;
       }
@@ -591,7 +659,7 @@ function resolveLanding(state: GameState, stayed: boolean): void {
 
   if (state.phase === "game_over") return;
 
-  // Gravity Duel only on transit
+  // Gravity Duel on blank transit / belt (kind space)
   if (!stayed && node.kind === "space") {
     const defender = pickDefender(state, node.id, p.id);
     if (defender) {
@@ -653,6 +721,7 @@ function doBuy(state: GameState): void {
   p.cash -= legal.buyPrice;
   state.owners[node.id] = p.id;
   p.properties.push(node.id);
+  touchClaim(state, node.id);
   if (!p.ephemerisBodyId) {
     p.ephemerisBodyId = node.id;
     pushLog(
@@ -660,9 +729,12 @@ function doBuy(state: GameState): void {
       `${p.name}'s ephemeris anchor is now ${node.name} (first claim).`,
     );
   }
+  const sys = systemOfGroup(node.group);
+  const mono =
+    !!sys && hasSystemMonopoly(state.owners, p.id, sys.id as SystemId);
   pushLog(
     state,
-    `${p.name} claims ${node.name} for ${formatMoney(legal.buyPrice)}.`,
+    `${p.name} claims ${node.name} for ${formatMoney(legal.buyPrice)}${mono ? ` · ${sys!.name} MONOPOLY (rent ×2)` : ""}.`,
   );
   delta(state, `−${formatMoney(legal.buyPrice)} claim ${node.name}`);
 }
@@ -676,11 +748,12 @@ function doPlaceStation(state: GameState): void {
   }
   p.stationsInHand -= 1;
   state.stations[p.position] = true;
+  touchClaim(state, p.position); // depot resets feral timer
   pushLog(
     state,
-    `${p.name} places a fuel station on ${getNode(state.board, p.position).name}.`,
+    `${p.name} places a fuel depot on ${getNode(state.board, p.position).name} (feral timer reset).`,
   );
-  delta(state, `+station ${getNode(state.board, p.position).name}`);
+  delta(state, `+depot ${getNode(state.board, p.position).name}`);
 }
 
 function autoDuelAi(state: GameState): void {
@@ -758,6 +831,8 @@ export function applyAction(state: GameState, action: PlayerAction): GameState {
         `${p.name} rolls ${roll.d1}+${roll.d2}=${roll.total}${roll.doubles ? " (doubles)" : ""}.`,
       );
       delta(next, `roll ${roll.total}`);
+      // Feral checks on this pilot's movement roll (all overdue deeds)
+      checkFeralOnOwnerRoll(next, p);
       movePlayer(next, roll.total);
       if (next.pendingDuel) autoDuelAi(next);
       break;

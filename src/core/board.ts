@@ -1,13 +1,12 @@
 import type { Board, BoardNode, GravityClass } from "./types";
 
-/** Place a body on an orbital ring (normalized coords, sun at 0.5,0.5). */
 function onRing(
   ringIndex: number,
   angleDeg: number,
   ringRadii: number[],
 ): { x: number; y: number; ring: number } {
   const r = ringRadii[Math.min(ringIndex, ringRadii.length - 1)] ?? 0.2;
-  const a = ((angleDeg - 90) * Math.PI) / 180; // 0° = top
+  const a = ((angleDeg - 90) * Math.PI) / 180;
   return {
     x: 0.5 + r * Math.cos(a),
     y: 0.5 + r * Math.sin(a),
@@ -16,7 +15,10 @@ function onRing(
 }
 
 function n(
-  partial: Omit<BoardNode, "next" | "refuel" | "fuelToLeave" | "gravityClass"> & {
+  partial: Omit<
+    BoardNode,
+    "next" | "refuel" | "fuelToLeave" | "gravityClass"
+  > & {
     next?: string[];
     refuel?: BoardNode["refuel"];
     fuelToLeave?: boolean;
@@ -35,209 +37,437 @@ function n(
 }
 
 /**
- * Orbital-ring layout (visual B) + directed flight path.
- * Rings: 0 Mercury … outer Jupiter system.
+ * Path: Earth → Venus → Mercury → Mars system → belt blanks →
+ * Jupiter ring → Saturn ring → Earth.
+ * Rings outward: Mercury, Venus, Earth, Mars, Belt, Jupiter, Saturn.
  */
 export function createV0Board(): Board {
-  // Keep max radius ≤ ~0.40 so nodes + labels stay inside the unit square
-  // (draw code also fit-zooms to the full graph with padding).
-  const ringRadii = [0.11, 0.18, 0.25, 0.32, 0.38, 0.4];
-
-  // Spread angles so labels don’t stack; path still follows `chain` below.
-  const pos = {
-    mercury: onRing(0, 15, ringRadii),
-    s1: onRing(0, 70, ringRadii),
-    venus: onRing(1, 110, ringRadii),
-    s2: onRing(1, 160, ringRadii),
-    earth: onRing(2, 200, ringRadii),
-    s3: onRing(2, 245, ringRadii),
-    fs1: onRing(2, 290, ringRadii),
-    s4: onRing(3, 330, ringRadii),
-    mars: onRing(3, 20, ringRadii),
-    dock: onRing(3, 55, ringRadii),
-    s5: onRing(4, 90, ringRadii),
-    j_approach: onRing(4, 125, ringRadii),
-    j_grav_in: onRing(5, 150, ringRadii),
-    io: onRing(5, 185, ringRadii),
-    europa: onRing(5, 220, ringRadii),
-    ganymede: onRing(5, 255, ringRadii),
-    callisto: onRing(5, 290, ringRadii),
-    fs2: onRing(5, 325, ringRadii),
-    j_exit: onRing(4, 0, ringRadii),
-    s6: onRing(3, 170, ringRadii),
-    s7: onRing(2, 140, ringRadii),
-    s8: onRing(1, 40, ringRadii),
-  };
+  const ringRadii = [0.1, 0.16, 0.22, 0.28, 0.34, 0.4, 0.46];
 
   const nodes: BoardNode[] = [
+    // —— Earth (not purchasable) ——
     n({
       id: "earth",
       name: "Earth",
       kind: "planet",
-      ...pos.earth,
-      landingBonus: 500,
+      ...onRing(2, 0, ringRadii),
+      landingBonus: 400,
       refuel: "free",
       gravityClass: 3,
       price: 0,
     }),
-    n({ id: "s1", name: "Transit", kind: "space", ...pos.s1 }),
     n({
-      id: "mercury",
-      name: "Mercury",
-      kind: "planet",
-      ...pos.mercury,
-      price: 400,
-      rent: 50,
-      group: "inner",
-      gravityClass: 2,
-      refuel: "station",
+      id: "t_ev",
+      name: "Transit",
+      kind: "space",
+      ...onRing(2, 40, ringRadii),
     }),
-    n({ id: "s2", name: "Transit", kind: "space", ...pos.s2 }),
+
+    // —— Venus ——
     n({
       id: "venus",
       name: "Venus",
       kind: "planet",
-      ...pos.venus,
+      ...onRing(1, 80, ringRadii),
       price: 500,
       rent: 70,
-      group: "inner",
+      group: "venus",
       gravityClass: 3,
       refuel: "station",
     }),
-    n({ id: "s3", name: "Transit", kind: "space", ...pos.s3 }),
     n({
-      id: "fs1",
-      name: "Charter Beacon I",
-      kind: "federation",
-      ...pos.fs1,
-      landingBonus: 300,
-      refuel: "none",
+      id: "t_vm",
+      name: "Transit",
+      kind: "space",
+      ...onRing(1, 120, ringRadii),
     }),
-    n({ id: "s4", name: "Transit", kind: "space", ...pos.s4 }),
+
+    // —— Mercury ——
+    n({
+      id: "mercury",
+      name: "Mercury",
+      kind: "planet",
+      ...onRing(0, 160, ringRadii),
+      price: 400,
+      rent: 60,
+      group: "mercury",
+      gravityClass: 2,
+      refuel: "station",
+    }),
+    n({
+      id: "t_mm",
+      name: "Transit",
+      kind: "space",
+      ...onRing(0, 200, ringRadii),
+    }),
+
+    // —— Mars system: Elon, Mars, Phobos, Deimos ——
+    n({
+      id: "elon",
+      name: "Elon",
+      kind: "federation",
+      ...onRing(3, 220, ringRadii),
+      price: 550,
+      rent: 75,
+      group: "mars",
+      refuel: "paid",
+      gravityClass: 0,
+    }),
     n({
       id: "mars",
       name: "Mars",
       kind: "planet",
-      ...pos.mars,
+      ...onRing(3, 250, ringRadii),
       price: 600,
-      rent: 80,
+      rent: 85,
       group: "mars",
       gravityClass: 2,
       refuel: "station",
     }),
     n({
-      id: "dock",
-      name: "Mars Space Dock",
-      kind: "dock",
-      ...pos.dock,
-      price: 450,
-      rent: 40,
-      group: "docks",
+      id: "phobos",
+      name: "Phobos",
+      kind: "moon",
+      ...onRing(3, 280, ringRadii),
+      price: 250,
+      rent: 30,
+      group: "mars",
+      gravityClass: 1,
+      refuel: "station",
+    }),
+    n({
+      id: "deimos",
+      name: "Deimos",
+      kind: "moon",
+      ...onRing(3, 310, ringRadii),
+      price: 250,
+      rent: 30,
+      group: "mars",
+      gravityClass: 1,
+      refuel: "station",
+    }),
+    n({
+      id: "t_mb",
+      name: "Transit",
+      kind: "space",
+      ...onRing(3, 340, ringRadii),
+    }),
+
+    // —— Asteroid belt (blanks — combat) ——
+    n({
+      id: "belt1",
+      name: "Belt",
+      kind: "space",
+      ...onRing(4, 10, ringRadii),
+    }),
+    n({
+      id: "belt2",
+      name: "Belt",
+      kind: "space",
+      ...onRing(4, 50, ringRadii),
+    }),
+    n({
+      id: "belt3",
+      name: "Belt",
+      kind: "space",
+      ...onRing(4, 90, ringRadii),
+    }),
+    n({
+      id: "belt4",
+      name: "Belt",
+      kind: "space",
+      ...onRing(4, 130, ringRadii),
+    }),
+    n({
+      id: "belt5",
+      name: "Belt",
+      kind: "space",
+      ...onRing(4, 170, ringRadii),
+    }),
+    n({
+      id: "belt6",
+      name: "Belt",
+      kind: "space",
+      ...onRing(4, 210, ringRadii),
+    }),
+
+    // —— Jupiter: Holst + moons (orange) + blanks ——
+    n({
+      id: "holst",
+      name: "Holst Space Station",
+      kind: "federation",
+      ...onRing(5, 240, ringRadii),
+      price: 700,
+      rent: 100,
+      group: "jupiter",
       refuel: "paid",
       gravityClass: 0,
     }),
-    n({ id: "s5", name: "Transit", kind: "space", ...pos.s5 }),
     n({
-      id: "j_approach",
-      name: "Jupiter Approach",
+      id: "j_b1",
+      name: "J Transit",
       kind: "space",
-      ...pos.j_approach,
-    }),
-    n({
-      id: "j_grav_in",
-      name: "Jupiter Gravity",
-      kind: "gravity",
-      ...pos.j_grav_in,
+      ...onRing(5, 265, ringRadii),
     }),
     n({
       id: "io",
       name: "Io",
       kind: "moon",
-      ...pos.io,
+      ...onRing(5, 290, ringRadii),
       price: 350,
       rent: 45,
       group: "jupiter",
       gravityClass: 2,
       refuel: "station",
+      paint: "jupiter-moon",
+    }),
+    n({
+      id: "j_b2",
+      name: "J Transit",
+      kind: "space",
+      ...onRing(5, 315, ringRadii),
     }),
     n({
       id: "europa",
       name: "Europa",
       kind: "moon",
-      ...pos.europa,
+      ...onRing(5, 340, ringRadii),
       price: 400,
       rent: 55,
       group: "jupiter",
       gravityClass: 2,
       refuel: "station",
+      paint: "jupiter-moon",
+    }),
+    n({
+      id: "j_b3",
+      name: "J Transit",
+      kind: "space",
+      ...onRing(5, 5, ringRadii),
     }),
     n({
       id: "ganymede",
       name: "Ganymede",
       kind: "moon",
-      ...pos.ganymede,
+      ...onRing(5, 30, ringRadii),
       price: 550,
       rent: 90,
       group: "jupiter",
       gravityClass: 2,
       refuel: "station",
+      paint: "jupiter-moon",
+    }),
+    n({
+      id: "j_b4",
+      name: "J Transit",
+      kind: "space",
+      ...onRing(5, 55, ringRadii),
     }),
     n({
       id: "callisto",
       name: "Callisto",
       kind: "moon",
-      ...pos.callisto,
+      ...onRing(5, 80, ringRadii),
       price: 500,
       rent: 75,
       group: "jupiter",
       gravityClass: 2,
       refuel: "station",
+      paint: "jupiter-moon",
     }),
     n({
-      id: "fs2",
-      name: "Charter Beacon II",
-      kind: "federation",
-      ...pos.fs2,
-      landingBonus: 400,
-      refuel: "none",
-    }),
-    n({
-      id: "j_exit",
-      name: "Jupiter Exit",
+      id: "j_b5",
+      name: "J Transit",
       kind: "space",
-      ...pos.j_exit,
+      ...onRing(5, 105, ringRadii),
     }),
-    n({ id: "s6", name: "Transit", kind: "space", ...pos.s6 }),
-    n({ id: "s7", name: "Home Stretch", kind: "space", ...pos.s7 }),
-    n({ id: "s8", name: "Transit", kind: "space", ...pos.s8 }),
+
+    // —— Saturn: Daktulios + moons (yellow) + blanks ——
+    n({
+      id: "daktulios",
+      name: "Daktulios",
+      kind: "federation",
+      ...onRing(6, 130, ringRadii),
+      price: 800,
+      rent: 120,
+      group: "saturn",
+      refuel: "paid",
+      gravityClass: 0,
+    }),
+    n({
+      id: "titan",
+      name: "Titan",
+      kind: "moon",
+      ...onRing(6, 155, ringRadii),
+      price: 600,
+      rent: 95,
+      group: "saturn",
+      gravityClass: 2,
+      refuel: "station",
+      paint: "saturn-moon",
+    }),
+    n({
+      id: "s_b1",
+      name: "S Transit",
+      kind: "space",
+      ...onRing(6, 175, ringRadii),
+    }),
+    n({
+      id: "enceladus",
+      name: "Enceladus",
+      kind: "moon",
+      ...onRing(6, 195, ringRadii),
+      price: 320,
+      rent: 40,
+      group: "saturn",
+      gravityClass: 1,
+      refuel: "station",
+      paint: "saturn-moon",
+    }),
+    n({
+      id: "s_b2",
+      name: "S Transit",
+      kind: "space",
+      ...onRing(6, 215, ringRadii),
+    }),
+    n({
+      id: "iapetus",
+      name: "Iapetus",
+      kind: "moon",
+      ...onRing(6, 235, ringRadii),
+      price: 380,
+      rent: 50,
+      group: "saturn",
+      gravityClass: 1,
+      refuel: "station",
+      paint: "saturn-moon",
+    }),
+    n({
+      id: "s_b3",
+      name: "S Transit",
+      kind: "space",
+      ...onRing(6, 255, ringRadii),
+    }),
+    n({
+      id: "mimas",
+      name: "Mimas",
+      kind: "moon",
+      ...onRing(6, 275, ringRadii),
+      price: 280,
+      rent: 35,
+      group: "saturn",
+      gravityClass: 1,
+      refuel: "station",
+      paint: "saturn-moon",
+    }),
+    n({
+      id: "s_b4",
+      name: "S Transit",
+      kind: "space",
+      ...onRing(6, 295, ringRadii),
+    }),
+    n({
+      id: "rhea",
+      name: "Rhea",
+      kind: "moon",
+      ...onRing(6, 315, ringRadii),
+      price: 420,
+      rent: 60,
+      group: "saturn",
+      gravityClass: 1,
+      refuel: "station",
+      paint: "saturn-moon",
+    }),
+    n({
+      id: "s_b5",
+      name: "S Transit",
+      kind: "space",
+      ...onRing(6, 335, ringRadii),
+    }),
+    n({
+      id: "dione",
+      name: "Dione",
+      kind: "moon",
+      ...onRing(6, 355, ringRadii),
+      price: 400,
+      rent: 55,
+      group: "saturn",
+      gravityClass: 1,
+      refuel: "station",
+      paint: "saturn-moon",
+    }),
+    n({
+      id: "s_b6",
+      name: "S Transit",
+      kind: "space",
+      ...onRing(6, 20, ringRadii),
+    }),
+    n({
+      id: "tethys",
+      name: "Tethys",
+      kind: "moon",
+      ...onRing(6, 40, ringRadii),
+      price: 360,
+      rent: 48,
+      group: "saturn",
+      gravityClass: 1,
+      refuel: "station",
+      paint: "saturn-moon",
+    }),
+    n({
+      id: "t_se",
+      name: "Homeward",
+      kind: "space",
+      ...onRing(5, 70, ringRadii),
+    }),
   ];
 
   const byId: Record<string, BoardNode> = {};
   for (const node of nodes) byId[node.id] = node;
 
   const chain: Array<[string, string]> = [
-    ["earth", "s1"],
-    ["s1", "mercury"],
-    ["mercury", "s2"],
-    ["s2", "venus"],
-    ["venus", "s3"],
-    ["s3", "fs1"],
-    ["fs1", "s4"],
-    ["s4", "mars"],
-    ["mars", "dock"],
-    ["dock", "s5"],
-    ["s5", "j_approach"],
-    ["j_approach", "j_grav_in"],
-    ["j_grav_in", "io"],
-    ["io", "europa"],
-    ["europa", "ganymede"],
-    ["ganymede", "callisto"],
-    ["callisto", "fs2"],
-    ["fs2", "j_exit"],
-    ["j_exit", "s6"],
-    ["s6", "s7"],
-    ["s7", "s8"],
-    ["s8", "earth"],
+    ["earth", "t_ev"],
+    ["t_ev", "venus"],
+    ["venus", "t_vm"],
+    ["t_vm", "mercury"],
+    ["mercury", "t_mm"],
+    ["t_mm", "elon"],
+    ["elon", "mars"],
+    ["mars", "phobos"],
+    ["phobos", "deimos"],
+    ["deimos", "t_mb"],
+    ["t_mb", "belt1"],
+    ["belt1", "belt2"],
+    ["belt2", "belt3"],
+    ["belt3", "belt4"],
+    ["belt4", "belt5"],
+    ["belt5", "belt6"],
+    ["belt6", "holst"],
+    ["holst", "j_b1"],
+    ["j_b1", "io"],
+    ["io", "j_b2"],
+    ["j_b2", "europa"],
+    ["europa", "j_b3"],
+    ["j_b3", "ganymede"],
+    ["ganymede", "j_b4"],
+    ["j_b4", "callisto"],
+    ["callisto", "j_b5"],
+    ["j_b5", "daktulios"],
+    ["daktulios", "titan"],
+    ["titan", "s_b1"],
+    ["s_b1", "enceladus"],
+    ["enceladus", "s_b2"],
+    ["s_b2", "iapetus"],
+    ["iapetus", "s_b3"],
+    ["s_b3", "mimas"],
+    ["mimas", "s_b4"],
+    ["s_b4", "rhea"],
+    ["rhea", "s_b5"],
+    ["s_b5", "dione"],
+    ["dione", "s_b6"],
+    ["s_b6", "tethys"],
+    ["tethys", "t_se"],
+    ["t_se", "earth"],
   ];
 
   for (const [from, to] of chain) {
@@ -255,11 +485,12 @@ export function getNode(board: Board, id: string): BoardNode {
 
 export function isPurchasable(node: BoardNode): boolean {
   return (
+    typeof node.price === "number" &&
+    node.price > 0 &&
     (node.kind === "planet" ||
       node.kind === "moon" ||
-      node.kind === "dock") &&
-    typeof node.price === "number" &&
-    node.price > 0
+      node.kind === "federation" ||
+      node.kind === "dock")
   );
 }
 

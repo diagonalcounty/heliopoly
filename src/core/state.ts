@@ -50,6 +50,7 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
       skipTurns: 0,
       rentWaiversAgainst: [],
       ephemerisBodyId: null,
+      circuitActive: false,
     });
   }
 
@@ -78,7 +79,8 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
       `Heliopoly · Free Enterprise In Space`,
       `Game start: ${count} pilots · seed ${seed} · bank ${formatMoney(config.startingCash)} each`,
       `Propellants: ${propSummary}`,
-      `Land free · leave costs fuel · transit Gravity Duel (dice) · rankings in ⍼`,
+      `Path: Earth→Venus→Mercury→Mars→Belt→Jupiter→Saturn→Earth`,
+      `Monopoly rent ×2 · feral after 10 board rotations · depots lost on feral/out`,
       config.humanSeat
         ? "Seat 0 is human; others AI."
         : "Self-play: all seats AI.",
@@ -87,6 +89,8 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
     diceTotals: [],
     pendingDuel: null,
     encounterMem: {},
+    boardRotations: 0,
+    claimCareRotations: {},
     winnerId: null,
     endReason: null,
     config: { ...config, seed },
@@ -129,6 +133,7 @@ export function cloneState(state: GameState): GameState {
         }
       : null,
     encounterMem: { ...state.encounterMem },
+    claimCareRotations: { ...state.claimCareRotations },
     config: { ...state.config },
   };
 }

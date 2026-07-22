@@ -551,6 +551,7 @@ function renderSide(): void {
     state.lastRoll
       ? `Last roll: ${state.lastRoll.d1}+${state.lastRoll.d2}=${state.lastRoll.total}`
       : "Last roll: —",
+    `Board rotations: ${state.boardRotations} (feral after ${10}+ without visit)`,
     p.ephemerisBodyId
       ? `Ephemeris: ${getNode(state.board, p.ephemerisBodyId).name}`
       : "Ephemeris: Earth (until first claim)",
@@ -719,6 +720,8 @@ function drawBoard(): void {
     if (node.kind === "moon") {
       r = 11;
       fill = "#c792ea";
+      if (node.paint === "jupiter-moon") fill = "#ff9f43";
+      if (node.paint === "saturn-moon") fill = "#f6e58d";
     }
     if (node.kind === "federation") {
       r = 13;
@@ -759,9 +762,16 @@ function drawBoard(): void {
     ctx.fillStyle = fill;
     ctx.fill();
     if (state?.stations[node.id]) {
-      ctx.strokeStyle = "#fff";
-      ctx.lineWidth = 2;
-      ctx.strokeRect(x - 4, y - 4, 8, 8);
+      // Fuel depot — clear white square with crossbar
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(x - 5, y - 5, 10, 10);
+      ctx.strokeStyle = "#0b1020";
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(x - 5, y - 5, 10, 10);
+      ctx.beginPath();
+      ctx.moveTo(x - 3, y);
+      ctx.lineTo(x + 3, y);
+      ctx.stroke();
     }
 
     ctx.fillStyle = "rgba(232,238,252,0.95)";

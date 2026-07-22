@@ -33,6 +33,8 @@ export interface BoardNode {
   fuelToLeave?: boolean;
   gravityClass?: GravityClass;
   refuel?: "free" | "paid" | "station" | "none";
+  /** Visual tag for moon colors etc. */
+  paint?: "jupiter-moon" | "saturn-moon";
 }
 
 export interface Board {
@@ -62,6 +64,8 @@ export interface Player {
   rentWaiversAgainst: string[];
   /** First purchasable claim id — ephemeris body for seeding. */
   ephemerisBodyId: string | null;
+  /** True after leaving Earth until next full circuit completes. */
+  circuitActive: boolean;
 }
 
 export type TurnPhase =
@@ -127,6 +131,16 @@ export interface GameState {
   pendingDuel: PendingDuel | null;
   /** nodeId → encounter memory */
   encounterMem: Record<string, NodeEncounterMem>;
+  /**
+   * Full board circuits completed (any pilot returning to Earth after leaving).
+   * One rotation = one pass through the entire board path.
+   */
+  boardRotations: number;
+  /**
+   * Per claim: boardRotations at last visit / purchase / fuel-station reset.
+   * Key = nodeId.
+   */
+  claimCareRotations: Record<string, number>;
   winnerId: string | null;
   /** How the game ended, for end screen. */
   endReason: string | null;
