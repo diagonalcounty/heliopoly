@@ -11,3 +11,4 @@ export * from "./path";
 export * from "./ephemeris";
 export * from "./seed";
 export * from "./systems";
+export * from "./inspect";

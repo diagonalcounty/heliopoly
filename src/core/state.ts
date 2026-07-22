@@ -88,6 +88,7 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
     turnDeltas: [],
     diceTotals: [],
     pendingDuel: null,
+    lastDuelResult: null,
     encounterMem: {},
     boardRotations: 0,
     claimCareRotations: {},
@@ -130,6 +131,13 @@ export function cloneState(state: GameState): GameState {
           defenderRoll: state.pendingDuel.defenderRoll
             ? { ...state.pendingDuel.defenderRoll }
             : null,
+        }
+      : null,
+    lastDuelResult: state.lastDuelResult
+      ? {
+          ...state.lastDuelResult,
+          challengerRoll: { ...state.lastDuelResult.challengerRoll },
+          defenderRoll: { ...state.lastDuelResult.defenderRoll },
         }
       : null,
     encounterMem: { ...state.encounterMem },

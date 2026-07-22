@@ -114,6 +114,22 @@ export interface NodeEncounterMem {
   championId: string | null;
 }
 
+/** Snapshot for duel result UI (cleared after display). */
+export interface DuelResult {
+  nodeName: string;
+  challengerName: string;
+  defenderName: string;
+  challengerStance: DuelStance;
+  defenderStance: DuelStance;
+  challengerRoll: LastRoll;
+  defenderRoll: LastRoll;
+  mean: number;
+  outcome: "win" | "tie";
+  winnerName: string | null;
+  loserName: string | null;
+  summary: string;
+}
+
 export interface GameState {
   board: Board;
   players: Player[];
@@ -129,6 +145,8 @@ export interface GameState {
   /** History of 2d6 totals this game (movement + duels). */
   diceTotals: number[];
   pendingDuel: PendingDuel | null;
+  /** Last resolved duel for UI ceremony */
+  lastDuelResult: DuelResult | null;
   /** nodeId → encounter memory */
   encounterMem: Record<string, NodeEncounterMem>;
   /**

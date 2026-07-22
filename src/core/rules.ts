@@ -343,6 +343,13 @@ export function getLegalActions(state: GameState): LegalActions {
   const previewSteps = state.lastRoll?.total ?? 7;
   const leaveBurnPreview = leaveBurnCost(node, previewSteps, p.propellant);
 
+  const ownsHere = state.owners[node.id] === p.id;
+  const canStation =
+    ownsHere &&
+    (node.kind === "planet" || node.kind === "moon") &&
+    !state.stations[node.id] &&
+    p.stationsInHand > 0;
+
   if (state.phase === "await_action") {
     return {
       refuel: fuel.allowed && fuel.max > 0,
@@ -351,8 +358,9 @@ export function getLegalActions(state: GameState): LegalActions {
       roll: true,
       buy: false,
       buyPrice: 0,
-      placeStation: false,
-      endTurn: false,
+      // Allow building a fuel depot on your claim at the start of turn (not only post-land)
+      placeStation: canStation,
+      endTurn: true, // camp / skip roll (e.g. Earth)
       leaveBurnPreview,
       duelStance: false,
       duelRoll: false,
@@ -361,12 +369,6 @@ export function getLegalActions(state: GameState): LegalActions {
 
   const unowned = isPurchasable(node) && !state.owners[node.id];
   const canBuy = unowned && p.cash >= (node.price ?? 0);
-  const ownsHere = state.owners[node.id] === p.id;
-  const canStation =
-    ownsHere &&
-    (node.kind === "planet" || node.kind === "moon") &&
-    !state.stations[node.id] &&
-    p.stationsInHand > 0;
 
   return {
     refuel: fuel.allowed && fuel.max > 0,
@@ -511,10 +513,25 @@ function resolveDuelIfComplete(state: GameState): void {
   mem.lastRollerId = d.challengerId;
 
   if (!winner || !loser) {
-    pushLog(state, `Gravity Duel: TIE — both hold the transit. No forfeit.`);
+    const summary = `TIE — both hold the transit. No forfeit.`;
+    pushLog(state, `Gravity Duel: ${summary}`);
     delta(state, `Duel TIE — both occupy`);
     mem.championId = null;
     state.encounterMem[d.nodeId] = mem;
+    state.lastDuelResult = {
+      nodeName: getNode(state.board, d.nodeId).name,
+      challengerName: c.name,
+      defenderName: def.name,
+      challengerStance: d.challengerStance,
+      defenderStance: d.defenderStance,
+      challengerRoll: d.challengerRoll,
+      defenderRoll: d.defenderRoll,
+      mean,
+      outcome: "tie",
+      winnerName: null,
+      loserName: null,
+      summary,
+    };
     state.pendingDuel = null;
     state.phase = "await_post_land";
     return;
@@ -527,11 +544,23 @@ function resolveDuelIfComplete(state: GameState): void {
   if (!winner.rentWaiversAgainst.includes(loser.id)) {
     winner.rentWaiversAgainst.push(loser.id);
   }
-  pushLog(
-    state,
-    `${winner.name} wins Gravity Duel! ${loser.name} loses a turn; ${winner.name} gets a free pass on ${loser.name}'s claims.`,
-  );
+  const summary = `${winner.name} WINS! ${loser.name} loses a turn · ${winner.name} gets a rent free-pass on ${loser.name}'s claims.`;
+  pushLog(state, `Gravity Duel: ${summary}`);
   delta(state, `Duel WIN ${winner.name} / ${loser.name} skips + waiver`);
+  state.lastDuelResult = {
+    nodeName: getNode(state.board, d.nodeId).name,
+    challengerName: c.name,
+    defenderName: def.name,
+    challengerStance: d.challengerStance,
+    defenderStance: d.defenderStance,
+    challengerRoll: d.challengerRoll,
+    defenderRoll: d.defenderRoll,
+    mean,
+    outcome: "win",
+    winnerName: winner.name,
+    loserName: loser.name,
+    summary,
+  };
   state.pendingDuel = null;
   state.phase = "await_post_land";
 }
@@ -841,10 +870,14 @@ export function applyAction(state: GameState, action: PlayerAction): GameState {
       if (next.phase === "await_post_land") doBuy(next);
       break;
     case "place_station":
-      if (next.phase === "await_post_land") doPlaceStation(next);
+      if (next.phase === "await_post_land" || next.phase === "await_action") {
+        doPlaceStation(next);
+      }
       break;
     case "end_turn":
-      if (next.phase === "await_post_land") advanceTurn(next);
+      if (next.phase === "await_post_land" || next.phase === "await_action") {
+        advanceTurn(next);
+      }
       break;
     case "duel_stance": {
       const d = next.pendingDuel;

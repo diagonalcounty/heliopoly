@@ -21,13 +21,23 @@ import type {
   PropellantId,
 } from "./core/types";
 import { bodyRadius, drawBodyIcon, drawFuelDepotIcon } from "./bodyIcons";
+import { inspectBody } from "./core/inspect";
+import { FERAL_ROTATIONS } from "./core/rules";
 import { mountHandbook } from "./handbook/handbook";
+import type { Board } from "./core/types";
 
 let state: GameState | null = null;
 let visualNode: Record<string, string> = {};
 let animating = false;
 /** Snapshot of deltas after a pilot ends their turn. */
 let lastTurnSummary: string[] = [];
+/** Last board projector for hit-testing hover */
+let lastProject:
+  | null
+  | {
+      project: (x: number, y: number) => { x: number; y: number };
+      board: Board;
+    } = null;
 
 const DWELL_STOP_MS = 420;
 const DWELL_PASS_MS = 140;
@@ -54,6 +64,17 @@ const duelMatchup = document.getElementById("duel-matchup")!;
 const duelStatus = document.getElementById("duel-status")!;
 const duelDice = document.getElementById("duel-dice")!;
 const duelRollBtn = document.getElementById("duel-roll") as HTMLButtonElement;
+const dieC1 = document.getElementById("die-c1")!;
+const dieC2 = document.getElementById("die-c2")!;
+const dieD1 = document.getElementById("die-d1")!;
+const dieD2 = document.getElementById("die-d2")!;
+const diceLabelC = document.getElementById("dice-label-c")!;
+const diceLabelD = document.getElementById("dice-label-d")!;
+const duelResultEl = document.getElementById("duel-result")!;
+const duelResultTitle = document.getElementById("duel-result-title")!;
+const duelResultBody = document.getElementById("duel-result-body")!;
+const duelResultDice = document.getElementById("duel-result-dice")!;
+const bodyTooltip = document.getElementById("body-tooltip")!;
 const endRoot = document.getElementById("end-root")!;
 const endTitle = document.getElementById("end-title")!;
 const endStory = document.getElementById("end-story")!;
@@ -141,11 +162,69 @@ function humanDuelNeedsInput(s: GameState): boolean {
   return false;
 }
 
+function setDie(el: HTMLElement, value: number | string, rolling = false): void {
+  el.textContent = String(value);
+  el.classList.toggle("rolling", rolling);
+}
+
+async function animateDicePair(
+  d1El: HTMLElement,
+  d2El: HTMLElement,
+  final: { d1: number; d2: number },
+): Promise<void> {
+  const frames = 12;
+  for (let i = 0; i < frames; i++) {
+    setDie(d1El, 1 + Math.floor(Math.random() * 6), true);
+    setDie(d2El, 1 + Math.floor(Math.random() * 6), true);
+    await sleep(55);
+  }
+  setDie(d1El, final.d1, false);
+  setDie(d2El, final.d2, false);
+}
+
+function showDuelResultSplash(s: GameState): void {
+  const r = s.lastDuelResult;
+  if (!r) return;
+  duelResultEl.classList.remove("hidden");
+  duelResultEl.classList.toggle("win", r.outcome === "win");
+  duelResultEl.classList.toggle("tie", r.outcome === "tie");
+  const card = duelResultEl.querySelector(".duel-result-card")!;
+  card.classList.toggle("win", r.outcome === "win");
+  card.classList.toggle("tie", r.outcome === "tie");
+  duelResultTitle.textContent =
+    r.outcome === "tie" ? "Draw — both hold the lane" : `${r.winnerName} wins!`;
+  duelResultBody.textContent = [
+    `${r.challengerName} [${r.challengerStance.toUpperCase()}] ${r.challengerRoll.d1}+${r.challengerRoll.d2}=${r.challengerRoll.total}`,
+    `${r.defenderName} [${r.defenderStance.toUpperCase()}] ${r.defenderRoll.d1}+${r.defenderRoll.d2}=${r.defenderRoll.total}`,
+    `Mean ${r.mean.toFixed(2)} · ${r.nodeName}`,
+    r.summary,
+  ].join("\n");
+  duelResultDice.innerHTML = `
+    <div class="dice-pair">
+      <div class="die${r.winnerName === r.challengerName ? " winner-glow" : ""}">${r.challengerRoll.d1}</div>
+      <div class="die${r.winnerName === r.challengerName ? " winner-glow" : ""}">${r.challengerRoll.d2}</div>
+      <span class="dice-label">${r.challengerName}</span>
+    </div>
+    <div class="dice-vs">vs</div>
+    <div class="dice-pair">
+      <div class="die${r.winnerName === r.defenderName ? " winner-glow" : ""}">${r.defenderRoll.d1}</div>
+      <div class="die${r.winnerName === r.defenderName ? " winner-glow" : ""}">${r.defenderRoll.d2}</div>
+      <span class="dice-label">${r.defenderName}</span>
+    </div>`;
+}
+
+function hideDuelResultSplash(): void {
+  duelResultEl.classList.add("hidden");
+  if (state?.lastDuelResult) {
+    state = { ...state, lastDuelResult: null };
+  }
+}
+
 function updateDuelModal(s: GameState | null): void {
   if (!s || s.phase !== "await_duel" || !s.pendingDuel) {
     duelRoot.classList.add("hidden");
     duelRoot.setAttribute("aria-hidden", "true");
-    document.body.classList.remove("handbook-open");
+    if (!s?.lastDuelResult) document.body.classList.remove("handbook-open");
     return;
   }
   const d = s.pendingDuel;
@@ -155,10 +234,12 @@ function updateDuelModal(s: GameState | null): void {
   duelRoot.setAttribute("aria-hidden", "false");
   document.body.classList.add("handbook-open");
   duelMatchup.textContent = `${c.name} vs ${def.name} · ${getNode(s.board, d.nodeId).name}`;
+  diceLabelC.textContent = c.name;
+  diceLabelD.textContent = def.name;
   const mean = meanDiceTotal(s);
   duelStatus.textContent = [
     `Mean of game 2d6 totals: ${mean.toFixed(2)}`,
-    `Your stance: hidden until both have rolled`,
+    `Stances hidden until both have rolled`,
     d.challengerStance && d.defenderStance
       ? "Both stances locked — roll when ready"
       : "Choose LOW or HIGH",
@@ -182,21 +263,42 @@ function updateDuelModal(s: GameState | null): void {
   }
   duelRollBtn.disabled = !needRoll || animating;
 
+  if (d.challengerRoll) {
+    setDie(dieC1, d.challengerRoll.d1);
+    setDie(dieC2, d.challengerRoll.d2);
+  } else {
+    setDie(dieC1, "?");
+    setDie(dieC2, "?");
+  }
+  if (d.defenderRoll) {
+    setDie(dieD1, d.defenderRoll.d1);
+    setDie(dieD2, d.defenderRoll.d2);
+  } else {
+    setDie(dieD1, "?");
+    setDie(dieD2, "?");
+  }
+
   const parts: string[] = [];
-  if (d.challengerRoll)
-    parts.push(
-      `${c.name}: ${d.challengerRoll.d1}+${d.challengerRoll.d2}=${d.challengerRoll.total}`,
-    );
-  if (d.defenderRoll)
-    parts.push(
-      `${def.name}: ${d.defenderRoll.d1}+${d.defenderRoll.d2}=${d.defenderRoll.total}`,
-    );
   if (d.challengerRoll && d.defenderRoll && d.challengerStance && d.defenderStance) {
     parts.push(
       `Stances: ${c.name}=${d.challengerStance} · ${def.name}=${d.defenderStance}`,
     );
   }
   duelDice.textContent = parts.join("\n");
+}
+
+async function maybeShowDuelResult(s: GameState): Promise<void> {
+  if (!s.lastDuelResult) return;
+  // Ceremony: re-animate final dice then splash
+  const r = s.lastDuelResult;
+  duelRoot.classList.remove("hidden");
+  setDie(dieC1, "?", true);
+  setDie(dieC2, "?", true);
+  setDie(dieD1, "?", true);
+  setDie(dieD2, "?", true);
+  await animateDicePair(dieC1, dieC2, r.challengerRoll);
+  await animateDicePair(dieD1, dieD2, r.defenderRoll);
+  showDuelResultSplash(s);
 }
 
 function showEndScreen(s: GameState): void {
@@ -249,7 +351,28 @@ async function applyActionAnimated(
     }
   }
 
+  // Animate duel dice when human just rolled in a duel
+  if (
+    action.type === "duel_roll" &&
+    after.pendingDuel?.challengerRoll &&
+    before.pendingDuel &&
+    !before.pendingDuel.challengerRoll
+  ) {
+    await animateDicePair(dieC1, dieC2, after.pendingDuel.challengerRoll);
+  }
+  if (
+    action.type === "duel_roll" &&
+    after.pendingDuel?.defenderRoll &&
+    before.pendingDuel &&
+    !before.pendingDuel.defenderRoll
+  ) {
+    await animateDicePair(dieD1, dieD2, after.pendingDuel.defenderRoll);
+  }
+
   after = resolveDuelAiFully(after);
+  if (after.lastDuelResult && !before.lastDuelResult) {
+    await maybeShowDuelResult(after);
+  }
   return after;
 }
 
@@ -473,6 +596,11 @@ document.getElementById("end-close")?.addEventListener("click", () => {
   render();
 });
 
+document.getElementById("duel-result-ok")?.addEventListener("click", () => {
+  hideDuelResultSplash();
+  render();
+});
+
 btnRefuel.addEventListener("click", () => {
   if (!state) return;
   const legal = getLegalActions(state);
@@ -552,7 +680,7 @@ function renderSide(): void {
     state.lastRoll
       ? `Last roll: ${state.lastRoll.d1}+${state.lastRoll.d2}=${state.lastRoll.total}`
       : "Last roll: —",
-    `Board rotations: ${state.boardRotations} (feral after ${10}+ without visit)`,
+    `Board rotations: ${state.boardRotations} (feral after ${FERAL_ROTATIONS}+ without visit)`,
     p.ephemerisBodyId
       ? `Ephemeris: ${getNode(state.board, p.ephemerisBodyId).name}`
       : "Ephemeris: Earth (until first claim)",
@@ -572,7 +700,29 @@ function renderSide(): void {
   btnSelf.disabled = animating;
 
   if (legal.buy) btnBuy.textContent = `Buy (${formatMoney(legal.buyPrice)})`;
-  else btnBuy.textContent = "Buy";
+  else {
+    const here = getNode(state.board, p.position);
+    const ownerId = state.owners[here.id];
+    if (ownerId && ownerId !== p.id) {
+      const o = state.players.find((x) => x.id === ownerId);
+      btnBuy.textContent = `Owned by ${o?.name ?? "?"}`;
+    } else if (isPurchasable(here) && p.cash < (here.price ?? 0)) {
+      btnBuy.textContent = `Need ${formatMoney(here.price ?? 0)}`;
+    } else if (!isPurchasable(here)) btnBuy.textContent = "Not for sale";
+    else btnBuy.textContent = "Buy";
+  }
+
+  if (legal.placeStation) {
+    btnStation.textContent = `Fuel depot (${p.stationsInHand} left)`;
+  } else {
+    const here = getNode(state.board, p.position);
+    if (state.owners[here.id] !== p.id) btnStation.textContent = "Depot (must own)";
+    else if (state.stations[here.id]) btnStation.textContent = "Depot built";
+    else if (p.stationsInHand <= 0) btnStation.textContent = "No depots left";
+    else if (here.kind !== "planet" && here.kind !== "moon")
+      btnStation.textContent = "Depot (moons/planets only)";
+    else btnStation.textContent = "Place depot";
+  }
 
   playersEl.innerHTML = state.players
     .map((pl) => {
@@ -663,6 +813,7 @@ function drawBoard(): void {
 
   const board = state?.board ?? createV0Board();
   const { project, sun, scale } = boardProjector(board, w, h);
+  lastProject = { project, board };
   const cx = sun.x;
   const cy = sun.y;
 
@@ -723,15 +874,15 @@ function drawBoard(): void {
     }
 
     const ownerId = state?.owners[node.id];
-    if (ownerId && state) {
-      const owner = state.players.find((p) => p.id === ownerId);
-      if (owner) {
-        ctx.beginPath();
-        ctx.arc(x, y, baseR + 6, 0, Math.PI * 2);
-        ctx.strokeStyle = owner.color;
-        ctx.lineWidth = 3.5;
-        ctx.stroke();
-      }
+    const owner = ownerId
+      ? state?.players.find((p) => p.id === ownerId)
+      : undefined;
+    if (owner) {
+      ctx.beginPath();
+      ctx.arc(x, y, baseR + 6, 0, Math.PI * 2);
+      ctx.strokeStyle = owner.color;
+      ctx.lineWidth = 3.5;
+      ctx.stroke();
     }
 
     const r = drawBodyIcon(ctx, node, x, y);
@@ -740,23 +891,18 @@ function drawBoard(): void {
       drawFuelDepotIcon(ctx, x + r * 0.55, y - r * 0.55);
     }
 
-    ctx.fillStyle = "rgba(232,238,252,0.96)";
     ctx.font = "bold 11px system-ui";
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
-    const gv = gravityClassOf(node);
-    const label =
-      node.kind === "space"
-        ? ""
-        : gv > 0
-          ? `${node.name}`
-          : node.name;
+    let label = node.kind === "space" ? "" : node.name;
+    if (label && owner) label = `${label} · ${owner.name}`;
     const ly = Math.min(h - 4, y + r + 6);
     const lx = Math.max(4, Math.min(w - 4, x));
     if (label) {
       ctx.strokeStyle = "rgba(5,8,20,0.9)";
       ctx.lineWidth = 3;
       ctx.strokeText(label, lx, ly);
+      ctx.fillStyle = owner ? owner.color : "rgba(232,238,252,0.96)";
       ctx.fillText(label, lx, ly);
     }
   }
@@ -794,6 +940,52 @@ function drawBoard(): void {
 
   void isPurchasable;
 }
+
+// —— Hover inspect ——
+canvas.addEventListener("mousemove", (ev) => {
+  if (!lastProject || !state) {
+    bodyTooltip.classList.add("hidden");
+    return;
+  }
+  const rect = canvas.getBoundingClientRect();
+  const sx = (ev.clientX - rect.left) * (canvas.width / rect.width);
+  const sy = (ev.clientY - rect.top) * (canvas.height / rect.height);
+  const { project, board } = lastProject;
+  let best: { id: string; d: number } | null = null;
+  for (const node of nodeList(board)) {
+    const p = project(node.x, node.y);
+    const d = (p.x - sx) ** 2 + (p.y - sy) ** 2;
+    const hitR = bodyRadius(node) + 14;
+    if (d <= hitR * hitR && (!best || d < best.d)) best = { id: node.id, d };
+  }
+  if (!best) {
+    bodyTooltip.classList.add("hidden");
+    return;
+  }
+  const viewer =
+    state.players.find((p) => p.agent === "human") ?? currentPlayer(state);
+  const info = inspectBody(state, best.id, viewer);
+  bodyTooltip.innerHTML = `<h4>${info.title}</h4>${info.lines
+    .map((l) => {
+      const hot =
+        /Owner|MONOPOLY|BUY|FERAL|Leave fuel|Rent|depot/i.test(l);
+      return `<div class="tip-line${hot ? " hot" : ""}">${l}</div>`;
+    })
+    .join("")}`;
+  bodyTooltip.classList.remove("hidden");
+  const pad = 12;
+  let left = ev.clientX + 16;
+  let top = ev.clientY + 16;
+  const tw = 300;
+  const th = 220;
+  if (left + tw > window.innerWidth - pad) left = ev.clientX - tw - 8;
+  if (top + th > window.innerHeight - pad) top = ev.clientY - th - 8;
+  bodyTooltip.style.left = `${left}px`;
+  bodyTooltip.style.top = `${top}px`;
+});
+canvas.addEventListener("mouseleave", () => {
+  bodyTooltip.classList.add("hidden");
+});
 
 setSetupCollapsed(false);
 drawBoard();

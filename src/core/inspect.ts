@@ -1,0 +1,131 @@
+import { getNode, isPurchasable } from "./board";
+import { formatMoney } from "./currency";
+import { leaveBurnCost } from "./fuel";
+import { PROPELLANTS } from "./propellant";
+import { FERAL_ROTATIONS, netWorth } from "./rules";
+import { hasSystemMonopoly, systemOfGroup } from "./systems";
+import type { GameState, Player } from "./types";
+import { ephemerisForBody } from "./ephemeris";
+
+export interface BodyInspect {
+  title: string;
+  lines: string[];
+}
+
+/** Tooltip content for a body under the current pilot’s perspective. */
+export function inspectBody(
+  state: GameState,
+  nodeId: string,
+  viewer: Player | null,
+): BodyInspect {
+  const node = getNode(state.board, nodeId);
+  const lines: string[] = [];
+  const sys = systemOfGroup(node.group);
+
+  lines.push(`Type: ${node.kind}${node.paint ? ` (${node.paint})` : ""}`);
+  if (sys) lines.push(`System: ${sys.name}`);
+
+  const ownerId = state.owners[nodeId];
+  if (ownerId) {
+    const owner = state.players.find((p) => p.id === ownerId);
+    const mono =
+      !!sys &&
+      !!owner &&
+      hasSystemMonopoly(state.owners, owner.id, sys.id);
+    lines.push(
+      `Owner: ${owner?.name ?? ownerId}${mono ? " · SYSTEM MONOPOLY (rent ×2)" : ""}`,
+    );
+  } else if (isPurchasable(node)) {
+    lines.push(`Owner: unclaimed — available`);
+  } else {
+    lines.push(`Owner: n/a (not a claim)`);
+  }
+
+  if (isPurchasable(node)) {
+    lines.push(`Buy price: ${formatMoney(node.price ?? 0)}`);
+    const base = node.rent ?? 0;
+    let rentNow = base;
+    if (ownerId) {
+      const owner = state.players.find((p) => p.id === ownerId)!;
+      const mono =
+        !!sys && hasSystemMonopoly(state.owners, owner.id, sys.id);
+      rentNow = Math.floor(base * (mono ? 2 : 1) * (state.stations[nodeId] ? 1.5 : 1));
+    }
+    lines.push(
+      `Rent: base ${formatMoney(base)}${ownerId ? ` · now ${formatMoney(rentNow)}` : ""}`,
+    );
+    if (state.stations[nodeId]) lines.push(`Fuel depot: yes (built)`);
+    else if (node.kind === "planet" || node.kind === "moon")
+      lines.push(`Fuel depot: none`);
+  }
+
+  // Escape fuel for viewer
+  if (viewer && !viewer.eliminated) {
+    const prop = PROPELLANTS[viewer.propellant];
+    const samples = [2, 7, 12].map((steps) => {
+      const c = leaveBurnCost(node, steps, viewer.propellant);
+      return `roll ${steps}→${c}`;
+    });
+    lines.push(
+      `Leave fuel (${prop.short}, you have ${viewer.fuel}): ${samples.join(" · ")}`,
+    );
+    if (node.refuel === "free" || node.id === "earth")
+      lines.push(`Refuel here: free (Earth/home rate)`);
+    else if (node.refuel === "paid")
+      lines.push(`Refuel here: paid dock/station rates`);
+    else if (node.refuel === "station")
+      lines.push(`Refuel here: only with a fuel depot (yours free / foe paid)`);
+    else lines.push(`Refuel here: none`);
+  }
+
+  // Feral half-life
+  if (ownerId && isPurchasable(node)) {
+    const care = state.claimCareRotations[nodeId] ?? state.boardRotations;
+    const age = state.boardRotations - care;
+    const left = Math.max(0, FERAL_ROTATIONS - age);
+    if (left > 0) {
+      lines.push(
+        `Feral risk starts in ${left} board rotation(s) without a visit (at ${FERAL_ROTATIONS} overdue → 50% on owner’s roll)`,
+      );
+    } else {
+      lines.push(
+        `FERAL WINDOW OPEN (overdue ${age} rot) — 50% on owner’s movement roll (15% if monopoly)`,
+      );
+    }
+  }
+
+  // Light real-world flavor
+  const eph = ephemerisForBody(nodeId);
+  if (eph && nodeId !== "earth" && isPurchasable(node)) {
+    lines.push(
+      `Ephemeris table (AU-ish): near ${eph.nearest} · avg ${eph.average} · far ${eph.furthest}`,
+    );
+  }
+
+  if (viewer && ownerId === viewer.id) {
+    lines.push(`Your net worth: ${formatMoney(netWorth(state, viewer))}`);
+  }
+
+  // Buy / depot hints for current body when viewer is here
+  if (viewer && viewer.position === nodeId) {
+    if (isPurchasable(node) && !ownerId) {
+      const afford = viewer.cash >= (node.price ?? 0);
+      lines.push(
+        afford
+          ? `You can BUY this (${formatMoney(node.price ?? 0)}; you have ${formatMoney(viewer.cash)})`
+          : `Cannot buy — need ${formatMoney(node.price ?? 0)}, have ${formatMoney(viewer.cash)}`,
+      );
+    } else if (ownerId && ownerId !== viewer.id) {
+      lines.push(`Cannot buy — owned by another pilot`);
+    } else if (ownerId === viewer.id) {
+      if (state.stations[nodeId]) lines.push(`Depot already built here`);
+      else if (viewer.stationsInHand <= 0)
+        lines.push(`Cannot build depot — no depots left in hand`);
+      else if (node.kind === "planet" || node.kind === "moon")
+        lines.push(`You can place a FUEL DEPOT here (${viewer.stationsInHand} left)`);
+      else lines.push(`Cannot build depot on stations/hubs — only planets & moons`);
+    }
+  }
+
+  return { title: node.name, lines };
+}
