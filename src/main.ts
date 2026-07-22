@@ -215,9 +215,13 @@ function showDuelResultSplash(s: GameState): void {
 
 function hideDuelResultSplash(): void {
   duelResultEl.classList.add("hidden");
+  document.body.classList.remove("handbook-open");
   if (state?.lastDuelResult) {
     state = { ...state, lastDuelResult: null };
   }
+  const waiters = duelResultWaiters;
+  duelResultWaiters = [];
+  for (const w of waiters) w();
 }
 
 function updateDuelModal(s: GameState | null): void {
@@ -289,16 +293,46 @@ function updateDuelModal(s: GameState | null): void {
 
 async function maybeShowDuelResult(s: GameState): Promise<void> {
   if (!s.lastDuelResult) return;
-  // Ceremony: re-animate final dice then splash
-  const r = s.lastDuelResult;
+  // Keep duel chrome visible under the splash during ceremony
   duelRoot.classList.remove("hidden");
+  duelRoot.setAttribute("aria-hidden", "false");
+  document.body.classList.add("handbook-open");
+  const r = s.lastDuelResult;
+  diceLabelC.textContent = r.challengerName;
+  diceLabelD.textContent = r.defenderName;
   setDie(dieC1, "?", true);
   setDie(dieC2, "?", true);
   setDie(dieD1, "?", true);
   setDie(dieD2, "?", true);
   await animateDicePair(dieC1, dieC2, r.challengerRoll);
   await animateDicePair(dieD1, dieD2, r.defenderRoll);
+  // Close interactive duel panel; result splash is the dismissible UI
+  duelRoot.classList.add("hidden");
   showDuelResultSplash(s);
+}
+
+/** If a duel just resolved between two states, run the win/lose ceremony. */
+async function presentNewDuelResult(
+  before: GameState,
+  after: GameState,
+): Promise<GameState> {
+  if (after.lastDuelResult && !before.lastDuelResult) {
+    state = after;
+    render();
+    await maybeShowDuelResult(after);
+    // Wait until player dismisses splash before continuing AI/turns
+    await waitForDuelResultDismiss();
+  }
+  return after;
+}
+
+let duelResultWaiters: Array<() => void> = [];
+
+function waitForDuelResultDismiss(): Promise<void> {
+  if (duelResultEl.classList.contains("hidden")) return Promise.resolve();
+  return new Promise((resolve) => {
+    duelResultWaiters.push(resolve);
+  });
 }
 
 function showEndScreen(s: GameState): void {
@@ -370,9 +404,7 @@ async function applyActionAnimated(
   }
 
   after = resolveDuelAiFully(after);
-  if (after.lastDuelResult && !before.lastDuelResult) {
-    await maybeShowDuelResult(after);
-  }
+  after = await presentNewDuelResult(before, after);
   return after;
 }
 
@@ -380,9 +412,13 @@ async function runAiUntilHumanOrEnd(s: GameState): Promise<GameState> {
   let cur = s;
   let guard = 0;
   while (guard++ < 600 && cur.phase !== "game_over") {
+    const preResolve = cur;
     cur = resolveDuelAiFully(cur);
+    cur = await presentNewDuelResult(preResolve, cur);
     if (cur.phase === "game_over") break;
     if (humanDuelNeedsInput(cur)) break;
+    // Pause AI until player closes duel result splash
+    if (!duelResultEl.classList.contains("hidden")) break;
 
     const p = currentPlayer(cur);
     if (!p.eliminated && p.agent === "human" && cur.phase !== "await_duel") {
@@ -395,12 +431,14 @@ async function runAiUntilHumanOrEnd(s: GameState): Promise<GameState> {
       continue;
     }
     if (cur.phase === "await_duel") {
-      // AI-only residual
+      const pre = cur;
       const action = heuristicAI(cur);
       cur = applyAction(cur, action);
       cur = resolveDuelAiFully(cur);
+      cur = await presentNewDuelResult(pre, cur);
       state = cur;
       render();
+      if (!duelResultEl.classList.contains("hidden")) break;
       continue;
     }
 
@@ -450,7 +488,6 @@ async function act(action: PlayerAction): Promise<void> {
   if (action.type === "duel_stance" || action.type === "duel_roll") {
     setBusy(true);
     try {
-      // Temporarily set current player to the human who must act
       let s = state;
       if (s.pendingDuel) {
         const d = s.pendingDuel;
@@ -483,11 +520,53 @@ async function act(action: PlayerAction): Promise<void> {
           s = { ...s, currentPlayerIndex: idx };
         }
       }
+      const before = s;
       let after = applyAction(s, action);
+
+      // Animate this pilot's dice if they just rolled
+      if (action.type === "duel_roll" && before.pendingDuel && after.pendingDuel) {
+        const bd = before.pendingDuel;
+        const ad = after.pendingDuel;
+        if (!bd.challengerRoll && ad.challengerRoll) {
+          await animateDicePair(dieC1, dieC2, ad.challengerRoll);
+        }
+        if (!bd.defenderRoll && ad.defenderRoll) {
+          await animateDicePair(dieD1, dieD2, ad.defenderRoll);
+        }
+      } else if (
+        action.type === "duel_roll" &&
+        before.pendingDuel &&
+        after.lastDuelResult
+      ) {
+        // Resolved in the same apply — animate both pairs from result
+        const r = after.lastDuelResult;
+        await animateDicePair(dieC1, dieC2, r.challengerRoll);
+        await animateDicePair(dieD1, dieD2, r.defenderRoll);
+      }
+
       after = resolveDuelAiFully(after);
+      // If AI finished the second roll during resolve, animate if we only had one side
+      if (
+        after.lastDuelResult &&
+        before.pendingDuel &&
+        !before.lastDuelResult
+      ) {
+        const r = after.lastDuelResult;
+        // Ensure dice show finals (may already be animated)
+        setDie(dieC1, r.challengerRoll.d1);
+        setDie(dieC2, r.challengerRoll.d2);
+        setDie(dieD1, r.defenderRoll.d1);
+        setDie(dieD2, r.defenderRoll.d2);
+      }
+
+      after = await presentNewDuelResult(before, after);
       state = after;
       render();
-      if (state.phase !== "game_over" && !humanDuelNeedsInput(state)) {
+      if (
+        state.phase !== "game_over" &&
+        !humanDuelNeedsInput(state) &&
+        duelResultEl.classList.contains("hidden")
+      ) {
         state = await runAiUntilHumanOrEnd(state);
       }
     } finally {
