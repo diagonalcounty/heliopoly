@@ -10,6 +10,11 @@ import {
   type SystemId,
 } from "./systems";
 import {
+  abandonedCharter,
+  lastPilotFlying,
+  leadsWithWorth,
+} from "./pilotCopy";
+import {
   cloneState,
   currentPlayer,
   livingPlayers,
@@ -231,7 +236,7 @@ function checkWinner(state: GameState): void {
   if (alive.length === 1) {
     state.winnerId = alive[0].id;
     state.phase = "game_over";
-    state.endReason = `${alive[0].name} is the last pilot flying.`;
+    state.endReason = lastPilotFlying(alive[0]);
     pushLog(state, `Winner: ${alive[0].name}`);
     return;
   }
@@ -250,7 +255,11 @@ function forceEndByRounds(state: GameState): boolean {
   alive.sort((a, b) => netWorth(state, b) - netWorth(state, a));
   state.winnerId = alive[0].id;
   state.phase = "game_over";
-  state.endReason = `Charter term ended (round ${state.config.maxRounds}). ${alive[0].name} leads with ${formatMoney(netWorth(state, alive[0]))}.`;
+  const lead = leadsWithWorth(
+    alive[0],
+    formatMoney(netWorth(state, alive[0])),
+  );
+  state.endReason = `Charter term ended (round ${state.config.maxRounds}). ${lead}`;
   pushLog(
     state,
     `Round limit: ${alive[0].name} wins on net worth (${formatMoney(netWorth(state, alive[0]))}).`,
@@ -1177,7 +1186,7 @@ export function resignGame(state: GameState, playerId: string): GameState {
   const p = next.players.find((x) => x.id === playerId);
   if (!p || next.phase === "game_over") return next;
   next.phase = "game_over";
-  next.endReason = `${p.name} abandoned the charter.`;
+  next.endReason = abandonedCharter(p);
   const others = livingPlayers(next).filter((x) => x.id !== playerId);
   if (others.length === 1) next.winnerId = others[0].id;
   else if (others.length > 1) {

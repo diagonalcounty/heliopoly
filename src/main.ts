@@ -4,6 +4,7 @@ import { formatMoney } from "./core/currency";
 import { gravityClassOf, leaveBurnCost } from "./core/fuel";
 import { walkMovePath } from "./core/path";
 import { PROPELLANTS } from "./core/propellant";
+import { prevailsHeadline } from "./core/pilotCopy";
 import {
   applyAction,
   getLegalActions,
@@ -17,6 +18,7 @@ import { createGame, currentPlayer } from "./core/state";
 import type {
   DuelStance,
   GameState,
+  Player,
   PlayerAction,
   PropellantId,
 } from "./core/types";
@@ -346,29 +348,43 @@ function waitForDuelResultDismiss(): Promise<void> {
   });
 }
 
-function showEndScreen(s: GameState): void {
-  const winner = s.players.find((p) => p.id === s.winnerId);
-  endTitle.textContent = winner
-    ? `${winner.name} Prevails`
-    : "The Charter Closes";
-  endStory.textContent =
+function endScreenStory(s: GameState, winner: Player | undefined): string {
+  const reason =
     s.endReason ??
     "Among the orbital lanes, one enterprise outlasted the rest.";
-  const rows = [...s.players]
-    .filter((p) => !p.eliminated || p.id === s.winnerId)
-    .sort((a, b) => netWorth(s, b) - netWorth(s, a));
+  const roundBit =
+    s.round > 1 ? ` Charter lasted ${s.round} rounds.` : "";
+  if (!winner) return reason + roundBit;
+  const nw = formatMoney(netWorth(s, winner));
+  const deeds = winner.properties.length;
+  const depots = winner.properties.filter((id) => s.stations[id]).length;
+  const empire =
+    deeds > 0 || depots > 0
+      ? ` Closing books: ${nw} net worth · ${deeds} claim${deeds === 1 ? "" : "s"} · ${depots} depot${depots === 1 ? "" : "s"}.`
+      : ` Closing books: ${nw} net worth.`;
+  return reason + roundBit + empire;
+}
+
+function showEndScreen(s: GameState): void {
+  const winner = s.players.find((p) => p.id === s.winnerId);
+  const kicker = document.querySelector(".end-kicker") as HTMLElement | null;
+  if (kicker) {
+    kicker.textContent = winner
+      ? "Free enterprise decides"
+      : "The charter is sealed";
+  }
+  endTitle.textContent = winner ? prevailsHeadline(winner) : "The Charter Closes";
+  endStory.textContent = endScreenStory(s, winner);
+  const rows = [...s.players].sort(
+    (a, b) => netWorth(s, b) - netWorth(s, a),
+  );
   endRanks.innerHTML = rows
     .map((p, i) => {
       const mark = p.id === s.winnerId ? " ★" : "";
-      return `<div>${i + 1}. ${p.name}${mark} — ${formatMoney(netWorth(s, p))}${p.eliminated ? " (out)" : ""}</div>`;
+      const out = p.eliminated ? " · eliminated" : "";
+      return `<div>${i + 1}. ${p.name}${mark} — ${formatMoney(netWorth(s, p))}${out}</div>`;
     })
     .join("");
-  // Include eliminated sorted by worth 0
-  const outs = s.players.filter((p) => p.eliminated && p.id !== s.winnerId);
-  if (outs.length) {
-    endRanks.innerHTML +=
-      `<div style="margin-top:8px;opacity:0.7">Fallen: ${outs.map((p) => p.name).join(", ")}</div>`;
-  }
   endRoot.classList.remove("hidden");
   endRoot.setAttribute("aria-hidden", "false");
 }
