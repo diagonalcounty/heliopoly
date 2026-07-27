@@ -16,3 +16,4 @@ export * from "./pilotCopy";
 export * from "./pilotNames";
 export * from "./turnClock";
 export * from "./isru";
+export * from "./lunarRangeTable";

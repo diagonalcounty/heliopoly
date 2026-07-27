@@ -124,7 +124,7 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
     endReason: null,
     gusherPaid: {},
     pendingAnnouncement: null,
-    futureTeaserShown: false,
+    timedEvent: { turnsSinceLast: 0 },
     config: { ...config, seed },
     rngState: seed || 1,
   };
@@ -197,6 +197,7 @@ export function cloneState(state: GameState): GameState {
     pendingAnnouncement: state.pendingAnnouncement
       ? { ...state.pendingAnnouncement }
       : null,
+    timedEvent: { ...state.timedEvent },
     config: { ...state.config },
   };
 }

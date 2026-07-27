@@ -206,8 +206,13 @@ export interface GameState {
   gusherPaid: Record<string, boolean>;
   /** Pending Oregon Trail–style popup; UI shows then clears. */
   pendingAnnouncement: GameAnnouncement | null;
-  /** Future-content teaser shown once via timed events. */
-  futureTeaserShown: boolean;
+  /**
+   * Timed charter-alert cadence (seat turns since last fire / start).
+   * After 5 turns: 50% then doubles until trigger; then gap resets to 5.
+   */
+  timedEvent: {
+    turnsSinceLast: number;
+  };
   config: GameConfig;
   rngState: number;
 }
