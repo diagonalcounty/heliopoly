@@ -295,6 +295,16 @@ async function animateDicePair(
   setDie(d2El, final.d2, false);
 }
 
+function applyDuelShipNames(
+  challengerName: string,
+  defenderName: string,
+  nodeName: string,
+): void {
+  duelMatchup.textContent = `${challengerName} vs ${defenderName} · ${nodeName}`;
+  diceLabelC.textContent = challengerName;
+  diceLabelD.textContent = defenderName;
+}
+
 function showDuelResultFooter(s: GameState): void {
   const r = s.lastDuelResult;
   if (!r) return;
@@ -304,6 +314,7 @@ function showDuelResultFooter(s: GameState): void {
   duelActionsEl.classList.add("hidden");
   duelResultFooter.classList.remove("hidden");
   duelResultFooter.classList.toggle("is-tie", r.outcome === "tie");
+  applyDuelShipNames(r.challengerName, r.defenderName, r.nodeName);
   duelResultHeadline.textContent =
     r.outcome === "tie"
       ? "Draw — both hold the lane"
@@ -332,11 +343,30 @@ function hideDuelResultSplash(): void {
   for (const w of waiters) w();
 }
 
+/** True while result footer is up (phase may already be await_post_land). */
+function duelCeremonyOpen(): boolean {
+  return (
+    !!state?.lastDuelResult && !duelResultEl.classList.contains("hidden")
+  );
+}
+
 function updateDuelModal(s: GameState | null): void {
+  // Lab / AI resolve leaves await_duel before ceremony — keep panel + names visible
+  if (s?.lastDuelResult && duelCeremonyOpen()) {
+    const r = s.lastDuelResult;
+    duelRoot.classList.remove("hidden");
+    duelRoot.setAttribute("aria-hidden", "false");
+    document.body.classList.add("handbook-open");
+    applyDuelShipNames(r.challengerName, r.defenderName, r.nodeName);
+    return;
+  }
+
   if (!s || s.phase !== "await_duel" || !s.pendingDuel) {
-    duelRoot.classList.add("hidden");
-    duelRoot.setAttribute("aria-hidden", "true");
-    if (!s?.lastDuelResult) document.body.classList.remove("handbook-open");
+    if (!duelCeremonyOpen()) {
+      duelRoot.classList.add("hidden");
+      duelRoot.setAttribute("aria-hidden", "true");
+      if (!s?.lastDuelResult) document.body.classList.remove("handbook-open");
+    }
     return;
   }
   const d = s.pendingDuel;
@@ -345,9 +375,7 @@ function updateDuelModal(s: GameState | null): void {
   duelRoot.classList.remove("hidden");
   duelRoot.setAttribute("aria-hidden", "false");
   document.body.classList.add("handbook-open");
-  duelMatchup.textContent = `${c.name} vs ${def.name} · ${getNode(s.board, d.nodeId).name}`;
-  diceLabelC.textContent = c.name;
-  diceLabelD.textContent = def.name;
+  applyDuelShipNames(c.name, def.name, getNode(s.board, d.nodeId).name);
   const mean = meanDiceTotal(s);
   duelStatus.textContent = [
     `Mean of game 2d6 totals: ${mean.toFixed(2)}`,
@@ -407,8 +435,9 @@ async function maybeShowDuelResult(s: GameState): Promise<void> {
   document.body.classList.add("handbook-open");
   duelResultFooter.classList.add("hidden");
   const r = s.lastDuelResult;
-  diceLabelC.textContent = r.challengerName;
-  diceLabelD.textContent = r.defenderName;
+  applyDuelShipNames(r.challengerName, r.defenderName, r.nodeName);
+  // Mark ceremony open so render() does not hide the panel mid-anim
+  duelResultEl.classList.remove("hidden");
   setDie(dieC1, "?", true);
   setDie(dieC2, "?", true);
   setDie(dieD1, "?", true);
