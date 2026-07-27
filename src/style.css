@@ -281,6 +281,9 @@ body.handbook-open {
 }
 
 .handbook-section-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   min-height: 40px;
   padding: 8px 14px;
   border-radius: 10px 10px 0 0;
@@ -292,6 +295,17 @@ body.handbook-open {
   font-size: 0.82rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+}
+
+.handbook-tab-icon {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  border-radius: 4px;
+  flex-shrink: 0;
+  background: #070b14;
 }
 
 .handbook-section-tab:hover {
@@ -365,11 +379,13 @@ body.handbook-open {
 }
 
 .handbook-toc-item {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   width: 100%;
   text-align: left;
   margin-bottom: 4px;
-  padding: 10px 12px;
+  padding: 8px 10px;
   border-radius: 10px;
   border: 1px solid transparent;
   background: transparent;
@@ -377,6 +393,45 @@ body.handbook-open {
   font-size: 0.88rem;
   font-weight: 600;
   min-height: 44px;
+}
+
+.handbook-toc-icon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  border-radius: 6px;
+  flex-shrink: 0;
+  background: #070b14;
+  border: 1px solid rgba(201, 162, 39, 0.25);
+}
+
+.handbook-toc-label {
+  min-width: 0;
+}
+
+.handbook-article-title-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.handbook-article-title-row h3 {
+  margin: 0;
+}
+
+.handbook-article-icon {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  border-radius: 12px;
+  flex-shrink: 0;
+  background: #070b14;
+  border: 1px solid rgba(201, 162, 39, 0.35);
 }
 
 .handbook-toc-item:hover {

@@ -5,6 +5,7 @@ import {
   sectionForTopic,
   type HandbookSection,
 } from "./content";
+import { sectionIcon, topicIcon } from "./icons";
 
 const STORAGE_KEY = "solarquest.handbook.topic";
 const SECTION_KEY = "solarquest.handbook.section";
@@ -83,7 +84,20 @@ export function mountHandbook(root: HTMLElement): HandbookController {
     tab.dataset.sectionId = section.id;
     tab.id = `handbook-tab-${section.id}`;
     tab.setAttribute("aria-controls", "handbook-topic-panel");
-    tab.textContent = section.title;
+    const iconSrc = sectionIcon(section.id);
+    if (iconSrc) {
+      const img = document.createElement("img");
+      img.src = iconSrc;
+      img.alt = "";
+      img.className = "handbook-tab-icon";
+      img.width = 22;
+      img.height = 22;
+      img.decoding = "async";
+      tab.appendChild(img);
+    }
+    const label = document.createElement("span");
+    label.textContent = section.title;
+    tab.appendChild(label);
     tab.addEventListener("click", () => selectSection(section.id));
     tabsEl.appendChild(tab);
   }
@@ -107,7 +121,21 @@ export function mountHandbook(root: HTMLElement): HandbookController {
       btn.type = "button";
       btn.className = "handbook-toc-item";
       btn.dataset.topicId = topic.id;
-      btn.textContent = topic.title;
+      const iconSrc = topicIcon(topic.id);
+      if (iconSrc) {
+        const img = document.createElement("img");
+        img.src = iconSrc;
+        img.alt = "";
+        img.className = "handbook-toc-icon";
+        img.width = 28;
+        img.height = 28;
+        img.decoding = "async";
+        btn.appendChild(img);
+      }
+      const label = document.createElement("span");
+      label.className = "handbook-toc-label";
+      label.textContent = topic.title;
+      btn.appendChild(label);
       btn.addEventListener("click", () => selectTopic(topic.id));
       toc.appendChild(btn);
     }
@@ -156,11 +184,17 @@ export function mountHandbook(root: HTMLElement): HandbookController {
     safeStorageSet(STORAGE_KEY, currentId);
 
     const sec = activeSection();
-    article.innerHTML = `
-      <p class="handbook-article-section">${sec.title}</p>
-      <h3>${topic.title}</h3>
-      ${topic.html}
-    `;
+    const artIcon = topicIcon(topic.id);
+    const titleBlock = artIcon
+      ? `<div class="handbook-article-title-row">
+          <img class="handbook-article-icon" src="${artIcon}" alt="" width="72" height="72" decoding="async" />
+          <div>
+            <p class="handbook-article-section">${sec.title}</p>
+            <h3>${topic.title}</h3>
+          </div>
+        </div>`
+      : `<p class="handbook-article-section">${sec.title}</p><h3>${topic.title}</h3>`;
+    article.innerHTML = `${titleBlock}${topic.html}`;
     toc.querySelectorAll(".handbook-toc-item").forEach((el) => {
       el.classList.toggle(
         "active",
