@@ -1,6 +1,6 @@
 /**
- * Pixel art icons for Ops Manual (section tabs + rocket civilopedia).
- * Files live in /public/handbook/*.png
+ * Pixel art icons for Ops Manual (section tabs + topics + rockets).
+ * Files live in /public/handbook/*.png (plus /ops-manual-icon.png for welcome).
  */
 
 /** Section tab icons */
@@ -10,20 +10,28 @@ export const SECTION_ICONS: Record<string, string> = {
   "rival-pilots": "/handbook/rival-rockets.png",
 };
 
-/** Topic id → icon (rockets + key lore/gameplay covers). */
+/** Topic id → icon */
 export const TOPIC_ICONS: Record<string, string> = {
+  // Lore
   welcome: "/ops-manual-icon.png",
   path: "/handbook/lore.png",
-  "how-to-win": "/handbook/gameplay.png",
+
+  // Gameplay
+  "how-to-win": "/handbook/badge-rocket.png",
   glossary: "/handbook/gameplay.png",
-  "turn-flow": "/handbook/gameplay.png",
-  legend: "/handbook/gameplay.png",
-  monopoly: "/handbook/gameplay.png",
-  depots: "/handbook/gameplay.png",
-  propellant: "/handbook/gameplay.png",
-  duel: "/handbook/von-braun.png",
-  feral: "/handbook/gameplay.png",
-  "not-in-build": "/handbook/gameplay.png",
+  "turn-flow": "/handbook/dice-break.png",
+  legend: "/handbook/badge-rocket.png",
+  monopoly: "/handbook/vault-key.png",
+  depots: "/handbook/fuel-depot.png",
+  propellant: "/handbook/molecule.png",
+  duel: "/handbook/duel-rockets.png",
+  feral: "/handbook/rocket-debris.png",
+  "not-in-build": "/handbook/lock.png",
+
+  // Economy / rent flavor (if topics added later)
+  rent: "/handbook/cash-alert.png",
+
+  // Rival rockets
   "rival-pilots-overview": "/handbook/rival-rockets.png",
   "pilot-recorde": "/handbook/recorde.png",
   "pilot-k127": "/handbook/k127.png",
