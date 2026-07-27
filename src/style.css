@@ -497,6 +497,39 @@ body.handbook-open {
   margin-bottom: 0.4rem;
 }
 
+.legend-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 8px 0 16px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border);
+  font-size: 0.88rem;
+  line-height: 1.35;
+  color: var(--text);
+}
+
+.legend-item img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: #070b14;
+}
+
+.legend-item strong {
+  color: var(--accent-2);
+}
+
 .handbook-article table.glossary {
   width: 100%;
   border-collapse: collapse;
@@ -1035,6 +1068,14 @@ button:not(:disabled):active {
 
 .announce-card.kind-leak {
   border-color: var(--danger);
+}
+
+.announce-card.kind-out {
+  border-color: var(--danger);
+}
+
+.announce-card.kind-out h2 {
+  color: var(--danger);
 }
 
 .announce-kicker {

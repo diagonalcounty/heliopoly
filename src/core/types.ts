@@ -51,8 +51,8 @@ export type AiDifficulty = "normal" | "difficult";
 
 /** Oregon Trail–style mid-game interrupt (leak, gusher, later disasters). */
 export interface GameAnnouncement {
-  kind: "gusher" | "leak" | "info";
-  /** Deadpan headline, e.g. "GUSHER!" */
+  kind: "gusher" | "leak" | "info" | "out";
+  /** Deadpan headline, e.g. "OUT!" */
   title: string;
   /** One or two stark lines of body text. */
   body: string;
@@ -70,8 +70,10 @@ export interface Player {
   properties: string[];
   stationsInHand: number;
   eliminated: boolean;
-  /** Shared `gameTurn` when eliminated; null if still flying. */
+  /** Shared `gameTurn` when eliminated (log); null if still flying. */
   eliminatedOnTurn: number | null;
+  /** `round` when eliminated (end screen / player-facing). */
+  eliminatedOnRound: number | null;
   /** Short cause for postmortem (rent, strand, …). */
   eliminatedReason: string | null;
   /** Skip this many full turns. */

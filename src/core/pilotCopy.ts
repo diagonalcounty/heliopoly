@@ -39,8 +39,8 @@ export function duelWinSummary(winnerName: string, loserName: string): string {
 
 export function lastPilotFlying(p: Pick<Player, "name" | "agent">): string {
   return isSecondPerson(p)
-    ? "You are the last pilot flying."
-    : `${p.name} is the last pilot flying.`;
+    ? "You are the last rocket flying."
+    : `${p.name} is the last rocket flying.`;
 }
 
 export function abandonedCharter(p: Pick<Player, "name" | "agent">): string {

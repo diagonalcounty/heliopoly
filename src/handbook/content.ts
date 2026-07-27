@@ -115,17 +115,17 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     id: "legend",
     title: "Board legend",
     html: `
-<ul>
-  <li><strong>Painted planets</strong> — Earth (oceans/clouds), Mars (red + ice cap), Venus (cream clouds), Mercury (grey craters)</li>
-  <li><strong>Orange moons</strong> — Jupiter system (Io, Europa, Ganymede, Callisto)</li>
-  <li><strong>Yellow moons</strong> — Saturn system (Titan, Enceladus, …)</li>
-  <li><strong>Ring stations</strong> — habitat ring + solar panels (Elon, Holst Space Station, Daktulios) — not plain circles</li>
-  <li><strong>Diamond pips</strong> — blank belt/transit (red-tint = combat lanes)</li>
-  <li><strong>Colored halo</strong> around a body — your claim (pilot color)</li>
-  <li><strong>Blue fuel-tank badge</strong> on a corner of a body — player-built <strong>fuel depot</strong></li>
-  <li><strong>Triangle</strong> — ship (gold outline while hopping)</li>
-  <li><strong>Dashed circles</strong> — orbital rings from the Sun</li>
-</ul>
+<div class="legend-grid">
+  <div class="legend-item"><img src="/handbook/legend-planet.svg" alt="" width="48" height="48"/><div><strong>Painted planets</strong><br/>Earth, Mars, Venus, Mercury (distinct surface art)</div></div>
+  <div class="legend-item"><img src="/handbook/legend-moon-orange.svg" alt="" width="48" height="48"/><div><strong>Orange moons</strong><br/>Jupiter system (Io, Europa, Ganymede, Callisto)</div></div>
+  <div class="legend-item"><img src="/handbook/legend-moon-yellow.svg" alt="" width="48" height="48"/><div><strong>Yellow moons</strong><br/>Saturn system (Titan, Enceladus, …)</div></div>
+  <div class="legend-item"><img src="/handbook/legend-station.svg" alt="" width="48" height="48"/><div><strong>Ring stations</strong><br/>Elon, Holst, Daktulios — hub habitats, not plain circles</div></div>
+  <div class="legend-item"><img src="/handbook/legend-blank.svg" alt="" width="48" height="48"/><div><strong>Diamond pips</strong><br/>Blank belt/transit (red-tint = Gravity Duel lanes)</div></div>
+  <div class="legend-item"><img src="/handbook/legend-claim.svg" alt="" width="48" height="48"/><div><strong>Colored halo</strong><br/>Your claim (rocket color)</div></div>
+  <div class="legend-item"><img src="/handbook/fuel-depot.png" alt="" width="48" height="48"/><div><strong>Fuel depot</strong><br/>Player-built tank badge on a body you own</div></div>
+  <div class="legend-item"><img src="/handbook/legend-ship.svg" alt="" width="48" height="48"/><div><strong>Triangle ship</strong><br/>Rocket marker (gold outline while hopping)</div></div>
+  <div class="legend-item"><img src="/handbook/legend-rings.svg" alt="" width="48" height="48"/><div><strong>Dashed circles</strong><br/>Orbital rings from the Sun</div></div>
+</div>
 `,
   },
   {

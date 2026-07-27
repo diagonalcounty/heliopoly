@@ -236,12 +236,19 @@ function eliminate(
   if (player.eliminated) return;
   player.eliminated = true;
   player.eliminatedOnTurn = state.gameTurn;
+  player.eliminatedOnRound = state.round;
   player.eliminatedReason = reason;
   pushLog(
     state,
-    `${player.name} eliminated (turn ${state.gameTurn}): ${reason}`,
+    `${player.name} eliminated (round ${state.round}, turn ${state.gameTurn}): ${reason}`,
   );
   delta(state, `OUT ${player.name}: ${reason}`);
+  // Oregon Trail–style interrupt so the field does not vanish unnoticed
+  state.pendingAnnouncement = {
+    kind: "out",
+    title: "OUT!",
+    body: `${player.name} is out of the charter.\n${reason}\nRound ${state.round}.`,
+  };
   // Deeds return to bank; fuel depots destroyed
   for (const prop of [...player.properties]) {
     releaseClaimToBank(state, prop);
@@ -1318,8 +1325,14 @@ export function resignGame(state: GameState, playerId: string): GameState {
   next.phase = "game_over";
   p.eliminated = true;
   p.eliminatedOnTurn = next.gameTurn;
+  p.eliminatedOnRound = next.round;
   p.eliminatedReason = "abandoned the charter";
   next.endReason = abandonedCharter(p);
+  next.pendingAnnouncement = {
+    kind: "out",
+    title: "OUT!",
+    body: `${p.name} abandoned the charter.\nRound ${next.round}.`,
+  };
   const others = livingPlayers(next).filter((x) => x.id !== playerId);
   if (others.length === 1) next.winnerId = others[0].id;
   else if (others.length > 1) {

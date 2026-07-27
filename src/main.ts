@@ -179,14 +179,21 @@ function showAnnouncement(s: GameState): boolean {
   const a = s.pendingAnnouncement;
   if (!a) return false;
   announceRoot.classList.remove("hidden");
-  announceCard.classList.remove("kind-gusher", "kind-leak", "kind-info");
+  announceCard.classList.remove(
+    "kind-gusher",
+    "kind-leak",
+    "kind-info",
+    "kind-out",
+  );
   announceCard.classList.add(`kind-${a.kind}`);
   announceKicker.textContent =
     a.kind === "gusher"
       ? "Resource strike"
       : a.kind === "leak"
         ? "Propellant failure"
-        : "Charter alert";
+        : a.kind === "out"
+          ? "Elimination"
+          : "Charter alert";
   announceTitle.textContent = a.title;
   announceBody.textContent = a.body;
   return true;
@@ -479,7 +486,7 @@ function endScreenStory(s: GameState, winner: Player | undefined): string {
   const reason =
     s.endReason ??
     "Among the orbital lanes, one enterprise outlasted the rest.";
-  const lengthBit = ` Charter lasted ${s.gameTurn} turn${s.gameTurn === 1 ? "" : "s"} (${s.round} round${s.round === 1 ? "" : "s"}).`;
+  const lengthBit = ` Charter lasted ${s.round} round${s.round === 1 ? "" : "s"}.`;
   if (!winner) return reason + lengthBit;
   const nw = formatMoney(netWorth(s, winner));
   const deeds = winner.properties.length;
@@ -501,16 +508,16 @@ function showEndScreen(s: GameState): void {
   }
   endTitle.textContent = winner ? prevailsHeadline(winner) : "The Charter Closes";
   endStory.textContent = endScreenStory(s, winner);
-  // Full field: flying first (by NW), then eliminated by exit turn (earliest first)
+  // Full field: flying first (by NW), then eliminated by exit round (earliest first)
   const flying = s.players
     .filter((p) => !p.eliminated)
     .sort((a, b) => netWorth(s, b) - netWorth(s, a));
   const fallen = s.players
     .filter((p) => p.eliminated)
     .sort((a, b) => {
-      const ta = a.eliminatedOnTurn ?? s.gameTurn;
-      const tb = b.eliminatedOnTurn ?? s.gameTurn;
-      if (ta !== tb) return ta - tb;
+      const ra = a.eliminatedOnRound ?? a.eliminatedOnTurn ?? s.round;
+      const rb = b.eliminatedOnRound ?? b.eliminatedOnTurn ?? s.round;
+      if (ra !== rb) return ra - rb;
       return a.name.localeCompare(b.name);
     });
   const ordered = [...flying, ...fallen];
@@ -518,10 +525,14 @@ function showEndScreen(s: GameState): void {
     .map((p, i) => {
       const mark = p.id === s.winnerId ? " ★" : "";
       if (p.eliminated) {
-        const t =
-          p.eliminatedOnTurn != null ? `turn ${p.eliminatedOnTurn}` : "turn ?";
+        const r =
+          p.eliminatedOnRound != null
+            ? `round ${p.eliminatedOnRound}`
+            : p.eliminatedOnTurn != null
+              ? `round ? (turn ${p.eliminatedOnTurn})`
+              : "round ?";
         const why = p.eliminatedReason ? ` · ${p.eliminatedReason}` : "";
-        return `<div>${i + 1}. ${p.name}${mark} — out ${t}${why}</div>`;
+        return `<div>${i + 1}. ${p.name}${mark} — out ${r}${why}</div>`;
       }
       return `<div>${i + 1}. ${p.name}${mark} — ${formatMoney(netWorth(s, p))} · flying</div>`;
     })
@@ -652,7 +663,10 @@ async function commitState(next: GameState): Promise<void> {
     }
   }
   render();
-  if (state.phase === "game_over") showEndScreen(state);
+  if (state.phase === "game_over") {
+    state = await presentAnnouncementIfAny(state);
+    showEndScreen(state);
+  }
 }
 
 async function act(action: PlayerAction): Promise<void> {
@@ -747,7 +761,10 @@ async function act(action: PlayerAction): Promise<void> {
       setBusy(false);
     }
     render();
-    if (state?.phase === "game_over") showEndScreen(state);
+    if (state?.phase === "game_over") {
+      state = await presentAnnouncementIfAny(state);
+      showEndScreen(state);
+    }
     return;
   }
 
@@ -771,7 +788,10 @@ async function act(action: PlayerAction): Promise<void> {
     setBusy(false);
   }
   render();
-  if (state?.phase === "game_over") showEndScreen(state);
+  if (state?.phase === "game_over") {
+    state = await presentAnnouncementIfAny(state);
+    showEndScreen(state);
+  }
 }
 
 function startGame(human: boolean): void {

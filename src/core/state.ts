@@ -65,6 +65,7 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
       stationsInHand: config.stationsEach,
       eliminated: false,
       eliminatedOnTurn: null,
+      eliminatedOnRound: null,
       eliminatedReason: null,
       skipTurns: 0,
       rentWaiversAgainst: [],
