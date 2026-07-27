@@ -162,7 +162,7 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     title: "Propellant",
     html: `
 <p><strong>Methane (CH₄)</strong> — stable tanks (no leaks). Claim + fuel depot on <strong>Titan</strong> or <strong>Enceladus</strong> can fire a one-time <strong>resource strike</strong> (½ starting cash) with headlines like “You've struck liquid methane!”</p>
-<p><strong>Hydrogen (H₂)</strong> — cheaper leave burns, but leaving a gravity well can cause a <strong>LEAK</strong> that dumps <strong>half your fuel</strong>. Ice strikes on <strong>Enceladus, Mars, Europa, Ganymede</strong> (claim + depot) — e.g. “You've struck pure ice!”</p>
+<p><strong>Hydrogen (H₂)</strong> — cheaper leave burns, but <strong>landing</strong> can cause a <strong>LEAK</strong> that dumps <strong>half your fuel</strong>. Ice strikes on <strong>Enceladus, Mars, Europa, Ganymede</strong> (claim + depot) — e.g. “You've struck pure ice!”</p>
 <p>Strike pop-ups are sudden and terse on purpose — good fortune in a hard charter.</p>
 `,
   },

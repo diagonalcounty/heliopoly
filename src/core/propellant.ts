@@ -6,7 +6,7 @@ export interface PropellantDef {
   short: string;
   /** Multiplier on leave-burn (lower = more efficient). */
   leaveMult: number;
-  /** Chance [0–1] of boil-off / leak when leaving a gravity body. */
+  /** Chance [0–1] of tank leak when **landing** (insertion), not on leave burn. */
   leaveRisk: number;
   blurb: string;
 }
@@ -26,10 +26,10 @@ export const PROPELLANTS: Record<PropellantId, PropellantDef> = {
     label: "Hydrogen (H₂)",
     short: "H₂",
     leaveMult: 0.85,
-    /** Leave a gravity well → chance of catastrophic half-tank leak. */
+    /** Landing insertion → chance of catastrophic half-tank leak. */
     leaveRisk: 0.1,
     blurb:
-      "Cheaper leave burns. Ice strikes on Enceladus/Mars/Europa/Ganymede with a depot. Leak risk: half your fuel.",
+      "Cheaper leave burns. Ice strikes on Enceladus/Mars/Europa/Ganymede with a depot. Leak risk on landing: half your fuel.",
   },
 };
 

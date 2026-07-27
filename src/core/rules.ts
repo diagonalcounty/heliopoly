@@ -534,7 +534,8 @@ export function getLegalActions(state: GameState): LegalActions {
   };
 }
 
-function applyLeaveRisk(state: GameState, p: Player, nodeName: string): void {
+/** H₂ tank leak risk on **landing** only (not on leave burn). */
+function applyLandingLeak(state: GameState, p: Player, nodeName: string): void {
   const def = PROPELLANTS[p.propellant];
   if (def.leaveRisk <= 0) return;
   if (mulberryNext(state) > def.leaveRisk) return;
@@ -548,19 +549,21 @@ function applyLeaveRisk(state: GameState, p: Player, nodeName: string): void {
   if (p.propellant === "hydrogen") {
     pushLog(
       state,
-      `${p.name} LEAK leaving ${nodeName}: −${loss} fuel (half tanks).`,
+      `${p.name} LEAK on landing ${nodeName}: −${loss} fuel (half tanks).`,
     );
     delta(state, `−${loss} fuel LEAK`);
-    // Queue popup (overwrite only if none pending — leak is urgent)
     if (!state.pendingAnnouncement) {
       state.pendingAnnouncement = {
         kind: "leak",
         title: "LEAK!",
-        body: `${p.name}'s H₂ tanks failed leaving ${nodeName}.\n−${loss} fuel (half the tanks).`,
+        body: `${p.name}'s H₂ tanks failed landing on ${nodeName}.\n−${loss} fuel (half the tanks).`,
       };
     }
   } else {
-    pushLog(state, `${p.name} propellant glitch leaving ${nodeName}: −${loss} fuel`);
+    pushLog(
+      state,
+      `${p.name} propellant glitch landing on ${nodeName}: −${loss} fuel`,
+    );
     delta(state, `−${loss} fuel (${p.propellant})`);
   }
 }
@@ -781,7 +784,6 @@ function movePlayer(state: GameState, steps: number): void {
       `${p.name} burns ${burn} fuel leaving ${startNode.name} (g${g} · ${PROPELLANTS[p.propellant].short}).`,
     );
     delta(state, `−${burn} fuel leave ${startNode.name}`);
-    applyLeaveRisk(state, p, startNode.name);
   }
 
   // Leaving Earth starts a circuit toward a full board rotation
@@ -812,6 +814,8 @@ function resolveLanding(state: GameState, stayed: boolean): void {
   const node = getNode(state.board, p.position);
   if (!stayed) {
     pushLog(state, `${p.name} lands on ${node.name} (insertion free).`);
+    // Tank stress on insertion — not on leave burn
+    applyLandingLeak(state, p, node.name);
   }
 
   // Visit your own claim → reset feral care clock
