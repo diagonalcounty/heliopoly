@@ -207,11 +207,17 @@ export interface GameState {
   /** Pending Oregon Trail–style popup; UI shows then clears. */
   pendingAnnouncement: GameAnnouncement | null;
   /**
-   * Timed charter-alert cadence (seat turns since last fire / start).
-   * After 5 turns: 50% then doubles until trigger; then gap resets to 5.
+   * Timed charter-alert cadence (**rounds**, not seat turns).
+   * After 5 rounds: 50%; each miss splits the difference toward 100%;
+   * on fire, wait 5 rounds again.
    */
   timedEvent: {
-    turnsSinceLast: number;
+    /** Completed rounds since last fire (or game start). */
+    roundsSinceLast: number;
+    /** Last `state.round` we already processed (avoid multi-fire per round). */
+    lastProcessedRound: number;
+    /** Current roll chance once in the active window (0 during gap). */
+    rollChance: number;
   };
   config: GameConfig;
   rngState: number;

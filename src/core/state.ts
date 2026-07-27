@@ -124,7 +124,11 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
     endReason: null,
     gusherPaid: {},
     pendingAnnouncement: null,
-    timedEvent: { turnsSinceLast: 0 },
+    timedEvent: {
+      roundsSinceLast: 0,
+      lastProcessedRound: 0,
+      rollChance: 0,
+    },
     config: { ...config, seed },
     rngState: seed || 1,
   };

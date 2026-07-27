@@ -58,9 +58,42 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     id: "how-to-win",
     title: "How to win",
     html: `
-<p><strong>Last pilot flying wins</strong> (others bankrupt or strand). There is <strong>no round limit</strong>.</p>
-<p>Eliminated pilots’ deeds return to the <strong>bank</strong> (available again); depots are lost.</p>
-<p><strong>Turn count</strong> is the shared charter clock: every pilot’s seat turn advances it (skipped turns still count). Timed events fire at the start of a seat turn, before that pilot’s first dice roll.</p>
+<p><strong>Last rocket flying wins</strong> (others bankrupt or strand). There is <strong>no round limit</strong>.</p>
+<p>Eliminated rockets’ deeds return to the <strong>bank</strong> (available again); depots are lost.</p>
+<p>See <strong>Glossary</strong> for <em>turn</em>, <em>round</em>, and <em>rotation</em>. Charter alerts use <strong>rounds</strong>, not turns.</p>
+`,
+  },
+  {
+    id: "glossary",
+    title: "Glossary",
+    html: `
+<p>Locked vocabulary so design talk stays consistent:</p>
+<table class="glossary">
+  <thead><tr><th>Term</th><th>Meaning</th><th>In code / UI</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>Turn</strong></td>
+      <td>One rocket’s seat at the table: from becoming current through end turn (roll + move, or skip, or park). Skipped seats still count as a turn for the seat clock.</td>
+      <td><code>gameTurn</code> · “Turn N” in the log</td>
+    </tr>
+    <tr>
+      <td><strong>Round</strong></td>
+      <td>Everyone has had a seat turn — a full pass through the player order (including skips / parks).</td>
+      <td><code>round</code> · “Round N” in the log</td>
+    </tr>
+    <tr>
+      <td><strong>Rotation</strong></td>
+      <td>One rocket completes a full circuit of the board path (leaves Earth and returns). Personal to that rocket.</td>
+      <td>Circuit complete log · <code>boardRotations</code> (global count of circuits finished)</td>
+    </tr>
+    <tr>
+      <td><strong>Park</strong></td>
+      <td>A seat turn where that rocket does <em>not</em> move (camp, full break, failed leave, duel skip). Cumulative park count drives feral risk.</td>
+      <td><code>parkCount</code></td>
+    </tr>
+  </tbody>
+</table>
+<p><strong>Charter alerts</strong> (timed popups): after <strong>5 rounds</strong> since the last alert (or start), <strong>50%</strong> chance once per round; each miss, chance moves halfway toward 100% (50% → 75% → 87.5% …) until it fires; then wait 5 rounds again.</p>
 `,
   },
   {

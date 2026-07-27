@@ -1,21 +1,24 @@
 /**
- * Shared charter clock: one tick per pilot *seat turn* (including skips).
- * Timed content runs at seat-turn start, before that pilot’s first movement dice roll.
+ * Shared charter clocks + timed charter alerts.
  *
- * Charter alerts: after 5 seat-turns since last fire (or start), 50% chance;
- * doubles each miss until trigger; then wait 5 again.
- * RNG: third letter of human rocket name × USNO→Apollo-11 range (cm, daily table).
+ * ## Time vocabulary (locked)
+ * - **Turn** — one rocket’s seat: roll (or skip/park) through end turn. `gameTurn` counts these.
+ * - **Round** — every seat has had a turn (wrap of the player order). `state.round`.
+ * - **Rotation** — one rocket completes a full board circuit (leave Earth → return). Personal; also `boardRotations` totals.
+ *
+ * Charter alerts fire on **round** boundaries, not every seat turn.
+ * RNG: third letter of human rocket × USNO→Apollo-11 range cm (daily table).
  */
 import { lunarRangeCmForDate } from "./lunarRangeTable";
 import type { GameState } from "./types";
 
-/** Seat turns after a fire (or game start) before first 50% roll. */
-export const TIMED_EVENT_GAP_TURNS = 5;
-/** Chance on first eligible turn after the gap. */
+/** Rounds after a fire (or start) before the first 50% roll. */
+export const TIMED_EVENT_GAP_ROUNDS = 5;
+/** Chance on the first eligible round after the gap. */
 export const TIMED_EVENT_BASE_CHANCE = 0.5;
 
 /**
- * Human rocket’s 3rd character code (1-based letter position in name).
+ * Human rocket’s 3rd character code.
  * Short names fall back to first printable char or 67 ('C').
  */
 export function thirdLetterCode(rocketName: string): number {
@@ -34,33 +37,33 @@ export function charterRocketName(state: GameState): string {
 }
 
 /**
- * Seed material: thirdLetter × lunar range cm (table), mixed with turn + rngState.
- * Range = generic-year daily distance USNO→Apollo 11 reflector proxy (cm).
+ * Seed material: thirdLetter × lunar range cm (table), mixed with round + rngState.
  */
 export function charterEventRoll01(state: GameState, at: Date = new Date()): number {
   const letter = thirdLetterCode(charterRocketName(state));
   const rangeCm = lunarRangeCmForDate(at);
-  // Keep in 32-bit space; rangeCm ~ 3.6e10
   const mixed =
     Math.imul(letter | 0, (rangeCm % 2147483647) | 0) +
-    Math.imul(state.gameTurn | 0, 9973) +
+    Math.imul(state.round | 0, 9973) +
+    Math.imul(state.gameTurn | 0, 131) +
     (state.rngState | 0);
   let s = mixed | 0;
-  s = (Math.imul(s ^ (s >>> 16), 2246822507) | 0) ^ state.gameTurn;
+  s = (Math.imul(s ^ (s >>> 16), 2246822507) | 0) ^ state.round;
   s = Math.imul(s ^ (s >>> 13), 3266489909) | 0;
   s = (s ^ (s >>> 16)) >>> 0;
   if (s === 0) s = 1;
-  // Mulberry-ish unit interval without mutating game rngState (event stream separate)
   let x = s | 0;
   x = (Math.imul(x, 1664525) + 1013904223) | 0;
   return (x >>> 0) / 4294967296;
 }
 
-/** Chance after `turnsSinceLast` seat turns since last trigger/start. 0 if still in gap. */
-export function timedEventChance(turnsSinceLast: number): number {
-  if (turnsSinceLast < TIMED_EVENT_GAP_TURNS) return 0;
-  const exp = turnsSinceLast - TIMED_EVENT_GAP_TURNS; // 0 → 50%, 1 → 100%, …
-  return Math.min(1, TIMED_EVENT_BASE_CHANCE * 2 ** exp);
+/**
+ * Next chance after a miss: halfway from current toward 100%.
+ * e.g. 50% → 75% → 87.5% → …
+ */
+export function midpointTowardCertain(currentChance: number): number {
+  const c = Math.min(1, Math.max(0, currentChance));
+  return c + (1 - c) / 2;
 }
 
 function fireFutureTeaser(state: GameState): void {
@@ -75,27 +78,42 @@ function fireFutureTeaser(state: GameState): void {
 }
 
 /**
- * Called immediately after `gameTurn` increments, before Roll (or skip resolution).
+ * Called after each seat tick. Only advances the alert cadence when
+ * `state.round` has increased (once per full table pass).
  */
 export function processTimedEvents(state: GameState): void {
+  const te = state.timedEvent;
+  // One cadence step per **round**, not per seat turn
+  if (te.lastProcessedRound === state.round) return;
+  te.lastProcessedRound = state.round;
+  te.roundsSinceLast += 1;
+
+  // Count the round even if another popup is open; don't stack alerts
   if (state.pendingAnnouncement) return;
 
-  state.timedEvent.turnsSinceLast += 1;
-  const n = state.timedEvent.turnsSinceLast;
-  const chance = timedEventChance(n);
-  if (chance <= 0) return;
+  if (te.roundsSinceLast < TIMED_EVENT_GAP_ROUNDS) return;
+
+  if (te.roundsSinceLast === TIMED_EVENT_GAP_ROUNDS) {
+    te.rollChance = TIMED_EVENT_BASE_CHANCE;
+  } else {
+    // Missed earlier in this window — halfway from current % toward 100%
+    te.rollChance = midpointTowardCertain(
+      te.rollChance > 0 ? te.rollChance : TIMED_EVENT_BASE_CHANCE,
+    );
+  }
 
   const roll = charterEventRoll01(state);
-  if (roll >= chance) {
-    // Miss — chance doubles next seat turn until hit (silent; avoid log spam)
+  if (roll >= te.rollChance) {
+    // Miss — stay in window; next round midpoints again
     return;
   }
 
   fireFutureTeaser(state);
-  state.timedEvent.turnsSinceLast = 0;
+  te.roundsSinceLast = 0;
+  te.rollChance = 0;
 }
 
-/** +1 seat turn and run timed events (before dice). */
+/** +1 seat turn (`gameTurn`); may process a **round**-scoped timed event. */
 export function tickSeatTurn(state: GameState): void {
   state.gameTurn += 1;
   processTimedEvents(state);

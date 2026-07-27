@@ -497,6 +497,34 @@ body.handbook-open {
   margin-bottom: 0.4rem;
 }
 
+.handbook-article table.glossary {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  margin: 0.75rem 0 1rem;
+}
+
+.handbook-article table.glossary th,
+.handbook-article table.glossary td {
+  border: 1px solid var(--border);
+  padding: 8px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.handbook-article table.glossary th {
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--accent-2);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.handbook-article table.glossary code {
+  font-size: 0.8em;
+  color: var(--accent);
+}
+
 .handbook-article kbd {
   display: inline-block;
   padding: 0.1em 0.4em;

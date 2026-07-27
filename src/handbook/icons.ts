@@ -15,6 +15,7 @@ export const TOPIC_ICONS: Record<string, string> = {
   welcome: "/ops-manual-icon.png",
   path: "/handbook/lore.png",
   "how-to-win": "/handbook/gameplay.png",
+  glossary: "/handbook/gameplay.png",
   "turn-flow": "/handbook/gameplay.png",
   legend: "/handbook/gameplay.png",
   monopoly: "/handbook/gameplay.png",
