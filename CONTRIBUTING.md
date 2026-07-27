@@ -14,6 +14,16 @@ Thanks for helping shape **Free Enterprise In Space**.
 
 `main` is protected: force-pushes are blocked; PRs are the normal path. Maintainers may still ship hotfixes.
 
+## Maintainer backlog order
+
+Priority is the **GitHub Project board order** (not issue number). Agents run:
+
+```bash
+./scripts/backlog.sh
+```
+
+Requires `gh auth refresh -h github.com -s read:project,project` and `scripts/backlog.env` (see `backlog.env.example`).
+
 ## Ideas we especially want
 
 - Punchy **Gravity Duel** result lines (replace “punchy message here”)
