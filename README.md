@@ -1,51 +1,60 @@
 # Heliopoly
 
-**Free Enterprise In Space** · v0.0.7
+**Free Enterprise In Space**
 
-Browser game: claim planets and moons, manage propellant, win as the last rocket flying.
+A browser game of solar-system property, propellant, and rival rockets. Charter a ship, buy claims from Mercury to the Saturn moons, and stay solvent long enough to be the **last rocket flying**.
+
+**[Play on heliopoly.live](https://heliopoly.live/)** · [Source](https://github.com/diagonalcounty/heliopoly) · MIT · v0.0.7
+
+---
+
+## The pitch
+
+The solar system is open for charter. You name a **rocket**, pick **methane or hydrogen**, and compete against AI-flown ships for deeds, depots, and cash on the ledger (**Crypto**, shown as **⍼**).
+
+There is **no turn limit**. You win by eliminating every other rocket — bankruptcy, stranding, or abandonment — not by hitting a round cap.
+
+## How a charter feels
+
+- **Path** — One circuit: Earth → Venus → Mercury → Mars system → belt → Jupiter → Saturn → home to Earth  
+- **Claims** — Buy planets and moons; own a full system and **rent doubles**  
+- **Stations** — Elon, Holst, and Daktulios work like railroads: more hubs you own, higher hub rent  
+- **Fuel** — Landing is free; **leaving** a gravity well costs propellant. Break spaces off a roll to land short (costs fuel too)  
+- **Propellant** — CH₄ is stable. H₂ leaves cheaper but can **leak on landing** (half tanks + a turn to repair). Strike rich ice or methane seas with a fuel depot for a one-time cash windfall  
+- **Parking** — Sit still too often and claims go **feral** (back to the bank)  
+- **Gravity Duel** — Meet another rocket on a blank lane: secret Low/High, 2d6, winner takes the edge  
+
+In-game **Helios Ops Manual** (top right) has the full rules, glossary (turn / round / rotation), and rival-rocket civilopedia.
+
+## Play
 
 | | |
 |--|--|
-| **Play** | [heliopoly.live](https://heliopoly.live/) |
-| **Source** | [github.com/diagonalcounty/heliopoly](https://github.com/diagonalcounty/heliopoly) |
-| **License** | MIT |
+| **Live** | https://heliopoly.live/ |
+| **Local** | `npm install && npm run dev` → http://localhost:5173/ |
 
-## Contribute
+Name your rocket, choose propellant and AI difficulty, **Launch**.
 
-- **Issues** — bugs, balance, punchy Gravity Duel lines, feature ideas  
-- **PRs** — welcome; `main` is protected (reviews preferred)  
-- Fork → branch → PR into `main`
+## Screenshots / vibe
 
-Please keep PRs focused. Game design locks live in discussion/issues when ambiguous.
+Pixel Ops Manual art, orbital board, dice duels, Oregon Trail–style charter alerts. Built for desktop and LAN iPad play (same Vite dev server).
 
-## Local development
+## Stack (brief)
+
+TypeScript + Vite. Pure rules engine in `src/core/` (no DOM); canvas shell in `src/main.ts`. Static deploy only — no game server.
 
 ```bash
-npm install
-npm run dev        # http://localhost:5173/
 npm run typecheck
-npm run build      # static dist/
+npm run build      # → dist/
 npm run selfplay -- 10 4
 ```
 
-## Layout
+## Contributing
 
-| Path | Role |
-|------|------|
-| `src/core/` | Rules engine (no DOM) |
-| `src/handbook/` | Helios Ops Manual |
-| `src/lab/` | Dev scenarios |
-| `src/main.ts` | Browser shell |
-| `public/` | Static icons / assets |
+Issues and PRs welcome: **[github.com/diagonalcounty/heliopoly](https://github.com/diagonalcounty/heliopoly)**.
 
-## Deploy
+Suggest balance tweaks, punchy Gravity Duel lines, or handbook copy. See **[CONTRIBUTING.md](./CONTRIBUTING.md)** for PR flow and maintainer backlog notes. `main` is protected; open a PR for review.
 
-Production is static files only (nginx). Build + rsync to the droplet web root — no `vite dev` in production.
+## License
 
-## Time vocabulary
-
-- **Turn** — one rocket’s seat at the table  
-- **Round** — full pass through all seats  
-- **Rotation** — one full board circuit for a rocket  
-
-See in-game Ops Manual → Gameplay → Glossary.
+[MIT](./LICENSE) · © 2026 diagonalcounty
