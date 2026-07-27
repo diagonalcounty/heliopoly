@@ -29,7 +29,7 @@ export const PROPELLANTS: Record<PropellantId, PropellantDef> = {
     /** Landing insertion → chance of catastrophic half-tank leak. */
     leaveRisk: 0.1,
     blurb:
-      "Cheaper leave burns. Ice strikes on Enceladus/Mars/Europa/Ganymede with a depot. Leak risk on landing: half your fuel.",
+      "Cheaper leave burns. Ice strikes on Enceladus/Mars/Europa/Ganymede with a depot. Leak on landing: half fuel + lose a turn to repair.",
   },
 };
 

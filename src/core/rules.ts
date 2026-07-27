@@ -547,16 +547,17 @@ function applyLandingLeak(state: GameState, p: Player, nodeName: string): void {
   if (loss <= 0 || p.fuel <= 0) return;
   p.fuel -= loss;
   if (p.propellant === "hydrogen") {
+    p.skipTurns += 1; // grounded for tank repair
     pushLog(
       state,
-      `${p.name} LEAK on landing ${nodeName}: −${loss} fuel (half tanks).`,
+      `${p.name} LEAK on landing ${nodeName}: −${loss} fuel (half tanks) · loses next turn to repair.`,
     );
-    delta(state, `−${loss} fuel LEAK`);
+    delta(state, `−${loss} fuel LEAK · +1 skip repair`);
     if (!state.pendingAnnouncement) {
       state.pendingAnnouncement = {
         kind: "leak",
         title: "LEAK!",
-        body: `${p.name}'s H₂ tanks failed landing on ${nodeName}.\n−${loss} fuel (half the tanks).`,
+        body: `${p.name}'s H₂ tanks failed landing on ${nodeName}.\n−${loss} fuel (half the tanks).\nLoses next turn to repair.`,
       };
     }
   } else {
