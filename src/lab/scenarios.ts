@@ -1,0 +1,146 @@
+/**
+ * Lab scenarios — isolated setups for minigame / UX testing.
+ * Not used in normal Launch flow.
+ */
+import { forceGravityDuel } from "../core/rules";
+import { createGame } from "../core/state";
+import type { GameState } from "../core/types";
+
+export interface LabScenario {
+  id: string;
+  title: string;
+  blurb: string;
+  group: "minigame" | "end" | "economy";
+  /** Build a fresh GameState ready to drop into the shell. */
+  build: () => GameState;
+}
+
+function baseGame(playerCount = 2): GameState {
+  return createGame({
+    playerCount,
+    humanSeat: true,
+    humanName: "Captain",
+    humanPropellant: "methane",
+    seed: (Date.now() ^ 0x1ab) >>> 0,
+  });
+}
+
+function tagLab(s: GameState, label: string): GameState {
+  s.log.push(`—— Lab: ${label} ——`);
+  s.turnDeltas = [`Lab · ${label}`];
+  return s;
+}
+
+export const LAB_SCENARIOS: LabScenario[] = [
+  {
+    id: "duel-you-challenger",
+    title: "Gravity Duel — you challenge",
+    blurb: "Captain arrives on a belt blank occupied by an AI pilot. Stance, then roll.",
+    group: "minigame",
+    build: () => {
+      const s = baseGame(2);
+      const you = s.players[0];
+      const ai = s.players[1];
+      forceGravityDuel(s, you.id, ai.id, "belt2");
+      return tagLab(s, `Duel ${you.name} (challenger) vs ${ai.name}`);
+    },
+  },
+  {
+    id: "duel-you-defender",
+    title: "Gravity Duel — you defend",
+    blurb: "AI arrives on your blank. You are defender (stance + roll when prompted).",
+    group: "minigame",
+    build: () => {
+      const s = baseGame(2);
+      const you = s.players[0];
+      const ai = s.players[1];
+      // Challenger is AI; current seat becomes AI for the duel
+      forceGravityDuel(s, ai.id, you.id, "belt3");
+      return tagLab(s, `Duel ${ai.name} (challenger) vs ${you.name} (defender)`);
+    },
+  },
+  {
+    id: "duel-ai-vs-ai",
+    title: "Gravity Duel — AI vs AI",
+    blurb: "Two AI seats duel; shell auto-plays. Use to watch ceremony / splash.",
+    group: "minigame",
+    build: () => {
+      const s = createGame({
+        playerCount: 2,
+        humanSeat: false,
+        seed: (Date.now() ^ 0x2cd) >>> 0,
+      });
+      forceGravityDuel(s, s.players[0].id, s.players[1].id, "belt1");
+      return tagLab(s, "Duel AI vs AI");
+    },
+  },
+  {
+    id: "duel-multi-audience",
+    title: "Gravity Duel — 4 pilots (you challenge)",
+    blurb: "Full pilot count; you vs AI 1 on a blank (others elsewhere).",
+    group: "minigame",
+    build: () => {
+      const s = baseGame(4);
+      forceGravityDuel(s, s.players[0].id, s.players[1].id, "belt4");
+      // Park others on Earth so they are not in the lane
+      for (let i = 2; i < s.players.length; i++) {
+        s.players[i].position = "earth";
+      }
+      return tagLab(s, "Duel You vs AI · 4 pilots");
+    },
+  },
+  {
+    id: "end-you-win",
+    title: "End screen — you prevail",
+    blurb: "All other pilots eliminated; opens charter end UI.",
+    group: "end",
+    build: () => {
+      const s = baseGame(4);
+      const you = s.players[0];
+      let t = 8;
+      for (const p of s.players) {
+        if (p.id === you.id) continue;
+        p.eliminated = true;
+        p.eliminatedOnTurn = t;
+        p.eliminatedReason = "lab elimination";
+        p.cash = 0;
+        p.properties = [];
+        t += 5;
+      }
+      s.gameTurn = t;
+      s.winnerId = you.id;
+      s.phase = "game_over";
+      s.endReason = `${you.name} is the last pilot flying.`;
+      s.log.push(`Winner: ${you.name} (lab)`);
+      return tagLab(s, `End · ${you.name} wins`);
+    },
+  },
+  {
+    id: "end-ai-wins",
+    title: "End screen — AI prevails",
+    blurb: "Human out; one AI remains (grammar / postmortem check).",
+    group: "end",
+    build: () => {
+      const s = baseGame(3);
+      const you = s.players[0];
+      const ai1 = s.players[1];
+      you.eliminated = true;
+      you.eliminatedOnTurn = 12;
+      you.eliminatedReason = "lab elimination";
+      you.cash = 0;
+      s.players[2].eliminated = true;
+      s.players[2].eliminatedOnTurn = 20;
+      s.players[2].eliminatedReason = "lab elimination";
+      s.players[2].cash = 0;
+      s.gameTurn = 24;
+      s.winnerId = ai1.id;
+      s.phase = "game_over";
+      s.endReason = `${ai1.name} is the last pilot flying.`;
+      return tagLab(s, `End · ${ai1.name} wins`);
+    },
+  },
+];
+
+export function getLabScenario(id: string): LabScenario | undefined {
+  return LAB_SCENARIOS.find((x) => x.id === id);
+}

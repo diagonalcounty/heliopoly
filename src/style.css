@@ -46,9 +46,12 @@ body {
 }
 
 .handbook-launch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   flex-shrink: 0;
   min-height: 44px;
-  padding: 10px 14px;
+  padding: 6px 12px 6px 6px;
   border-radius: 12px;
   border: 1px solid var(--border);
   background: #1a2744;
@@ -56,8 +59,92 @@ body {
   font-weight: 600;
 }
 
-.handbook-launch-full {
+.handbook-launch .ops-manual-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  border-radius: 6px;
+  flex-shrink: 0;
+  background: #070b14;
+}
+
+.lab-launch {
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid #5a4a20;
+  background: #2a2210;
+  color: var(--accent-2);
+  font-weight: 600;
+}
+
+.lab-launch:hover {
+  border-color: var(--accent-2);
+}
+
+.lab-panel {
+  max-width: min(480px, 100%);
+}
+
+.lab-intro {
+  margin: 0 0 12px;
+}
+
+.lab-scenarios {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: min(60vh, 520px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.lab-group-title {
+  margin: 0 0 6px;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #c9a227;
+}
+
+.lab-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lab-scenario {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
   width: 100%;
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #121a30;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.lab-scenario:hover {
+  border-color: var(--accent-2);
+  background: #1a2438;
+}
+
+.lab-scenario-title {
+  font-weight: 600;
+  color: var(--accent-2);
+}
+
+.lab-scenario-blurb {
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.35;
 }
 
 .hint {
@@ -113,8 +200,11 @@ body.handbook-open {
 .handbook-panel {
   position: relative;
   z-index: 1;
-  width: min(820px, 100%);
+  /* Fixed frame so centered modal does not shrink/jump when tabs change */
+  width: min(860px, calc(100vw - 32px));
+  height: min(88vh, 900px);
   max-height: min(88vh, 900px);
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   background: linear-gradient(180deg, #172038 0%, #10182c 100%);
@@ -126,12 +216,32 @@ body.handbook-open {
 
 .handbook-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
   padding: 14px 16px;
   border-bottom: 1px solid var(--border);
   background: rgba(20, 32, 60, 0.9);
+  flex-shrink: 0;
+}
+
+.handbook-header-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.handbook-header-icon {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  border-radius: 10px;
+  flex-shrink: 0;
+  background: #070b14;
+  border: 1px solid rgba(201, 162, 39, 0.35);
 }
 
 .handbook-kicker {
@@ -159,17 +269,55 @@ body.handbook-open {
   border: 1px solid var(--border);
 }
 
+/* Civ-style: category tabs, then entries for that category only */
+.handbook-section-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(10, 16, 32, 0.85);
+  flex-shrink: 0;
+}
+
+.handbook-section-tab {
+  min-height: 40px;
+  padding: 8px 14px;
+  border-radius: 10px 10px 0 0;
+  border: 1px solid var(--border);
+  border-bottom: none;
+  background: #121a30;
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.handbook-section-tab:hover {
+  color: var(--text);
+  background: #1a2438;
+}
+
+.handbook-section-tab.active {
+  background: linear-gradient(180deg, #243656 0%, #1a2844 100%);
+  color: var(--accent-2);
+  border-color: #c9a227;
+  box-shadow: 0 0 0 1px rgba(201, 162, 39, 0.25);
+}
+
 .handbook-body {
   display: grid;
   grid-template-columns: minmax(160px, 220px) 1fr;
   min-height: 0;
-  flex: 1;
+  flex: 1 1 auto;
+  overflow: hidden;
 }
 
 @media (max-width: 640px) {
   .handbook-body {
     grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
   }
 
   .handbook-toc {
@@ -177,9 +325,11 @@ body.handbook-open {
     flex-direction: row;
     flex-wrap: nowrap;
     overflow-x: auto;
+    overflow-y: hidden;
     border-right: none !important;
     border-bottom: 1px solid var(--border);
     max-height: none;
+    height: auto;
     padding: 8px !important;
     gap: 6px;
   }
@@ -188,14 +338,30 @@ body.handbook-open {
     white-space: nowrap;
     flex-shrink: 0;
   }
+
+  .handbook-section-tab {
+    border-radius: 10px;
+    border-bottom: 1px solid var(--border);
+  }
 }
 
 .handbook-toc {
   border-right: 1px solid var(--border);
+  overflow-x: hidden;
   overflow-y: auto;
-  max-height: min(70vh, 720px);
+  min-height: 0;
+  height: 100%;
+  max-height: none;
   padding: 8px;
   background: rgba(8, 12, 24, 0.35);
+}
+
+.handbook-article-section {
+  margin: 0 0 4px;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #c9a227;
 }
 
 .handbook-toc-item {
@@ -225,8 +391,11 @@ body.handbook-open {
 }
 
 .handbook-article {
+  overflow-x: hidden;
   overflow-y: auto;
-  max-height: min(70vh, 720px);
+  min-height: 0;
+  height: 100%;
+  max-height: none;
   padding: 16px 18px 24px;
   font-size: 0.95rem;
   line-height: 1.55;
@@ -251,6 +420,26 @@ body.handbook-open {
 
 .handbook-article li {
   margin-bottom: 0.35rem;
+}
+
+.handbook-article .pilot-hook {
+  color: var(--accent-2);
+  margin-bottom: 0.75rem;
+}
+
+.handbook-article .pilot-foot {
+  margin-top: 1.25rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.handbook-article .pilot-index {
+  margin: 0.75rem 0;
+  padding-left: 1.2rem;
+}
+
+.handbook-article .pilot-index li {
+  margin-bottom: 0.4rem;
 }
 
 .handbook-article kbd {
@@ -687,43 +876,114 @@ button:not(:disabled):active {
   box-shadow: 0 0 0 2px #ffc857, 0 0 16px rgba(255, 200, 87, 0.7);
 }
 
-/* —— Duel result splash —— */
+/* —— Duel result footer (same panel; no second popup) —— */
+.duel-result-footer {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+
+.duel-result-footer.hidden {
+  display: none !important;
+}
+
+.duel-result-headline {
+  margin: 0 0 6px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--ok);
+}
+
+.duel-result-footer.is-tie .duel-result-headline {
+  color: var(--muted);
+}
+
+.duel-punchy {
+  margin: 0 0 8px;
+  font-style: italic;
+  color: var(--accent-2);
+  font-size: 0.95rem;
+}
+
+.duel-result-summary {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  white-space: pre-line;
+}
+
+/* Legacy splash host (unused UI) */
 .duel-result {
+  display: none !important;
+}
+
+/* —— Charter announcement (gusher / leak) —— */
+.announce-screen {
   position: fixed;
   inset: 0;
-  z-index: 1200;
+  z-index: 1250;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 16px;
-  background: rgba(4, 8, 18, 0.82);
+  background: rgba(4, 8, 18, 0.88);
 }
-.duel-result-card {
-  width: min(420px, 100%);
+
+.announce-screen.hidden {
+  display: none !important;
+}
+
+.announce-card {
+  width: min(400px, 100%);
   text-align: center;
-  padding: 22px 20px;
-  border-radius: 14px;
-  border: 2px solid var(--accent-2);
-  background: linear-gradient(180deg, #1c2748, #0e1428);
-  box-shadow: 0 20px 60px rgba(0,0,0,0.55);
+  padding: 24px 20px 20px;
+  border-radius: 4px;
+  border: 3px solid #c9a227;
+  background: #0c101c;
+  box-shadow: 0 0 0 1px #3d2a10, 0 20px 60px rgba(0, 0, 0, 0.6);
+  font-family: "Courier New", Courier, monospace;
 }
-.duel-result-kicker {
+
+.announce-card.kind-gusher {
+  border-color: var(--ok);
+}
+
+.announce-card.kind-leak {
+  border-color: var(--danger);
+}
+
+.announce-kicker {
   margin: 0;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  font-size: 0.7rem;
-  color: var(--accent-2);
+  font-size: 0.68rem;
+  color: #c9a227;
 }
-.duel-result-card h2 {
-  margin: 8px 0 12px;
-  font-size: 1.5rem;
+
+.announce-card h2 {
+  margin: 10px 0 12px;
+  font-size: 1.75rem;
+  letter-spacing: 0.06em;
+  color: #f0e6c8;
+  font-family: Georgia, "Times New Roman", serif;
 }
-.duel-result-card.tie h2 { color: var(--muted); }
-.duel-result-card.win h2 { color: var(--ok); }
-.duel-result-body {
-  color: var(--text);
-  line-height: 1.45;
-  margin: 0 0 16px;
+
+.announce-card.kind-gusher h2 {
+  color: var(--ok);
+}
+
+.announce-card.kind-leak h2 {
+  color: var(--danger);
+}
+
+.announce-body {
+  margin: 0 0 18px;
+  color: #d8d0b8;
+  line-height: 1.5;
+  white-space: pre-line;
+  font-size: 0.95rem;
 }
 
 .roll-result {

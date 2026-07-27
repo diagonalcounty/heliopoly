@@ -1,24 +1,28 @@
 import { getNode, isPurchasable } from "./board";
 import { formatMoney } from "./currency";
 import { gravityClassOf, leaveBurnCost } from "./fuel";
+import { GUSHER_BONUS, isGusherBody, pickStrikeHeadline } from "./isru";
 import { walkMovePath } from "./path";
-import { PROPELLANTS } from "./propellant";
-import { reseedForActivePilot } from "./seed";
-import {
-  hasSystemMonopoly,
-  systemOfGroup,
-  type SystemId,
-} from "./systems";
 import {
   abandonedCharter,
+  duelWinSummary,
   lastPilotFlying,
   leadsWithWorth,
 } from "./pilotCopy";
+import { PROPELLANTS } from "./propellant";
+import { reseedForActivePilot } from "./seed";
 import {
   cloneState,
   currentPlayer,
   livingPlayers,
 } from "./state";
+import {
+  hasSystemMonopoly,
+  stationNetworkRentMult,
+  systemOfGroup,
+  type SystemId,
+} from "./systems";
+import { tickSeatTurn } from "./turnClock";
 import type {
   DuelStance,
   GameState,
@@ -28,12 +32,22 @@ import type {
   PlayerAction,
 } from "./types";
 
-/** Rotations without a visit before feral risk applies. */
-export const FERAL_ROTATIONS = 10;
-/** Chance on owner's movement roll when overdue (no monopoly). */
+/** @deprecated Prefer PARK_FERAL_THRESHOLD — kept for inspect/UI compat. */
+export const FERAL_ROTATIONS = 5;
+/** Parks before first feral check (inclusive). */
+export const PARK_FERAL_THRESHOLD = 5;
+/** Chance at parkCount === threshold; doubles each park after (capped at 1). */
+export const PARK_FERAL_BASE_CHANCE = 0.5;
+/** Legacy monopoly softener (unused by parking feral). */
 export const FERAL_CHANCE = 0.5;
-/** Chance when owner holds full system monopoly including that deed. */
 export const FERAL_CHANCE_MONOPOLY = 0.15;
+
+/** Feral chance for a pilot who just parked `parkCount` times (0 if under threshold). */
+export function parkFeralChance(parkCount: number): number {
+  if (parkCount < PARK_FERAL_THRESHOLD) return 0;
+  const exp = parkCount - PARK_FERAL_THRESHOLD;
+  return Math.min(1, PARK_FERAL_BASE_CHANCE * 2 ** exp);
+}
 
 export { walkMovePath } from "./path";
 export type { MovePath, PathFrame } from "./path";
@@ -100,10 +114,12 @@ function rentDue(state: GameState, nodeId: string, ownerId: string): number {
   const sys = systemOfGroup(node.group);
   const monopoly =
     !!sys && hasSystemMonopoly(state.owners, ownerId, sys.id as SystemId);
-  // Full system owned → rent doubles. Fuel depot still adds a bump.
+  // Full planetary system → rent ×2. Station hubs also scale like railroads.
   const mult = monopoly ? 2 : 1;
-  const stationBonus = state.stations[nodeId] ? 1.5 : 1;
-  return Math.floor(base * mult * stationBonus);
+  const hubMult = stationNetworkRentMult(state.owners, ownerId, nodeId);
+  // Fuel depot (player-built) still bumps rent on planets/moons only in practice
+  const depotBonus = state.stations[nodeId] ? 1.5 : 1;
+  return Math.floor(base * mult * hubMult * depotBonus);
 }
 
 function touchClaim(state: GameState, nodeId: string, owner?: Player): void {
@@ -170,38 +186,44 @@ function releaseClaimToBank(state: GameState, nodeId: string): void {
   delete state.claimCareRotations[nodeId];
 }
 
-/** Feral check on the rolling owner's deeds (movement roll only). */
-function checkFeralOnOwnerRoll(state: GameState, owner: Player): void {
-  const overdue = owner.properties.filter((nodeId) => {
-    const care = state.claimCareRotations[nodeId];
-    if (care === undefined) return false;
-    return owner.neglectClock - care >= FERAL_ROTATIONS;
-  });
-  if (overdue.length === 0) return;
+/**
+ * No-move seat turn: +1 park (cumulative). At 5+ parks, each claim may go feral
+ * (50% at 5, doubles each park after, cap 100%).
+ */
+function applyParkingTick(state: GameState, pilot: Player): void {
+  if (pilot.eliminated) return;
+  pilot.parkCount += 1;
+  const n = pilot.parkCount;
+  const chance = parkFeralChance(n);
+  pushLog(
+    state,
+    `${pilot.name} parks (no move) · park count ${n}${
+      chance > 0 ? ` · feral risk ${Math.round(chance * 100)}% per claim` : ""
+    }.`,
+  );
+  delta(state, `${pilot.name} park #${n}`);
 
-  for (const nodeId of overdue) {
-    const node = getNode(state.board, nodeId);
-    const sys = systemOfGroup(node.group);
-    const mono =
-      !!sys && hasSystemMonopoly(state.owners, owner.id, sys.id as SystemId);
-    const chance = mono ? FERAL_CHANCE_MONOPOLY : FERAL_CHANCE;
-    const age = owner.neglectClock - (state.claimCareRotations[nodeId] ?? 0);
+  if (chance <= 0 || pilot.properties.length === 0) return;
+
+  for (const nodeId of [...pilot.properties]) {
     if (mulberryNext(state) >= chance) {
+      const node = getNode(state.board, nodeId);
       pushLog(
         state,
-        `${node.name} stays held (overdue ${age} rot, ${Math.round(chance * 100)}% feral resisted).`,
+        `${node.name} stays held (${pilot.name} park #${n}, ${Math.round(chance * 100)}% resisted).`,
       );
       continue;
     }
-    owner.properties = owner.properties.filter((id) => id !== nodeId);
+    const node = getNode(state.board, nodeId);
+    pilot.properties = pilot.properties.filter((id) => id !== nodeId);
     releaseClaimToBank(state, nodeId);
     pushLog(
       state,
-      `${node.name} goes FERAL — no visit for ${FERAL_ROTATIONS}+ neglect rotations (clock ${owner.neglectClock}). Depot lost if any.`,
+      `${node.name} goes FERAL — ${pilot.name} park #${n} (${Math.round(chance * 100)}%). Depot lost if any.`,
     );
     delta(state, `feral: ${node.name}`);
-    if (owner.ephemerisBodyId === nodeId) {
-      owner.ephemerisBodyId = owner.properties[0] ?? null;
+    if (pilot.ephemerisBodyId === nodeId) {
+      pilot.ephemerisBodyId = pilot.properties[0] ?? null;
     }
   }
 }
@@ -213,7 +235,12 @@ function eliminate(
 ): void {
   if (player.eliminated) return;
   player.eliminated = true;
-  pushLog(state, `${player.name} eliminated: ${reason}`);
+  player.eliminatedOnTurn = state.gameTurn;
+  player.eliminatedReason = reason;
+  pushLog(
+    state,
+    `${player.name} eliminated (turn ${state.gameTurn}): ${reason}`,
+  );
   delta(state, `OUT ${player.name}: ${reason}`);
   // Deeds return to bank; fuel depots destroyed
   for (const prop of [...player.properties]) {
@@ -287,20 +314,33 @@ function advanceTurn(state: GameState): void {
 
   if (forceEndByRounds(state)) return;
 
+  // Seat turn begins: clock + timed events *before* first dice roll (or skip)
+  tickSeatTurn(state);
+
   const p = currentPlayer(state);
   if (p.skipTurns > 0) {
+    // Skipped seat still consumed a turn tick (already counted above)
     p.skipTurns -= 1;
-    p.skippedRoll = true; // skipped turn counts as non-roll for feral
-    pushLog(state, `${p.name} loses this turn (Gravity Duel forfeit).`);
+    p.skippedRoll = true;
+    p.movedThisTurn = false;
+    pushLog(
+      state,
+      `— Turn ${state.gameTurn} · Round ${state.round}: ${p.name} skips (Gravity Duel forfeit) —`,
+    );
     delta(state, `${p.name}: skipped turn`);
     state.turnDeltas = [`${p.name}: skipped turn (duel loss)`];
+    applyParkingTick(state, p); // no move → park risk
     advanceTurn(state);
     return;
   }
 
   p.rolledThisTurn = false;
+  p.movedThisTurn = false;
   state.turnDeltas = [];
-  pushLog(state, `— Round ${state.round}: ${p.name}'s turn —`);
+  pushLog(
+    state,
+    `— Turn ${state.gameTurn} · Round ${state.round}: ${p.name}'s turn —`,
+  );
 }
 
 export function refuelInfo(state: GameState): {
@@ -498,15 +538,31 @@ function applyLeaveRisk(state: GameState, p: Player, nodeName: string): void {
   const def = PROPELLANTS[p.propellant];
   if (def.leaveRisk <= 0) return;
   if (mulberryNext(state) > def.leaveRisk) return;
-  const loss = Math.min(p.fuel, rngInt(state, 1, 2));
-  if (loss <= 0) return;
-  p.fuel -= loss;
-  const msg =
+  // H₂: catastrophic half-tank leak (Oregon Trail interrupt)
+  const loss =
     p.propellant === "hydrogen"
-      ? `${p.name} H₂ boil-off leaving ${nodeName}: −${loss} fuel`
-      : `${p.name} CH₄ glitch leaving ${nodeName}: −${loss} fuel`;
-  pushLog(state, msg);
-  delta(state, `−${loss} fuel (${p.propellant})`);
+      ? Math.max(1, Math.floor(p.fuel / 2))
+      : Math.min(p.fuel, rngInt(state, 1, 2));
+  if (loss <= 0 || p.fuel <= 0) return;
+  p.fuel -= loss;
+  if (p.propellant === "hydrogen") {
+    pushLog(
+      state,
+      `${p.name} LEAK leaving ${nodeName}: −${loss} fuel (half tanks).`,
+    );
+    delta(state, `−${loss} fuel LEAK`);
+    // Queue popup (overwrite only if none pending — leak is urgent)
+    if (!state.pendingAnnouncement) {
+      state.pendingAnnouncement = {
+        kind: "leak",
+        title: "LEAK!",
+        body: `${p.name}'s H₂ tanks failed leaving ${nodeName}.\n−${loss} fuel (half the tanks).`,
+      };
+    }
+  } else {
+    pushLog(state, `${p.name} propellant glitch leaving ${nodeName}: −${loss} fuel`);
+    delta(state, `−${loss} fuel (${p.propellant})`);
+  }
 }
 
 function othersOnNode(state: GameState, nodeId: string, exceptId: string): Player[] {
@@ -558,6 +614,34 @@ function beginDuel(
     `Gravity Duel on ${getNode(state.board, nodeId).name}: ${challenger.name} vs ${defender.name}!`,
   );
   delta(state, `Duel vs ${defender.name}`);
+}
+
+/**
+ * Lab / tests: force a Gravity Duel between two living pilots on a space node.
+ * Mutates `state` in place (caller should pass a clone when needed).
+ */
+export function forceGravityDuel(
+  state: GameState,
+  challengerId: string,
+  defenderId: string,
+  nodeId?: string,
+): void {
+  const challenger = state.players.find((p) => p.id === challengerId);
+  const defender = state.players.find((p) => p.id === defenderId);
+  if (!challenger || !defender || challenger.eliminated || defender.eliminated) {
+    throw new Error("forceGravityDuel: need two living pilots");
+  }
+  if (challengerId === defenderId) {
+    throw new Error("forceGravityDuel: challenger and defender must differ");
+  }
+  const blank =
+    nodeId ??
+    Object.values(state.board.nodes).find((n) => n.kind === "space")?.id ??
+    "belt1";
+  challenger.position = blank;
+  defender.position = blank;
+  state.lastDuelResult = null;
+  beginDuel(state, challenger, defender, blank);
 }
 
 function resolveDuelIfComplete(state: GameState): void {
@@ -653,7 +737,7 @@ function resolveDuelIfComplete(state: GameState): void {
   if (!winner.rentWaiversAgainst.includes(loser.id)) {
     winner.rentWaiversAgainst.push(loser.id);
   }
-  const summary = `${winner.name} WINS! ${loser.name} loses a turn · ${winner.name} gets a rent free-pass on ${loser.name}'s claims.`;
+  const summary = duelWinSummary(winner.name, loser.name);
   pushLog(state, `Gravity Duel: ${summary}`);
   delta(state, `Duel WIN ${winner.name} / ${loser.name} skips + waiver`);
   state.lastDuelResult = {
@@ -881,11 +965,45 @@ function doPlaceStation(state: GameState): void {
   p.stationsInHand -= 1;
   state.stations[p.position] = true;
   touchClaim(state, p.position); // depot resets feral timer
+  const body = getNode(state.board, p.position);
   pushLog(
     state,
-    `${p.name} places a fuel depot on ${getNode(state.board, p.position).name} (feral timer reset).`,
+    `${p.name} places a fuel depot on ${body.name} (feral timer reset).`,
   );
-  delta(state, `+depot ${getNode(state.board, p.position).name}`);
+  delta(state, `+depot ${body.name}`);
+  maybeStrikeGusher(state, p, p.position);
+}
+
+/** Claim + fuel depot on a top ISRU body for your propellant → one-time cash strike. */
+function maybeStrikeGusher(
+  state: GameState,
+  p: Player,
+  nodeId: string,
+): void {
+  if (state.owners[nodeId] !== p.id) return;
+  if (!state.stations[nodeId]) return;
+  if (state.gusherPaid[nodeId]) return;
+  if (!isGusherBody(p.propellant, nodeId)) return;
+
+  const bonus =
+    state.config.startingCash > 0
+      ? Math.floor(state.config.startingCash * 0.5)
+      : GUSHER_BONUS;
+  state.gusherPaid[nodeId] = true;
+  p.cash += bonus;
+  const body = getNode(state.board, nodeId);
+  const fuelWord = PROPELLANTS[p.propellant].short;
+  const headline = pickStrikeHeadline(p.propellant, mulberryNext(state));
+  pushLog(
+    state,
+    `${headline} ${p.name} · ${body.name} · +${formatMoney(bonus)} (${fuelWord}).`,
+  );
+  delta(state, `+${formatMoney(bonus)} fuel strike ${body.name}`);
+  state.pendingAnnouncement = {
+    kind: "gusher",
+    title: headline,
+    body: `${p.name} on ${body.name}.\n+${formatMoney(bonus)} on the charter ledger.`,
+  };
 }
 
 /** Sell claim underfoot for half price; depot destroyed. */
@@ -942,10 +1060,15 @@ function doMove(state: GameState): void {
   if (steps <= 0) {
     pushLog(state, `${p.name} breaks full roll — stays put.`);
     delta(state, `stay (full break)`);
+    // No path advance → not a move for parking
     state.phase = "await_post_land";
     return;
   }
+  const from = p.position;
   movePlayer(state, steps);
+  if (p.position !== from) {
+    p.movedThisTurn = true;
+  }
   if (state.pendingDuel) autoDuelAi(state);
 }
 
@@ -1027,7 +1150,6 @@ export function applyAction(state: GameState, action: PlayerAction): GameState {
         `${p.name} rolls ${roll.d1}+${roll.d2}=${roll.total}${roll.doubles ? " (doubles)" : ""} — choose break, then Move.`,
       );
       delta(next, `roll ${roll.total}`);
-      checkFeralOnOwnerRoll(next, p);
       next.phase = "await_move";
       break;
     }
@@ -1065,6 +1187,9 @@ export function applyAction(state: GameState, action: PlayerAction): GameState {
           pushLog(next, `${p.name} ends turn without rolling (camping).`);
         } else {
           p.skippedRoll = false;
+        }
+        if (!p.movedThisTurn) {
+          applyParkingTick(next, p);
         }
         advanceTurn(next);
       }
@@ -1186,6 +1311,9 @@ export function resignGame(state: GameState, playerId: string): GameState {
   const p = next.players.find((x) => x.id === playerId);
   if (!p || next.phase === "game_over") return next;
   next.phase = "game_over";
+  p.eliminated = true;
+  p.eliminatedOnTurn = next.gameTurn;
+  p.eliminatedReason = "abandoned the charter";
   next.endReason = abandonedCharter(p);
   const others = livingPlayers(next).filter((x) => x.id !== playerId);
   if (others.length === 1) next.winnerId = others[0].id;

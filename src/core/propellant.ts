@@ -17,16 +17,19 @@ export const PROPELLANTS: Record<PropellantId, PropellantDef> = {
     label: "Methane (CH₄)",
     short: "CH₄",
     leaveMult: 1.0,
-    leaveRisk: 0.02,
-    blurb: "Stable storage. Common ISRU path. Steady burns.",
+    leaveRisk: 0, // no tank leaks
+    blurb:
+      "Stable tanks. Fuel strike on Titan or Enceladus with a depot. No leak risk.",
   },
   hydrogen: {
     id: "hydrogen",
     label: "Hydrogen (H₂)",
     short: "H₂",
     leaveMult: 0.85,
-    leaveRisk: 0.12,
-    blurb: "Efficient exit burns. Boil-off risk when leaving deep wells.",
+    /** Leave a gravity well → chance of catastrophic half-tank leak. */
+    leaveRisk: 0.1,
+    blurb:
+      "Cheaper leave burns. Ice strikes on Enceladus/Mars/Europa/Ganymede with a depot. Leak risk: half your fuel.",
   },
 };
 

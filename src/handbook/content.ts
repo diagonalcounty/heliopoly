@@ -1,102 +1,66 @@
 /** Player-facing Helios Ops Manual. Matches running build. */
 
+import { rivalPilotsIndexTopic, rivalPilotTopics } from "./pilots";
+
 export interface HandbookTopic {
   id: string;
   title: string;
   html: string;
 }
 
-export const HANDBOOK_TOPICS: HandbookTopic[] = [
+/** Top-level TOC sections (Civ civilopedia categories). */
+export interface HandbookSection {
+  id: string;
+  title: string;
+  topics: HandbookTopic[];
+}
+
+/**
+ * Placement rules for this draft:
+ * - **Lore** — setting, charter fiction, map as world (not button-by-button rules)
+ * - **Gameplay** — how to play, win, economy, combat, UI symbols
+ * - **Rival pilots** — callsign civilopedia
+ * Topics only land in a section if they clearly fit; leftover = Gameplay “Reference”
+ * only when still player-facing rules.
+ */
+
+const LORE_TOPICS: HandbookTopic[] = [
   {
     id: "welcome",
     title: "Welcome, Captain",
     html: `
 <p><strong>Heliopoly</strong> — <em>Free Enterprise In Space</em> (v0.0.6).</p>
-<p>Close with <kbd>Esc</kbd>, <strong>✕</strong>, or the dimmed backdrop.</p>
-<p>Currency: <strong>⍼</strong> before amounts (e.g. ⍼150).</p>
-`,
-  },
-  {
-    id: "legend",
-    title: "Board legend (symbols)",
-    html: `
-<ul>
-  <li><strong>Painted planets</strong> — Earth (oceans/clouds), Mars (red + ice cap), Venus (cream clouds), Mercury (grey craters)</li>
-  <li><strong>Orange moons</strong> — Jupiter system (Io, Europa, Ganymede, Callisto)</li>
-  <li><strong>Yellow moons</strong> — Saturn system (Titan, Enceladus, …)</li>
-  <li><strong>Ring stations</strong> — habitat ring + solar panels (Elon, Holst Space Station, Daktulios) — not plain circles</li>
-  <li><strong>Diamond pips</strong> — blank belt/transit (red-tint = combat lanes)</li>
-  <li><strong>Colored halo</strong> around a body — your claim (pilot color)</li>
-  <li><strong>Blue fuel-tank badge</strong> on a corner of a body — player-built <strong>fuel depot</strong></li>
-  <li><strong>Triangle</strong> — ship (gold outline while hopping)</li>
-  <li><strong>Dashed circles</strong> — orbital rings from the Sun</li>
-</ul>
+<p>The solar system is open for charter. Buy claims, hold systems, keep propellant, and outlast every other pilot. There is <strong>no round clock</strong> — last pilot flying wins.</p>
+<p>Currency on the charter ledger is <strong>Crypto</strong> (quantum-era settlement). Amounts display with <strong>⍼</strong> before the figure (e.g. ⍼150).</p>
+<p>Close this manual with <kbd>Esc</kbd>, <strong>✕</strong>, or the dimmed backdrop.</p>
 `,
   },
   {
     id: "path",
-    title: "Flight path",
+    title: "The charter route",
     html: `
-<p>Fixed circuit (one direction):</p>
+<p>Traffic follows one fixed circuit (one direction):</p>
 <ol>
   <li><strong>Earth</strong> → Venus → Mercury</li>
   <li><strong>Mars system</strong> — Elon → Mars → Phobos → Deimos</li>
-  <li><strong>Asteroid belt</strong> — blank spaces (combat)</li>
+  <li><strong>Asteroid belt</strong> — blank transit lanes (Gravity Duel country)</li>
   <li><strong>Jupiter</strong> — Holst Space Station + Io, Europa, Ganymede, Callisto + blanks</li>
   <li><strong>Saturn</strong> — Daktulios + Titan, Enceladus, Iapetus, Mimas, Rhea, Dione, Tethys + blanks</li>
   <li>Homeward → <strong>Earth</strong></li>
 </ol>
-<p>Completing this full loop counts as <strong>one board rotation</strong> (used for feral timers).</p>
+<p>Completing this full loop is <strong>one board rotation</strong> (neglect / feral clocks use it). Blank lanes cost <em>no leave fuel</em> but are not free of conflict if another ship is already there.</p>
 `,
   },
-  {
-    id: "monopoly",
-    title: "Systems & monopoly",
-    html: `
-<p>Own <strong>every deed in a system</strong> → <strong>rent doubles</strong> on any landing there.</p>
-<ul>
-  <li><strong>Mercury / Venus</strong> — single planet each</li>
-  <li><strong>Mars</strong> — Elon + Mars + Phobos + Deimos</li>
-  <li><strong>Jupiter</strong> — Holst + four moons</li>
-  <li><strong>Saturn</strong> — Daktulios + seven moons</li>
-</ul>
-<p>Earth is never a deed.</p>
-`,
-  },
-  {
-    id: "depots",
-    title: "Fuel depots",
-    html: `
-<p>You start with <strong>3 fuel depots</strong> in hand. Place them on <strong>planets or moons you own</strong> (not on hub stations like Holst/Elon/Daktulios).</p>
-<p>Depots boost rent and enable free refuel on that body (for you).</p>
-<p><strong>Earth resupply:</strong> each time you complete a full board circuit and return to Earth, you receive <strong>+3 depots</strong> in hand again (so you can expand the network each loop). Placed depots stay on the map until feral/elimination.</p>
-<p>If a claim goes feral or you are eliminated, depots on those claims are <strong>destroyed</strong>.</p>
-`,
-  },
-  {
-    id: "feral",
-    title: "Feral claims",
-    html: `
-<p>Each pilot has a <strong>neglect clock</strong>.</p>
-<ul>
-  <li><strong>Your full board circuit</strong> (return to Earth after leaving) → +1.</li>
-  <li>If you <strong>end a turn without rolling</strong> (camp anywhere), then each time <strong>another pilot reaches Earth</strong>, you get +1 neglect.</li>
-</ul>
-<p>If you do not <strong>land on</strong> a claim for <strong>10 neglect rotations</strong> after purchase (or last visit / depot build), it is <strong>overdue</strong>.</p>
-<p>When <strong>you</strong> roll movement dice, each overdue claim checks feral:</p>
-<ul>
-  <li><strong>50%</strong> → feral (unowned; depot destroyed)</li>
-  <li><strong>15%</strong> if you hold that system’s full monopoly</li>
-</ul>
-<p><strong>Resets care:</strong> land on your claim, or place a fuel depot.</p>
-`,
-  },
+];
+
+const GAMEPLAY_TOPICS: HandbookTopic[] = [
   {
     id: "how-to-win",
     title: "How to win",
     html: `
 <p><strong>Last pilot flying wins</strong> (others bankrupt or strand). There is <strong>no round limit</strong>.</p>
 <p>Eliminated pilots’ deeds return to the <strong>bank</strong> (available again); depots are lost.</p>
+<p><strong>Turn count</strong> is the shared charter clock: every pilot’s seat turn advances it (skipped turns still count). Timed events fire at the start of a seat turn, before that pilot’s first dice roll.</p>
 `,
   },
   {
@@ -114,10 +78,59 @@ export const HANDBOOK_TOPICS: HandbookTopic[] = [
 `,
   },
   {
+    id: "legend",
+    title: "Board legend",
+    html: `
+<ul>
+  <li><strong>Painted planets</strong> — Earth (oceans/clouds), Mars (red + ice cap), Venus (cream clouds), Mercury (grey craters)</li>
+  <li><strong>Orange moons</strong> — Jupiter system (Io, Europa, Ganymede, Callisto)</li>
+  <li><strong>Yellow moons</strong> — Saturn system (Titan, Enceladus, …)</li>
+  <li><strong>Ring stations</strong> — habitat ring + solar panels (Elon, Holst Space Station, Daktulios) — not plain circles</li>
+  <li><strong>Diamond pips</strong> — blank belt/transit (red-tint = combat lanes)</li>
+  <li><strong>Colored halo</strong> around a body — your claim (pilot color)</li>
+  <li><strong>Blue fuel-tank badge</strong> on a corner of a body — player-built <strong>fuel depot</strong></li>
+  <li><strong>Triangle</strong> — ship (gold outline while hopping)</li>
+  <li><strong>Dashed circles</strong> — orbital rings from the Sun</li>
+</ul>
+`,
+  },
+  {
+    id: "monopoly",
+    title: "Systems & monopoly",
+    html: `
+<p>Own <strong>every deed in a system</strong> → <strong>rent doubles</strong> on any landing there.</p>
+<ul>
+  <li><strong>Mercury / Venus</strong> — single planet each</li>
+  <li><strong>Mars</strong> — Elon + Mars + Phobos + Deimos</li>
+  <li><strong>Jupiter</strong> — Holst + four moons</li>
+  <li><strong>Saturn</strong> — Daktulios + seven moons</li>
+</ul>
+<p><strong>Space stations</strong> (Elon · Holst Space Station · Daktulios) also form a railroad-style set of their own:</p>
+<ul>
+  <li>Own <strong>2</strong> hubs → rent <strong>×2</strong> on those hubs</li>
+  <li>Own <strong>all 3</strong> → rent <strong>×4</strong> on those hubs</li>
+</ul>
+<p>System monopoly and the station network <em>stack</em> (e.g. full Mars + all hubs multiplies Elon by both).</p>
+<p>Earth is never a deed.</p>
+`,
+  },
+  {
+    id: "depots",
+    title: "Fuel depots",
+    html: `
+<p>You start with <strong>3 fuel depots</strong> in hand. Place them on <strong>planets or moons you own</strong> (not on hub stations like Holst/Elon/Daktulios).</p>
+<p>Depots boost rent and enable free refuel on that body (for you).</p>
+<p><strong>Earth resupply:</strong> each time you complete a full board circuit and return to Earth, you receive <strong>+3 depots</strong> in hand again (so you can expand the network each loop). Placed depots stay on the map until feral/elimination.</p>
+<p>If a claim goes feral or you are eliminated, depots on those claims are <strong>destroyed</strong>.</p>
+`,
+  },
+  {
     id: "propellant",
     title: "Propellant",
     html: `
-<p><strong>CH₄</strong> — stable. <strong>H₂</strong> — cheaper leave burns, boil-off risk.</p>
+<p><strong>Methane (CH₄)</strong> — stable tanks (no leaks). Claim + fuel depot on <strong>Titan</strong> or <strong>Enceladus</strong> can fire a one-time <strong>resource strike</strong> (½ starting cash) with headlines like “You've struck liquid methane!”</p>
+<p><strong>Hydrogen (H₂)</strong> — cheaper leave burns, but leaving a gravity well can cause a <strong>LEAK</strong> that dumps <strong>half your fuel</strong>. Ice strikes on <strong>Enceladus, Mars, Europa, Ganymede</strong> (claim + depot) — e.g. “You've struck pure ice!”</p>
+<p>Strike pop-ups are sudden and terse on purpose — good fortune in a hard charter.</p>
 `,
   },
   {
@@ -129,6 +142,19 @@ export const HANDBOOK_TOPICS: HandbookTopic[] = [
 `,
   },
   {
+    id: "feral",
+    title: "Parking & feral claims",
+    html: `
+<p>If your rocket <strong>does not move</strong> on a seat turn (camp, full break, failed leave, or duel skip), that is a <strong>park</strong>. Parks are <strong>cumulative</strong> for the whole charter.</p>
+<ul>
+  <li>Parks <strong>1–4</strong> — no feral check yet.</li>
+  <li>Park <strong>5</strong> — each of your claims has a <strong>50%</strong> chance to go <strong>feral</strong> (back to the bank; depot destroyed).</li>
+  <li>Each park after that <strong>doubles</strong> the chance (100% from park 6 onward).</li>
+</ul>
+<p>Moving on a turn avoids adding a park that turn. Park count never resets.</p>
+`,
+  },
+  {
     id: "not-in-build",
     title: "Not yet",
     html: `
@@ -137,13 +163,48 @@ export const HANDBOOK_TOPICS: HandbookTopic[] = [
   <li>Player trading</li>
   <li>Fuel prices by location (Earth cheapest is direction only; full matrix later)</li>
   <li>Realtime Gravity Duel</li>
+  <li>Named transit lanes (figures not used as rival rockets — see design notes)</li>
 </ul>
 `,
   },
 ];
 
+const rivalIndex = rivalPilotsIndexTopic();
+/** Section already says Rival pilots — shorten index title. */
+const rivalIndexTopic: HandbookTopic = {
+  ...rivalIndex,
+  title: "Overview",
+};
+
+export const HANDBOOK_SECTIONS: HandbookSection[] = [
+  {
+    id: "lore",
+    title: "Lore",
+    topics: LORE_TOPICS,
+  },
+  {
+    id: "gameplay",
+    title: "Gameplay",
+    topics: GAMEPLAY_TOPICS,
+  },
+  {
+    id: "rival-pilots",
+    title: "Rival rockets",
+    topics: [rivalIndexTopic, ...rivalPilotTopics()],
+  },
+];
+
+/** Flat list for lookup / open(topicId). */
+export const HANDBOOK_TOPICS: HandbookTopic[] = HANDBOOK_SECTIONS.flatMap(
+  (s) => s.topics,
+);
+
 export function getTopic(id: string): HandbookTopic | undefined {
   return HANDBOOK_TOPICS.find((t) => t.id === id);
+}
+
+export function sectionForTopic(topicId: string): HandbookSection | undefined {
+  return HANDBOOK_SECTIONS.find((s) => s.topics.some((t) => t.id === topicId));
 }
 
 export const DEFAULT_TOPIC_ID = "welcome";

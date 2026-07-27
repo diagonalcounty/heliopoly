@@ -46,6 +46,18 @@ export interface Board {
 
 export type AgentKind = "human" | "ai";
 
+/** AI seat skill — set at New game. */
+export type AiDifficulty = "normal" | "difficult";
+
+/** Oregon Trail–style mid-game interrupt (leak, gusher, later disasters). */
+export interface GameAnnouncement {
+  kind: "gusher" | "leak" | "info";
+  /** Deadpan headline, e.g. "GUSHER!" */
+  title: string;
+  /** One or two stark lines of body text. */
+  body: string;
+}
+
 export interface Player {
   id: string;
   name: string;
@@ -58,6 +70,10 @@ export interface Player {
   properties: string[];
   stationsInHand: number;
   eliminated: boolean;
+  /** Shared `gameTurn` when eliminated; null if still flying. */
+  eliminatedOnTurn: number | null;
+  /** Short cause for postmortem (rent, strand, …). */
+  eliminatedReason: string | null;
   /** Skip this many full turns. */
   skipTurns: number;
   /** One-shot rent waivers vs owner player ids. */
@@ -66,17 +82,19 @@ export interface Player {
   ephemerisBodyId: string | null;
   /** True after leaving Earth until next full circuit completes. */
   circuitActive: boolean;
-  /**
-   * Neglect clock for feral.
-   * +1 when this pilot completes a full board circuit.
-   * +1 when an opponent lands on/passes Earth while this pilot
-   * skipped rolling on their last turn (camping anywhere).
-   */
+  /** Legacy circuit neglect (display/stats); parking drives feral. */
   neglectClock: number;
   /** True if this pilot ended their last turn without rolling. */
   skippedRoll: boolean;
   /** True if they rolled on the current turn. */
   rolledThisTurn: boolean;
+  /** True if they advanced along the path this turn. */
+  movedThisTurn: boolean;
+  /**
+   * Cumulative parks (no-move seat turns, including duel skips).
+   * At 5+: each claim may go feral; chance doubles each park after.
+   */
+  parkCount: number;
 }
 
 export type TurnPhase =
@@ -89,7 +107,11 @@ export type TurnPhase =
 export interface GameConfig {
   playerCount: number;
   humanSeat: boolean;
+  /** Display name for the human seat (ignored if humanSeat is false). */
+  humanName: string;
   humanPropellant: PropellantId;
+  /** Heuristic AI aggression (break for advantage on difficult). */
+  aiDifficulty: AiDifficulty;
   startingCash: number;
   startingFuel: number;
   stationsEach: number;
@@ -150,6 +172,11 @@ export interface GameState {
   currentPlayerIndex: number;
   phase: TurnPhase;
   round: number;
+  /**
+   * Shared charter clock: increments once per pilot seat turn
+   * (skipped seats still tick). See turnClock.ts / decision log.
+   */
+  gameTurn: number;
   lastRoll: LastRoll | null;
   /** Spaces of break (slowdown) after roll, before move. */
   breakSpaces: number;
@@ -173,6 +200,14 @@ export interface GameState {
   winnerId: string | null;
   /** How the game ended, for end screen. */
   endReason: string | null;
+  /**
+   * Bodies that already paid a gusher bonus (one strike per claim node).
+   */
+  gusherPaid: Record<string, boolean>;
+  /** Pending Oregon Trail–style popup; UI shows then clears. */
+  pendingAnnouncement: GameAnnouncement | null;
+  /** Future-content teaser shown once via timed events. */
+  futureTeaserShown: boolean;
   config: GameConfig;
   rngState: number;
 }

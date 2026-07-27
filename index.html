@@ -21,11 +21,30 @@
           </div>
           <div class="top-actions">
             <button
+              id="btn-lab"
+              type="button"
+              class="lab-launch"
+              title="Lab — test minigames and scenarios"
+              aria-label="Open testing lab"
+            >
+              ⚗ Lab
+            </button>
+            <button
               id="btn-handbook-header"
               type="button"
               class="handbook-launch"
+              title="Helios Ops Manual"
+              aria-label="Open Helios Ops Manual"
             >
-              Ops Manual
+              <img
+                class="ops-manual-icon"
+                src="/ops-manual-icon.png"
+                alt=""
+                width="32"
+                height="32"
+                decoding="async"
+              />
+              <span>Ops Manual</span>
             </button>
             <button id="btn-quit" type="button" class="quit-btn hidden">
               Quit
@@ -49,16 +68,6 @@
             <h2>Charter standings</h2>
             <div id="rankings" class="rankings mono">—</div>
             <div id="turn-deltas" class="turn-deltas mono"></div>
-          </section>
-
-          <section class="card handbook-card">
-            <button
-              id="btn-handbook"
-              type="button"
-              class="handbook-launch-full"
-            >
-              📖 Helios Ops Manual
-            </button>
           </section>
 
           <section class="card" id="setup-card">
@@ -85,6 +94,16 @@
                 <input id="include-human" type="checkbox" checked />
                 Seat 1 is human
               </label>
+              <label id="pilot-name-label">
+                Name your rocket
+                <input
+                  id="pilot-name"
+                  type="text"
+                  maxlength="24"
+                  placeholder="Captain"
+                  autocomplete="nickname"
+                />
+              </label>
               <fieldset class="propellant-field">
                 <legend>Your propellant</legend>
                 <label class="check">
@@ -94,11 +113,27 @@
                     value="methane"
                     checked
                   />
-                  Methane (CH₄)
+                  Methane (CH₄) — stable; fuel strikes on Titan / Enceladus
                 </label>
                 <label class="check">
                   <input type="radio" name="propellant" value="hydrogen" />
-                  Hydrogen (H₂)
+                  Hydrogen (H₂) — cheaper leave; leak risk; more ice-strike sites
+                </label>
+              </fieldset>
+              <fieldset class="propellant-field">
+                <legend>AI difficulty</legend>
+                <label class="check">
+                  <input
+                    type="radio"
+                    name="ai-difficulty"
+                    value="normal"
+                    checked
+                  />
+                  Normal — break only when low on leave fuel
+                </label>
+                <label class="check">
+                  <input type="radio" name="ai-difficulty" value="difficult" />
+                  Difficult — aggressive break for landings &amp; rent dodge
                 </label>
               </fieldset>
               <button id="btn-new" type="button" class="primary">Launch</button>
@@ -136,7 +171,7 @@
           </section>
 
           <section class="card">
-            <h2>Pilots</h2>
+            <h2>Rockets</h2>
             <div id="players"></div>
           </section>
 
@@ -149,6 +184,34 @@
     </div>
 
     <div id="handbook-root" class="handbook hidden" aria-hidden="true"></div>
+
+    <!-- Lab: scenario testing (minigames / end screens) -->
+    <div id="lab-root" class="handbook hidden" aria-hidden="true">
+      <div class="handbook-backdrop" id="lab-backdrop"></div>
+      <div
+        class="handbook-panel lab-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="lab-title"
+      >
+        <header class="handbook-header">
+          <div>
+            <p class="handbook-kicker">Developer / playtest</p>
+            <h2 id="lab-title">Lab</h2>
+          </div>
+          <button type="button" id="lab-close" class="handbook-close" aria-label="Close lab">
+            ✕
+          </button>
+        </header>
+        <div class="lab-body">
+          <p class="hint lab-intro">
+            Run isolated scenarios without playing a full charter. Choosing a
+            scenario replaces the current game.
+          </p>
+          <div id="lab-scenarios" class="lab-scenarios"></div>
+        </div>
+      </div>
+    </div>
 
     <!-- Hover inspect -->
     <div id="body-tooltip" class="body-tooltip hidden" role="tooltip"></div>
@@ -194,20 +257,29 @@
             </button>
           </div>
           <p id="duel-dice" class="mono duel-dice"></p>
+          <!-- Result stays on this panel (footer) so dice/stakes stay visible -->
+          <footer id="duel-result-footer" class="duel-result-footer hidden">
+            <p id="duel-result-headline" class="duel-result-headline"></p>
+            <p id="duel-result-punchy" class="duel-punchy">punchy message here</p>
+            <p id="duel-result-summary" class="mono duel-result-summary"></p>
+            <button type="button" id="duel-result-ok" class="primary">
+              Continue
+            </button>
+          </footer>
         </div>
       </div>
     </div>
 
-    <!-- Duel result splash -->
-    <div id="duel-result" class="duel-result hidden" aria-live="assertive">
-      <div class="duel-result-card">
-        <p class="duel-result-kicker">Gravity Duel</p>
-        <h2 id="duel-result-title">Result</h2>
-        <div id="duel-result-dice" class="dice-stage"></div>
-        <p id="duel-result-body" class="duel-result-body"></p>
-        <button type="button" id="duel-result-ok" class="primary">
-          Continue
-        </button>
+    <!-- Legacy host for dismiss waiters (hidden; result is in-panel footer) -->
+    <div id="duel-result" class="duel-result hidden" aria-hidden="true"></div>
+
+    <!-- Oregon Trail–style charter announcement (gusher, leak, …) -->
+    <div id="announce-root" class="announce-screen hidden" aria-live="assertive">
+      <div class="announce-card" id="announce-card">
+        <p class="announce-kicker" id="announce-kicker">Charter alert</p>
+        <h2 id="announce-title">Alert</h2>
+        <p id="announce-body" class="announce-body"></p>
+        <button type="button" id="announce-ok" class="primary">Continue</button>
       </div>
     </div>
 

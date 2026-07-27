@@ -1,6 +1,8 @@
 import { createV0Board } from "./board";
 import { formatMoney } from "./currency";
+import { pickAiNames, sanitizePilotName } from "./pilotNames";
 import { PROPELLANTS } from "./propellant";
+import { tickSeatTurn } from "./turnClock";
 import type { GameConfig, GameState, Player, PropellantId } from "./types";
 
 const COLORS = ["#6ec8ff", "#ffc857", "#5ddea0", "#ff6b7a", "#c792ea", "#ff9f43"];
@@ -8,7 +10,9 @@ const COLORS = ["#6ec8ff", "#ffc857", "#5ddea0", "#ff6b7a", "#c792ea", "#ff9f43"
 export const DEFAULT_CONFIG: GameConfig = {
   playerCount: 4,
   humanSeat: true,
+  humanName: "Captain",
   humanPropellant: "methane",
+  aiDifficulty: "normal",
   startingCash: 1500,
   startingFuel: 20,
   stationsEach: 3,
@@ -29,24 +33,39 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
   const board = createV0Board();
   const seed = config.seed ?? (Date.now() >>> 0);
   const players: Player[] = [];
+  const humanLabel = sanitizePilotName(config.humanName ?? "", "Captain");
+  /** Dev / playtest cheat: callsign "Heliopolis" → 4× starting cash. */
+  const heliopolisCheat =
+    config.humanSeat && /^heliopolis$/i.test(humanLabel.trim());
+  const humanCash = heliopolisCheat
+    ? config.startingCash * 4
+    : config.startingCash;
+  const aiNeeded = config.humanSeat ? count - 1 : count;
+  const aiNames = pickAiNames(aiNeeded, seed);
+  let aiIdx = 0;
 
   for (let i = 0; i < count; i++) {
     const isHuman = config.humanSeat && i === 0;
     const propellant: PropellantId = isHuman
       ? config.humanPropellant
       : pickAiPropellant(i, seed);
+    const name = isHuman
+      ? humanLabel
+      : (aiNames[aiIdx++] ?? `Pilot ${i + 1}`);
     players.push({
       id: `p${i}`,
-      name: isHuman ? "You" : `AI ${i}`,
+      name,
       color: COLORS[i % COLORS.length],
       agent: isHuman ? "human" : "ai",
-      cash: config.startingCash,
+      cash: isHuman ? humanCash : config.startingCash,
       fuel: config.startingFuel,
       position: board.startId,
       propellant,
       properties: [],
       stationsInHand: config.stationsEach,
       eliminated: false,
+      eliminatedOnTurn: null,
+      eliminatedReason: null,
       skipTurns: 0,
       rentWaiversAgainst: [],
       ephemerisBodyId: null,
@@ -54,12 +73,16 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
       neglectClock: 0,
       skippedRoll: false,
       rolledThisTurn: false,
+      movedThisTurn: false,
+      parkCount: 0,
     });
   }
 
   if (!config.humanSeat) {
+    aiIdx = 0;
+    const allAi = pickAiNames(count, seed ^ 0x9e37);
     for (let i = 0; i < players.length; i++) {
-      players[i].name = `AI ${i}`;
+      players[i].name = allAi[i] ?? `Pilot ${i + 1}`;
       players[i].agent = "ai";
       players[i].propellant = pickAiPropellant(i, seed);
     }
@@ -69,7 +92,7 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
     .map((p) => `${p.name}:${PROPELLANTS[p.propellant].short}`)
     .join(" · ");
 
-  return {
+  const state: GameState = {
     board,
     players,
     owners: {},
@@ -77,6 +100,7 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
     currentPlayerIndex: 0,
     phase: "await_action",
     round: 1,
+    gameTurn: 0,
     lastRoll: null,
     breakSpaces: 0,
     log: [
@@ -84,7 +108,7 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
       `Game start: ${count} pilots · seed ${seed} · bank ${formatMoney(config.startingCash)} each`,
       `Propellants: ${propSummary}`,
       `Path: Earth→Venus→Mercury→Mars→Belt→Jupiter→Saturn→Earth`,
-      `Monopoly rent ×2 · feral after 10 board rotations · depots lost on feral/out`,
+      `Monopoly rent ×2 · park 5+ no-move → feral risk (50% then doubles) · depots lost on feral/out`,
       config.humanSeat
         ? "Seat 0 is human; others AI."
         : "Self-play: all seats AI.",
@@ -98,9 +122,32 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
     claimCareRotations: {},
     winnerId: null,
     endReason: null,
+    gusherPaid: {},
+    pendingAnnouncement: null,
+    futureTeaserShown: false,
     config: { ...config, seed },
     rngState: seed || 1,
   };
+
+  // First seat turn: tick clock + timed events before first dice roll
+  tickSeatTurn(state);
+  const opener = state.players[0];
+  state.log.push(
+    `— Turn ${state.gameTurn} · Round ${state.round}: ${opener.name}'s turn —`,
+  );
+  state.log.push(
+    `AI difficulty: ${config.aiDifficulty}${
+      config.humanSeat
+        ? ` · You fly ${PROPELLANTS[config.humanPropellant].short}`
+        : ""
+    }.`,
+  );
+  if (heliopolisCheat) {
+    state.log.push(
+      `Charter anomaly: callsign Heliopolis — bankroll ×4 (${formatMoney(humanCash)}).`,
+    );
+  }
+  return state;
 }
 
 export function livingPlayers(state: GameState): Player[] {
@@ -146,6 +193,10 @@ export function cloneState(state: GameState): GameState {
       : null,
     encounterMem: { ...state.encounterMem },
     claimCareRotations: { ...state.claimCareRotations },
+    gusherPaid: { ...state.gusherPaid },
+    pendingAnnouncement: state.pendingAnnouncement
+      ? { ...state.pendingAnnouncement }
+      : null,
     config: { ...state.config },
   };
 }

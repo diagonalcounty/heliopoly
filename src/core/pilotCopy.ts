@@ -1,18 +1,40 @@
 import type { Player } from "./types";
 
-/** Human seat is named "You" — third-person templates break ("You is…", "You Prevails"). */
+/**
+ * Second-person templates only when the display name is literally "You".
+ * Named humans ("Jacob", "Ada") use third person like AI seats.
+ */
 export function isSecondPerson(p: Pick<Player, "name" | "agent">): boolean {
-  return p.agent === "human" || p.name === "You";
+  return p.name === "You";
 }
 
-/** "You" vs pilot name for narrative subjects. */
+/** Display name for narrative (no rewrite unless still "You"). */
 export function pilotName(p: Pick<Player, "name" | "agent">): string {
-  return isSecondPerson(p) ? "You" : p.name;
+  return p.name;
 }
 
-/** "You prevail" / "AI 2 prevails" (title case words as needed by caller). */
+/** "You Prevail" / "Hopper Prevails". */
 export function prevailsHeadline(p: Pick<Player, "name" | "agent">): string {
   return isSecondPerson(p) ? "You Prevail" : `${p.name} Prevails`;
+}
+
+/** "You win!" / "Hopper wins!" — duel splash & similar. */
+export function winsHeadline(name: string): string {
+  return name === "You" ? "You win!" : `${name} wins!`;
+}
+
+/** Full duel resolution line (grammar-safe for "You"). */
+export function duelWinSummary(winnerName: string, loserName: string): string {
+  const winBit =
+    winnerName === "You" ? "You win!" : `${winnerName} wins!`;
+  const loseBit =
+    loserName === "You"
+      ? "You lose a turn"
+      : `${loserName} loses a turn`;
+  const passOwner = winnerName === "You" ? "You get" : `${winnerName} gets`;
+  const claimOf =
+    loserName === "You" ? "your claims" : `${loserName}'s claims`;
+  return `${winBit} ${loseBit} · ${passOwner} a rent free-pass on ${claimOf}.`;
 }
 
 export function lastPilotFlying(p: Pick<Player, "name" | "agent">): string {

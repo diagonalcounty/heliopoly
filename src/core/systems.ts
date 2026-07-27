@@ -68,3 +68,48 @@ export function hasSystemMonopoly(
   const sys = SYSTEMS[systemId];
   return sys.deedIds.every((id) => owners[id] === ownerId);
 }
+
+/**
+ * Space-station hubs (Monopoly “railroads”): Elon · Holst · Daktulios.
+ * Own all three → higher rent when opponents land on any hub.
+ */
+export const STATION_HUB_IDS = ["elon", "holst", "daktulios"] as const;
+
+export type StationHubId = (typeof STATION_HUB_IDS)[number];
+
+export function isStationHub(nodeId: string): boolean {
+  return (STATION_HUB_IDS as readonly string[]).includes(nodeId);
+}
+
+/** How many of the three hubs this pilot owns. */
+export function stationHubsOwned(
+  owners: Record<string, string>,
+  ownerId: string,
+): number {
+  return STATION_HUB_IDS.filter((id) => owners[id] === ownerId).length;
+}
+
+/** Full station network (all three hubs). */
+export function hasStationNetwork(
+  owners: Record<string, string>,
+  ownerId: string,
+): boolean {
+  return stationHubsOwned(owners, ownerId) === STATION_HUB_IDS.length;
+}
+
+/**
+ * Rent multiplier on a hub from the station set.
+ * 1 hub → ×1, 2 → ×2, 3 (full network) → ×4 (railroad-style scale).
+ * Non-hubs → ×1.
+ */
+export function stationNetworkRentMult(
+  owners: Record<string, string>,
+  ownerId: string,
+  nodeId: string,
+): number {
+  if (!isStationHub(nodeId)) return 1;
+  const n = stationHubsOwned(owners, ownerId);
+  if (n <= 1) return 1;
+  if (n === 2) return 2;
+  return 4; // all three
+}
