@@ -26,6 +26,7 @@ import type {
 } from "./core/types";
 import { bodyRadius, drawBodyIcon, drawFuelDepotIcon } from "./bodyIcons";
 import { inspectBody } from "./core/inspect";
+import { suggestCopyViaGithub } from "./core/links";
 import { PARK_FERAL_THRESHOLD } from "./core/rules";
 import { mountHandbook } from "./handbook/handbook";
 import { LAB_SCENARIOS } from "./lab/scenarios";
@@ -319,7 +320,10 @@ function showDuelResultFooter(s: GameState): void {
     r.outcome === "tie"
       ? "Draw — both hold the lane"
       : winsHeadline(r.winnerName ?? "Winner");
-  duelResultPunchy.textContent = "punchy message here";
+  duelResultPunchy.textContent = [
+    "punchy message here",
+    suggestCopyViaGithub("a punchy Gravity Duel line"),
+  ].join("\n");
   duelResultSummary.textContent = [
     `${r.challengerName} [${r.challengerStance.toUpperCase()}] ${r.challengerRoll.total} · ${r.defenderName} [${r.defenderStance.toUpperCase()}] ${r.defenderRoll.total}`,
     r.summary,

@@ -9,6 +9,7 @@
  * Charter alerts fire on **round** boundaries, not every seat turn.
  * RNG: third letter of human rocket × USNO→Apollo-11 range cm (daily table).
  */
+import { GITHUB_REPO_URL } from "./links";
 import { lunarRangeCmForDate } from "./lunarRangeTable";
 import type { GameState } from "./types";
 
@@ -70,10 +71,10 @@ function fireFutureTeaser(state: GameState): void {
   state.pendingAnnouncement = {
     kind: "info",
     title: "Something exciting will happen here in a future version",
-    body: "To help shape what that is, keep an eye on when the game's GitHub repo becomes public.",
+    body: `Help shape what that is — open an issue or PR on GitHub:\n${GITHUB_REPO_URL}`,
   };
   state.log.push(
-    "Charter alert: future content teaser — watch for a public GitHub repo.",
+    `Charter alert: future content teaser — ${GITHUB_REPO_URL}`,
   );
 }
 

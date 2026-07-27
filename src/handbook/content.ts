@@ -29,7 +29,8 @@ const LORE_TOPICS: HandbookTopic[] = [
     id: "welcome",
     title: "Welcome, Captain",
     html: `
-<p><strong>Heliopoly</strong> — <em>Free Enterprise In Space</em> (v0.0.6).</p>
+<p><strong>Heliopoly</strong> — <em>Free Enterprise In Space</em> (v0.0.7).</p>
+<p>Open source: <a href="https://github.com/diagonalcounty/heliopoly" target="_blank" rel="noopener">github.com/diagonalcounty/heliopoly</a> — issues and PRs welcome.</p>
 <p>The solar system is open for charter. Buy claims, hold systems, keep propellant, and outlast every other pilot. There is <strong>no round clock</strong> — last pilot flying wins.</p>
 <p>Currency on the charter ledger is <strong>Crypto</strong> (quantum-era settlement). Amounts display with <strong>⍼</strong> before the figure (e.g. ⍼150).</p>
 <p>Close this manual with <kbd>Esc</kbd>, <strong>✕</strong>, or the dimmed backdrop.</p>

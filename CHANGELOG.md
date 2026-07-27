@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.0.7] — 2026-07-26
+
+### Public release prep
+
+- Repo public: [github.com/diagonalcounty/heliopoly](https://github.com/diagonalcounty/heliopoly)
+- Live site messaging + contribute links; duel punchy placeholder invites GitHub suggestions
+- Charter alerts: **round**-based cadence (5-round gap, 50% then midpoint toward 100%)
+- Lunar range **daily table** for alert RNG seed (third letter × range cm)
+- H₂ leaks on **landing** only; leak also **skips next turn** for repair
+- Parking feral: cumulative no-move parks; 50% at 5, doubles after
+- Station hub rent (railroad-style ×1/×2/×4)
+- Rocket names (not pilot names); Rival rockets handbook + icons
+- AI difficulty: normal / difficult break behavior
+- Gravity Duel result as **in-panel footer** (names stay visible)
+- Turn clock (`gameTurn`), end-screen exit turns, Lab scenarios
+- Ops Manual sections (Lore / Gameplay / Rival rockets) + pixel icons
+- Heliopolis callsign cheat: 4× starting cash
+
+## [0.0.6] — 2026-07-21
+
+### Notes
+
+- Board path v0.0.6 systems; feral/depots; play until elimination
+
 ## [0.0.5] — 2026-07-21
 
 ### Added
@@ -8,16 +32,15 @@
 - Rankings (net worth ⍼) and end-of-turn deltas
 - Quit + King’s Quest–inspired end screen
 - Setup collapses in-game
-- Gravity Duel (dice mini-game on transit): secret Low/High, 2d6, mean for mixed, tie occupies, skip + rent waiver
-- Per-roll ephemeris seed (first claim body, N/F/Avg table, fuel prime, time)
+- Gravity Duel (dice mini-game on transit)
+- Per-roll ephemeris seed
 
 ## [0.0.4] — 2026-07-21
 
 ### Added
 
-- Ship movement animation: hop/pause on each resting space of a roll
+- Ship movement animation
 - Shared `walkMovePath` for rules + UI
-- AI rolls animate in the browser (self-play CLI stays instant)
 
 ## [0.0.2] — 2026-07-21
 
@@ -25,8 +48,8 @@
 
 - Currency display `⍼N`
 - Gravity leave-burns; land free / leave costs fuel
-- Propellant: CH₄ vs H₂ with boil-off risk
-- Heliopoly branding + Helios Ops Manual content
+- Propellant CH₄ / H₂
+- Heliopoly branding + Helios Ops Manual
 
 ## [0.0.1] — 2026-07-21
 
