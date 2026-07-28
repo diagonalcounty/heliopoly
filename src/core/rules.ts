@@ -1036,7 +1036,11 @@ function maybeStrikeGusher(
   state.pendingAnnouncement = {
     kind: "gusher",
     title: headline,
-    body: `${p.name} on ${body.name}.\n+${formatMoney(bonus)} on the charter ledger.`,
+    body: [
+      `${p.name} on ${body.name}.`,
+      `+${formatMoney(bonus)} on the charter ledger.`,
+      `Your depot tapped a natural fuel reservoir — sell excess propellant to pilots who land here.`,
+    ].join("\n"),
   };
 }
 

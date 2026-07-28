@@ -19,7 +19,10 @@ export const METHANE_GUSHER_BODIES = ["titan", "enceladus"] as const;
 /** 50% of default starting cash (1500). */
 export const GUSHER_BONUS = 750;
 
-/** Deadpan headlines — hydrogen strike. */
+/**
+ * Deadpan headlines — hydrogen strike.
+ * Valence must read as a *win* on first glance (no “breached” / damage words).
+ */
 export const HYDROGEN_STRIKE_LINES = [
   "You've struck pure ice!",
   "Hydrogen vein tapped!",
@@ -27,13 +30,16 @@ export const HYDROGEN_STRIKE_LINES = [
   "You've hit a hydrogen-rich layer!",
   "Clean ice motherlode found!",
   "Electrolysis goldmine discovered!",
-  "Deep ice reserve breached!",
+  "Deep ice reserve tapped!",
 ] as const;
 
-/** Deadpan headlines — methane strike. */
+/**
+ * Deadpan headlines — methane strike.
+ * Same rule: strike / tapped / uncovered — never tower-defence “breach.”
+ */
 export const METHANE_STRIKE_LINES = [
   "You've struck liquid methane!",
-  "Methane reservoir breached!",
+  "Methane reservoir tapped!",
   "Hydrocarbon lake discovered!",
   "You've hit a methane sea!",
   "Rich methane pocket tapped!",
