@@ -76,6 +76,7 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
       rolledThisTurn: false,
       movedThisTurn: false,
       parkCount: 0,
+      pendingLeak: false,
     });
   }
 

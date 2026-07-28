@@ -541,11 +541,32 @@ export function getLegalActions(state: GameState): LegalActions {
   };
 }
 
-/** H₂ tank leak risk on **landing** only (not on leave burn). */
-function applyLandingLeak(state: GameState, p: Player, nodeName: string): void {
+/**
+ * H₂ tank leak risk on **landing** only (not on leave burn).
+ * Qualifying landings = planet/moon only (stations & transit never rupture tanks).
+ * RNG stress on a non-body is deferred via `pendingLeak` until the next body.
+ */
+function applyLandingLeak(
+  state: GameState,
+  p: Player,
+  nodeName: string,
+  qualifies: boolean,
+): void {
   const def = PROPELLANTS[p.propellant];
   if (def.leaveRisk <= 0) return;
-  if (mulberryNext(state) > def.leaveRisk) return;
+
+  let due = p.pendingLeak;
+  if (!due) {
+    if (mulberryNext(state) > def.leaveRisk) return;
+    due = true;
+  }
+
+  if (!qualifies) {
+    p.pendingLeak = true;
+    return;
+  }
+
+  p.pendingLeak = false;
   // H₂: catastrophic half-tank leak (Oregon Trail interrupt)
   const loss =
     p.propellant === "hydrogen"
@@ -822,8 +843,9 @@ function resolveLanding(state: GameState, stayed: boolean): void {
   const node = getNode(state.board, p.position);
   if (!stayed) {
     pushLog(state, `${p.name} lands on ${node.name} (insertion free).`);
-    // Tank stress on insertion — not on leave burn
-    applyLandingLeak(state, p, node.name);
+    // Tank stress on insertion — planet/moon only; transit/station may defer
+    const qualifies = node.kind === "planet" || node.kind === "moon";
+    applyLandingLeak(state, p, node.name, qualifies);
   }
 
   // Visit your own claim → reset feral care clock

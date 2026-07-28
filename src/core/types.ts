@@ -97,6 +97,11 @@ export interface Player {
    * At 5+: each claim may go feral; chance doubles each park after.
    */
   parkCount: number;
+  /**
+   * H₂ (or leave-risk) tank stress rolled true on a non-body landing
+   * (transit / station). Fires on the next planet/moon insertion.
+   */
+  pendingLeak: boolean;
 }
 
 export type TurnPhase =
