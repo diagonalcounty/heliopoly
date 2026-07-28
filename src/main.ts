@@ -515,9 +515,13 @@ function showEndScreen(s: GameState): void {
   const fallen = s.players
     .filter((p) => p.eliminated)
     .sort((a, b) => {
-      const ra = a.eliminatedOnRound ?? a.eliminatedOnTurn ?? s.round;
-      const rb = b.eliminatedOnRound ?? b.eliminatedOnTurn ?? s.round;
+      const ra = a.eliminatedOnRound ?? s.round;
+      const rb = b.eliminatedOnRound ?? s.round;
       if (ra !== rb) return ra - rb;
+      // Same round: chronological by shared gameTurn, then name
+      const ta = a.eliminatedOnTurn ?? Number.MAX_SAFE_INTEGER;
+      const tb = b.eliminatedOnTurn ?? Number.MAX_SAFE_INTEGER;
+      if (ta !== tb) return ta - tb;
       return a.name.localeCompare(b.name);
     });
   const ordered = [...flying, ...fallen];
