@@ -5,7 +5,7 @@ import { gravityClassOf, leaveBurnCost } from "./core/fuel";
 import { walkMovePath } from "./core/path";
 import { PROPELLANTS } from "./core/propellant";
 import { prevailsHeadline, winsHeadline } from "./core/pilotCopy";
-import { sanitizePilotName } from "./core/pilotNames";
+import { pilotByCallsign, sanitizePilotName } from "./core/pilotNames";
 import {
   applyAction,
   getLegalActions,
@@ -49,6 +49,34 @@ const DWELL_STOP_MS = 420;
 const DWELL_PASS_MS = 140;
 const DWELL_AI_STOP_MS = 280;
 const DWELL_AI_PASS_MS = 90;
+
+/** Escape player-typed names before injecting into rankings HTML. */
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+/**
+ * Ops Manual topic for a rocket display name.
+ * Roster callsigns → `pilot-*`; custom human names → Rival rockets overview.
+ */
+function handbookTopicForRocketName(name: string): string {
+  const pilot = pilotByCallsign(name);
+  return pilot ? `pilot-${pilot.id}` : "rival-pilots-overview";
+}
+
+function rocketNameButton(name: string): string {
+  const topic = handbookTopicForRocketName(name);
+  const label = escapeHtml(name);
+  const title =
+    topic === "rival-pilots-overview"
+      ? "Open Rival rockets overview"
+      : `Open Ops Manual: ${label}`;
+  return `<button type="button" class="rocket-name-link" data-rocket-handbook="${topic}" title="${title}">${label}</button>`;
+}
 
 const handbook = mountHandbook(
   document.getElementById("handbook-root") as HTMLElement,
@@ -818,6 +846,19 @@ document
   .getElementById("btn-handbook-header")
   ?.addEventListener("click", () => handbook.open());
 
+/** Charter standings + rocket list: name → Rival rockets / pilot page. */
+function onRocketNameClick(e: Event): void {
+  const el = (e.target as HTMLElement | null)?.closest?.(
+    "[data-rocket-handbook]",
+  ) as HTMLElement | null;
+  if (!el) return;
+  e.preventDefault();
+  const topic = el.getAttribute("data-rocket-handbook");
+  if (topic) handbook.open(topic);
+}
+rankingsEl.addEventListener("click", onRocketNameClick);
+playersEl.addEventListener("click", onRocketNameClick);
+
 function openLab(): void {
   labRoot.classList.remove("hidden");
   labRoot.setAttribute("aria-hidden", "false");
@@ -1026,7 +1067,7 @@ function renderSide(): void {
   rankingsEl.innerHTML = ranks
     .map((r) => {
       const lead = r.rank === 1 ? " lead" : "";
-      return `<div class="rank-row${lead}"><span>#${r.rank} ${r.player.name}</span><span><span class="cash">${formatMoney(r.player.cash)} cash</span> · NW ${formatMoney(r.worth)}</span></div>`;
+      return `<div class="rank-row${lead}"><span>#${r.rank} ${rocketNameButton(r.player.name)}</span><span><span class="cash">${formatMoney(r.player.cash)} cash</span> · NW ${formatMoney(r.worth)}</span></div>`;
     })
     .join("");
 
@@ -1139,7 +1180,7 @@ function renderSide(): void {
       return `<div class="player-row${active ? " active" : ""}${pl.eliminated ? " out" : ""}">
         <div class="swatch" style="background:${pl.color}"></div>
         <div>
-          <strong>${pl.name}</strong>${pl.eliminated ? " · OUT" : ""} · ${plProp}${pl.skipTurns ? " · skip" : ""}
+          <strong>${rocketNameButton(pl.name)}</strong>${pl.eliminated ? " · OUT" : ""} · ${plProp}${pl.skipTurns ? " · skip" : ""}
           <div>${formatMoney(pl.cash)} · ${nw} NW · ${pl.fuel} fuel · ${pl.properties.length} claims</div>
           <div style="color:#9aa8c7">${at}</div>
         </div>

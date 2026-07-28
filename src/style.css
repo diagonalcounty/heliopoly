@@ -804,6 +804,29 @@ button:not(:disabled):active {
   font-weight: 700;
 }
 
+/* Rocket name → Ops Manual (Rival rockets / pilot-*) */
+.rocket-name-link {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-weight: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
+  text-underline-offset: 2px;
+}
+
+.rocket-name-link:hover,
+.rocket-name-link:focus-visible {
+  color: var(--accent-2, #7dd3fc);
+  text-decoration-color: currentColor;
+  outline: none;
+}
+
 .turn-deltas {
   margin-top: 10px;
   padding-top: 8px;
