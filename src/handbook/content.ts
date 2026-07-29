@@ -179,13 +179,18 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     id: "feral",
     title: "Parking & feral claims",
     html: `
-<p>If your rocket <strong>does not move</strong> on a seat turn (camp, full break, failed leave, or duel skip), that is a <strong>park</strong>. Parks are <strong>cumulative</strong> for the whole charter.</p>
+<p><strong>Live rule:</strong> claims go feral from <strong>parking</strong> (no-move seat turns), not from an “owner neglect” circuit timer.</p>
+<p>If your rocket <strong>does not move</strong> on a seat turn — camp, full break, failed leave, or duel skip — that is a <strong>park</strong>. Parks are <strong>cumulative</strong> for the whole charter (moving later does <em>not</em> clear the count).</p>
 <ul>
   <li>Parks <strong>1–4</strong> — no feral check yet.</li>
-  <li>Park <strong>5</strong> — each of your claims has a <strong>50%</strong> chance to go <strong>feral</strong> (back to the bank; depot destroyed).</li>
-  <li>Each park after that <strong>doubles</strong> the chance (100% from park 6 onward).</li>
+  <li>Park <strong>5</strong> — <strong>each</strong> of your claims rolls: <strong>50%</strong> chance to go <strong>feral</strong>.</li>
+  <li>Each park after that <strong>doubles</strong> the chance (100% from park <strong>6</strong> onward).</li>
 </ul>
-<p>Moving on a turn avoids adding a park that turn. Park count never resets.</p>
+<p><strong>Feral outcome:</strong> claim returns to the bank (unowned). Any fuel depot on it is <strong>destroyed</strong>. Other pilots may buy it again.</p>
+<p>Moving on a turn avoids adding a park <em>that turn</em>. Park count never resets. Check your park count on the turn panel.</p>
+<h4>What “owner neglect” is not</h4>
+<p>Older design notes described a per-pilot <strong>neglect clock</strong> (ticks on board circuits / camping while others loop), <strong>care stamps</strong> on purchase/visit/depot, an overdue window (~10 ticks), and feral rolls on the owner’s movement dice (50%, or 15% with full system monopoly).</p>
+<p>That model is <strong>not</strong> what sends claims feral in this build. The engine may still keep a neglect clock for logs/legacy, but <strong>feral risk is parking-only</strong>. Visiting your claim or placing a depot is still good play for rent and network — it is not a “reset the feral timer” button under parking rules.</p>
 `,
   },
   {

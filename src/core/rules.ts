@@ -998,7 +998,7 @@ function doPlaceStation(state: GameState): void {
   }
   p.stationsInHand -= 1;
   state.stations[p.position] = true;
-  touchClaim(state, p.position); // depot resets feral timer
+  touchClaim(state, p.position); // legacy care stamp (parking feral does not use this)
   const body = getNode(state.board, p.position);
   pushLog(
     state,

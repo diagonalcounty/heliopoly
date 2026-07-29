@@ -84,7 +84,10 @@ export interface Player {
   ephemerisBodyId: string | null;
   /** True after leaving Earth until next full circuit completes. */
   circuitActive: boolean;
-  /** Legacy circuit neglect (display/stats); parking drives feral. */
+  /**
+   * Legacy circuit neglect (still incremented on Earth loops / skippers).
+   * Does **not** drive feral — parking `parkCount` does. Kept for logs/compat.
+   */
   neglectClock: number;
   /** True if this pilot ended their last turn without rolling. */
   skippedRoll: boolean;
@@ -201,7 +204,7 @@ export interface GameState {
   boardRotations: number;
   /**
    * Per claim: owner.neglectClock at last visit / purchase / depot.
-   * Overdue when owner.neglectClock - care >= FERAL_ROTATIONS.
+   * Legacy care stamp — not used by parking feral checks.
    */
   claimCareRotations: Record<string, number>;
   winnerId: string | null;

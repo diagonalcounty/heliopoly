@@ -2,7 +2,7 @@ import { getNode, isPurchasable } from "./board";
 import { formatMoney } from "./currency";
 import { leaveBurnCost } from "./fuel";
 import { PROPELLANTS } from "./propellant";
-import { FERAL_ROTATIONS, netWorth } from "./rules";
+import { netWorth, parkFeralChance, PARK_FERAL_THRESHOLD } from "./rules";
 import { hasSystemMonopoly, systemOfGroup } from "./systems";
 import type { GameState, Player } from "./types";
 import { ephemerisForBody } from "./ephemeris";
@@ -78,20 +78,22 @@ export function inspectBody(
     else lines.push(`Refuel here: none`);
   }
 
-  // Feral: uses owner neglect clock (own circuits while active; opponents’ circuits while camping Earth)
+  // Feral: parking model (no-move parks) — not legacy neglect clock
   if (ownerId && isPurchasable(node)) {
     const owner = state.players.find((p) => p.id === ownerId)!;
-    const care = state.claimCareRotations[nodeId] ?? owner.neglectClock;
-    const age = owner.neglectClock - care;
-    const left = Math.max(0, FERAL_ROTATIONS - age);
-    lines.push(`Owner neglect clock: ${owner.neglectClock}`);
-    if (left > 0) {
+    const parks = owner.parkCount;
+    const chance = parkFeralChance(parks);
+    lines.push(`Owner park count: ${parks}`);
+    if (chance <= 0) {
+      const until = Math.max(0, PARK_FERAL_THRESHOLD - parks);
       lines.push(
-        `Feral risk in ~${left} neglect rotation(s) (own loops while out; if camping Earth, each opponent loop counts)`,
+        until === 0
+          ? `Feral checks start at park ${PARK_FERAL_THRESHOLD}+ (no-move seat turns).`
+          : `${until} more park(s) until feral checks (threshold ${PARK_FERAL_THRESHOLD}).`,
       );
     } else {
       lines.push(
-        `FERAL WINDOW OPEN (overdue ${age}) — 50% on owner’s movement roll (15% if monopoly)`,
+        `Feral risk ${Math.round(chance * 100)}% per claim on each no-move park (all claims roll independently).`,
       );
     }
   }
