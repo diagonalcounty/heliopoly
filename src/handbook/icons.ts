@@ -9,6 +9,7 @@ export const SECTION_ICONS: Record<string, string> = {
   gameplay: "/handbook/gameplay.png",
   "rival-pilots": "/handbook/rival-rockets.png",
   bodies: "/handbook/legend-planet.svg",
+  "project-docs": "/handbook/badge-rocket.png",
 };
 
 /** Topic id → icon */
@@ -30,6 +31,8 @@ export const TOPIC_ICONS: Record<string, string> = {
   duel: "/handbook/duel-rockets.png",
   feral: "/handbook/rocket-debris.png",
   "not-in-build": "/handbook/lock.png",
+  readme: "/handbook/badge-rocket.png",
+  changelog: "/handbook/gameplay.png",
 
   // Economy / rent flavor (if topics added later)
   rent: "/handbook/cash-alert.png",

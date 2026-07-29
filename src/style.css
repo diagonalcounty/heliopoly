@@ -175,6 +175,38 @@ body.handbook-open {
   overflow: hidden;
 }
 
+/* Markdown docs in Ops Manual (README / CHANGELOG) */
+.md-doc {
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+.md-doc h1 {
+  font-size: 1.35rem;
+  margin: 0.4em 0 0.5em;
+}
+.md-doc h2 {
+  font-size: 1.15rem;
+  margin: 1em 0 0.4em;
+  color: var(--accent);
+}
+.md-doc h3 {
+  font-size: 1.02rem;
+  margin: 0.85em 0 0.35em;
+}
+.md-doc pre.md-pre {
+  overflow: auto;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #0a0e18;
+  border: 1px solid var(--border);
+  font-size: 0.78rem;
+}
+.md-doc hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1em 0;
+}
+
 /* —— Flight Handbook modal —— */
 .handbook {
   position: fixed;

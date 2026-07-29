@@ -1,5 +1,37 @@
 # Changelog
 
+## [0.0.8] — 2026-07-29
+
+### Play & economy
+- **Earth pay:** land **⍼400** / pass **⍼200**, both **+⍼10** per completed rotation; **+1000** decade bonus at rotation 10/20/30…
+- **Resource strikes:** headline copy reads as a win (no “breached”); short player-facing explanation
+- **H₂ leak:** only on planet/moon landings; pending leak defers on transit/stations
+- Strike headlines conjugate for AI vs human seats
+
+### UX
+- **Charter standings** absorbs Rockets list (single roster); New game shares the same sidebar slot
+- Top bar: Lab · Ops Manual · **New game** · Quit
+- Cleaner **game log** (no engine seed crumbs / AI meta); **Copy** log button
+- End screen: eliminated pilots sorted by round then turn
+- Tap rocket name → Rival rockets handbook entry
+
+### Gravity Duel
+- Result splash on **every** duel (fixed skipped ceremony after first)
+- Mirrored UI: opponent left, human right; per-side **High / Low / Roll** with selection highlight
+
+### Ops Manual & lore
+- AIL / Angzarr (⍼), Mainline, hub-station lore, feral as software bitrot
+- Planetoid civilopedia pages (discovery history / solar energy) (#60)
+- Parking/feral docs match live parking model
+
+### Ops & infra
+- **Telemetry (#61):** completed games POST log + meta to droplet; HMAC `player_id` (no raw IPs); flat files under `/var/www/heliopoly/logs/`
+- Genesis injection log line for Heliopolis callsign seed funding
+
+### Meta
+- Default rocket name **Venture**; version **0.0.8**
+- Ops Manual **Project** section: live README + CHANGELOG from repo Markdown
+
 ## [0.0.7] — 2026-07-26
 
 ### Public release prep
