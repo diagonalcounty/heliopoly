@@ -8,6 +8,7 @@ export const SECTION_ICONS: Record<string, string> = {
   lore: "/handbook/lore.png",
   gameplay: "/handbook/gameplay.png",
   "rival-pilots": "/handbook/rival-rockets.png",
+  bodies: "/handbook/legend-planet.svg",
 };
 
 /** Topic id → icon */
@@ -32,6 +33,29 @@ export const TOPIC_ICONS: Record<string, string> = {
 
   // Economy / rent flavor (if topics added later)
   rent: "/handbook/cash-alert.png",
+
+  // Bodies (planetoids)
+  "planetoids-overview": "/handbook/legend-planet.svg",
+  "body-earth": "/handbook/legend-planet.svg",
+  "body-venus": "/handbook/legend-planet.svg",
+  "body-mercury": "/handbook/legend-planet.svg",
+  "body-elon": "/handbook/legend-station.svg",
+  "body-mars": "/handbook/legend-planet.svg",
+  "body-phobos": "/handbook/legend-moon-orange.svg",
+  "body-deimos": "/handbook/legend-moon-orange.svg",
+  "body-holst": "/handbook/legend-station.svg",
+  "body-io": "/handbook/legend-moon-orange.svg",
+  "body-europa": "/handbook/legend-moon-orange.svg",
+  "body-ganymede": "/handbook/legend-moon-orange.svg",
+  "body-callisto": "/handbook/legend-moon-orange.svg",
+  "body-daktulios": "/handbook/legend-station.svg",
+  "body-titan": "/handbook/legend-moon-yellow.svg",
+  "body-enceladus": "/handbook/legend-moon-yellow.svg",
+  "body-iapetus": "/handbook/legend-moon-yellow.svg",
+  "body-mimas": "/handbook/legend-moon-yellow.svg",
+  "body-rhea": "/handbook/legend-moon-yellow.svg",
+  "body-dione": "/handbook/legend-moon-yellow.svg",
+  "body-tethys": "/handbook/legend-moon-yellow.svg",
 
   // Rival rockets
   "rival-pilots-overview": "/handbook/rival-rockets.png",

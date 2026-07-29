@@ -558,6 +558,44 @@ body.handbook-open {
   color: var(--accent);
 }
 
+/* —— Body data table (Apollo-handbook style) —— */
+.handbook-article table.body-data {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 0.85rem;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  border: none;
+}
+.handbook-article table.body-data tr {
+  border-bottom: 1px solid rgba(201, 162, 39, 0.2);
+}
+.handbook-article table.body-data tr:last-child {
+  border-bottom: none;
+}
+.handbook-article table.body-data th,
+.handbook-article table.body-data td {
+  padding: 6px 8px 6px 0;
+  text-align: left;
+  vertical-align: top;
+}
+.handbook-article table.body-data th {
+  width: 210px;
+  color: var(--accent-2);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.handbook-article table.body-data td {
+  color: var(--text);
+  font-weight: 400;
+}
+.handbook-article table.body-data td em {
+  color: var(--muted);
+  font-style: normal;
+}
+
 .handbook-article kbd {
   display: inline-block;
   padding: 0.1em 0.4em;

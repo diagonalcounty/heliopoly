@@ -159,7 +159,9 @@ main() {
   bundle="$(fetch_items_json "$project_id")"
 
   echo "# Backlog order (Project POSITION ascending)"
-  echo "# $(echo "$bundle" | jq -r '"\(.title) · project #\(.number) · owner='"$OWNER"')"
+  local header
+  header=$(echo "$bundle" | jq -r --arg owner "$OWNER" '"\(.title) · project #\(.number) · owner=\($owner)"')
+  echo "# $header"
   echo "# Status filter: ${STATUS_FILTER:-all open issues on board}"
   echo "#"
 
@@ -189,7 +191,7 @@ main() {
   '
 
   local next
-  next="$(echo "$bundle" | jq -r --arg sf "$STATUS_FILTER" '
+  next=$(echo "$bundle" | jq -r --arg sf "$STATUS_FILTER" '
     def status:
       ([.fieldValues.nodes[]?
         | select(.field.name == "Status")
@@ -200,7 +202,7 @@ main() {
       | select(($sf == "") or (status == $sf))
       | .content.number
     ] | first // empty
-  ')"
+  ')
 
   if [[ -n "$next" ]]; then
     echo "#"

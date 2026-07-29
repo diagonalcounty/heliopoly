@@ -1,6 +1,7 @@
 /** Player-facing Helios Ops Manual. Matches running build. */
 
 import { rivalPilotsIndexTopic, rivalPilotTopics } from "./pilots";
+import { planetoidsIndexTopic, planetoidTopics } from "./planetoids";
 
 export interface HandbookTopic {
   id: string;
@@ -250,6 +251,11 @@ export const HANDBOOK_SECTIONS: HandbookSection[] = [
     id: "rival-pilots",
     title: "Rival rockets",
     topics: [rivalIndexTopic, ...rivalPilotTopics()],
+  },
+  {
+    id: "bodies",
+    title: "Bodies",
+    topics: [planetoidsIndexTopic(), ...planetoidTopics()],
   },
 ];
 
