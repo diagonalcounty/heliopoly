@@ -93,7 +93,7 @@ export function pickAiNames(count: number, seed: number): string[] {
 }
 
 /** Sanitize player-typed name for UI / logs. */
-export function sanitizePilotName(raw: string, fallback = "Captain"): string {
+export function sanitizePilotName(raw: string, fallback = "Venture"): string {
   const t = raw.replace(/\s+/g, " ").trim().slice(0, 24);
   if (!t) return fallback;
   if (!/[\p{L}\p{N}]/u.test(t)) return fallback;

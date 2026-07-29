@@ -159,7 +159,7 @@ function loadStoredPilotName(): void {
 }
 
 function selectedHumanName(): string {
-  const name = sanitizePilotName(pilotNameInput.value, "Captain");
+  const name = sanitizePilotName(pilotNameInput.value, "Venture");
   try {
     localStorage.setItem(PILOT_NAME_KEY, name);
   } catch {
@@ -876,7 +876,7 @@ function startGame(human: boolean): void {
     createGame({
       playerCount: Number(playerCountInput.value) || 4,
       humanSeat: human,
-      humanName: human ? selectedHumanName() : "Captain",
+      humanName: human ? selectedHumanName() : "Venture",
       humanPropellant: selectedPropellant(),
       aiDifficulty: selectedAiDifficulty(),
       seed: Date.now() >>> 0,

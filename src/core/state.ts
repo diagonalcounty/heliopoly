@@ -10,7 +10,7 @@ const COLORS = ["#6ec8ff", "#ffc857", "#5ddea0", "#ff6b7a", "#c792ea", "#ff9f43"
 export const DEFAULT_CONFIG: GameConfig = {
   playerCount: 4,
   humanSeat: true,
-  humanName: "Captain",
+  humanName: "Venture",
   humanPropellant: "methane",
   aiDifficulty: "normal",
   startingCash: 1500,
@@ -33,7 +33,7 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
   const board = createV0Board();
   const seed = config.seed ?? (Date.now() >>> 0);
   const players: Player[] = [];
-  const humanLabel = sanitizePilotName(config.humanName ?? "", "Captain");
+  const humanLabel = sanitizePilotName(config.humanName ?? "", "Venture");
   /** Dev / playtest cheat: callsign "Heliopolis" → 4× starting cash. */
   const heliopolisCheat =
     config.humanSeat && /^heliopolis$/i.test(humanLabel.trim());

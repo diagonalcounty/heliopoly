@@ -34,7 +34,7 @@ export function charterRocketName(state: GameState): string {
   const human = state.players.find((p) => p.agent === "human" && !p.eliminated);
   if (human) return human.name;
   const any = state.players.find((p) => !p.eliminated) ?? state.players[0];
-  return any?.name ?? "Captain";
+  return any?.name ?? "Venture";
 }
 
 /**

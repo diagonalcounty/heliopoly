@@ -27,7 +27,7 @@ export interface HandbookSection {
 const LORE_TOPICS: HandbookTopic[] = [
   {
     id: "welcome",
-    title: "Welcome, Captain",
+    title: "Welcome, Venture",
     html: `
 <p><strong>Heliopoly</strong> — <em>Free Enterprise In Space</em> (v0.0.7).</p>
 <p>Open source: <a href="https://github.com/diagonalcounty/heliopoly" target="_blank" rel="noopener">github.com/diagonalcounty/heliopoly</a> — issues and PRs welcome.</p>

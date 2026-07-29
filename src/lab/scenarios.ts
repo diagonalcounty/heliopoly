@@ -19,7 +19,7 @@ function baseGame(playerCount = 2): GameState {
   return createGame({
     playerCount,
     humanSeat: true,
-    humanName: "Captain",
+    humanName: "Venture",
     humanPropellant: "methane",
     seed: (Date.now() ^ 0x1ab) >>> 0,
   });
@@ -35,7 +35,7 @@ export const LAB_SCENARIOS: LabScenario[] = [
   {
     id: "duel-you-challenger",
     title: "Gravity Duel — you challenge",
-    blurb: "Captain arrives on a belt blank occupied by an AI pilot. Stance, then roll.",
+    blurb: "Venture arrives on a belt blank occupied by an AI pilot. Stance, then roll.",
     group: "minigame",
     build: () => {
       const s = baseGame(2);
