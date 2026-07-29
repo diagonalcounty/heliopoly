@@ -1240,6 +1240,8 @@ function renderSide(): void {
 
   logEl.textContent = "";
   for (const line of state.log.slice(-60)) {
+    // Belt-and-suspenders: never show engine reseed crumbs in the UI (#56)
+    if (/↺|^\s*seed\[/i.test(line)) continue;
     const div = document.createElement("div");
     if (/Winner|claims|collects|Heliopoly|wins Gravity/i.test(line))
       div.className = "ok";
@@ -1249,7 +1251,7 @@ function renderSide(): void {
       )
     )
       div.className = "bad";
-    else if (/rolls|Round|burns|Duel|seed/i.test(line)) div.className = "warn";
+    else if (/rolls|Round|burns|Duel/i.test(line)) div.className = "warn";
     div.textContent = line;
     logEl.appendChild(div);
   }
