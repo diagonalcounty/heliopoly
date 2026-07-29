@@ -1,0 +1,18 @@
+[Unit]
+Description=Heliopoly game telemetry (#61)
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+Environment=HELIOPOLY_TELEMETRY_HOST=127.0.0.1
+Environment=HELIOPOLY_TELEMETRY_PORT=3847
+Environment=HELIOPOLY_TELEMETRY_LOG_ROOT=/var/www/heliopoly/logs
+Environment=HELIOPOLY_TELEMETRY_SECRET_FILE=/etc/heliopoly/telemetry_secret
+ExecStart=/usr/bin/python3 /opt/heliopoly-telemetry/server.py
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

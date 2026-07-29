@@ -31,6 +31,7 @@ import { PARK_FERAL_THRESHOLD } from "./core/rules";
 import { mountHandbook } from "./handbook/handbook";
 import { LAB_SCENARIOS } from "./lab/scenarios";
 import type { Board } from "./core/types";
+import { submitGameTelemetry } from "./telemetry";
 
 let state: GameState | null = null;
 let visualNode: Record<string, string> = {};
@@ -709,6 +710,7 @@ function endScreenStory(s: GameState, winner: Player | undefined): string {
 }
 
 function showEndScreen(s: GameState): void {
+  submitGameTelemetry(s);
   const winner = s.players.find((p) => p.id === s.winnerId);
   const kicker = document.querySelector(".end-kicker") as HTMLElement | null;
   if (kicker) {
