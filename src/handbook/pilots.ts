@@ -51,7 +51,7 @@ const PILOT_ARTICLES: Record<string, string> = {
 <p>He is on the roster for the <em>physics of leave-burn</em>, not as a “famous astronaut.” Prove the burn, then scale it — that is still the charter’s problem.</p>
 `,
   "von-braun": `
-<p class="pilot-hook"><em>Heavy-lift rocketry that made crewed lunar flight possible (complex legacy).</em></p>
+<p class="pilot-hook"><em>Heavy-lift rocketry that made crewed lunar flight possible.</em></p>
 <p><strong>Wernher von Braun</strong> led design work on the Saturn V class of heavy-lift rockets. He also worked on the German V-2 in World War II — history classes rightly treat his career as both engineering triumph and moral hazard.</p>
 <p>Kept as an <em>infrastructure</em> callsign (how you get mass off Earth), not a flight-crew hero. Technology that opens the system can begin as a weapon. Free enterprise still has a past.</p>
 `,
