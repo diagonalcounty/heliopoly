@@ -80,7 +80,10 @@ function roll2d6(state: GameState, pilot: Player): LastRoll {
   const d2 = rngInt(state, 1, 6);
   const total = d1 + d2;
   state.diceTotals.push(total);
-  pushLog(state, `  ↺ ${crumb}`);
+  // Engine reseed crumb — developer console only (not player log / #56)
+  if (typeof console !== "undefined" && console.debug) {
+    console.debug(`↺ ${crumb}`);
+  }
   return { d1, d2, total, doubles: d1 === d2 };
 }
 

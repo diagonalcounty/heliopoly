@@ -107,13 +107,10 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
     breakSpaces: 0,
     log: [
       `Heliopoly · Free Enterprise In Space`,
-      `Game start: ${count} pilots · seed ${seed} · bank ${formatMoney(config.startingCash)} each`,
+      `Game start: ${count} pilots · bank ${formatMoney(config.startingCash)} each`,
       `Propellants: ${propSummary}`,
       `Path: Earth→Venus→Mercury→Mars→Belt→Jupiter→Saturn→Earth`,
       `Monopoly rent ×2 · park 5+ no-move → feral risk (50% then doubles) · depots lost on feral/out`,
-      config.humanSeat
-        ? "Seat 0 is human; others AI."
-        : "Self-play: all seats AI.",
     ],
     turnDeltas: [],
     diceTotals: [],
@@ -135,18 +132,20 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
     rngState: seed || 1,
   };
 
+  // Seed + AI difficulty for bug reports — not the player log (#56)
+  if (typeof console !== "undefined" && console.debug) {
+    console.debug(
+      `[heliopoly] seed ${seed} · AI ${config.aiDifficulty}${
+        config.humanSeat ? ` · human ${PROPELLANTS[config.humanPropellant].short}` : " · self-play"
+      }`,
+    );
+  }
+
   // First seat turn: tick clock + timed events before first dice roll
   tickSeatTurn(state);
   const opener = state.players[0];
   state.log.push(
     `— Turn ${state.gameTurn} · Round ${state.round}: ${opener.name}'s turn —`,
-  );
-  state.log.push(
-    `AI difficulty: ${config.aiDifficulty}${
-      config.humanSeat
-        ? ` · You fly ${PROPELLANTS[config.humanPropellant].short}`
-        : ""
-    }.`,
   );
   if (heliopolisCheat) {
     state.log.push(
