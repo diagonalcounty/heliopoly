@@ -1321,8 +1321,8 @@ function renderSide(): void {
     .map(({ pl, worth, rankLabel }) => {
       const active = pl.id === p.id && state!.phase !== "game_over";
       const lead = rankLabel === "#1" ? " lead" : "";
-      // uiShort avoids unicode subscripts (CH₄/H₂) which inflate line boxes in standings
-      const plProp = PROPELLANTS[pl.propellant].uiShort;
+      // Subscripts OK here — standings row height was min-height on name button (#64), not glyphs
+      const plProp = PROPELLANTS[pl.propellant].short;
       const shown = shipNodeId(pl.id, pl.position);
       const at = getNode(state!.board, shown).name;
       const skip = !pl.eliminated && pl.skipTurns ? " · skip" : "";
