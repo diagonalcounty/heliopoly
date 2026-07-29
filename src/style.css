@@ -1060,20 +1060,32 @@ button:not(:disabled):active {
   flex-shrink: 0;
 }
 
-/* Rocket name → Ops Manual (Rival rockets / pilot-*) */
+/*
+ * Rocket name → Ops Manual. Must NOT inherit global button chrome:
+ * `button { min-height: 44px; padding: 12px 10px }` was forcing ~44px on the
+ * first standings line and a huge visual gap before fuel/claims (#64).
+ */
 .rocket-name-link {
+  appearance: none;
   display: inline;
   margin: 0;
   padding: 0;
   border: none;
+  border-radius: 0;
   background: none;
+  min-height: 0;
+  height: auto;
+  line-height: inherit;
   font: inherit;
+  font-size: inherit;
   font-weight: inherit;
   color: inherit;
   cursor: pointer;
+  touch-action: manipulation;
   text-decoration: underline;
   text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
   text-underline-offset: 2px;
+  vertical-align: baseline;
 }
 
 .rocket-name-link:hover,
@@ -1081,6 +1093,10 @@ button:not(:disabled):active {
   color: var(--accent-2, #7dd3fc);
   text-decoration-color: currentColor;
   outline: none;
+}
+
+.rocket-name-link:not(:disabled):active {
+  transform: none;
 }
 
 
