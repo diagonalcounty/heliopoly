@@ -1083,6 +1083,11 @@ button:not(:disabled):active {
 }
 
 /* —— Dice —— */
+/* Human on the right: reverse [challenger|defender] when human is challenger */
+.dice-stage.human-dice-right {
+  flex-direction: row-reverse;
+}
+
 .dice-stage {
   display: flex;
   align-items: center;

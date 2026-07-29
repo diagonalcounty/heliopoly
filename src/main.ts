@@ -367,6 +367,28 @@ function applyDuelShipNames(
   diceLabelD.textContent = defenderName;
 }
 
+const diceStage = document.getElementById("dice-stage");
+
+/**
+ * Human's dice on the right: stage is [challenger | defender].
+ * If human is challenger, reverse so challenger lands on the right.
+ */
+function layoutDuelDiceForHuman(
+  s: GameState,
+  challengerId: string,
+  defenderId: string,
+): void {
+  if (!diceStage) return;
+  const human = s.players.find((p) => p.agent === "human" && !p.eliminated);
+  const humanIsChallenger = !!human && human.id === challengerId;
+  const humanInDuel =
+    !!human && (human.id === challengerId || human.id === defenderId);
+  diceStage.classList.toggle(
+    "human-dice-right",
+    humanInDuel && humanIsChallenger,
+  );
+}
+
 function showDuelResultFooter(s: GameState): void {
   const r = s.lastDuelResult;
   if (!r) return;
@@ -377,6 +399,9 @@ function showDuelResultFooter(s: GameState): void {
   duelResultFooter.classList.remove("hidden");
   duelResultFooter.classList.toggle("is-tie", r.outcome === "tie");
   applyDuelShipNames(r.challengerName, r.defenderName, r.nodeName);
+  const c = s.players.find((p) => p.name === r.challengerName);
+  const d = s.players.find((p) => p.name === r.defenderName);
+  if (c && d) layoutDuelDiceForHuman(s, c.id, d.id);
   duelResultHeadline.textContent =
     r.outcome === "tie"
       ? "Draw — both hold the lane"
@@ -441,6 +466,7 @@ function updateDuelModal(s: GameState | null): void {
   duelRoot.setAttribute("aria-hidden", "false");
   document.body.classList.add("handbook-open");
   applyDuelShipNames(c.name, def.name, getNode(s.board, d.nodeId).name);
+  layoutDuelDiceForHuman(s, c.id, def.id);
   const mean = meanDiceTotal(s);
   duelStatus.textContent = [
     `Mean of game 2d6 totals: ${mean.toFixed(2)}`,
@@ -501,6 +527,9 @@ async function maybeShowDuelResult(s: GameState): Promise<void> {
   duelResultFooter.classList.add("hidden");
   const r = s.lastDuelResult;
   applyDuelShipNames(r.challengerName, r.defenderName, r.nodeName);
+  const cPl = s.players.find((p) => p.name === r.challengerName);
+  const dPl = s.players.find((p) => p.name === r.defenderName);
+  if (cPl && dPl) layoutDuelDiceForHuman(s, cPl.id, dPl.id);
   // Mark ceremony open so render() does not hide the panel mid-anim
   duelResultEl.classList.remove("hidden");
   setDie(dieC1, "?", true);
@@ -512,36 +541,47 @@ async function maybeShowDuelResult(s: GameState): Promise<void> {
   showDuelResultFooter(s);
 }
 
-/** If a duel just resolved between two states, run the win/lose ceremony. */
+/** True when `after` carries a duel result that `before` did not (or a different one). */
+function isFreshDuelResult(before: GameState, after: GameState): boolean {
+  const a = after.lastDuelResult;
+  if (!a) return false;
+  const b = before.lastDuelResult;
+  if (!b) return true;
+  return (
+    a.summary !== b.summary ||
+    a.winnerName !== b.winnerName ||
+    a.loserName !== b.loserName ||
+    a.challengerRoll.total !== b.challengerRoll.total ||
+    a.defenderRoll.total !== b.defenderRoll.total ||
+    a.challengerName !== b.challengerName ||
+    a.defenderName !== b.defenderName ||
+    after.gameTurn !== before.gameTurn
+  );
+}
+
+/**
+ * If a duel just resolved between two states, run the win/lose ceremony.
+ * Always returns a state with `lastDuelResult` cleared after dismiss so the
+ * next duel is not skipped when callers assign `state = after` (#52).
+ */
 async function presentNewDuelResult(
   before: GameState,
   after: GameState,
 ): Promise<GameState> {
-  if (after.lastDuelResult && !before.lastDuelResult) {
-    console.warn(
-      "[duel-ceremony] showing result",
-      after.lastDuelResult.outcome,
-      after.lastDuelResult.winnerName,
-      after.lastDuelResult.loserName,
-      "phase before/after:",
-      before.phase,
-      after.phase,
-      "caller:",
-      new Error().stack?.split("\n")[2]?.trim(),
-    );
-    state = after;
-    render();
-    await maybeShowDuelResult(after);
-    // Wait until player dismisses splash before continuing AI/turns
-    await waitForDuelResultDismiss();
-    console.warn("[duel-ceremony] dismissed");
-  } else if (after.lastDuelResult && before.lastDuelResult) {
-    console.warn(
-      "[duel-ceremony] skipping — before already had result",
-      before.lastDuelResult.winnerName,
-    );
+  if (!isFreshDuelResult(before, after) || !after.lastDuelResult) {
+    return after;
   }
-  return after;
+  state = after;
+  render();
+  await maybeShowDuelResult(after);
+  await waitForDuelResultDismiss();
+  // hideDuelResultSplash nulls state.lastDuelResult; never re-hand callers a stale result
+  const cleared: GameState = {
+    ...(state ?? after),
+    lastDuelResult: null,
+  };
+  state = cleared;
+  return cleared;
 }
 
 let duelResultWaiters: Array<() => void> = [];
