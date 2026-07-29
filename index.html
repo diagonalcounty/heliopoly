@@ -20,10 +20,7 @@
     <div id="app">
       <header class="top">
         <div class="top-row">
-          <div>
-            <h1>Heliopoly <span class="badge">v0.0.8</span></h1>
-            <p class="tagline">Free Enterprise In Space</p>
-          </div>
+          <h1>Heliopoly [v0.0.8] · Free Enterprise In Space</h1>
           <div class="top-actions">
             <button
               id="btn-lab"
@@ -152,6 +149,7 @@
 
           <section class="card" id="turn-card">
             <h2>Turn</h2>
+            <div class="turn-status">
             <div id="turn-info" class="mono">No game yet.</div>
             <div id="roll-result" class="roll-result mono hidden"></div>
             <div class="break-row hidden" id="break-row">
@@ -164,6 +162,7 @@
                 <button type="button" id="btn-break-plus" disabled>+</button>
               </div>
               <span id="break-cost" class="break-cost mono"></span>
+            </div>
             </div>
             <div class="actions">
               <button id="btn-refuel" type="button" disabled>Refuel</button>
