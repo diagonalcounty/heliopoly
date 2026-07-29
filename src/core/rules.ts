@@ -1027,10 +1027,17 @@ function maybeStrikeGusher(
   p.cash += bonus;
   const body = getNode(state.board, nodeId);
   const fuelWord = PROPELLANTS[p.propellant].short;
-  const headline = pickStrikeHeadline(p.propellant, mulberryNext(state));
+  const isHuman = p.agent === "human";
+  const headline = pickStrikeHeadline(
+    p.propellant,
+    mulberryNext(state),
+    p.name,
+    isHuman,
+  );
+  const logHeadline = isHuman ? `${headline} ${p.name}` : headline;
   pushLog(
     state,
-    `${headline} ${p.name} · ${body.name} · +${formatMoney(bonus)} (${fuelWord}).`,
+    `${logHeadline} · ${body.name} · +${formatMoney(bonus)} (${fuelWord}).`,
   );
   delta(state, `+${formatMoney(bonus)} fuel strike ${body.name}`);
   state.pendingAnnouncement = {

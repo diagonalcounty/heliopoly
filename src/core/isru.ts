@@ -63,8 +63,12 @@ export function strikeLinesFor(prop: PropellantId): readonly string[] {
 export function pickStrikeHeadline(
   prop: PropellantId,
   rand01: number,
+  playerName: string,
+  isHuman: boolean,
 ): string {
   const lines = strikeLinesFor(prop);
   const i = Math.min(lines.length - 1, Math.floor(rand01 * lines.length));
-  return lines[i] ?? lines[0];
+  const line = lines[i] ?? lines[0];
+  if (isHuman) return line;
+  return line.replace(/^You've /, `${playerName} `);
 }
