@@ -240,38 +240,86 @@
           <p id="duel-matchup" class="duel-matchup"></p>
           <p id="duel-status" class="mono"></p>
           <p class="hint">
-            Stances stay secret until both pilots have rolled 2d6.
+            Stances stay secret until both pilots have rolled 2d6. You are on the
+            <strong>right</strong>.
           </p>
+          <!-- Mirrored sides: left = opponent, right = human (#57) -->
           <div class="dice-stage" id="dice-stage">
-            <div class="dice-pair">
-              <div class="die" id="die-c1">?</div>
-              <div class="die" id="die-c2">?</div>
-              <span class="dice-label" id="dice-label-c">Challenger</span>
+            <div class="duel-side" id="duel-side-left" data-visual="left">
+              <span class="dice-label" id="dice-label-l">Opponent</span>
+              <div class="dice-pair">
+                <div class="die" id="die-l1">?</div>
+                <div class="die" id="die-l2">?</div>
+              </div>
+              <div class="duel-side-actions" id="duel-actions-left">
+                <button
+                  type="button"
+                  class="duel-btn"
+                  data-visual="left"
+                  data-stance="high"
+                >
+                  High
+                </button>
+                <button
+                  type="button"
+                  class="duel-btn"
+                  data-visual="left"
+                  data-stance="low"
+                >
+                  Low
+                </button>
+                <button
+                  type="button"
+                  class="duel-btn duel-roll-btn"
+                  data-visual="left"
+                  data-roll
+                >
+                  Roll 2d6
+                </button>
+              </div>
             </div>
-            <div class="dice-vs">vs</div>
-            <div class="dice-pair">
-              <div class="die" id="die-d1">?</div>
-              <div class="die" id="die-d2">?</div>
-              <span class="dice-label" id="dice-label-d">Defender</span>
+            <div class="dice-vs" aria-hidden="true">vs</div>
+            <div class="duel-side" id="duel-side-right" data-visual="right">
+              <span class="dice-label" id="dice-label-r">You</span>
+              <div class="dice-pair">
+                <div class="die" id="die-r1">?</div>
+                <div class="die" id="die-r2">?</div>
+              </div>
+              <div class="duel-side-actions" id="duel-actions-right">
+                <button
+                  type="button"
+                  class="duel-btn"
+                  data-visual="right"
+                  data-stance="high"
+                >
+                  High
+                </button>
+                <button
+                  type="button"
+                  class="duel-btn"
+                  data-visual="right"
+                  data-stance="low"
+                >
+                  Low
+                </button>
+                <button
+                  type="button"
+                  class="duel-btn duel-roll-btn"
+                  data-visual="right"
+                  data-roll
+                >
+                  Roll 2d6
+                </button>
+              </div>
             </div>
-          </div>
-          <div class="duel-actions" id="duel-actions">
-            <button type="button" data-stance="low" class="primary">
-              Pick LOW
-            </button>
-            <button type="button" data-stance="high" class="primary">
-              Pick HIGH
-            </button>
-            <button type="button" id="duel-roll" class="primary" disabled>
-              Roll 2d6
-            </button>
           </div>
           <p id="duel-dice" class="mono duel-dice"></p>
-          <!-- Result stays on this panel (footer) so dice/stakes stay visible -->
           <footer id="duel-result-footer" class="duel-result-footer hidden">
             <p id="duel-result-headline" class="duel-result-headline"></p>
-            <p id="duel-result-punchy" class="duel-punchy">punchy message here
-Suggest a line: https://github.com/diagonalcounty/heliopoly/issues</p>
+            <p id="duel-result-punchy" class="duel-punchy">
+              punchy message here Suggest a line:
+              https://github.com/diagonalcounty/heliopoly/issues
+            </p>
             <p id="duel-result-summary" class="mono duel-result-summary"></p>
             <button type="button" id="duel-result-ok" class="primary">
               Continue

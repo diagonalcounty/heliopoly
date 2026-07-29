@@ -98,19 +98,24 @@ const duelRoot = document.getElementById("duel-root")!;
 const duelMatchup = document.getElementById("duel-matchup")!;
 const duelStatus = document.getElementById("duel-status")!;
 const duelDice = document.getElementById("duel-dice")!;
-const duelRollBtn = document.getElementById("duel-roll") as HTMLButtonElement;
-const dieC1 = document.getElementById("die-c1")!;
-const dieC2 = document.getElementById("die-c2")!;
-const dieD1 = document.getElementById("die-d1")!;
-const dieD2 = document.getElementById("die-d2")!;
-const diceLabelC = document.getElementById("dice-label-c")!;
-const diceLabelD = document.getElementById("dice-label-d")!;
+const dieL1 = document.getElementById("die-l1")!;
+const dieL2 = document.getElementById("die-l2")!;
+const dieR1 = document.getElementById("die-r1")!;
+const dieR2 = document.getElementById("die-r2")!;
+const diceLabelL = document.getElementById("dice-label-l")!;
+const diceLabelR = document.getElementById("dice-label-r")!;
+const duelActionsLeft = document.getElementById("duel-actions-left")!;
+const duelActionsRight = document.getElementById("duel-actions-right")!;
 const duelResultEl = document.getElementById("duel-result")!;
 const duelResultFooter = document.getElementById("duel-result-footer")!;
 const duelResultHeadline = document.getElementById("duel-result-headline")!;
 const duelResultPunchy = document.getElementById("duel-result-punchy")!;
 const duelResultSummary = document.getElementById("duel-result-summary")!;
-const duelActionsEl = document.getElementById("duel-actions")!;
+
+function setDuelSideActionsVisible(visible: boolean): void {
+  duelActionsLeft.classList.toggle("hidden", !visible);
+  duelActionsRight.classList.toggle("hidden", !visible);
+}
 const bodyTooltip = document.getElementById("body-tooltip")!;
 const endRoot = document.getElementById("end-root")!;
 const endTitle = document.getElementById("end-title")!;
@@ -357,36 +362,61 @@ async function animateDicePair(
   setDie(d2El, final.d2, false);
 }
 
-function applyDuelShipNames(
-  challengerName: string,
-  defenderName: string,
-  nodeName: string,
-): void {
-  duelMatchup.textContent = `${challengerName} vs ${defenderName} · ${nodeName}`;
-  diceLabelC.textContent = challengerName;
-  diceLabelD.textContent = defenderName;
-}
+type DuelSeat = "challenger" | "defender";
+type VisualSide = "left" | "right";
 
-const diceStage = document.getElementById("dice-stage");
-
-/**
- * Human's dice on the right: stage is [challenger | defender].
- * If human is challenger, reverse so challenger lands on the right.
- */
-function layoutDuelDiceForHuman(
+/** Left = non-human when human is in the duel; right = human (#57). */
+function duelVisualMap(
   s: GameState,
   challengerId: string,
   defenderId: string,
-): void {
-  if (!diceStage) return;
-  const human = s.players.find((p) => p.agent === "human" && !p.eliminated);
-  const humanIsChallenger = !!human && human.id === challengerId;
-  const humanInDuel =
-    !!human && (human.id === challengerId || human.id === defenderId);
-  diceStage.classList.toggle(
-    "human-dice-right",
-    humanInDuel && humanIsChallenger,
+): { left: DuelSeat; right: DuelSeat } {
+  const c = s.players.find((p) => p.id === challengerId);
+  const d = s.players.find((p) => p.id === defenderId);
+  if (c?.agent === "human") return { left: "defender", right: "challenger" };
+  if (d?.agent === "human") return { left: "challenger", right: "defender" };
+  return { left: "challenger", right: "defender" };
+}
+
+function duelVisualMapByNames(
+  s: GameState,
+  challengerName: string,
+  defenderName: string,
+): { left: DuelSeat; right: DuelSeat } {
+  const c = s.players.find((p) => p.name === challengerName);
+  const d = s.players.find((p) => p.name === defenderName);
+  return duelVisualMap(
+    s,
+    c?.id ?? "",
+    d?.id ?? "",
   );
+}
+
+function diceElsForSeat(
+  map: { left: DuelSeat; right: DuelSeat },
+  seat: DuelSeat,
+): [HTMLElement, HTMLElement] {
+  const side: VisualSide = map.left === seat ? "left" : "right";
+  return side === "left" ? [dieL1, dieL2] : [dieR1, dieR2];
+}
+
+function applyDuelShipNames(
+  s: GameState,
+  challengerName: string,
+  defenderName: string,
+  nodeName: string,
+  challengerId?: string,
+  defenderId?: string,
+): void {
+  duelMatchup.textContent = `${challengerName} vs ${defenderName} · ${nodeName}`;
+  const map =
+    challengerId && defenderId
+      ? duelVisualMap(s, challengerId, defenderId)
+      : duelVisualMapByNames(s, challengerName, defenderName);
+  const nameFor = (seat: DuelSeat) =>
+    seat === "challenger" ? challengerName : defenderName;
+  diceLabelL.textContent = nameFor(map.left);
+  diceLabelR.textContent = nameFor(map.right);
 }
 
 function showDuelResultFooter(s: GameState): void {
@@ -395,13 +425,10 @@ function showDuelResultFooter(s: GameState): void {
   duelRoot.classList.remove("hidden");
   duelRoot.setAttribute("aria-hidden", "false");
   document.body.classList.add("handbook-open");
-  duelActionsEl.classList.add("hidden");
+  setDuelSideActionsVisible(false);
   duelResultFooter.classList.remove("hidden");
   duelResultFooter.classList.toggle("is-tie", r.outcome === "tie");
-  applyDuelShipNames(r.challengerName, r.defenderName, r.nodeName);
-  const c = s.players.find((p) => p.name === r.challengerName);
-  const d = s.players.find((p) => p.name === r.defenderName);
-  if (c && d) layoutDuelDiceForHuman(s, c.id, d.id);
+  applyDuelShipNames(s, r.challengerName, r.defenderName, r.nodeName);
   duelResultHeadline.textContent =
     r.outcome === "tie"
       ? "Draw — both hold the lane"
@@ -420,7 +447,7 @@ function showDuelResultFooter(s: GameState): void {
 
 function hideDuelResultSplash(): void {
   duelResultFooter.classList.add("hidden");
-  duelActionsEl.classList.remove("hidden");
+  setDuelSideActionsVisible(true);
   duelResultEl.classList.add("hidden");
   duelRoot.classList.add("hidden");
   duelRoot.setAttribute("aria-hidden", "true");
@@ -440,6 +467,95 @@ function duelCeremonyOpen(): boolean {
   );
 }
 
+function syncDuelSideControls(
+  s: GameState,
+  d: NonNullable<GameState["pendingDuel"]>,
+  map: { left: DuelSeat; right: DuelSeat },
+): void {
+  const c = s.players.find((p) => p.id === d.challengerId)!;
+  const def = s.players.find((p) => p.id === d.defenderId)!;
+  const bothRolled = !!(d.challengerRoll && d.defenderRoll);
+
+  for (const visual of ["left", "right"] as VisualSide[]) {
+    const seat = visual === "left" ? map.left : map.right;
+    const pilot = seat === "challenger" ? c : def;
+    const stance =
+      seat === "challenger" ? d.challengerStance : d.defenderStance;
+    const roll =
+      seat === "challenger" ? d.challengerRoll : d.defenderRoll;
+    const isHuman = pilot.agent === "human";
+    const needStance = isHuman && stance === null && !animating;
+    const needRoll =
+      isHuman &&
+      !animating &&
+      d.challengerStance !== null &&
+      d.defenderStance !== null &&
+      roll === null;
+
+    for (const btn of duelRoot.querySelectorAll<HTMLButtonElement>(
+      `button[data-visual="${visual}"][data-stance]`,
+    )) {
+      const btnStance = btn.dataset.stance as "low" | "high";
+      // Only the human side may pick; AI side stays disabled
+      btn.disabled = !needStance;
+      const showPick =
+        (isHuman && stance === btnStance) ||
+        (bothRolled && stance === btnStance);
+      btn.classList.toggle("selected", !!showPick);
+    }
+
+    const rollBtn = duelRoot.querySelector<HTMLButtonElement>(
+      `button[data-visual="${visual}"][data-roll]`,
+    );
+    if (rollBtn) rollBtn.disabled = !needRoll;
+  }
+}
+
+/** Dice DOM pair for a seat given current visual map (or name-based for results). */
+function seatDice(
+  s: GameState,
+  challengerId: string,
+  defenderId: string,
+  seat: DuelSeat,
+): [HTMLElement, HTMLElement] {
+  return diceElsForSeat(duelVisualMap(s, challengerId, defenderId), seat);
+}
+
+function seatDiceFromResult(
+  s: GameState,
+  r: NonNullable<GameState["lastDuelResult"]>,
+  seat: DuelSeat,
+): [HTMLElement, HTMLElement] {
+  const c = s.players.find((p) => p.name === r.challengerName);
+  const d = s.players.find((p) => p.name === r.defenderName);
+  if (c && d) return diceElsForSeat(duelVisualMap(s, c.id, d.id), seat);
+  return diceElsForSeat(
+    { left: "challenger", right: "defender" },
+    seat,
+  );
+}
+
+function paintDuelDice(
+  map: { left: DuelSeat; right: DuelSeat },
+  d: {
+    challengerRoll: { d1: number; d2: number } | null;
+    defenderRoll: { d1: number; d2: number } | null;
+  },
+): void {
+  for (const seat of ["challenger", "defender"] as DuelSeat[]) {
+    const [a, b] = diceElsForSeat(map, seat);
+    const roll =
+      seat === "challenger" ? d.challengerRoll : d.defenderRoll;
+    if (roll) {
+      setDie(a, roll.d1);
+      setDie(b, roll.d2);
+    } else {
+      setDie(a, "?");
+      setDie(b, "?");
+    }
+  }
+}
+
 function updateDuelModal(s: GameState | null): void {
   // Lab / AI resolve leaves await_duel before ceremony — keep panel + names visible
   if (s?.lastDuelResult && duelCeremonyOpen()) {
@@ -447,7 +563,7 @@ function updateDuelModal(s: GameState | null): void {
     duelRoot.classList.remove("hidden");
     duelRoot.setAttribute("aria-hidden", "false");
     document.body.classList.add("handbook-open");
-    applyDuelShipNames(r.challengerName, r.defenderName, r.nodeName);
+    applyDuelShipNames(s, r.challengerName, r.defenderName, r.nodeName);
     return;
   }
 
@@ -462,52 +578,30 @@ function updateDuelModal(s: GameState | null): void {
   const d = s.pendingDuel;
   const c = s.players.find((p) => p.id === d.challengerId)!;
   const def = s.players.find((p) => p.id === d.defenderId)!;
+  const map = duelVisualMap(s, c.id, def.id);
   duelRoot.classList.remove("hidden");
   duelRoot.setAttribute("aria-hidden", "false");
   document.body.classList.add("handbook-open");
-  applyDuelShipNames(c.name, def.name, getNode(s.board, d.nodeId).name);
-  layoutDuelDiceForHuman(s, c.id, def.id);
+  setDuelSideActionsVisible(true);
+  applyDuelShipNames(
+    s,
+    c.name,
+    def.name,
+    getNode(s.board, d.nodeId).name,
+    c.id,
+    def.id,
+  );
   const mean = meanDiceTotal(s);
   duelStatus.textContent = [
     `Mean of game 2d6 totals: ${mean.toFixed(2)}`,
     `Stances hidden until both have rolled`,
     d.challengerStance && d.defenderStance
       ? "Both stances locked — roll when ready"
-      : "Choose LOW or HIGH",
+      : "Choose High or Low on your side",
   ].join("\n");
 
-  const humanIsC = c.agent === "human";
-  const humanIsD = def.agent === "human";
-  const needStance =
-    (humanIsC && d.challengerStance === null) ||
-    (humanIsD && d.defenderStance === null);
-  const needRoll =
-    d.challengerStance !== null &&
-    d.defenderStance !== null &&
-    ((humanIsC && d.challengerRoll === null) ||
-      (humanIsD && d.defenderRoll === null));
-
-  for (const btn of duelRoot.querySelectorAll<HTMLButtonElement>(
-    "[data-stance]",
-  )) {
-    btn.disabled = !needStance || animating;
-  }
-  duelRollBtn.disabled = !needRoll || animating;
-
-  if (d.challengerRoll) {
-    setDie(dieC1, d.challengerRoll.d1);
-    setDie(dieC2, d.challengerRoll.d2);
-  } else {
-    setDie(dieC1, "?");
-    setDie(dieC2, "?");
-  }
-  if (d.defenderRoll) {
-    setDie(dieD1, d.defenderRoll.d1);
-    setDie(dieD2, d.defenderRoll.d2);
-  } else {
-    setDie(dieD1, "?");
-    setDie(dieD2, "?");
-  }
+  syncDuelSideControls(s, d, map);
+  paintDuelDice(map, d);
 
   const parts: string[] = [];
   if (d.challengerRoll && d.defenderRoll && d.challengerStance && d.defenderStance) {
@@ -526,18 +620,23 @@ async function maybeShowDuelResult(s: GameState): Promise<void> {
   document.body.classList.add("handbook-open");
   duelResultFooter.classList.add("hidden");
   const r = s.lastDuelResult;
-  applyDuelShipNames(r.challengerName, r.defenderName, r.nodeName);
+  applyDuelShipNames(s, r.challengerName, r.defenderName, r.nodeName);
   const cPl = s.players.find((p) => p.name === r.challengerName);
   const dPl = s.players.find((p) => p.name === r.defenderName);
-  if (cPl && dPl) layoutDuelDiceForHuman(s, cPl.id, dPl.id);
+  const map =
+    cPl && dPl
+      ? duelVisualMap(s, cPl.id, dPl.id)
+      : { left: "challenger" as DuelSeat, right: "defender" as DuelSeat };
   // Mark ceremony open so render() does not hide the panel mid-anim
   duelResultEl.classList.remove("hidden");
-  setDie(dieC1, "?", true);
-  setDie(dieC2, "?", true);
-  setDie(dieD1, "?", true);
-  setDie(dieD2, "?", true);
-  await animateDicePair(dieC1, dieC2, r.challengerRoll);
-  await animateDicePair(dieD1, dieD2, r.defenderRoll);
+  const [c1, c2] = diceElsForSeat(map, "challenger");
+  const [d1, d2] = diceElsForSeat(map, "defender");
+  setDie(c1, "?", true);
+  setDie(c2, "?", true);
+  setDie(d1, "?", true);
+  setDie(d2, "?", true);
+  await animateDicePair(c1, c2, r.challengerRoll);
+  await animateDicePair(d1, d2, r.defenderRoll);
   showDuelResultFooter(s);
 }
 
@@ -688,7 +787,9 @@ async function applyActionAnimated(
     before.pendingDuel &&
     !before.pendingDuel.challengerRoll
   ) {
-    await animateDicePair(dieC1, dieC2, after.pendingDuel.challengerRoll);
+    const d = after.pendingDuel;
+    const [a, b] = seatDice(after, d.challengerId, d.defenderId, "challenger");
+    await animateDicePair(a, b, after.pendingDuel.challengerRoll);
   }
   if (
     action.type === "duel_roll" &&
@@ -696,7 +797,9 @@ async function applyActionAnimated(
     before.pendingDuel &&
     !before.pendingDuel.defenderRoll
   ) {
-    await animateDicePair(dieD1, dieD2, after.pendingDuel.defenderRoll);
+    const d = after.pendingDuel;
+    const [a, b] = seatDice(after, d.challengerId, d.defenderId, "defender");
+    await animateDicePair(a, b, after.pendingDuel.defenderRoll);
   }
 
   after = resolveDuelAiFully(after);
@@ -831,35 +934,38 @@ async function act(action: PlayerAction): Promise<void> {
         const bd = before.pendingDuel;
         const ad = after.pendingDuel;
         if (!bd.challengerRoll && ad.challengerRoll) {
-          await animateDicePair(dieC1, dieC2, ad.challengerRoll);
+          const [a, b] = seatDice(after, ad.challengerId, ad.defenderId, "challenger");
+          await animateDicePair(a, b, ad.challengerRoll);
         }
         if (!bd.defenderRoll && ad.defenderRoll) {
-          await animateDicePair(dieD1, dieD2, ad.defenderRoll);
+          const [a, b] = seatDice(after, ad.challengerId, ad.defenderId, "defender");
+          await animateDicePair(a, b, ad.defenderRoll);
         }
       } else if (
         action.type === "duel_roll" &&
         before.pendingDuel &&
         after.lastDuelResult
       ) {
-        // Resolved in the same apply — animate both pairs from result
         const r = after.lastDuelResult;
-        await animateDicePair(dieC1, dieC2, r.challengerRoll);
-        await animateDicePair(dieD1, dieD2, r.defenderRoll);
+        const [c1, c2] = seatDiceFromResult(after, r, "challenger");
+        const [d1, d2] = seatDiceFromResult(after, r, "defender");
+        await animateDicePair(c1, c2, r.challengerRoll);
+        await animateDicePair(d1, d2, r.defenderRoll);
       }
 
       after = resolveDuelAiFully(after);
-      // If AI finished the second roll during resolve, animate if we only had one side
       if (
         after.lastDuelResult &&
         before.pendingDuel &&
         !before.lastDuelResult
       ) {
         const r = after.lastDuelResult;
-        // Ensure dice show finals (may already be animated)
-        setDie(dieC1, r.challengerRoll.d1);
-        setDie(dieC2, r.challengerRoll.d2);
-        setDie(dieD1, r.defenderRoll.d1);
-        setDie(dieD2, r.defenderRoll.d2);
+        const [c1, c2] = seatDiceFromResult(after, r, "challenger");
+        const [d1, d2] = seatDiceFromResult(after, r, "defender");
+        setDie(c1, r.challengerRoll.d1);
+        setDie(c2, r.challengerRoll.d2);
+        setDie(d1, r.defenderRoll.d1);
+        setDie(d2, r.defenderRoll.d2);
       }
 
       after = await presentNewDuelResult(before, after);
@@ -1154,13 +1260,23 @@ btnBreakPlus.addEventListener("click", () => {
   });
 });
 
-for (const btn of document.querySelectorAll<HTMLButtonElement>("[data-stance]")) {
+for (const btn of document.querySelectorAll<HTMLButtonElement>(
+  "#duel-root button[data-stance]",
+)) {
   btn.addEventListener("click", () => {
+    if (btn.disabled) return;
     const stance = btn.dataset.stance as DuelStance;
     void act({ type: "duel_stance", stance });
   });
 }
-duelRollBtn.addEventListener("click", () => void act({ type: "duel_roll" }));
+for (const btn of document.querySelectorAll<HTMLButtonElement>(
+  "#duel-root button[data-roll]",
+)) {
+  btn.addEventListener("click", () => {
+    if (btn.disabled) return;
+    void act({ type: "duel_roll" });
+  });
+}
 
 function render(): void {
   drawBoard();
