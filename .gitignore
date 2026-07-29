@@ -5,3 +5,6 @@ dist/
 
 # local project backlog config
 scripts/backlog.env
+ios/**/xcuserdata/
+   **/xcuserdata/
+   *.xcuserstate

@@ -1246,7 +1246,7 @@ export function applyAction(state: GameState, action: PlayerAction): GameState {
       p.skippedRoll = false;
       pushLog(
         next,
-        `${p.name} rolls ${roll.d1}+${roll.d2}=${roll.total}${roll.doubles ? " (doubles)" : ""} — choose break, then Move.`,
+        `${p.name} rolls ${roll.d1}+${roll.d2}=${roll.total}${roll.doubles ? " (doubles)" : ""}, Break=${next.breakSpaces}, Move`,
       );
       delta(next, `roll ${roll.total}`);
       next.phase = "await_move";
