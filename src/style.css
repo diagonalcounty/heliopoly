@@ -768,14 +768,31 @@ button:not(:disabled):active {
   color: var(--accent);
 }
 
-/* After launch: hide whole setup card (toggle lives in top bar) */
-#setup-card.collapsed {
-  display: none;
+/**
+ * Shared sidebar slot: Charter standings and New game alternate.
+ * Same min-height so the Turn card below doesn't jump.
+ */
+.fleet-card {
+  padding: 10px 12px;
+  /* Fits setup form (~propellant + difficulty + actions); standings uses same box */
+  min-height: 22rem;
+  display: flex;
+  flex-direction: column;
 }
 
-.rank-card {
-  /* slightly tighter than default card so roster isn't airy */
-  padding: 10px 12px;
+.fleet-panel {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.fleet-card.mode-setup #standings-panel,
+.fleet-card.mode-standings #setup-body {
+  display: none !important;
+}
+
+.fleet-card #setup-body label,
+.fleet-card #setup-body fieldset {
+  margin-bottom: 0.45rem;
 }
 
 .rankings {

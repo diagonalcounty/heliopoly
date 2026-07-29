@@ -75,14 +75,14 @@
         </section>
 
         <aside class="side">
-          <section class="card rank-card">
-            <h2>Charter standings</h2>
-            <div id="rankings" class="rankings">—</div>
-            <div id="turn-deltas" class="turn-deltas mono"></div>
-          </section>
-
-          <section class="card" id="setup-card">
-            <div id="setup-body">
+          <!-- Shared slot: standings XOR setup (same card real estate) -->
+          <section class="card fleet-card mode-setup" id="fleet-card">
+            <div id="standings-panel" class="fleet-panel" hidden>
+              <h2>Charter standings</h2>
+              <div id="rankings" class="rankings">—</div>
+              <div id="turn-deltas" class="turn-deltas mono"></div>
+            </div>
+            <div id="setup-body" class="fleet-panel">
               <h2>New game</h2>
               <label>
                 Total pilots (2–6)

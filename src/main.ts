@@ -88,7 +88,8 @@ const logEl = document.getElementById("log")!;
 const turnInfo = document.getElementById("turn-info")!;
 const rankingsEl = document.getElementById("rankings")!;
 const turnDeltasEl = document.getElementById("turn-deltas")!;
-const setupCard = document.getElementById("setup-card")!;
+const fleetCard = document.getElementById("fleet-card")!;
+const standingsPanel = document.getElementById("standings-panel")!;
 const setupBody = document.getElementById("setup-body")!;
 const setupToggle = document.getElementById("setup-toggle")!;
 const btnQuit = document.getElementById("btn-quit")!;
@@ -253,12 +254,35 @@ async function presentAnnouncementIfAny(s: GameState): Promise<GameState> {
   return state ?? s;
 }
 
-function setSetupCollapsed(collapsed: boolean): void {
-  setupCard.classList.toggle("collapsed", collapsed);
-  // Header "New game" only when setup is tucked away (game in progress)
-  setupToggle.classList.toggle("hidden", !collapsed);
-  setupToggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
-  setupBody.classList.toggle("hidden", collapsed);
+/**
+ * Shared fleet card: standings XOR new-game setup (same sidebar slot).
+ * @param showStandings true = charter standings; false = new game form
+ */
+function setSetupCollapsed(showStandings: boolean): void {
+  fleetCard.classList.toggle("mode-standings", showStandings);
+  fleetCard.classList.toggle("mode-setup", !showStandings);
+  standingsPanel.hidden = !showStandings;
+  setupBody.hidden = showStandings;
+
+  const inGame = !!state;
+  if (showStandings) {
+    setupToggle.classList.remove("hidden");
+    setupToggle.textContent = "New game";
+    setupToggle.title = "New game setup";
+    setupToggle.setAttribute("aria-label", "Open new game setup");
+    setupToggle.setAttribute("aria-expanded", "false");
+  } else if (inGame) {
+    // Mid-game setup: allow return to standings without launching
+    setupToggle.classList.remove("hidden");
+    setupToggle.textContent = "Standings";
+    setupToggle.title = "Back to charter standings";
+    setupToggle.setAttribute("aria-label", "Back to charter standings");
+    setupToggle.setAttribute("aria-expanded", "true");
+  } else {
+    // Pre-launch: setup is the only content; hide header control
+    setupToggle.classList.add("hidden");
+    setupToggle.setAttribute("aria-expanded", "true");
+  }
 }
 
 function setBusy(busy: boolean): void {
@@ -949,8 +973,8 @@ document.addEventListener("keydown", (e) => {
 mountLabScenarios();
 
 setupToggle.addEventListener("click", () => {
-  const open = setupCard.classList.contains("collapsed");
-  setSetupCollapsed(!open);
+  const showingStandings = fleetCard.classList.contains("mode-standings");
+  setSetupCollapsed(!showingStandings);
 });
 
 btnNew.addEventListener("click", () => startGame(includeHuman.checked));
@@ -996,9 +1020,9 @@ document.getElementById("end-again")?.addEventListener("click", () => {
 });
 document.getElementById("end-close")?.addEventListener("click", () => {
   hideEndScreen();
-  setSetupCollapsed(false);
   state = null;
   btnQuit.classList.add("hidden");
+  setSetupCollapsed(false);
   render();
 });
 
