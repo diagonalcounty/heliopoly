@@ -1017,6 +1017,17 @@ button:not(:disabled):active {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  /* Clamp metrics so any residual fancy glyphs can't stretch the row */
+  line-height: 1.15;
+}
+
+/* Propellant in dense UI: never use unicode subscripts here (see propellant.uiShort) */
+.rank-prop {
+  display: inline;
+  font-size: inherit;
+  line-height: 1;
+  font-variant-position: normal;
+  vertical-align: baseline;
 }
 
 .rank-money {

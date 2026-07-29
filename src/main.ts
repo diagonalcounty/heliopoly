@@ -1,7 +1,6 @@
 import { heuristicAI } from "./core/agents";
 import { createV0Board, getNode, isPurchasable, nodeList } from "./core/board";
 import { formatMoney } from "./core/currency";
-import { gravityClassOf, leaveBurnCost } from "./core/fuel";
 import { walkMovePath } from "./core/path";
 import { PROPELLANTS } from "./core/propellant";
 import { prevailsHeadline, winsHeadline } from "./core/pilotCopy";
@@ -27,7 +26,6 @@ import type {
 import { bodyRadius, drawBodyIcon, drawFuelDepotIcon } from "./bodyIcons";
 import { inspectBody } from "./core/inspect";
 import { suggestCopyViaGithub } from "./core/links";
-import { PARK_FERAL_THRESHOLD } from "./core/rules";
 import { mountHandbook } from "./handbook/handbook";
 import { LAB_SCENARIOS } from "./lab/scenarios";
 import type { Board } from "./core/types";
@@ -36,8 +34,6 @@ import { submitGameTelemetry } from "./telemetry";
 let state: GameState | null = null;
 let visualNode: Record<string, string> = {};
 let animating = false;
-/** Snapshot of deltas after a pilot ends their turn. */
-let lastTurnSummary: string[] = [];
 /** Last board projector for hit-testing hover */
 let lastProject:
   | null
@@ -87,9 +83,7 @@ const canvas = document.getElementById("board") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d")!;
 const logEl = document.getElementById("log")!;
 const btnCopyLog = document.getElementById("btn-copy-log") as HTMLButtonElement;
-const turnInfo = document.getElementById("turn-info")!;
 const rankingsEl = document.getElementById("rankings")!;
-const turnDeltasEl = document.getElementById("turn-deltas")!;
 const fleetCard = document.getElementById("fleet-card")!;
 const standingsPanel = document.getElementById("standings-panel")!;
 const setupBody = document.getElementById("setup-body")!;
@@ -133,7 +127,7 @@ const btnBuy = document.getElementById("btn-buy") as HTMLButtonElement;
 const btnSell = document.getElementById("btn-sell") as HTMLButtonElement;
 const btnStation = document.getElementById("btn-station") as HTMLButtonElement;
 const btnEnd = document.getElementById("btn-end") as HTMLButtonElement;
-const rollResultEl = document.getElementById("roll-result")!;
+const telemetryEl = document.getElementById("telemetry")!;
 const breakRow = document.getElementById("break-row")!;
 const breakCountEl = document.getElementById("break-count")!;
 const breakCostEl = document.getElementById("break-cost")!;
@@ -854,20 +848,8 @@ async function runAiUntilHumanOrEnd(s: GameState): Promise<GameState> {
       continue;
     }
 
-    const beforeDeltas = cur.turnDeltas.length;
     const action = heuristicAI(cur);
-    const beforePlayer = currentPlayer(cur).id;
     cur = await applyActionAnimated(cur, action);
-    if (
-      currentPlayer(cur).id !== beforePlayer ||
-      action.type === "end_turn"
-    ) {
-      // turn advanced — keep summary from previous state's deltas if needed
-      if (cur.turnDeltas.length) lastTurnSummary = [...cur.turnDeltas];
-      else if (beforeDeltas) {
-        /* keep */
-      }
-    }
     state = cur;
     render();
     if (action.type !== "roll") await sleep(160);
@@ -1002,13 +984,7 @@ async function act(action: PlayerAction): Promise<void> {
   if (p.agent !== "human") return;
   setBusy(true);
   try {
-    const beforeId = p.id;
     const after = await applyActionAnimated(state, action);
-    if (action.type === "end_turn" || currentPlayer(after).id !== beforeId) {
-      lastTurnSummary = [...(state.turnDeltas.length ? state.turnDeltas : after.turnDeltas)];
-    } else {
-      lastTurnSummary = [...after.turnDeltas];
-    }
     state = after;
     render();
     if (state.phase !== "game_over") {
@@ -1027,7 +1003,6 @@ async function act(action: PlayerAction): Promise<void> {
 function startGame(human: boolean): void {
   if (animating) return;
   visualNode = {};
-  lastTurnSummary = [];
   void commitState(
     createGame({
       playerCount: Number(playerCountInput.value) || 4,
@@ -1160,7 +1135,6 @@ async function runLabScenario(id: string): Promise<void> {
   hideDuelResultSplash();
   duelRoot.classList.add("hidden");
   visualNode = {};
-  lastTurnSummary = [];
   const next = sc.build();
   await commitState(next);
 }
@@ -1183,7 +1157,6 @@ btnSelf.addEventListener("click", () => {
   if (animating) return;
   includeHuman.checked = false;
   visualNode = {};
-  lastTurnSummary = [];
   let s = createGame({
     playerCount: Number(playerCountInput.value) || 4,
     humanSeat: false,
@@ -1287,18 +1260,27 @@ for (const btn of document.querySelectorAll<HTMLButtonElement>(
   });
 }
 
+function resizeLog(): void {
+  const board = document.querySelector(".board-panel") as HTMLElement;
+  const pilotControls = document.getElementById("pilot-controls") as HTMLElement;
+  const logCard = document.querySelector(".log-card") as HTMLElement;
+  if (!board || !pilotControls || !logCard) return;
+  const gap = 12;
+  const desired = board.getBoundingClientRect().bottom - pilotControls.getBoundingClientRect().bottom - gap;
+  logCard.style.height = `${Math.max(80, desired)}px`;
+}
+
 function render(): void {
   drawBoard();
   renderSide();
+  resizeLog();
   updateDuelModal(state);
 }
 
 function renderSide(): void {
   if (!state) {
-    turnInfo.textContent = "No game yet. Launch when ready.";
     logEl.textContent = "";
     rankingsEl.textContent = "—";
-    turnDeltasEl.textContent = "";
     btnCopyLog.disabled = true;
     for (const b of [btnRefuel, btnRoll, btnBuy, btnStation, btnEnd]) {
       b.disabled = true;
@@ -1310,11 +1292,6 @@ function renderSide(): void {
 
   const p = currentPlayer(state);
   const legal = getLegalActions(state);
-  const node = getNode(state.board, p.position);
-  const g = gravityClassOf(node);
-  const previewSteps = state.lastRoll?.total ?? 7;
-  const leaveCost = leaveBurnCost(node, previewSteps, p.propellant);
-  const prop = PROPELLANTS[p.propellant];
 
   // Charter standings = scoreboard + full seat status (Rockets panel merged in)
   const ranks = rankings(state);
@@ -1344,45 +1321,15 @@ function renderSide(): void {
     .map(({ pl, worth, rankLabel }) => {
       const active = pl.id === p.id && state!.phase !== "game_over";
       const lead = rankLabel === "#1" ? " lead" : "";
-      const plProp = PROPELLANTS[pl.propellant].short;
+      // uiShort avoids unicode subscripts (CH₄/H₂) which inflate line boxes in standings
+      const plProp = PROPELLANTS[pl.propellant].uiShort;
       const shown = shipNodeId(pl.id, pl.position);
       const at = getNode(state!.board, shown).name;
       const skip = !pl.eliminated && pl.skipTurns ? " · skip" : "";
       // Single-line markup: avoids anonymous whitespace grid items if pre-wrap sneaks back
-      return `<div class="rank-row${lead}${active ? " active" : ""}${pl.eliminated ? " out" : ""}"><div class="swatch" style="background:${pl.color}" aria-hidden="true"></div><div class="rank-body"><div class="rank-top"><span class="rank-id">${rankLabel} ${rocketNameButton(pl.name)}${skip} · ${plProp}</span><span class="rank-money"><span class="cash">${formatMoney(pl.cash)} cash</span> · NW ${formatMoney(worth)}</span></div><div class="rank-detail">${pl.fuel} fuel · ${pl.properties.length} claims · ${at}</div></div></div>`;
+      return `<div class="rank-row${lead}${active ? " active" : ""}${pl.eliminated ? " out" : ""}"><div class="swatch" style="background:${pl.color}" aria-hidden="true"></div><div class="rank-body"><div class="rank-top"><span class="rank-id">${rankLabel} ${rocketNameButton(pl.name)}${skip} · <span class="rank-prop">${plProp}</span></span><span class="rank-money"><span class="cash">${formatMoney(pl.cash)} cash</span> · NW ${formatMoney(worth)}</span></div><div class="rank-detail">${pl.fuel} fuel · ${pl.properties.length} claims · ${at}</div></div></div>`;
     })
     .join("");
-
-  const deltas =
-    state.turnDeltas.length > 0 ? state.turnDeltas : lastTurnSummary;
-  turnDeltasEl.innerHTML = deltas.length
-    ? deltas
-        .map((line) => {
-          const neg = /−|-|rent|stuck|OUT|skip|burn|fuel leave/i.test(line);
-          return `<div class="${neg ? "neg" : ""}">${line}</div>`;
-        })
-        .join("")
-    : `<div style="opacity:0.5">Turn deltas appear here</div>`;
-
-  turnInfo.textContent = [
-    animating
-      ? "… ship moving …"
-      : state.phase === "await_duel"
-        ? "Gravity Duel in progress"
-        : `Turn ${state.gameTurn} · Round ${state.round} · ${state.phase}`,
-    `${p.name} @ ${node.name} (g${g})`,
-    `${formatMoney(p.cash)} · fuel ${p.fuel} · ${prop.short} · NW ${formatMoney(netWorth(state, p))}`,
-    leaveCost > 0
-      ? `Leave @${previewSteps}: ${leaveCost} fuel`
-      : `Leave: free`,
-    state.lastRoll
-      ? `Last roll: ${state.lastRoll.d1}+${state.lastRoll.d2}=${state.lastRoll.total}`
-      : "Last roll: —",
-    `Park count: ${p.parkCount} (feral risk from park ${PARK_FERAL_THRESHOLD}+; no-move turns)`,
-    p.ephemerisBodyId
-      ? `Ephemeris: ${getNode(state.board, p.ephemerisBodyId).name}`
-      : "Ephemeris: Earth (until first claim)",
-  ].join("\n");
 
   const can =
     !animating &&
@@ -1404,10 +1351,60 @@ function renderSide(): void {
   btnNew.disabled = animating;
   btnSelf.disabled = animating;
 
+  // Telemetry screen
+  const node = getNode(state.board, p.position);
+  const teleLines: string[] = [];
+  if (state.phase === "game_over") {
+    teleLines.push("STATUS: GAME OVER");
+    teleLines.push("");
+  } else if (p.eliminated) {
+    teleLines.push("STATUS: ELIMINATED");
+    teleLines.push("");
+  } else if (animating) {
+    teleLines.push("STATUS: MOVING");
+    teleLines.push("");
+  } else if (state.phase === "await_duel") {
+    teleLines.push("STATUS: DUEL");
+    teleLines.push("");
+  } else if (state.phase === "await_move" && state.lastRoll) {
+    const roll = state.lastRoll;
+    const m = roll.total - legal.breakSpaces;
+    teleLines.push(
+      `DICE ${roll.d1}+${roll.d2}=${roll.total} · break ${legal.breakSpaces} · move ${m}`,
+    );
+    teleLines.push(`leave burn ~${legal.leaveBurnPreview}`);
+  } else if (state.phase === "await_post_land") {
+    const ctx = isPurchasable(node) && !state.owners[node.id]
+      ? `claim available ${formatMoney(node.price ?? 0)}`
+      : state.owners[node.id] === p.id
+        ? "you own this body"
+        : state.owners[node.id]
+          ? `owned by ${state!.players.find(x => x.id === state!.owners[node.id])?.name ?? "?"}`
+          : "insertion free";
+    teleLines.push(`LANDED: ${node.name}`);
+    teleLines.push(ctx);
+  } else if (state.phase === "await_action") {
+    if (!p.rolledThisTurn && p.parkCount > 0) {
+      teleLines.push(`STATUS: PARKED`);
+      teleLines.push(`park count ${p.parkCount}`);
+    } else {
+      teleLines.push(`STATUS: READY`);
+      teleLines.push(`FUEL ${p.fuel}/${state!.config.maxFuel} · CLAIMS ${p.properties.length}`);
+    }
+  } else {
+    teleLines.push(`STATUS: ${state.phase}`);
+    teleLines.push(`FUEL ${p.fuel}/${state!.config.maxFuel}`);
+  }
+  telemetryEl.className = `telemetry${
+    p.fuel <= 1 ? " fuel-red" : p.fuel <= 3 ? " fuel-amber" : ""
+  }`;
+  telemetryEl.innerHTML = teleLines
+    .map((t, i) => `<div${i === 1 ? ' class="line2"' : ""}>${t}</div>`)
+    .join("");
+
+  // Break row — fixed 36px, visibility toggled
   if (state.phase === "await_move" && state.lastRoll) {
-    rollResultEl.classList.remove("hidden");
-    rollResultEl.textContent = `Dice ${state.lastRoll.d1}+${state.lastRoll.d2}=${state.lastRoll.total} · break ${legal.breakSpaces} · move ${state.lastRoll.total - legal.breakSpaces} · leave burn ~${legal.leaveBurnPreview}`;
-    breakRow.classList.remove("hidden");
+    breakRow.classList.remove("hidden-vis");
     breakCountEl.textContent = String(legal.breakSpaces);
     breakCostEl.textContent =
       legal.breakSpaces > 0
@@ -1417,8 +1414,7 @@ function renderSide(): void {
     btnBreakPlus.disabled =
       !can || legal.breakSpaces >= legal.maxBreak;
   } else {
-    rollResultEl.classList.add("hidden");
-    breakRow.classList.add("hidden");
+    breakRow.classList.add("hidden-vis");
   }
 
   if (legal.sell) {
@@ -1453,7 +1449,10 @@ function renderSide(): void {
   }
 
   logEl.textContent = "";
-  for (const line of state.log.slice(-60)) {
+  const maxLog = 60;
+  const start = Math.max(0, state.log.length - maxLog);
+  for (let i = state.log.length - 1; i >= start; i--) {
+    const line = state.log[i];
     // Belt-and-suspenders: never show engine reseed crumbs in the UI (#56)
     if (/↺|^\s*seed\[/i.test(line)) continue;
     const div = document.createElement("div");
@@ -1466,10 +1465,11 @@ function renderSide(): void {
     )
       div.className = "bad";
     else if (/rolls|Round|burns|Duel/i.test(line)) div.className = "warn";
-    div.textContent = line;
+    const hex = i.toString(16).padStart(2, "0").toUpperCase();
+    div.textContent = `${hex}:${line}`;
     logEl.appendChild(div);
   }
-  logEl.scrollTop = logEl.scrollHeight;
+  logEl.scrollTop = 0;
 }
 
 /** Map board unit coords → canvas pixels so every node + label fits. */
@@ -1699,6 +1699,8 @@ canvas.addEventListener("mouseleave", () => {
   bodyTooltip.classList.add("hidden");
 });
 
+window.addEventListener("resize", resizeLog);
 setSetupCollapsed(false);
 drawBoard();
 renderSide();
+resizeLog();
