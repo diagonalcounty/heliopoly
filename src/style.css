@@ -52,7 +52,7 @@ body {
   gap: 8px;
   flex-shrink: 0;
   min-height: 44px;
-  padding: 4px 12px 4px 6px;
+  padding: 6px 12px 6px 6px;
   border-radius: 12px;
   border: 1px solid var(--border);
   background: #1a2744;
@@ -74,7 +74,7 @@ body {
 .lab-launch {
   flex-shrink: 0;
   min-height: 44px;
-  padding: 4px 14px;
+  padding: 6px 14px;
   border-radius: 12px;
   border: 1px solid #5a4a20;
   background: #2a2210;
@@ -361,40 +361,36 @@ body.handbook-open {
   overflow: hidden;
 }
 
-@media (max-width: 640px) {
-  .handbook-body {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto minmax(0, 1fr);
-  }
+  @media (max-width: 640px) {
+    .handbook-body {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto minmax(0, 1fr);
+    }
 
-  .handbook-toc {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    overflow-y: hidden;
-    border-right: none !important;
-    border-bottom: 1px solid var(--border);
-    max-height: none;
-    height: auto;
-    padding: 8px !important;
-    gap: 6px;
-  }
+    .handbook-toc {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      overflow-y: hidden;
+      border-right: none !important;
+      border-bottom: 1px solid var(--border);
+      max-height: none;
+      height: auto;
+      padding: 8px !important;
+      gap: 6px;
+    }
 
-  .handbook-toc-item {
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
+    .handbook-toc-item {
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
 
-  .handbook-section-tab {
-    border-radius: 10px;
-    border-bottom: 1px solid var(--border);
+    .handbook-section-tab {
+      border-radius: 10px;
+      border-bottom: 1px solid var(--border);
+    }
   }
-
-  .log-card {
-    max-height: 180px;
-  }
-}
 
 .handbook-toc {
   border-right: 1px solid var(--border);
@@ -657,12 +653,14 @@ body.handbook-open {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
   gap: 16px;
-  align-items: start;
+  /* Sidebar height tracks the map column */
+  align-items: stretch;
 }
 
 @media (max-width: 900px) {
   .layout {
     grid-template-columns: 1fr;
+    align-items: start;
   }
 }
 
@@ -672,6 +670,7 @@ body.handbook-open {
   border-radius: 16px;
   padding: 8px;
   overflow: hidden;
+  min-height: 0;
 }
 
 #board {
@@ -686,10 +685,18 @@ body.handbook-open {
 .side {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  justify-content: flex-start;
+  gap: 10px;
+  /* Cap to viewport; never taller than the map column (stretch + overflow) */
+  max-height: min(100%, calc(100vh - 88px));
+  min-height: 0;
+  overflow: hidden;
+  position: sticky;
+  top: 12px;
 }
 
 .card {
+  flex-shrink: 0;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 14px;
@@ -779,7 +786,6 @@ button:not(:disabled):active {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  margin-top: 3px;
   flex-shrink: 0;
 }
 
@@ -824,15 +830,18 @@ button:not(:disabled):active {
 }
 
 .log-card {
-  max-height: 320px;
-  overflow: hidden;
+  /* Fills leftover sidebar under fleet + pilot controls; scrolls internally */
+  flex: 1 1 auto;
+  min-height: 100px;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 .log-card .log {
   flex: 1 1 auto;
   min-height: 0;
-  overflow: auto;
+  max-height: none;
+  overflow-y: auto;
   color: var(--muted);
 }
 
@@ -848,13 +857,16 @@ button:not(:disabled):active {
 
 .top-actions {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   flex-wrap: wrap;
+  /* Buffer so header controls aren't flush to the viewport edge */
+  padding: 4px 2px 4px 8px;
+  align-items: center;
 }
 
 .quit-btn {
   min-height: 44px;
-  padding: 4px 14px;
+  padding: 6px 14px;
   border-radius: 12px;
   border: 1px solid #6a3040;
   background: #3a1820;
@@ -870,7 +882,7 @@ button:not(:disabled):active {
 .new-game-launch {
   flex-shrink: 0;
   min-height: 44px;
-  padding: 4px 14px;
+  padding: 6px 14px;
   border-radius: 12px;
   border: 1px solid var(--border);
   background: #1a2744;
@@ -886,19 +898,35 @@ button:not(:disabled):active {
 
 /**
  * Shared sidebar slot: Charter standings and New game alternate.
- * Same min-height so the Turn card below doesn't jump.
+ * Setup needs room; standings rows must stay dense (not stretched to fill).
  */
 .fleet-card {
-  padding: 10px 12px;
-  /* Fits setup form (~propellant + difficulty + actions); standings uses same box */
-  min-height: 22rem;
+  flex-shrink: 0;
+  padding: 8px 12px;
+  min-height: 0;
   display: flex;
   flex-direction: column;
+  justify-content: flex-start;
+}
+
+.fleet-card.mode-setup {
+  /* Keep setup form usable without forcing standings rows to stretch */
+  min-height: 18rem;
 }
 
 .fleet-panel {
-  flex: 1 1 auto;
+  /* Do NOT flex-grow standings content — that stretches rows */
+  flex: 0 1 auto;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 6px;
+}
+
+#standings-panel h2 {
+  margin: 0 0 2px;
+  flex: none;
 }
 
 .fleet-card.mode-setup #standings-panel,
@@ -913,24 +941,32 @@ button:not(:disabled):active {
 
 .rankings {
   font-size: 0.8rem;
-  line-height: 1.25;
+  line-height: 1.2;
   display: flex;
   flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
   gap: 2px;
+  flex: none;
   /* Never inherit .mono pre-wrap — newlines become grid items and blow spacing */
   white-space: normal;
 }
 
+/* Player card: tight flex-column, never space-between vertically (#64) */
 .rank-row {
   display: grid;
   grid-template-columns: 10px minmax(0, 1fr);
   column-gap: 8px;
   align-items: start;
+  justify-content: start;
   margin: 0;
-  padding: 4px 6px;
+  padding: 6px 8px;
   border-radius: 6px;
   border-bottom: none;
   white-space: normal;
+  height: auto;
+  min-height: 0;
+  flex: none;
 }
 
 .rank-row + .rank-row {
@@ -942,11 +978,10 @@ button:not(:disabled):active {
   font-weight: 700;
 }
 
-/* Same padding as siblings — no negative margin “blowout” */
 .rank-row.active {
   background: #1a2744;
   margin: 0;
-  padding: 4px 6px;
+  padding: 6px 8px;
   box-shadow: none;
 }
 
@@ -956,15 +991,25 @@ button:not(:disabled):active {
 
 .rank-body {
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+  gap: 2px; /* max tight gap between name row and fuel/claims */
+  flex: none;
+  height: auto;
 }
 
 .rank-top {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-between; /* horizontal money only */
   align-items: baseline;
   gap: 6px 10px;
-  /* keep rank+name and money on one line when possible */
   flex-wrap: nowrap;
+  line-height: 1.15;
+  flex: none;
+  margin: 0;
+  padding: 0;
 }
 
 .rank-id {
@@ -987,18 +1032,21 @@ button:not(:disabled):active {
 
 .rank-detail {
   color: #9aa8c7;
-  font-size: 0.72rem;
-  margin-top: 1px;
-  line-height: 1.2;
+  font-size: 0.7rem;
+  line-height: 1.15;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  flex: none;
+  margin: 0;
+  padding: 0;
 }
 
-.rank-card .swatch {
+.rank-row .swatch {
   width: 10px;
   height: 10px;
-  margin-top: 4px;
+  margin-top: 3px;
+  flex-shrink: 0;
 }
 
 /* Rocket name → Ops Manual (Rival rockets / pilot-*) */
@@ -1024,18 +1072,7 @@ button:not(:disabled):active {
   outline: none;
 }
 
-.turn-deltas {
-  margin-top: 10px;
-  padding-top: 8px;
-  border-top: 1px dashed var(--border);
-  color: var(--ok);
-  font-size: 0.78rem;
-  min-height: 1.2em;
-}
 
-.turn-deltas .neg {
-  color: var(--danger);
-}
 
 .duel-panel {
   max-width: 480px;
@@ -1397,61 +1434,153 @@ button:not(:disabled):active {
   font-size: 0.95rem;
 }
 
-/* Anchor turn status text so action buttons never shift */
-.turn-status {
-  min-height: 9.5em;
+
+
+/* —— Pilot Controls Panel —— */
+.pilot-controls {
+  height: 320px;
+  min-height: 320px;
+  max-height: 320px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 12px 8px;
 }
 
-.roll-result {
-  margin: 8px 0;
-  padding: 8px 10px;
-  border-radius: 10px;
-  background: #0d1426;
-  border: 1px solid var(--border);
-  color: var(--accent-2);
-  font-size: 0.9rem;
+.pilot-controls h2 {
+  margin: 0 0 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
 }
+
+/* Telemetry screen — never collapses */
+.telemetry {
+  height: 88px;
+  flex-shrink: 0;
+  background: #0a0f1a;
+  border: 1px solid #1e3a5f;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  line-height: 1.45;
+  color: #7dd3fc;
+  overflow: hidden;
+  position: relative;
+}
+@keyframes scanline {
+  from { transform: translateY(0); }
+  to   { transform: translateY(2px); }
+}
+.telemetry::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 1px,
+    rgba(125, 211, 252, 0.04) 1px,
+    rgba(125, 211, 252, 0.04) 2px
+  );
+  pointer-events: none;
+  animation: scanline 8s linear infinite;
+}
+.telemetry .line2 {
+  color: #94a3b8;
+}
+.telemetry.fuel-amber .line2,
+.telemetry.fuel-amber {
+  color: #f59e0b;
+}
+.telemetry.fuel-red .line2,
+.telemetry.fuel-red {
+  color: #ef4444;
+}
+
+/* Break row — fixed height, visibility toggled (never display:none) */
 .break-row {
+  height: 36px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin: 8px 0 4px;
-  flex-wrap: wrap;
+  gap: 6px;
+  visibility: visible;
+}
+.break-row.hidden-vis {
+  visibility: hidden;
 }
 .break-label {
-  min-height: 40px;
-  padding: 8px 12px;
-  border-radius: 10px 0 0 10px;
+  height: 28px;
+  padding: 2px 10px;
+  border-radius: 6px 0 0 6px;
   background: #2a2040;
   border: 1px solid var(--border);
   color: var(--accent);
   font-weight: 700;
+  font-size: 0.72rem;
+  line-height: 1;
 }
 .break-stepper {
   display: flex;
   align-items: center;
   gap: 0;
   border: 1px solid var(--border);
-  border-radius: 0 10px 10px 0;
+  border-radius: 0 6px 6px 0;
   overflow: hidden;
+  height: 28px;
 }
 .break-stepper button {
-  min-width: 40px;
-  min-height: 40px;
+  min-width: 30px;
+  width: 30px;
+  height: 28px;
   border: none;
   border-radius: 0;
   background: var(--btn);
+  font-size: 0.8rem;
+  padding: 0;
+  min-height: 0;
 }
 .break-count {
-  min-width: 36px;
+  min-width: 24px;
   text-align: center;
   font-weight: 800;
-  font-size: 1.1rem;
+  font-size: 0.8rem;
   color: var(--text);
+  line-height: 1;
 }
 .break-cost {
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   color: var(--muted);
+  white-space: nowrap;
+}
+
+/* Action grid — fills remaining space, 6 buttons always present */
+.pilot-controls .actions {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  align-content: stretch;
+  margin-top: 4px;
+}
+.pilot-controls .actions button {
+  min-height: 0;
+  height: 100%;
+  padding: 6px 6px;
+  font-size: 0.78rem;
+  border-radius: 8px;
+  border: 1px solid #1e3a5f;
+  min-height: 42px;
+}
+.pilot-controls .actions button.primary {
+  background: linear-gradient(180deg, #0891b2, #0e7490);
+  border-color: #22d3ee;
+  color: #fff;
 }
 .rank-row .cash {
   color: var(--ok);
