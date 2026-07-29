@@ -159,6 +159,13 @@ const PILOT_NAME_KEY = "heliopoly.pilotName";
 function loadStoredPilotName(): void {
   try {
     const saved = localStorage.getItem(PILOT_NAME_KEY);
+    // Pre-0.0.8 default was "Captain" — migrate empty default to Venture
+    if (saved && /^captain$/i.test(saved.trim())) {
+      localStorage.removeItem(PILOT_NAME_KEY);
+      pilotNameInput.value = "";
+      pilotNameInput.placeholder = "Venture";
+      return;
+    }
     if (saved) pilotNameInput.value = saved;
   } catch {
     /* private mode */
