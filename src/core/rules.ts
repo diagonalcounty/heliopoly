@@ -133,22 +133,59 @@ function touchClaim(state: GameState, nodeId: string, owner?: Player): void {
   state.claimCareRotations[nodeId] = o.neglectClock;
 }
 
+/** Earth GO pay: land 400 / pass 200, each +10 per completed rotation. */
+export const EARTH_LAND_BASE = 400;
+export const EARTH_PASS_BASE = 200;
+export const EARTH_PER_ROTATION = 10;
+/** One-time cash when a pilot’s circuitsCompleted hits 10, 20, 30… */
+export const EARTH_DECADE_BONUS = 1000;
+
+export function earthVisitPay(base: number, circuitsCompleted: number): number {
+  return base + EARTH_PER_ROTATION * Math.max(0, circuitsCompleted);
+}
+
+function payEarthVisit(
+  state: GameState,
+  p: Player,
+  kind: "land" | "pass",
+): void {
+  const base = kind === "land" ? EARTH_LAND_BASE : EARTH_PASS_BASE;
+  const amount = earthVisitPay(base, p.circuitsCompleted);
+  p.cash += amount;
+  const label = kind === "land" ? "lands on" : "passes";
+  pushLog(
+    state,
+    `${p.name} ${label} Earth: +${formatMoney(amount)} (base ${formatMoney(base)} + ${formatMoney(EARTH_PER_ROTATION)}×${p.circuitsCompleted} rotations).`,
+  );
+  delta(state, `+${formatMoney(amount)} Earth ${kind}`);
+}
+
 /**
  * Pilot finished a full board circuit (returned to Earth after leaving).
- * Own neglect +1; depot resupply; tick neglect for anyone who skipped rolling.
+ * Own neglect +1; depot resupply; rotation counter; decade bonus at 10/20/30…
  */
 function onCircuitComplete(state: GameState, pilot: Player): void {
   state.boardRotations += 1;
   pilot.circuitActive = false;
   pilot.neglectClock += 1;
+  pilot.circuitsCompleted += 1;
 
   pushLog(
     state,
-    `Circuit complete: ${pilot.name} (neglect ${pilot.neglectClock}). Board loops: ${state.boardRotations}.`,
+    `Circuit complete: ${pilot.name} · rotation ${pilot.circuitsCompleted} (board loops ${state.boardRotations}).`,
   );
 
   // Anyone who skipped their roll (camping anywhere) takes a foe Earth-pass tick
   tickNeglectForSkippers(state, pilot.id, `${pilot.name} reached Earth`);
+
+  if (pilot.circuitsCompleted > 0 && pilot.circuitsCompleted % 10 === 0) {
+    pilot.cash += EARTH_DECADE_BONUS;
+    pushLog(
+      state,
+      `${pilot.name} decade charter bonus (rotation ${pilot.circuitsCompleted}): +${formatMoney(EARTH_DECADE_BONUS)}.`,
+    );
+    delta(state, `+${formatMoney(EARTH_DECADE_BONUS)} decade rotation`);
+  }
 
   const resupply = state.config.stationsEach;
   pilot.stationsInHand += resupply;
@@ -832,13 +869,24 @@ function movePlayer(state: GameState, steps: number): void {
       );
     }
   }
+
+  // Earth pass: intermediate die-stops on Earth (not the final rest)
+  if (path.stops.length > 1) {
+    for (let i = 0; i < path.stops.length - 1; i++) {
+      if (path.stops[i] === "earth") {
+        payEarthVisit(state, p, "pass");
+      }
+    }
+  }
+
   p.position = path.endId;
+
+  // Earth land/pass cash uses circuitsCompleted *before* this return increments
+  resolveLanding(state, false);
 
   if (path.endId === "earth" && p.circuitActive) {
     onCircuitComplete(state, p);
   }
-
-  resolveLanding(state, false);
 }
 
 function resolveLanding(state: GameState, stayed: boolean): void {
@@ -856,7 +904,10 @@ function resolveLanding(state: GameState, stayed: boolean): void {
     touchClaim(state, node.id);
   }
 
-  if (node.landingBonus && node.landingBonus > 0 && !stayed) {
+  // Earth land uses rotation-scaled pay; other bodies keep landingBonus if any
+  if (!stayed && node.id === "earth") {
+    payEarthVisit(state, p, "land");
+  } else if (node.landingBonus && node.landingBonus > 0 && !stayed) {
     p.cash += node.landingBonus;
     pushLog(
       state,

@@ -108,7 +108,7 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
   <li>After landing: <strong>Buy</strong> / <strong>Sell claim</strong> (½ price, depot scrapped) / Depot / End turn.</li>
 </ol>
 <p>Landing is free. Leaving a gravity well costs fuel. Failed leave on an enemy claim charges rent again.</p>
-<p>Earth landing grants <strong>⍼400</strong> and circuit resupply; use break to land short of a full roll when you need home.</p>
+<p><strong>Earth charter pay:</strong> <strong>⍼400</strong> when you <em>land</em> on Earth, <strong>⍼200</strong> when you <em>pass</em> Earth on a multi-space move (intermediate stop). Each completed board <strong>rotation</strong> adds <strong>⍼10</strong> to both amounts thereafter. Completing rotation <strong>10, 20, 30…</strong> also pays a one-time <strong>⍼1000</strong> decade bonus. Full circuit still resupplies fuel depots (+3 in hand).</p>
 `,
   },
   {

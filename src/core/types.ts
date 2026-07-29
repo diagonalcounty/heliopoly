@@ -85,6 +85,11 @@ export interface Player {
   /** True after leaving Earth until next full circuit completes. */
   circuitActive: boolean;
   /**
+   * Full board rotations this pilot has finished (Earth return after leave).
+   * Scales Earth land/pass pay (+10 each) and decade bonuses at 10, 20, 30…
+   */
+  circuitsCompleted: number;
+  /**
    * Legacy circuit neglect (still incremented on Earth loops / skippers).
    * Does **not** drive feral — parking `parkCount` does. Kept for logs/compat.
    */
