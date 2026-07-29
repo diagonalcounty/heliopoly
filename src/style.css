@@ -706,35 +706,12 @@ button:not(:disabled):active {
   white-space: pre-wrap;
 }
 
-.player-row {
-  display: grid;
-  grid-template-columns: 12px 1fr;
-  gap: 8px;
-  padding: 8px 0;
-  border-bottom: 1px solid #1c2540;
-  font-size: 0.85rem;
-}
-
-.player-row:last-child {
-  border-bottom: none;
-}
-
-.player-row.active {
-  background: #1a2744;
-  margin: 0 -8px;
-  padding: 8px;
-  border-radius: 8px;
-}
-
-.player-row.out {
-  opacity: 0.45;
-}
-
 .swatch {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  margin-top: 4px;
+  margin-top: 3px;
+  flex-shrink: 0;
 }
 
 .log-card .log {
@@ -788,20 +765,57 @@ button:not(:disabled):active {
 
 .rankings {
   font-size: 0.82rem;
-  line-height: 1.45;
+  line-height: 1.4;
 }
 
 .rank-row {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 12px 1fr;
   gap: 8px;
-  padding: 4px 0;
+  padding: 8px 0;
   border-bottom: 1px solid #1c2540;
 }
 
-.rank-row.lead {
+.rank-row:last-child {
+  border-bottom: none;
+}
+
+.rank-row.lead .rank-id {
   color: var(--accent-2);
   font-weight: 700;
+}
+
+.rank-row.active {
+  background: #1a2744;
+  margin: 0 -8px;
+  padding: 8px;
+  border-radius: 8px;
+}
+
+.rank-row.out {
+  opacity: 0.45;
+}
+
+.rank-body {
+  min-width: 0;
+}
+
+.rank-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: baseline;
+}
+
+.rank-money {
+  white-space: nowrap;
+}
+
+.rank-detail {
+  color: #9aa8c7;
+  font-size: 0.78rem;
+  margin-top: 2px;
 }
 
 /* Rocket name → Ops Manual (Rival rockets / pilot-*) */

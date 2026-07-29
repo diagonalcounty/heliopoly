@@ -85,7 +85,6 @@ const handbook = mountHandbook(
 const canvas = document.getElementById("board") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d")!;
 const logEl = document.getElementById("log")!;
-const playersEl = document.getElementById("players")!;
 const turnInfo = document.getElementById("turn-info")!;
 const rankingsEl = document.getElementById("rankings")!;
 const turnDeltasEl = document.getElementById("turn-deltas")!;
@@ -492,11 +491,28 @@ async function presentNewDuelResult(
   after: GameState,
 ): Promise<GameState> {
   if (after.lastDuelResult && !before.lastDuelResult) {
+    console.warn(
+      "[duel-ceremony] showing result",
+      after.lastDuelResult.outcome,
+      after.lastDuelResult.winnerName,
+      after.lastDuelResult.loserName,
+      "phase before/after:",
+      before.phase,
+      after.phase,
+      "caller:",
+      new Error().stack?.split("\n")[2]?.trim(),
+    );
     state = after;
     render();
     await maybeShowDuelResult(after);
     // Wait until player dismisses splash before continuing AI/turns
     await waitForDuelResultDismiss();
+    console.warn("[duel-ceremony] dismissed");
+  } else if (after.lastDuelResult && before.lastDuelResult) {
+    console.warn(
+      "[duel-ceremony] skipping — before already had result",
+      before.lastDuelResult.winnerName,
+    );
   }
   return after;
 }
@@ -846,7 +862,7 @@ document
   .getElementById("btn-handbook-header")
   ?.addEventListener("click", () => handbook.open());
 
-/** Charter standings + rocket list: name → Rival rockets / pilot page. */
+/** Charter standings: rocket name → Rival rockets / pilot page. */
 function onRocketNameClick(e: Event): void {
   const el = (e.target as HTMLElement | null)?.closest?.(
     "[data-rocket-handbook]",
@@ -857,7 +873,6 @@ function onRocketNameClick(e: Event): void {
   if (topic) handbook.open(topic);
 }
 rankingsEl.addEventListener("click", onRocketNameClick);
-playersEl.addEventListener("click", onRocketNameClick);
 
 function openLab(): void {
   labRoot.classList.remove("hidden");
@@ -1045,7 +1060,6 @@ function renderSide(): void {
   if (!state) {
     turnInfo.textContent = "No game yet. Launch when ready.";
     logEl.textContent = "";
-    playersEl.innerHTML = "";
     rankingsEl.textContent = "—";
     turnDeltasEl.textContent = "";
     for (const b of [btnRefuel, btnRoll, btnBuy, btnStation, btnEnd]) {
@@ -1062,12 +1076,48 @@ function renderSide(): void {
   const leaveCost = leaveBurnCost(node, previewSteps, p.propellant);
   const prop = PROPELLANTS[p.propellant];
 
-  // Rankings: cash (spendable) + net worth (assets)
+  // Charter standings = scoreboard + full seat status (Rockets panel merged in)
   const ranks = rankings(state);
-  rankingsEl.innerHTML = ranks
-    .map((r) => {
-      const lead = r.rank === 1 ? " lead" : "";
-      return `<div class="rank-row${lead}"><span>#${r.rank} ${rocketNameButton(r.player.name)}</span><span><span class="cash">${formatMoney(r.player.cash)} cash</span> · NW ${formatMoney(r.worth)}</span></div>`;
+  const fallen = state.players
+    .filter((pl) => pl.eliminated)
+    .sort((a, b) => {
+      const ra = a.eliminatedOnRound ?? state!.round;
+      const rb = b.eliminatedOnRound ?? state!.round;
+      if (ra !== rb) return ra - rb;
+      const ta = a.eliminatedOnTurn ?? 0;
+      const tb = b.eliminatedOnTurn ?? 0;
+      return ta - tb;
+    });
+  const standingRows: { pl: Player; worth: number; rankLabel: string }[] = [
+    ...ranks.map((r) => ({
+      pl: r.player,
+      worth: r.worth,
+      rankLabel: `#${r.rank}`,
+    })),
+    ...fallen.map((pl) => ({
+      pl,
+      worth: netWorth(state!, pl),
+      rankLabel: "OUT",
+    })),
+  ];
+  rankingsEl.innerHTML = standingRows
+    .map(({ pl, worth, rankLabel }) => {
+      const active = pl.id === p.id && state!.phase !== "game_over";
+      const lead = rankLabel === "#1" ? " lead" : "";
+      const plProp = PROPELLANTS[pl.propellant].short;
+      const shown = shipNodeId(pl.id, pl.position);
+      const at = getNode(state!.board, shown).name;
+      const skip = !pl.eliminated && pl.skipTurns ? " · skip" : "";
+      return `<div class="rank-row${lead}${active ? " active" : ""}${pl.eliminated ? " out" : ""}">
+        <div class="swatch" style="background:${pl.color}" aria-hidden="true"></div>
+        <div class="rank-body">
+          <div class="rank-top">
+            <span class="rank-id">${rankLabel} ${rocketNameButton(pl.name)}${skip} · ${plProp}</span>
+            <span class="rank-money"><span class="cash">${formatMoney(pl.cash)} cash</span> · NW ${formatMoney(worth)}</span>
+          </div>
+          <div class="rank-detail">${pl.fuel} fuel · ${pl.properties.length} claims · ${at}</div>
+        </div>
+      </div>`;
     })
     .join("");
 
@@ -1169,24 +1219,6 @@ function renderSide(): void {
       btnStation.textContent = "Depot (moons/planets only)";
     else btnStation.textContent = "Place depot";
   }
-
-  playersEl.innerHTML = state.players
-    .map((pl) => {
-      const active = pl.id === p.id && state!.phase !== "game_over";
-      const plProp = PROPELLANTS[pl.propellant].short;
-      const shown = shipNodeId(pl.id, pl.position);
-      const at = getNode(state!.board, shown).name;
-      const nw = formatMoney(netWorth(state!, pl));
-      return `<div class="player-row${active ? " active" : ""}${pl.eliminated ? " out" : ""}">
-        <div class="swatch" style="background:${pl.color}"></div>
-        <div>
-          <strong>${rocketNameButton(pl.name)}</strong>${pl.eliminated ? " · OUT" : ""} · ${plProp}${pl.skipTurns ? " · skip" : ""}
-          <div>${formatMoney(pl.cash)} · ${nw} NW · ${pl.fuel} fuel · ${pl.properties.length} claims</div>
-          <div style="color:#9aa8c7">${at}</div>
-        </div>
-      </div>`;
-    })
-    .join("");
 
   logEl.textContent = "";
   for (const line of state.log.slice(-60)) {
