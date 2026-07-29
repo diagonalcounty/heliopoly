@@ -151,7 +151,7 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
   );
   if (heliopolisCheat) {
     state.log.push(
-      `Charter anomaly: callsign Heliopolis — bankroll ×4 (${formatMoney(humanCash)}).`,
+      `Genesis injection: callsign Heliopolis — AIL seed funding ×4 (${formatMoney(humanCash)}).`,
     );
   }
   return state;

@@ -14,7 +14,9 @@ export const SECTION_ICONS: Record<string, string> = {
 export const TOPIC_ICONS: Record<string, string> = {
   // Lore
   welcome: "/ops-manual-icon.png",
+  ledger: "/handbook/cash-alert.png",
   path: "/handbook/lore.png",
+  "stations-lore": "/handbook/legend-station.svg",
 
   // Gameplay
   "how-to-win": "/handbook/badge-rocket.png",

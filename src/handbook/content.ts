@@ -31,16 +31,26 @@ const LORE_TOPICS: HandbookTopic[] = [
     html: `
 <p><strong>Heliopoly</strong> — <em>Free Enterprise In Space</em> (v0.0.7).</p>
 <p>Open source: <a href="https://github.com/diagonalcounty/heliopoly" target="_blank" rel="noopener">github.com/diagonalcounty/heliopoly</a> — issues and PRs welcome.</p>
-<p>The solar system is open for charter. Buy claims, hold systems, keep propellant, and outlast every other pilot. There is <strong>no round clock</strong> — last pilot flying wins.</p>
-<p>Currency on the charter ledger is <strong>Crypto</strong> (quantum-era settlement). Amounts display with <strong>⍼</strong> before the figure (e.g. ⍼150).</p>
+<p>This is a <strong>preparatory simulator</strong> for near-future space enterprise: close-quarters economics like chess or Monopoly, abstracting fuel, orbits, and frontier capitalism so you can practice the mental model before the real Mainline opens.</p>
+<p>Earth’s old regulations stop at the edge of the system. Independent operators fly a rigid one-way orbital circuit — <strong>the Mainline</strong> — to build fortunes while propellant, claims, and the ledger stay honest.</p>
+<p>There is <strong>no round clock</strong> — last rocket flying wins.</p>
 <p>Close this manual with <kbd>Esc</kbd>, <strong>✕</strong>, or the dimmed backdrop.</p>
 `,
   },
   {
-    id: "path",
-    title: "The charter route",
+    id: "ledger",
+    title: "AIL & the Angzarr (⍼)",
     html: `
-<p>Traffic follows one fixed circuit (one direction):</p>
+<p>Legacy public ledgers (Bitcoin, Ethereum, and their kin) did not survive the leap to practical quantum attack. Settlement now runs on a quantum-resilient decentralized database: the <strong>AIL</strong> — <em>Automated Interplanetary Asset Ledger</em>.</p>
+<p>Deeds, rent, fuel transfers, and strikes settle in <strong>Angzarr</strong>, written <strong>⍼</strong> before the amount (e.g. ⍼150). The glyph is the UI face of the ledger; the value is AIL state.</p>
+<p><strong>Genesis injection:</strong> a huge smart-contract payout or venture seed at launch (e.g. the Heliopolis callsign) is not a glitch — it is a funded charter dropped onto the Mainline.</p>
+`,
+  },
+  {
+    id: "path",
+    title: "The Mainline",
+    html: `
+<p>Traffic follows one fixed circuit (one direction) — the <strong>Mainline</strong>:</p>
 <ol>
   <li><strong>Earth</strong> → Venus → Mercury</li>
   <li><strong>Mars system</strong> — Elon → Mars → Phobos → Deimos</li>
@@ -49,7 +59,20 @@ const LORE_TOPICS: HandbookTopic[] = [
   <li><strong>Saturn</strong> — Daktulios + Titan, Enceladus, Iapetus, Mimas, Rhea, Dione, Tethys + blanks</li>
   <li>Homeward → <strong>Earth</strong></li>
 </ol>
-<p>Completing this full loop is <strong>one board rotation</strong> (neglect / feral clocks use it). Blank lanes cost <em>no leave fuel</em> but are not free of conflict if another ship is already there.</p>
+<p>Completing this full loop is <strong>one board rotation</strong>. Blank lanes cost <em>no leave fuel</em> but are not free of conflict if another ship is already there.</p>
+`,
+  },
+  {
+    id: "stations-lore",
+    title: "Hub stations",
+    html: `
+<p><strong>Elon</strong>, <strong>Holst</strong>, and <strong>Daktulios</strong> are not ordinary deeds. Free of planetary wells and heavy red tape, they are refining choke points and trade ports — ice and mass from the outer system process here. Own the hubs and you own tollbooths on the pipeline.</p>
+<ul>
+  <li><strong>Elon (Mars)</strong> — named for the era that crashed per-kilogram launch cost and made commercial solar access imaginable.</li>
+  <li><strong>Holst (Jupiter)</strong> — after Gustav Holst; <em>The Planets</em> gave Jupiter a cultural boom long before a station hung in its sky.</li>
+  <li><strong>Daktulios (Saturn)</strong> — from the Greek for “ring”: the ring-station transit hub anchored in Saturn’s system.</li>
+</ul>
+<p>Gameplay: own <strong>2</strong> hubs → rent <strong>×2</strong> on hubs; own <strong>3</strong> → rent <strong>×4</strong>. Station network stacks with system monopoly.</p>
 `,
   },
 ];
@@ -162,25 +185,25 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     id: "propellant",
     title: "Propellant",
     html: `
-<p><strong>Methane (CH₄)</strong> — stable tanks (no leaks). Claim + fuel depot on <strong>Titan</strong> or <strong>Enceladus</strong> can fire a one-time <strong>resource strike</strong> (½ starting cash) with headlines like “You've struck liquid methane!”</p>
-<p><strong>Hydrogen (H₂)</strong> — cheaper leave burns, but <strong>landing</strong> can cause a <strong>LEAK</strong>: <strong>half your fuel</strong> and <strong>lose next turn</strong> to repair. Ice strikes on <strong>Enceladus, Mars, Europa, Ganymede</strong> (claim + depot) — e.g. “You've struck pure ice!”</p>
-<p>Strike pop-ups are sudden and terse on purpose — good fortune in a hard charter.</p>
+<p><strong>Methane (CH₄)</strong> — stable tanks, no leaks: the conservative operator’s choice. Claim + fuel depot on <strong>Titan</strong> or <strong>Enceladus</strong> can fire a one-time <strong>resource strike</strong> (½ starting cash) — e.g. “You've struck liquid methane!”</p>
+<p><strong>Hydrogen (H₂)</strong> — cheaper leave burns, higher risk. <strong>Landing</strong> on a real body can rupture tanks: <strong>half your fuel</strong> and <strong>lose next turn</strong> to repair. Balanced by ice-strike potential on <strong>Enceladus, Mars, Europa, Ganymede</strong> (claim + depot).</p>
+<p>Strike pop-ups are sudden and terse — good fortune on a hard charter.</p>
 `,
   },
   {
     id: "duel",
     title: "Gravity Duel",
     html: `
-<p>On blank/transit spaces with another ship: secret Low/High, then 2d6. Stances reveal after both roll.</p>
-<p>Loser skips a turn; winner gets one rent waiver on the loser’s claims. Tie: both stay; next arrival faces last roller.</p>
+<p>In the blank transit lanes — especially the belt — Earth’s rules do not apply. When ships intersect, they contest the optimal slingshot: a <strong>Gravity Duel</strong> for vector and trajectory.</p>
+<p>Secret <strong>Low / High</strong>, then 2d6; stances reveal after both roll. Loser is knocked off cadence (skips a turn); winner takes a rent free-pass on the loser’s claims. Tie: both hold the lane; next arrival faces the last roller.</p>
 `,
   },
   {
     id: "feral",
     title: "Parking & feral claims",
     html: `
-<p><strong>Live rule:</strong> claims go feral from <strong>parking</strong> (no-move seat turns), not from an “owner neglect” circuit timer.</p>
-<p>If your rocket <strong>does not move</strong> on a seat turn — camp, full break, failed leave, or duel skip — that is a <strong>park</strong>. Parks are <strong>cumulative</strong> for the whole charter (moving later does <em>not</em> clear the count).</p>
+<p><strong>Why claims go feral:</strong> not political betrayal or human “neglect,” but <strong>software bitrot</strong>. AI-managed extraction units, rigs, and pods throw unhandled exceptions. Without a pilot looping the Mainline to push maintenance patches, local automation degrades beyond salvage. The <strong>AIL</strong> scrubs the asset, marks the hardware derelict, and drops the deed back onto the open network.</p>
+<p><strong>Live mechanic (parking):</strong> if your rocket <strong>does not move</strong> on a seat turn — camp, full break, failed leave, or duel skip — that is a <strong>park</strong>. Parks are <strong>cumulative</strong> for the whole charter (moving later does <em>not</em> clear the count).</p>
 <ul>
   <li>Parks <strong>1–4</strong> — no feral check yet.</li>
   <li>Park <strong>5</strong> — <strong>each</strong> of your claims rolls: <strong>50%</strong> chance to go <strong>feral</strong>.</li>
@@ -188,9 +211,6 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
 </ul>
 <p><strong>Feral outcome:</strong> claim returns to the bank (unowned). Any fuel depot on it is <strong>destroyed</strong>. Other pilots may buy it again.</p>
 <p>Moving on a turn avoids adding a park <em>that turn</em>. Park count never resets. Check your park count on the turn panel.</p>
-<h4>What “owner neglect” is not</h4>
-<p>Older design notes described a per-pilot <strong>neglect clock</strong> (ticks on board circuits / camping while others loop), <strong>care stamps</strong> on purchase/visit/depot, an overdue window (~10 ticks), and feral rolls on the owner’s movement dice (50%, or 15% with full system monopoly).</p>
-<p>That model is <strong>not</strong> what sends claims feral in this build. The engine may still keep a neglect clock for logs/legacy, but <strong>feral risk is parking-only</strong>. Visiting your claim or placing a depot is still good play for rent and network — it is not a “reset the feral timer” button under parking rules.</p>
 `,
   },
   {
