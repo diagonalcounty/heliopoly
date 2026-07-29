@@ -290,6 +290,7 @@ function articleHtml(b: BodyDef, d: BodyData): string {
 <p class="pilot-hook"><em>${d.hook}</em></p>
 <table class="body-data">
   <tr><th>Discovery</th><td>${d.discovered}${d.discoverer !== "—" ? ` · ${d.discoverer}` : ""}</td></tr>
+  <tr><th>System</th><td>${b.system}</td></tr>
   <tr><th>Distance from Sun</th><td>${d.distanceAu} AU</td></tr>
   <tr><th>Solar insolation</th><td>${d.insolation} W/m² (${d.insolationEarth} Earth)</td></tr>
 </table>
