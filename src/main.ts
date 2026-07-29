@@ -255,7 +255,9 @@ async function presentAnnouncementIfAny(s: GameState): Promise<GameState> {
 
 function setSetupCollapsed(collapsed: boolean): void {
   setupCard.classList.toggle("collapsed", collapsed);
+  // Header "New game" only when setup is tucked away (game in progress)
   setupToggle.classList.toggle("hidden", !collapsed);
+  setupToggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
   setupBody.classList.toggle("hidden", collapsed);
 }
 
