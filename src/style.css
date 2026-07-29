@@ -714,6 +714,46 @@ button:not(:disabled):active {
   flex-shrink: 0;
 }
 
+.log-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.log-card-head h2 {
+  margin: 0;
+}
+
+.btn-copy-log {
+  flex-shrink: 0;
+  min-height: 32px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: #1a2744;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-copy-log:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn-copy-log:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-copy-log.copied {
+  border-color: var(--ok);
+  color: var(--ok);
+}
+
 .log-card .log {
   max-height: 220px;
   overflow: auto;

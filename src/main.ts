@@ -85,6 +85,7 @@ const handbook = mountHandbook(
 const canvas = document.getElementById("board") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d")!;
 const logEl = document.getElementById("log")!;
+const btnCopyLog = document.getElementById("btn-copy-log") as HTMLButtonElement;
 const turnInfo = document.getElementById("turn-info")!;
 const rankingsEl = document.getElementById("rankings")!;
 const turnDeltasEl = document.getElementById("turn-deltas")!;
@@ -888,6 +889,51 @@ document
   .getElementById("btn-handbook-header")
   ?.addEventListener("click", () => handbook.open());
 
+/** Full player-facing log (same stream as the Log panel, not UI-truncated to last 60). */
+function gameLogText(): string {
+  if (!state?.log.length) return "";
+  return state.log
+    .filter((line) => !/↺|^\s*seed\[/i.test(line))
+    .join("\n");
+}
+
+async function copyGameLog(): Promise<void> {
+  const text = gameLogText();
+  if (!text) return;
+  try {
+    await navigator.clipboard.writeText(text);
+    btnCopyLog.classList.add("copied");
+    const prev = btnCopyLog.textContent;
+    btnCopyLog.textContent = "Copied";
+    window.setTimeout(() => {
+      btnCopyLog.classList.remove("copied");
+      btnCopyLog.textContent = prev || "Copy";
+    }, 1600);
+  } catch {
+    // Fallback for non-secure contexts
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.left = "-9999px";
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand("copy");
+      btnCopyLog.textContent = "Copied";
+      window.setTimeout(() => {
+        btnCopyLog.textContent = "Copy";
+      }, 1600);
+    } finally {
+      document.body.removeChild(ta);
+    }
+  }
+}
+
+btnCopyLog.addEventListener("click", () => {
+  void copyGameLog();
+});
+
 /** Charter standings: rocket name → Rival rockets / pilot page. */
 function onRocketNameClick(e: Event): void {
   const el = (e.target as HTMLElement | null)?.closest?.(
@@ -1088,11 +1134,14 @@ function renderSide(): void {
     logEl.textContent = "";
     rankingsEl.textContent = "—";
     turnDeltasEl.textContent = "";
+    btnCopyLog.disabled = true;
     for (const b of [btnRefuel, btnRoll, btnBuy, btnStation, btnEnd]) {
       b.disabled = true;
     }
     return;
   }
+
+  btnCopyLog.disabled = state.log.length === 0;
 
   const p = currentPlayer(state);
   const legal = getLegalActions(state);
