@@ -774,6 +774,8 @@ button:not(:disabled):active {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  /* Never inherit .mono pre-wrap — newlines become grid items and blow spacing */
+  white-space: normal;
 }
 
 .rank-row {
@@ -785,6 +787,7 @@ button:not(:disabled):active {
   padding: 4px 6px;
   border-radius: 6px;
   border-bottom: none;
+  white-space: normal;
 }
 
 .rank-row + .rank-row {

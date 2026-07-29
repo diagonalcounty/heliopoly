@@ -1108,16 +1108,8 @@ function renderSide(): void {
       const shown = shipNodeId(pl.id, pl.position);
       const at = getNode(state!.board, shown).name;
       const skip = !pl.eliminated && pl.skipTurns ? " · skip" : "";
-      return `<div class="rank-row${lead}${active ? " active" : ""}${pl.eliminated ? " out" : ""}">
-        <div class="swatch" style="background:${pl.color}" aria-hidden="true"></div>
-        <div class="rank-body">
-          <div class="rank-top">
-            <span class="rank-id">${rankLabel} ${rocketNameButton(pl.name)}${skip} · ${plProp}</span>
-            <span class="rank-money"><span class="cash">${formatMoney(pl.cash)} cash</span> · NW ${formatMoney(worth)}</span>
-          </div>
-          <div class="rank-detail">${pl.fuel} fuel · ${pl.properties.length} claims · ${at}</div>
-        </div>
-      </div>`;
+      // Single-line markup: avoids anonymous whitespace grid items if pre-wrap sneaks back
+      return `<div class="rank-row${lead}${active ? " active" : ""}${pl.eliminated ? " out" : ""}"><div class="swatch" style="background:${pl.color}" aria-hidden="true"></div><div class="rank-body"><div class="rank-top"><span class="rank-id">${rankLabel} ${rocketNameButton(pl.name)}${skip} · ${plProp}</span><span class="rank-money"><span class="cash">${formatMoney(pl.cash)} cash</span> · NW ${formatMoney(worth)}</span></div><div class="rank-detail">${pl.fuel} fuel · ${pl.properties.length} claims · ${at}</div></div></div>`;
     })
     .join("");
 
