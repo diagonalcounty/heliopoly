@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.0.9] — 2026-07-29
+
+### UX (locked)
+- **Charter standings density (#64):** rocket name links no longer inherit global `button { min-height: 44px }`, so name + fuel/claims lines sit tight; **CH₄ / H₂** subscripts restored
+- **Layout refinements (#63):** header / pilot controls / log for touch; standings remain dense
+- **Favicon** + apple-touch-icon from Ops Manual art
+- Default rocket name **Venture** (migrate stored “Captain”)
+
+### Meta
+- Version **0.0.9**
+
 ## [0.0.8] — 2026-07-29
 
 ### Play & economy
