@@ -3,7 +3,11 @@ import { createV0Board, getNode, isPurchasable, nodeList } from "./core/board";
 import { formatMoney } from "./core/currency";
 import { walkMovePath } from "./core/path";
 import { PROPELLANTS } from "./core/propellant";
-import { prevailsHeadline, winsHeadline } from "./core/pilotCopy";
+import {
+  duelPunchLine,
+  prevailsHeadline,
+  winsHeadline,
+} from "./core/pilotCopy";
 import { pilotByCallsign, sanitizePilotName } from "./core/pilotNames";
 import {
   applyAction,
@@ -25,7 +29,6 @@ import type {
 } from "./core/types";
 import { bodyRadius, drawBodyIcon, drawFuelDepotIcon } from "./bodyIcons";
 import { inspectBody } from "./core/inspect";
-import { suggestCopyViaGithub } from "./core/links";
 import { mountHandbook } from "./handbook/handbook";
 import { LAB_SCENARIOS } from "./lab/scenarios";
 import type { Board } from "./core/types";
@@ -435,10 +438,16 @@ function showDuelResultFooter(s: GameState): void {
     r.outcome === "tie"
       ? "Draw — both hold the lane"
       : winsHeadline(r.winnerName ?? "Winner");
-  duelResultPunchy.textContent = [
-    "punchy message here",
-    suggestCopyViaGithub("a punchy Gravity Duel line"),
-  ].join("\n");
+  const humanName = s.players.find((p) => p.agent === "human")?.name ?? null;
+  const humanInDuel =
+    humanName !== null &&
+    (humanName === r.challengerName || humanName === r.defenderName);
+  const humanWon = humanName !== null && humanName === r.winnerName;
+  duelResultPunchy.textContent = duelPunchLine(
+    r.outcome,
+    humanWon,
+    humanInDuel,
+  );
   duelResultSummary.textContent = [
     `${r.challengerName} [${r.challengerStance.toUpperCase()}] ${r.challengerRoll.total} · ${r.defenderName} [${r.defenderStance.toUpperCase()}] ${r.defenderRoll.total}`,
     r.summary,

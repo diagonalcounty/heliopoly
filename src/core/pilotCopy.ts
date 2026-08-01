@@ -58,3 +58,60 @@ export function leadsWithWorth(
     ? `You lead with ${worthLabel}.`
     : `${p.name} leads with ${worthLabel}.`;
 }
+
+/*
+ * Gravity Duel result footer — deadpan Oregon Trail–style one-liners.
+ * Second-person pools are for duels the human is in; neutral pool covers
+ * AI-vs-AI ceremonies (lab scenario).
+ */
+const DUEL_PUNCH_WIN = [
+  "You win and Han shot first.",
+  "Clean roll — the lane is yours.",
+  "Your dice behaved for once.",
+  "Gravity picked your side this round.",
+  "Claim held. Rent waived. Take a lap.",
+  "The high-stakes dice never lie. This time they love you.",
+] as const;
+
+const DUEL_PUNCH_LOSE = [
+  "You're benched. The lane belongs to a rival.",
+  "While you're sitting here you can speed-run King's Quest 2.",
+  "The dice giveth, and the dice taketh.",
+  "Somewhere, a fuel depot just got cheaper for the winner.",
+  "Your claim slips to the other pilot. Stewardship, suspended.",
+  "Gravity has no favorites. Today it has a least favorite.",
+] as const;
+
+const DUEL_PUNCH_DRAW = [
+  "Dead heat. Nobody gets the corner office.",
+  "Both hold the lane. Cramped, but intact.",
+  "Gravity calls it even.",
+  "A draw — no claims change hands.",
+  "Two low rollers, zero outcomes. Move along.",
+] as const;
+
+/** AI-vs-AI ceremonies observed in the lab (no "You" in the room). */
+const DUEL_PUNCH_NEUTRAL = [
+  "The dice have spoken.",
+  "A lane decided by two quick rolls.",
+  "Gravity settles it in seconds.",
+  "High stakes, low math.",
+] as const;
+
+function pickFrom<T>(pool: readonly T[]): T {
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+/**
+ * Punchy footer line for a resolved duel.
+ * `humanName` null (self-play / AI-vs-AI lab) → neutral pool.
+ */
+export function duelPunchLine(
+  outcome: "win" | "tie",
+  humanWon: boolean,
+  humanInDuel: boolean,
+): string {
+  if (!humanInDuel) return pickFrom(DUEL_PUNCH_NEUTRAL);
+  if (outcome === "tie") return pickFrom(DUEL_PUNCH_DRAW);
+  return pickFrom(humanWon ? DUEL_PUNCH_WIN : DUEL_PUNCH_LOSE);
+}

@@ -4,8 +4,3 @@ export const LIVE_SITE_URL = "https://heliopoly.live/";
 
 export const GITHUB_ISSUES_URL = `${GITHUB_REPO_URL}/issues`;
 export const GITHUB_DISCUSSIONS_HINT = `${GITHUB_REPO_URL} (issues / PRs welcome)`;
-
-/** Footer under placeholder punchy duel lines. */
-export function suggestCopyViaGithub(kind = "a punchy Gravity Duel line"): string {
-  return `Suggest ${kind}: ${GITHUB_ISSUES_URL}`;
-}
