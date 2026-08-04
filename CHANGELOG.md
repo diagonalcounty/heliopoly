@@ -1,12 +1,19 @@
 # Changelog
 
-## [Unreleased]
+## [0.0.11] — 2026-08-04
 
 ### Play
 - **King's Quest warp (#39):** timed charter event grants each rocket one warp charge
   - Click any board node (cyan rings) to teleport — no en-route stops/rent/duels
   - Landing effects still apply; AI uses charges when destinations score well
   - Added to once-per-charter event pool (with Monolith + M&Ms)
+
+### Ops Manual
+- **Gravity Duel (#67):** full human-friendly rules page — when it fires, Low/High/mixed resolution, stakes, ties, panel tips
+- Charter alerts + warp noted in Glossary / turn flow; welcome version badge
+
+### Meta
+- Version **0.0.11**
 
 ## [0.0.10] — 2026-08-04
 

@@ -31,7 +31,7 @@ const LORE_TOPICS: HandbookTopic[] = [
     id: "welcome",
     title: "Welcome, Venture",
     html: `
-<p><strong>Heliopoly</strong> — <em>Free Enterprise In Space</em> (v0.0.9).</p>
+<p><strong>Heliopoly</strong> — <em>Free Enterprise In Space</em> (v0.0.11).</p>
 <p>Open source: <a href="https://github.com/diagonalcounty/heliopoly" target="_blank" rel="noopener">github.com/diagonalcounty/heliopoly</a> — issues and PRs welcome.</p>
 <p>This is a <strong>preparatory simulator</strong> for near-future space enterprise: close-quarters economics like chess or Monopoly, abstracting fuel, orbits, and frontier capitalism so you can practice the mental model before the real Mainline opens.</p>
 <p>Earth’s old regulations stop at the edge of the system. Independent operators fly a rigid one-way orbital circuit — <strong>the Mainline</strong> — to build fortunes while propellant, claims, and the ledger stay honest.</p>
@@ -119,7 +119,7 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     </tr>
   </tbody>
 </table>
-<p><strong>Charter alerts</strong> (timed popups): after <strong>5 rounds</strong> since the last alert (or start), <strong>50%</strong> chance once per round; each miss, chance moves halfway toward 100% (50% → 75% → 87.5% …) until it fires; then wait 5 rounds again.</p>
+<p><strong>Charter alerts</strong> (timed popups): after <strong>5 rounds</strong> since the last alert (or start), <strong>50%</strong> chance once per round; each miss, chance moves halfway toward 100% (50% → 75% → 87.5% …) until it fires; then wait 5 rounds again. Each alert type fires <strong>at most once</strong> per charter (Monolith stipend, free brake M&amp;Ms, King’s Quest warp, …).</p>
 `,
   },
   {
@@ -134,6 +134,7 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
 </ol>
 <p>Landing is free. Leaving a gravity well costs fuel. Failed leave on an enemy claim charges rent again.</p>
 <p><strong>Earth charter pay:</strong> <strong>⍼400</strong> when you <em>land</em> on Earth, <strong>⍼200</strong> when you <em>pass</em> Earth on a multi-space move (intermediate stop). Each completed board <strong>rotation</strong> adds <strong>⍼10</strong> to both amounts thereafter. Completing rotation <strong>10, 20, 30…</strong> also pays a one-time <strong>⍼1000</strong> decade bonus. Full circuit still resupplies fuel depots (+3 in hand).</p>
+<p><strong>King’s Quest warp</strong> (charter alert): when you have a warp charge, you may <strong>click any board node</strong> instead of rolling — teleport there (no en-route stops). Landing rules still apply at the destination.</p>
 `,
   },
   {
@@ -196,8 +197,57 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     id: "duel",
     title: "Gravity Duel",
     html: `
-<p>In the blank transit lanes — especially the belt — Earth’s rules do not apply. When ships intersect, they contest the optimal slingshot: a <strong>Gravity Duel</strong> for vector and trajectory.</p>
-<p>Secret <strong>Low / High</strong>, then 2d6; stances reveal after both roll. Loser is knocked off cadence (skips a turn); winner takes a rent free-pass on the loser’s claims. Tie: both hold the lane; next arrival faces the last roller.</p>
+<p>In the blank transit lanes — diamonds on the belt and other empty path nodes — Earth’s polite traffic rules do not apply. When two rockets try to share the same slingshot, they fight a <strong>Gravity Duel</strong> for the lane.</p>
+
+<h4>When does a duel start?</h4>
+<ul>
+  <li>You <strong>land</strong> on a <strong>blank / space</strong> node (not a planet, moon, or hub station).</li>
+  <li>Another living rocket is already there, or the lane has a remembered defender from a prior fight.</li>
+  <li>You are the <strong>challenger</strong> (arriver). The other pilot is the <strong>defender</strong>.</li>
+</ul>
+<p>No duel on planets, moons, hubs, or Earth — only those empty transit pips.</p>
+
+<h4>How to play (human steps)</h4>
+<ol>
+  <li><strong>Pick a secret stance</strong> — <strong>Low</strong> or <strong>High</strong>. The opponent does the same. Neither of you sees the other’s choice yet.</li>
+  <li><strong>Roll 2d6</strong> when prompted (both sides roll).</li>
+  <li><strong>Reveal</strong> — stances and totals show together. The game picks a winner (or a tie) from the rules below.</li>
+  <li>Read the result on the same duel panel (names and dice stay visible), then continue.</li>
+</ol>
+
+<h4>How the winner is decided</h4>
+<p>Both pilots always roll <strong>2d6</strong>. What “good” means depends on the stance pair:</p>
+<table class="glossary">
+  <thead><tr><th>Your stances</th><th>Who wins</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>Both Low</strong></td>
+      <td>The <strong>lower</strong> dice total wins (gentler burn / tighter slot).</td>
+    </tr>
+    <tr>
+      <td><strong>Both High</strong></td>
+      <td>The <strong>higher</strong> dice total wins (harder burn / bigger swing).</td>
+    </tr>
+    <tr>
+      <td><strong>Mixed</strong> (one Low, one High)</td>
+      <td>Whichever total is <strong>closer to the running mean</strong> of all 2d6 rolls so far this game wins. (If no history yet, the mean defaults to <strong>7</strong>.)</td>
+    </tr>
+  </tbody>
+</table>
+<p>If totals (or distances to the mean) are equal → <strong>tie</strong> (see stakes).</p>
+<p><strong>Tip:</strong> Low is a bet on rolling small; High on rolling large. Mixed turns the fight into “who is nearer average,” so a mid roll can beat a dramatic high or low.</p>
+
+<h4>Stakes</h4>
+<ul>
+  <li><strong>Loser</strong> — skips their <strong>next full seat turn</strong> (that skip also counts as a <strong>park</strong> for feral risk).</li>
+  <li><strong>Winner</strong> — gains a one-time <strong>rent waiver</strong> against the loser: the next time the winner would pay rent to that pilot’s claims, the fee is free (waiver consumed).</li>
+  <li><strong>Tie</strong> — both hold the lane; nobody skips; no waiver. The next arrival may face the last roller as defender.</li>
+</ul>
+
+<h4>What the panel is showing you</h4>
+<p>Your rocket is usually on the right when you are human; the rival on the left. Use <strong>Low</strong> / <strong>High</strong>, then <strong>Roll</strong>. AI seats lock and roll automatically. The result splash keeps the matchup context — it does not throw you into a blank full-screen with no names.</p>
+
+<p class="handbook-note">Realtime / animated duels are not in this build yet (see “Not yet”). The rules above are the live dice duel.</p>
 `,
   },
   {
