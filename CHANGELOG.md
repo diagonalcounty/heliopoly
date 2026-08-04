@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.12] — 2026-08-04
+
+### UX
+- **Gravity Duel dice:** classic pip faces (1–6) instead of plain numbers
+
+### Meta
+- Version **0.0.12**
+
 ## [0.0.11] — 2026-08-04
 
 ### Play

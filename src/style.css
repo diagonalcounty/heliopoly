@@ -1316,23 +1316,52 @@ button:not(:disabled):active {
   align-self: center;
   padding-top: 2.2rem;
 }
+/* Physical-looking d6 with pip faces (Gravity Duel) */
 .die {
-  width: 48px;
-  height: 48px;
-  border-radius: 10px;
-  background: linear-gradient(145deg, #f8f4ea, #d4cfc0);
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.55) 0%, transparent 42%),
+    linear-gradient(145deg, #f4efe3 0%, #e8e0d0 48%, #cfc6b4 100%);
   color: #1a1520;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  place-items: center;
+  padding: 7px;
+  gap: 1px;
+  border: 2px solid #7a7468;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.75),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.12),
+    0 4px 12px rgba(0, 0, 0, 0.4);
+  box-sizing: border-box;
+  user-select: none;
+}
+.die .pip {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: transparent;
+}
+.die .pip.on {
+  background: radial-gradient(circle at 35% 30%, #3a3540, #141018 70%);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
+}
+.die .die-unknown {
+  grid-column: 1 / -1;
+  grid-row: 1 / -1;
   font-weight: 800;
-  font-size: 1.35rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid #8a8478;
-  box-shadow: inset 0 2px 0 rgba(255,255,255,0.6), 0 4px 10px rgba(0,0,0,0.35);
+  font-size: 1.25rem;
+  color: #6a6458;
+  line-height: 1;
 }
 .die.rolling {
   animation: die-shake 0.12s linear infinite;
-  background: linear-gradient(145deg, #fff, #bbb);
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.7) 0%, transparent 42%),
+    linear-gradient(145deg, #fff 0%, #ddd4c4 100%);
 }
 @keyframes die-shake {
   0% { transform: rotate(-8deg) scale(1.05); }
@@ -1340,7 +1369,10 @@ button:not(:disabled):active {
   100% { transform: rotate(-4deg) scale(1.02); }
 }
 .die.winner-glow {
-  box-shadow: 0 0 0 2px #ffc857, 0 0 16px rgba(255, 200, 87, 0.7);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.75),
+    0 0 0 2px #ffc857,
+    0 0 16px rgba(255, 200, 87, 0.7);
 }
 
 /* —— Duel result footer (same panel; no second popup) —— */

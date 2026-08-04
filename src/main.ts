@@ -347,9 +347,36 @@ function humanDuelNeedsInput(s: GameState): boolean {
   return false;
 }
 
+/** Classic die face: which of 9 grid cells (0–8, row-major) get a pip. */
+const DIE_PIP_CELLS: Record<number, number[]> = {
+  1: [4],
+  2: [0, 8],
+  3: [0, 4, 8],
+  4: [0, 2, 6, 8],
+  5: [0, 2, 4, 6, 8],
+  6: [0, 2, 3, 5, 6, 8],
+};
+
 function setDie(el: HTMLElement, value: number | string, rolling = false): void {
-  el.textContent = String(value);
   el.classList.toggle("rolling", rolling);
+  const n =
+    typeof value === "number"
+      ? value
+      : value === "?" || value === ""
+        ? 0
+        : Number.parseInt(String(value), 10);
+  if (!Number.isFinite(n) || n < 1 || n > 6) {
+    el.dataset.face = "";
+    el.setAttribute("aria-label", "Die face unknown");
+    el.innerHTML = `<span class="die-unknown" aria-hidden="true">?</span>`;
+    return;
+  }
+  el.dataset.face = String(n);
+  el.setAttribute("aria-label", `Die showing ${n}`);
+  const on = new Set(DIE_PIP_CELLS[n] ?? []);
+  el.innerHTML = Array.from({ length: 9 }, (_, i) =>
+    `<span class="pip${on.has(i) ? " on" : ""}" aria-hidden="true"></span>`,
+  ).join("");
 }
 
 async function animateDicePair(
