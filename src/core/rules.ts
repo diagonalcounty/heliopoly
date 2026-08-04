@@ -22,7 +22,7 @@ import {
   systemOfGroup,
   type SystemId,
 } from "./systems";
-import { tickSeatTurn } from "./turnClock";
+import { MONOLITH_EARTH_BONUS, tickSeatTurn } from "./turnClock";
 import type {
   DuelStance,
   GameState,
@@ -158,6 +158,17 @@ function payEarthVisit(
     `${p.name} ${label} Earth: +${formatMoney(amount)} (base ${formatMoney(base)} + ${formatMoney(EARTH_PER_ROTATION)}×${p.circuitsCompleted} rotations).`,
   );
   delta(state, `+${formatMoney(amount)} Earth ${kind}`);
+
+  // Timed charter: Monolith — one-time bonus on next Earth land or pass
+  if (p.monolithEarthPending) {
+    p.monolithEarthPending = false;
+    p.cash += MONOLITH_EARTH_BONUS;
+    pushLog(
+      state,
+      `${p.name} claims Monolith stipend on Earth: +${formatMoney(MONOLITH_EARTH_BONUS)}.`,
+    );
+    delta(state, `+${formatMoney(MONOLITH_EARTH_BONUS)} Monolith`);
+  }
 }
 
 /**
@@ -216,6 +227,19 @@ function tickNeglectForSkippers(
 /** Fuel cost to break N spaces: 0.5 per space. */
 export function breakFuelCost(spaces: number): number {
   return Math.max(0, spaces) * 0.5;
+}
+
+/**
+ * Effective break fuel for the current pilot (0 when free-break token is live).
+ * Does not consume the token — only `doMove` does.
+ */
+export function effectiveBreakFuelCost(
+  freeBreakPending: boolean,
+  spaces: number,
+): number {
+  if (spaces <= 0) return 0;
+  if (freeBreakPending) return 0;
+  return breakFuelCost(spaces);
 }
 
 function releaseClaimToBank(state: GameState, nodeId: string): void {
@@ -343,6 +367,11 @@ function forceEndByRounds(state: GameState): boolean {
 
 function advanceTurn(state: GameState): void {
   if (state.phase === "game_over") return;
+  // Free-break token is "next seat turn only" — expire unused when leaving the seat
+  const ending = state.players[state.currentPlayerIndex];
+  if (ending?.freeBreakPending) {
+    ending.freeBreakPending = false;
+  }
   // Preserve turn deltas for UI until next action of new player starts
   const n = state.players.length;
   let idx = state.currentPlayerIndex;
@@ -510,7 +539,7 @@ export function getLegalActions(state: GameState): LegalActions {
     const maxBreak = state.lastRoll.total;
     const br = Math.min(Math.max(0, state.breakSpaces), maxBreak);
     const steps = state.lastRoll.total - br;
-    const bCost = breakFuelCost(br);
+    const bCost = effectiveBreakFuelCost(p.freeBreakPending, br);
     const leavePreview = leaveBurnCost(node, Math.max(1, steps), p.propellant);
     const canAffordBreak = p.fuel + 1e-9 >= bCost;
     return {
@@ -1139,20 +1168,31 @@ function doMove(state: GameState): void {
   if (state.phase !== "await_move" || !state.lastRoll) return;
   const total = state.lastRoll.total;
   const br = Math.min(state.breakSpaces, total);
-  const cost = breakFuelCost(br);
+  const usedFreeBreak = br > 0 && p.freeBreakPending;
+  const cost = effectiveBreakFuelCost(p.freeBreakPending, br);
   if (p.fuel + 1e-9 < cost) {
     pushLog(state, `${p.name} cannot afford break (${cost} fuel for −${br} spaces).`);
     return;
   }
   if (br > 0) {
+    if (usedFreeBreak) {
+      p.freeBreakPending = false;
+    }
     p.fuel -= cost;
     // Avoid float dust
     p.fuel = Math.round(p.fuel * 2) / 2;
     pushLog(
       state,
-      `${p.name} breaks −${br} space(s) for ${cost} fuel (roll ${total} → move ${total - br}).`,
+      usedFreeBreak
+        ? `${p.name} breaks −${br} space(s) free (M&Ms token) (roll ${total} → move ${total - br}).`
+        : `${p.name} breaks −${br} space(s) for ${cost} fuel (roll ${total} → move ${total - br}).`,
     );
-    delta(state, `−${cost} fuel break (−${br} spaces)`);
+    delta(
+      state,
+      usedFreeBreak
+        ? `free break (−${br} spaces)`
+        : `−${cost} fuel break (−${br} spaces)`,
+    );
   }
   const steps = total - br;
   state.breakSpaces = 0;

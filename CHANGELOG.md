@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased]
+
+### Play
+- **Timed charter events (#4):** real pool replaces GitHub teaser
+  - **Monolith on Earth's Moon** — each active rocket: one-time **⍼300** on next Earth land or pass
+  - **Blue & brown M&Ms** — each active rocket: one free brake (≥1 space) on next seat turn; unused expires end of that turn
+  - Cadence unchanged (5 rounds → 50% → midpoint toward 100%); avoids immediate event repeats
+
 ## [0.0.9] — 2026-07-29
 
 ### UX (locked)

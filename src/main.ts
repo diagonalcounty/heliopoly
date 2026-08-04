@@ -1415,10 +1415,15 @@ function renderSide(): void {
   if (state.phase === "await_move" && state.lastRoll) {
     breakRow.classList.remove("hidden-vis");
     breakCountEl.textContent = String(legal.breakSpaces);
-    breakCostEl.textContent =
-      legal.breakSpaces > 0
-        ? `−${legal.breakFuelCost} fuel`
-        : "0 fuel";
+    if (legal.breakSpaces > 0 && p.freeBreakPending) {
+      breakCostEl.textContent = "FREE (M&Ms)";
+    } else if (legal.breakSpaces > 0) {
+      breakCostEl.textContent = `−${legal.breakFuelCost} fuel`;
+    } else if (p.freeBreakPending) {
+      breakCostEl.textContent = "free brake ready";
+    } else {
+      breakCostEl.textContent = "0 fuel";
+    }
     btnBreakMinus.disabled = !can || legal.breakSpaces <= 0;
     btnBreakPlus.disabled =
       !can || legal.breakSpaces >= legal.maxBreak;

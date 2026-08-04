@@ -78,6 +78,8 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
       movedThisTurn: false,
       parkCount: 0,
       pendingLeak: false,
+      monolithEarthPending: false,
+      freeBreakPending: false,
     });
   }
 
@@ -129,6 +131,7 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
       roundsSinceLast: 0,
       lastProcessedRound: 0,
       rollChance: 0,
+      lastEventId: null,
     },
     config: { ...config, seed },
     rngState: seed || 1,

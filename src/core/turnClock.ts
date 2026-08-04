@@ -9,7 +9,7 @@
  * Charter alerts fire on **round** boundaries, not every seat turn.
  * RNG: third letter of human rocket × USNO→Apollo-11 range cm (daily table).
  */
-import { GITHUB_REPO_URL } from "./links";
+import { formatMoney } from "./currency";
 import { lunarRangeCmForDate } from "./lunarRangeTable";
 import type { GameState } from "./types";
 
@@ -18,8 +18,12 @@ export const TIMED_EVENT_GAP_ROUNDS = 5;
 /** Chance on the first eligible round after the gap. */
 export const TIMED_EVENT_BASE_CHANCE = 0.5;
 
-/**
- * Human rocket’s 3rd character code.
+/** Monolith: one-time cash on next Earth land or pass (per rocket). */
+export const MONOLITH_EARTH_BONUS = 300;
+
+export type TimedEventId = "monolith" | "mms_free_break";
+
+/** Human rocket’s 3rd character code.
  * Short names fall back to first printable char or 67 ('C').
  */
 export function thirdLetterCode(rocketName: string): number {
@@ -67,15 +71,75 @@ export function midpointTowardCertain(currentChance: number): number {
   return c + (1 - c) / 2;
 }
 
-function fireFutureTeaser(state: GameState): void {
+const POOL: TimedEventId[] = ["monolith", "mms_free_break"];
+
+function pickTimedEvent(state: GameState): TimedEventId {
+  const last = state.timedEvent.lastEventId;
+  const candidates =
+    last && POOL.length > 1 ? POOL.filter((id) => id !== last) : POOL;
+  const list = candidates.length > 0 ? candidates : POOL;
+  const roll = charterEventRoll01(state);
+  const idx = Math.min(list.length - 1, Math.floor(roll * list.length));
+  return list[idx]!;
+}
+
+function fireMonolith(state: GameState): void {
+  let n = 0;
+  for (const p of state.players) {
+    if (p.eliminated) continue;
+    p.monolithEarthPending = true;
+    n++;
+  }
   state.pendingAnnouncement = {
     kind: "info",
-    title: "Something exciting will happen here in a future version",
-    body: `Help shape what that is — open an issue or PR on GitHub:\n${GITHUB_REPO_URL}`,
+    title: "Monolith on Earth's Moon",
+    body: [
+      "A black slab has been catalogued on the lunar farside.",
+      `Every active rocket: one-time ${formatMoney(MONOLITH_EARTH_BONUS)} on your next Earth land or pass.`,
+      `(${n} charter(s) marked.)`,
+    ].join("\n"),
   };
   state.log.push(
-    `Charter alert: future content teaser — ${GITHUB_REPO_URL}`,
+    `Charter alert: Monolith — next Earth visit pays +${formatMoney(MONOLITH_EARTH_BONUS)} once per rocket.`,
   );
+}
+
+function fireMmsFreeBreak(state: GameState): void {
+  let n = 0;
+  for (const p of state.players) {
+    if (p.eliminated) continue;
+    p.freeBreakPending = true;
+    n++;
+  }
+  state.pendingAnnouncement = {
+    kind: "info",
+    title: "Blue and brown M&Ms are back",
+    body: [
+      "You brought back the blue and brown M&Ms.",
+      "Every active rocket gets one free brake on their next turn — if they want it.",
+      "Break ≥1 space costs 0 fuel once; unused token expires at end of that seat turn.",
+      `(${n} rocket(s) stocked.)`,
+    ].join("\n"),
+  };
+  state.log.push(
+    "Charter alert: blue & brown M&Ms — one free brake on each rocket's next seat turn.",
+  );
+}
+
+function fireTimedEvent(state: GameState, id: TimedEventId): void {
+  switch (id) {
+    case "monolith":
+      fireMonolith(state);
+      break;
+    case "mms_free_break":
+      fireMmsFreeBreak(state);
+      break;
+    default: {
+      const _exhaustive: never = id;
+      void _exhaustive;
+    }
+  }
+  state.timedEvent.lastEventId = id;
 }
 
 /**
@@ -109,7 +173,7 @@ export function processTimedEvents(state: GameState): void {
     return;
   }
 
-  fireFutureTeaser(state);
+  fireTimedEvent(state, pickTimedEvent(state));
   te.roundsSinceLast = 0;
   te.rollChance = 0;
 }

@@ -110,6 +110,15 @@ export interface Player {
    * (transit / station). Fires on the next planet/moon insertion.
    */
   pendingLeak: boolean;
+  /**
+   * Timed charter: Monolith — next Earth land or pass pays +300 once, then clears.
+   */
+  monolithEarthPending: boolean;
+  /**
+   * Timed charter: free brake token — next break (≥1 space) costs 0 fuel.
+   * Expires unused at end of this rocket's seat turn.
+   */
+  freeBreakPending: boolean;
 }
 
 export type TurnPhase =
@@ -233,6 +242,8 @@ export interface GameState {
     lastProcessedRound: number;
     /** Current roll chance once in the active window (0 during gap). */
     rollChance: number;
+    /** Last fired pool event id (avoid immediate repeats when pool ≥ 2). */
+    lastEventId: string | null;
   };
   config: GameConfig;
   rngState: number;

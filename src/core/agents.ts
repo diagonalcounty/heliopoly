@@ -1,7 +1,11 @@
 import { getNode, isPurchasable } from "./board";
 import { leaveBurnCost } from "./fuel";
 import { walkMovePath } from "./path";
-import { breakFuelCost, getLegalActions, refuelInfo } from "./rules";
+import {
+  effectiveBreakFuelCost,
+  getLegalActions,
+  refuelInfo,
+} from "./rules";
 import { currentPlayer } from "./state";
 import type { AiDifficulty, GameState, PlayerAction } from "./types";
 
@@ -94,7 +98,7 @@ function chooseBreak(
     if (p.fuel < fullLeave && legal.maxBreak > 0) {
       br = Math.min(legal.maxBreak, 2);
       while (br > 0) {
-        const bCost = breakFuelCost(br);
+        const bCost = effectiveBreakFuelCost(p.freeBreakPending, br);
         const leaveAfter = leaveBurnCost(
           node,
           Math.max(1, total - br),
@@ -105,7 +109,12 @@ function chooseBreak(
         if (p.fuel + 1e-9 >= bCost && p.fuel < fullLeave) break; // still better than full
         br--;
       }
-      while (br > 0 && p.fuel + 1e-9 < breakFuelCost(br)) br--;
+      while (
+        br > 0 &&
+        p.fuel + 1e-9 < effectiveBreakFuelCost(p.freeBreakPending, br)
+      ) {
+        br--;
+      }
     }
     return br;
   }
@@ -115,7 +124,7 @@ function chooseBreak(
   let bestScore = -1e9;
   const maxBr = legal.maxBreak;
   for (let br = 0; br <= maxBr; br++) {
-    const bCost = breakFuelCost(br);
+    const bCost = effectiveBreakFuelCost(p.freeBreakPending, br);
     if (p.fuel < bCost) continue;
     const steps = total - br;
     // leave burn scales with steps; rough check using leaveBurnPreview for full roll
