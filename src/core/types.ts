@@ -242,8 +242,10 @@ export interface GameState {
     lastProcessedRound: number;
     /** Current roll chance once in the active window (0 during gap). */
     rollChance: number;
-    /** Last fired pool event id (avoid immediate repeats when pool ≥ 2). */
+    /** Last fired pool event id (legacy / UI). */
     lastEventId: string | null;
+    /** Event ids already announced this charter — each pool event at most once. */
+    firedIds: string[];
   };
   config: GameConfig;
   rngState: number;

@@ -132,6 +132,7 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
       lastProcessedRound: 0,
       rollChance: 0,
       lastEventId: null,
+      firedIds: [],
     },
     config: { ...config, seed },
     rngState: seed || 1,
@@ -207,7 +208,10 @@ export function cloneState(state: GameState): GameState {
     pendingAnnouncement: state.pendingAnnouncement
       ? { ...state.pendingAnnouncement }
       : null,
-    timedEvent: { ...state.timedEvent },
+    timedEvent: {
+      ...state.timedEvent,
+      firedIds: [...(state.timedEvent.firedIds ?? [])],
+    },
     config: { ...state.config },
   };
 }

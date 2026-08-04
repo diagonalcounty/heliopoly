@@ -73,11 +73,15 @@ export function midpointTowardCertain(currentChance: number): number {
 
 const POOL: TimedEventId[] = ["monolith", "mms_free_break"];
 
-function pickTimedEvent(state: GameState): TimedEventId {
-  const last = state.timedEvent.lastEventId;
-  const candidates =
-    last && POOL.length > 1 ? POOL.filter((id) => id !== last) : POOL;
-  const list = candidates.length > 0 ? candidates : POOL;
+/** Remaining pool events not yet fired this charter (each fires at most once). */
+function remainingPool(state: GameState): TimedEventId[] {
+  const fired = new Set(state.timedEvent.firedIds ?? []);
+  return POOL.filter((id) => !fired.has(id));
+}
+
+function pickTimedEvent(state: GameState): TimedEventId | null {
+  const list = remainingPool(state);
+  if (list.length === 0) return null;
   const roll = charterEventRoll01(state);
   const idx = Math.min(list.length - 1, Math.floor(roll * list.length));
   return list[idx]!;
@@ -140,6 +144,10 @@ function fireTimedEvent(state: GameState, id: TimedEventId): void {
     }
   }
   state.timedEvent.lastEventId = id;
+  if (!state.timedEvent.firedIds) state.timedEvent.firedIds = [];
+  if (!state.timedEvent.firedIds.includes(id)) {
+    state.timedEvent.firedIds.push(id);
+  }
 }
 
 /**
@@ -152,6 +160,9 @@ export function processTimedEvents(state: GameState): void {
   if (te.lastProcessedRound === state.round) return;
   te.lastProcessedRound = state.round;
   te.roundsSinceLast += 1;
+
+  // Pool exhausted — no more charter alerts this game
+  if (remainingPool(state).length === 0) return;
 
   // Count the round even if another popup is open; don't stack alerts
   if (state.pendingAnnouncement) return;
@@ -173,7 +184,10 @@ export function processTimedEvents(state: GameState): void {
     return;
   }
 
-  fireTimedEvent(state, pickTimedEvent(state));
+  const id = pickTimedEvent(state);
+  if (!id) return;
+
+  fireTimedEvent(state, id);
   te.roundsSinceLast = 0;
   te.rollChance = 0;
 }
