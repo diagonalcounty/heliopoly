@@ -119,6 +119,11 @@ export interface Player {
    * Expires unused at end of this rocket's seat turn.
    */
   freeBreakPending: boolean;
+  /**
+   * Timed charter: King's Quest warp charges (click any board node instead of roll).
+   * Each charge is one teleport; unused charges persist until used.
+   */
+  warpCharges: number;
 }
 
 export type TurnPhase =
@@ -261,7 +266,9 @@ export type PlayerAction =
   | { type: "place_station" }
   | { type: "end_turn" }
   | { type: "duel_stance"; stance: DuelStance }
-  | { type: "duel_roll" };
+  | { type: "duel_roll" }
+  /** One-time charter warp: teleport to destination node (no en-route). */
+  | { type: "warp"; destination: string };
 
 export interface LegalActions {
   refuel: boolean;
@@ -284,4 +291,9 @@ export interface LegalActions {
   leaveBurnPreview: number;
   duelStance: boolean;
   duelRoll: boolean;
+  /**
+   * King's Quest warp: human clicks a board node; AI picks a destination.
+   * Only in await_action with warpCharges > 0.
+   */
+  warp: boolean;
 }

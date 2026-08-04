@@ -488,6 +488,7 @@ export function getLegalActions(state: GameState): LegalActions {
     leaveBurnPreview: 0,
     duelStance: false,
     duelRoll: false,
+    warp: false,
   };
   if (state.phase === "game_over") return empty;
 
@@ -582,6 +583,7 @@ export function getLegalActions(state: GameState): LegalActions {
       leaveBurnPreview,
       duelStance: false,
       duelRoll: false,
+      warp: p.warpCharges > 0,
     };
   }
 
@@ -607,6 +609,7 @@ export function getLegalActions(state: GameState): LegalActions {
     leaveBurnPreview,
     duelStance: false,
     duelRoll: false,
+    warp: false,
   };
 }
 
@@ -1163,6 +1166,56 @@ function doSetBreak(state: GameState, spaces: number): void {
   state.breakSpaces = Math.min(max, Math.max(0, Math.floor(spaces)));
 }
 
+/**
+ * King's Quest warp: teleport to any node (no leave burn, no en-route).
+ * Landing effects (rent, leak, Earth pay, duel on space) still apply.
+ */
+function doWarp(state: GameState, destination: string): void {
+  const p = currentPlayer(state);
+  if (state.phase !== "await_action") return;
+  if (p.warpCharges <= 0) {
+    pushLog(state, `${p.name} has no warp charge.`);
+    return;
+  }
+  const dest = state.board.nodes[destination];
+  if (!dest) {
+    pushLog(state, `${p.name} cannot warp — unknown beacon.`);
+    return;
+  }
+  if (destination === p.position) {
+    pushLog(state, `${p.name} is already at ${dest.name}.`);
+    return;
+  }
+
+  p.warpCharges -= 1;
+  const fromId = p.position;
+  const fromName = getNode(state.board, fromId).name;
+
+  // Leaving Earth starts a circuit (same as a normal leave)
+  if (fromId === "earth") {
+    p.circuitActive = true;
+  }
+
+  p.position = destination;
+  p.rolledThisTurn = true;
+  p.movedThisTurn = true;
+  state.lastRoll = null;
+  state.breakSpaces = 0;
+
+  pushLog(
+    state,
+    `${p.name} warps ${fromName} → ${dest.name} (King's Quest · ${p.warpCharges} charge(s) left).`,
+  );
+  delta(state, `warp → ${dest.name}`);
+
+  resolveLanding(state, false);
+
+  if (destination === "earth" && p.circuitActive) {
+    onCircuitComplete(state, p);
+  }
+  if (state.pendingDuel) autoDuelAi(state);
+}
+
 function doMove(state: GameState): void {
   const p = currentPlayer(state);
   if (state.phase !== "await_move" || !state.lastRoll) return;
@@ -1275,6 +1328,11 @@ export function applyAction(state: GameState, action: PlayerAction): GameState {
     case "refuel":
       if (next.phase === "await_action" || next.phase === "await_post_land") {
         doRefuel(next, action.amount);
+      }
+      break;
+    case "warp":
+      if (next.phase === "await_action") {
+        doWarp(next, action.destination);
       }
       break;
     case "roll": {

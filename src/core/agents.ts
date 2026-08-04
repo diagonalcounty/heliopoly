@@ -50,6 +50,11 @@ export function heuristicAI(state: GameState): PlayerAction {
     if (legal.sell && p.cash < 100 && p.properties.length > 2) {
       return { type: "sell", nodeId: legal.sellNodeId! };
     }
+    // King's Quest: use warp when charged (prefer strong destinations / low fuel)
+    if (legal.warp && p.warpCharges > 0) {
+      const dest = chooseWarpDestination(state, difficulty);
+      if (dest) return { type: "warp", destination: dest };
+    }
     return { type: "roll" };
   }
 
@@ -76,6 +81,50 @@ export function heuristicAI(state: GameState): PlayerAction {
     return { type: "refuel", amount: Math.min(fuel.max, 10) };
   }
   return { type: "end_turn" };
+}
+
+/** Score board nodes for a one-shot warp teleport. */
+function chooseWarpDestination(
+  state: GameState,
+  difficulty: AiDifficulty,
+): string | null {
+  const p = currentPlayer(state);
+  let bestId: string | null = null;
+  let bestScore = -1e9;
+  for (const id of Object.keys(state.board.nodes)) {
+    if (id === p.position) continue;
+    const end = getNode(state.board, id);
+    let score = 0;
+    if (
+      isPurchasable(end) &&
+      !state.owners[id] &&
+      (end.price ?? 0) <= p.cash - 80
+    ) {
+      score += 50 + Math.min(40, (end.price ?? 0) / 30);
+    }
+    if (state.owners[id] === p.id) score += 22;
+    if (id === "earth") score += 30;
+    if (end.refuel === "free" || id === "earth") score += 12;
+    const ownerId = state.owners[id];
+    if (ownerId && ownerId !== p.id && isPurchasable(end)) {
+      const rent = end.rent ?? 0;
+      score -= 30 + rent / 3;
+      if (p.cash < rent) score -= 80;
+    }
+    // Transit spaces: duel risk — still OK if desperate for fuel leave
+    if (end.kind === "space") score -= 8;
+    if (difficulty === "normal") score += Math.random() * 4;
+    else score += Math.random() * 2;
+    // Prefer warp when stranded (low fuel vs leave)
+    if (p.fuel <= 4) score += 15;
+    if (score > bestScore) {
+      bestScore = score;
+      bestId = id;
+    }
+  }
+  // Don't waste charge on a terrible landing
+  if (bestScore < 10 && p.fuel > 8) return null;
+  return bestId;
 }
 
 function chooseBreak(

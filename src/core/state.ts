@@ -80,6 +80,7 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
       pendingLeak: false,
       monolithEarthPending: false,
       freeBreakPending: false,
+      warpCharges: 0,
     });
   }
 

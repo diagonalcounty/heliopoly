@@ -1393,7 +1393,13 @@ function renderSide(): void {
     teleLines.push(`LANDED: ${node.name}`);
     teleLines.push(ctx);
   } else if (state.phase === "await_action") {
-    if (!p.rolledThisTurn && p.parkCount > 0) {
+    if (legal.warp && p.warpCharges > 0 && p.agent === "human") {
+      teleLines.push(`WARP ×${p.warpCharges} — click a board node`);
+      teleLines.push(`or Roll for normal transit`);
+    } else if (p.warpCharges > 0) {
+      teleLines.push(`STATUS: READY · WARP ×${p.warpCharges}`);
+      teleLines.push(`FUEL ${p.fuel}/${state!.config.maxFuel} · CLAIMS ${p.properties.length}`);
+    } else if (!p.rolledThisTurn && p.parkCount > 0) {
       teleLines.push(`STATUS: PARKED`);
       teleLines.push(`park count ${p.parkCount}`);
     } else {
@@ -1585,11 +1591,28 @@ function drawBoard(): void {
   }
 
   const highlight = new Set(Object.values(visualNode));
+  const warpMode =
+    !!state &&
+    state.phase === "await_action" &&
+    !animating &&
+    currentPlayer(state).agent === "human" &&
+    currentPlayer(state).warpCharges > 0 &&
+    getLegalActions(state).warp;
 
   for (const node of nodes) {
     const x = px(node);
     const y = py(node);
     const baseR = bodyRadius(node);
+
+    if (warpMode && node.id !== currentPlayer(state!).position) {
+      ctx.beginPath();
+      ctx.arc(x, y, baseR + 12, 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(120, 220, 255, 0.85)";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 4]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
 
     if (highlight.has(node.id)) {
       ctx.beginPath();
@@ -1667,15 +1690,18 @@ function drawBoard(): void {
   void isPurchasable;
 }
 
-// —— Hover inspect ——
-canvas.addEventListener("mousemove", (ev) => {
-  if (!lastProject || !state) {
-    bodyTooltip.classList.add("hidden");
-    return;
-  }
+// —— Board pick (hover inspect + King's Quest warp click) ——
+function canvasBoardCoords(ev: MouseEvent): { sx: number; sy: number } | null {
+  if (!lastProject) return null;
   const rect = canvas.getBoundingClientRect();
-  const sx = (ev.clientX - rect.left) * (canvas.width / rect.width);
-  const sy = (ev.clientY - rect.top) * (canvas.height / rect.height);
+  return {
+    sx: (ev.clientX - rect.left) * (canvas.width / rect.width),
+    sy: (ev.clientY - rect.top) * (canvas.height / rect.height),
+  };
+}
+
+function hitNodeAt(sx: number, sy: number): string | null {
+  if (!lastProject) return null;
   const { project, board } = lastProject;
   let best: { id: string; d: number } | null = null;
   for (const node of nodeList(board)) {
@@ -1684,14 +1710,48 @@ canvas.addEventListener("mousemove", (ev) => {
     const hitR = bodyRadius(node) + 14;
     if (d <= hitR * hitR && (!best || d < best.d)) best = { id: node.id, d };
   }
-  if (!best) {
+  return best?.id ?? null;
+}
+
+function humanWarpReady(): boolean {
+  if (!state || animating) return false;
+  const p = currentPlayer(state);
+  if (p.agent !== "human" || state.phase !== "await_action") return false;
+  return p.warpCharges > 0 && getLegalActions(state).warp;
+}
+
+canvas.addEventListener("mousemove", (ev) => {
+  if (!lastProject || !state) {
+    bodyTooltip.classList.add("hidden");
+    canvas.style.cursor = "default";
+    return;
+  }
+  const coords = canvasBoardCoords(ev);
+  if (!coords) {
+    bodyTooltip.classList.add("hidden");
+    return;
+  }
+  const { sx, sy } = coords;
+  const bestId = hitNodeAt(sx, sy);
+  const warpOn = humanWarpReady();
+  canvas.style.cursor =
+    warpOn && bestId && bestId !== currentPlayer(state).position
+      ? "pointer"
+      : warpOn
+        ? "crosshair"
+        : "default";
+  if (!bestId) {
     bodyTooltip.classList.add("hidden");
     return;
   }
   const viewer =
     state.players.find((p) => p.agent === "human") ?? currentPlayer(state);
-  const info = inspectBody(state, best.id, viewer);
-  bodyTooltip.innerHTML = `<h4>${info.title}</h4>${info.lines
+  const info = inspectBody(state, bestId, viewer);
+  const warpHint =
+    warpOn && bestId !== currentPlayer(state).position
+      ? `<div class="tip-line hot">Click to WARP here</div>`
+      : "";
+  bodyTooltip.innerHTML = `<h4>${info.title}</h4>${warpHint}${info.lines
     .map((l) => {
       const hot =
         /Owner|MONOPOLY|BUY|FERAL|Leave fuel|Rent|depot/i.test(l);
@@ -1711,6 +1771,17 @@ canvas.addEventListener("mousemove", (ev) => {
 });
 canvas.addEventListener("mouseleave", () => {
   bodyTooltip.classList.add("hidden");
+  canvas.style.cursor = "default";
+});
+
+canvas.addEventListener("click", (ev) => {
+  if (!humanWarpReady() || !state) return;
+  const coords = canvasBoardCoords(ev);
+  if (!coords) return;
+  const id = hitNodeAt(coords.sx, coords.sy);
+  if (!id) return;
+  if (id === currentPlayer(state).position) return;
+  void act({ type: "warp", destination: id });
 });
 
 window.addEventListener("resize", resizeLog);

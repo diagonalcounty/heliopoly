@@ -21,7 +21,7 @@ export const TIMED_EVENT_BASE_CHANCE = 0.5;
 /** Monolith: one-time cash on next Earth land or pass (per rocket). */
 export const MONOLITH_EARTH_BONUS = 300;
 
-export type TimedEventId = "monolith" | "mms_free_break";
+export type TimedEventId = "monolith" | "mms_free_break" | "kings_quest";
 
 /** Human rocket’s 3rd character code.
  * Short names fall back to first printable char or 67 ('C').
@@ -71,7 +71,7 @@ export function midpointTowardCertain(currentChance: number): number {
   return c + (1 - c) / 2;
 }
 
-const POOL: TimedEventId[] = ["monolith", "mms_free_break"];
+const POOL: TimedEventId[] = ["monolith", "mms_free_break", "kings_quest"];
 
 /** Remaining pool events not yet fired this charter (each fires at most once). */
 function remainingPool(state: GameState): TimedEventId[] {
@@ -130,6 +130,28 @@ function fireMmsFreeBreak(state: GameState): void {
   );
 }
 
+function fireKingsQuest(state: GameState): void {
+  let n = 0;
+  for (const p of state.players) {
+    if (p.eliminated) continue;
+    p.warpCharges += 1;
+    n++;
+  }
+  state.pendingAnnouncement = {
+    kind: "info",
+    title: "King's Quest speed-run record",
+    body: [
+      "A lonely spacer kills time on an old terminal and sets a new King's Quest record.",
+      "Every active rocket: one warp — instead of rolling, click any beacon on the board.",
+      "Teleport: no en-route stops, rent, or duels. Landing rules still apply at the destination.",
+      `(${n} rocket(s) charted.)`,
+    ].join("\n"),
+  };
+  state.log.push(
+    "Charter alert: King's Quest — one board-wide warp charge per active rocket (click destination).",
+  );
+}
+
 function fireTimedEvent(state: GameState, id: TimedEventId): void {
   switch (id) {
     case "monolith":
@@ -137,6 +159,9 @@ function fireTimedEvent(state: GameState, id: TimedEventId): void {
       break;
     case "mms_free_break":
       fireMmsFreeBreak(state);
+      break;
+    case "kings_quest":
+      fireKingsQuest(state);
       break;
     default: {
       const _exhaustive: never = id;
