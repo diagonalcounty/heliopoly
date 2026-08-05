@@ -8,7 +8,7 @@
     />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="theme-color" content="#0b1020" />
-    <title>Heliopoly v0.0.15</title>
+    <title>Heliopoly v0.0.16</title>
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" href="/favicon.png" sizes="32x32" />
     <link rel="icon" type="image/png" href="/favicon-32.png" sizes="32x32" />
@@ -20,7 +20,7 @@
     <div id="app">
       <header class="top">
         <div class="top-row">
-          <h1>Heliopoly <span class="badge">v0.0.15</span> · Free Enterprise In Space</h1>
+          <h1>Heliopoly <span class="badge">v0.0.16</span> · Free Enterprise In Space</h1>
           <div class="top-actions">
             <button
               id="btn-lab"
@@ -149,6 +149,18 @@
           <section class="card pilot-controls" id="pilot-controls">
             <h2>Pilot Controls</h2>
             <div id="telemetry" class="telemetry"></div>
+            <div class="dir-row hidden-vis" id="dir-row">
+              <span class="dir-label">Course</span>
+              <div class="dir-stepper">
+                <button type="button" id="btn-dir-fwd" class="dir-btn" disabled>
+                  Prograde
+                </button>
+                <button type="button" id="btn-dir-back" class="dir-btn" disabled>
+                  Retrograde
+                </button>
+              </div>
+              <span id="dir-hint" class="dir-hint mono"></span>
+            </div>
             <div class="break-row" id="break-row">
               <button type="button" id="btn-break-label" class="break-label" disabled>
                 Break

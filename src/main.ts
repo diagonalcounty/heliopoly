@@ -141,6 +141,10 @@ const btnBreakMinus = document.getElementById(
 const btnBreakPlus = document.getElementById(
   "btn-break-plus",
 ) as HTMLButtonElement;
+const dirRow = document.getElementById("dir-row")!;
+const dirHint = document.getElementById("dir-hint")!;
+const btnDirFwd = document.getElementById("btn-dir-fwd") as HTMLButtonElement;
+const btnDirBack = document.getElementById("btn-dir-back") as HTMLButtonElement;
 const playerCountInput = document.getElementById(
   "player-count",
 ) as HTMLInputElement;
@@ -815,7 +819,12 @@ async function applyActionAnimated(
     const total = before.lastRoll?.total ?? 0;
     const steps = Math.max(0, total - br);
     if (moved && steps > 0) {
-      const path = walkMovePath(before.board, from, steps);
+      const path = walkMovePath(
+        before.board,
+        from,
+        steps,
+        actor.moveDirection,
+      );
       await animatePath(actor.id, path.frames, actor.agent === "ai");
     }
   }
@@ -1285,6 +1294,27 @@ btnBreakPlus.addEventListener("click", () => {
   });
 });
 
+function requestCourse(
+  direction: "forward" | "backward",
+): void {
+  if (!state) return;
+  const p = currentPlayer(state);
+  const legal = getLegalActions(state);
+  if (!legal.setDirection || !p.canBidirectional || p.directionLocked) return;
+  if (p.moveDirection === direction) return;
+  if (direction === "backward") {
+    const ok = confirm(
+      "Set retrograde course for this charter?\n\n" +
+        "You will fly the Mainline in reverse. This locks after your next Move.",
+    );
+    if (!ok) return;
+  }
+  void act({ type: "set_direction", direction });
+}
+
+btnDirFwd.addEventListener("click", () => requestCourse("forward"));
+btnDirBack.addEventListener("click", () => requestCourse("backward"));
+
 for (const btn of document.querySelectorAll<HTMLButtonElement>(
   "#duel-root button[data-stance]",
 )) {
@@ -1450,6 +1480,34 @@ function renderSide(): void {
   telemetryEl.innerHTML = teleLines
     .map((t, i) => `<div${i === 1 ? ' class="line2"' : ""}>${t}</div>`)
     .join("");
+
+  // Course (palindrome #47) — only while facing can still change
+  if (
+    can &&
+    p.canBidirectional &&
+    !p.directionLocked &&
+    (state.phase === "await_move" || state.phase === "await_action")
+  ) {
+    dirRow.classList.remove("hidden-vis");
+    btnDirFwd.disabled = false;
+    btnDirBack.disabled = false;
+    btnDirFwd.classList.toggle("selected", p.moveDirection === "forward");
+    btnDirBack.classList.toggle("selected", p.moveDirection === "backward");
+    dirHint.textContent =
+      p.moveDirection === "backward" ? "retrograde" : "prograde";
+  } else if (p.canBidirectional && p.directionLocked && can) {
+    dirRow.classList.remove("hidden-vis");
+    btnDirFwd.disabled = true;
+    btnDirBack.disabled = true;
+    btnDirFwd.classList.toggle("selected", p.moveDirection === "forward");
+    btnDirBack.classList.toggle("selected", p.moveDirection === "backward");
+    dirHint.textContent =
+      p.moveDirection === "backward" ? "locked ◀" : "locked ▶";
+  } else {
+    dirRow.classList.add("hidden-vis");
+    btnDirFwd.disabled = true;
+    btnDirBack.disabled = true;
+  }
 
   // Break row — fixed 36px, visibility toggled
   if (state.phase === "await_move" && state.lastRoll) {

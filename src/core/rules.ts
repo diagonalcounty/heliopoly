@@ -508,6 +508,10 @@ export function getLegalActions(state: GameState): LegalActions {
     duelStance: false,
     duelRoll: false,
     warp: false,
+    setDirection: false,
+    moveDirection: "forward",
+    directionLocked: true,
+    canBidirectional: false,
   };
   if (state.phase === "game_over") return empty;
 
@@ -582,6 +586,10 @@ export function getLegalActions(state: GameState): LegalActions {
       placeStation: canStation,
       placeStationCost,
       endTurn: false,
+      setDirection: p.canBidirectional && !p.directionLocked,
+      moveDirection: p.moveDirection,
+      directionLocked: p.directionLocked,
+      canBidirectional: p.canBidirectional,
     };
   }
 
@@ -610,6 +618,10 @@ export function getLegalActions(state: GameState): LegalActions {
       duelStance: false,
       duelRoll: false,
       warp: p.warpCharges > 0,
+      setDirection: p.canBidirectional && !p.directionLocked,
+      moveDirection: p.moveDirection,
+      directionLocked: p.directionLocked,
+      canBidirectional: p.canBidirectional,
     };
   }
 
@@ -637,6 +649,10 @@ export function getLegalActions(state: GameState): LegalActions {
     duelStance: false,
     duelRoll: false,
     warp: false,
+    setDirection: false,
+    moveDirection: p.moveDirection,
+    directionLocked: p.directionLocked,
+    canBidirectional: p.canBidirectional,
   };
 }
 
@@ -1018,7 +1034,13 @@ function movePlayer(state: GameState, steps: number): void {
     p.circuitActive = true;
   }
 
-  const path = walkMovePath(state.board, pos, steps);
+  // #47: lock facing after first Move (permanent for the charter)
+  if (p.canBidirectional && !p.directionLocked) {
+    p.directionLocked = true;
+  }
+
+  const dir = p.moveDirection;
+  const path = walkMovePath(state.board, pos, steps, dir);
   for (const frame of path.frames) {
     if (frame.passThrough) {
       pushLog(
@@ -1045,6 +1067,25 @@ function movePlayer(state: GameState, steps: number): void {
   if (path.endId === "earth" && p.circuitActive) {
     onCircuitComplete(state, p);
   }
+}
+
+function doSetDirection(
+  state: GameState,
+  direction: "forward" | "backward",
+): void {
+  const p = currentPlayer(state);
+  if (!p.canBidirectional || p.directionLocked) {
+    pushLog(state, `${p.name} cannot change course.`);
+    return;
+  }
+  if (direction !== "forward" && direction !== "backward") return;
+  if (p.moveDirection === direction) return;
+  p.moveDirection = direction;
+  pushLog(
+    state,
+    `${p.name} sets course ${direction === "backward" ? "retrograde" : "prograde"} on the Mainline.`,
+  );
+  delta(state, `course ${direction}`);
 }
 
 function resolveLanding(state: GameState, stayed: boolean): void {
@@ -1502,6 +1543,15 @@ export function applyAction(state: GameState, action: PlayerAction): GameState {
       next.phase = "await_move";
       break;
     }
+    case "set_direction":
+      if (
+        next.phase === "await_action" ||
+        next.phase === "await_move" ||
+        next.phase === "await_post_land"
+      ) {
+        doSetDirection(next, action.direction);
+      }
+      break;
     case "set_break":
       doSetBreak(next, action.spaces);
       break;

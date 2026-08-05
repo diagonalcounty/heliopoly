@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.16] — 2026-08-04
+
+### Play
+- **Palindrome course (#47):** palindrome rocket names (e.g. Ada) unlock prograde/retrograde Mainline travel. Facing permanent after first Move; confirm on retrograde; AI can choose. Hidden (no handbook). Earth + gravity wells work both ways.
+
+### Meta
+- Version **0.0.16**
+
 ## [0.0.15] — 2026-08-04
 
 ### Play

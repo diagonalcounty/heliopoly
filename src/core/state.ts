@@ -1,6 +1,10 @@
 import { createV0Board } from "./board";
 import { formatMoney } from "./currency";
-import { pickAiNames, sanitizePilotName } from "./pilotNames";
+import {
+  isPalindromeRocketName,
+  pickAiNames,
+  sanitizePilotName,
+} from "./pilotNames";
 import { PROPELLANTS } from "./propellant";
 import { tickSeatTurn } from "./turnClock";
 import type { GameConfig, GameState, Player, PropellantId } from "./types";
@@ -82,6 +86,9 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
       freeBreakPending: false,
       warpCharges: 0,
       depotsPlacedThisCircuit: 0,
+      canBidirectional: isPalindromeRocketName(name),
+      moveDirection: "forward",
+      directionLocked: false,
     });
   }
 
@@ -92,6 +99,7 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
       players[i].name = allAi[i] ?? `Pilot ${i + 1}`;
       players[i].agent = "ai";
       players[i].propellant = pickAiPropellant(i, seed);
+      players[i].canBidirectional = isPalindromeRocketName(players[i].name);
     }
   }
 

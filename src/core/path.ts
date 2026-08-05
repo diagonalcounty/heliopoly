@@ -1,5 +1,5 @@
 import { getNode } from "./board";
-import type { Board } from "./types";
+import type { Board, MoveDirection } from "./types";
 
 /** One hop along the directed edge. */
 export function stepAlong(board: Board, fromId: string): string {
@@ -17,6 +17,16 @@ export function stepBackAlong(board: Board, fromId: string): string | null {
     if (n.next.includes(fromId)) return n.id;
   }
   return null;
+}
+
+/** One hop in travel direction (forward = next, backward = unique pred). */
+export function stepInDirection(
+  board: Board,
+  fromId: string,
+  direction: MoveDirection,
+): string {
+  if (direction === "forward") return stepAlong(board, fromId);
+  return stepBackAlong(board, fromId) ?? fromId;
 }
 
 export interface MovePath {
@@ -38,22 +48,24 @@ export interface PathFrame {
  * Walk the board the same way rules movement does:
  * each die step advances one edge; landing on gravity slides one more edge
  * (not counting as the rest stop for that step's destination after slide).
+ * `direction` "backward" walks the Mainline reverse (palindrome #47).
  */
 export function walkMovePath(
   board: Board,
   fromId: string,
   steps: number,
+  direction: MoveDirection = "forward",
 ): MovePath {
   let pos = fromId;
   const stops: string[] = [];
   const frames: PathFrame[] = [];
 
   for (let i = 0; i < steps; i++) {
-    pos = stepAlong(board, pos);
+    pos = stepInDirection(board, pos, direction);
     let node = getNode(board, pos);
     if (node.kind === "gravity") {
       frames.push({ nodeId: pos, passThrough: true });
-      pos = stepAlong(board, pos);
+      pos = stepInDirection(board, pos, direction);
       node = getNode(board, pos);
     }
     frames.push({ nodeId: pos, passThrough: false });

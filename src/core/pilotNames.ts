@@ -99,3 +99,20 @@ export function sanitizePilotName(raw: string, fallback = "Venture"): string {
   if (!/[\p{L}\p{N}]/u.test(t)) return fallback;
   return t;
 }
+
+/**
+ * Hidden #47: palindrome callsign (letters/digits only, case-insensitive)
+ * unlocks bidirectional Mainline travel. Length ≥ 2 after stripping.
+ * e.g. Ada, Anna, Bob, Kayak.
+ */
+export function isPalindromeRocketName(name: string): boolean {
+  const s = name
+    .normalize("NFKD")
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]/gu, "");
+  if (s.length < 2) return false;
+  for (let i = 0, j = s.length - 1; i < j; i++, j--) {
+    if (s[i] !== s[j]) return false;
+  }
+  return true;
+}

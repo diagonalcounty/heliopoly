@@ -59,6 +59,13 @@ export function heuristicAI(state: GameState): PlayerAction {
   }
 
   if (state.phase === "await_move") {
+    // #47 palindrome: pick permanent Mainline facing before first move
+    if (legal.setDirection && p.canBidirectional && !p.directionLocked) {
+      const dir = chooseMoveDirection(state, difficulty);
+      if (dir !== p.moveDirection) {
+        return { type: "set_direction", direction: dir };
+      }
+    }
     const br = chooseBreak(state, legal, difficulty);
     if (br !== state.breakSpaces) {
       return { type: "set_break", spaces: br };
@@ -84,6 +91,40 @@ export function heuristicAI(state: GameState): PlayerAction {
     return { type: "refuel", amount: Math.min(fuel.max, 10) };
   }
   return { type: "end_turn" };
+}
+
+/** Palindrome AI: compare forward vs reverse landing quality for full roll. */
+function chooseMoveDirection(
+  state: GameState,
+  difficulty: AiDifficulty,
+): "forward" | "backward" {
+  const p = currentPlayer(state);
+  const total = state.lastRoll?.total ?? 7;
+  const scoreDir = (dir: "forward" | "backward") => {
+    const path = walkMovePath(state.board, p.position, total, dir);
+    const end = getNode(state.board, path.endId);
+    let score = 0;
+    if (
+      isPurchasable(end) &&
+      !state.owners[path.endId] &&
+      (end.price ?? 0) <= p.cash - 100
+    ) {
+      score += 40;
+    }
+    if (state.owners[path.endId] === p.id) score += 18;
+    if (path.endId === "earth") score += 28;
+    const ownerId = state.owners[path.endId];
+    if (ownerId && ownerId !== p.id && isPurchasable(end)) {
+      score -= 25 + (end.rent ?? 0) / 4;
+      if (p.cash < (end.rent ?? 0)) score -= 50;
+    }
+    if (end.kind === "space") score -= 8;
+    if (difficulty === "normal") score += 2; // slight prograde bias
+    return score;
+  };
+  const fwd = scoreDir("forward");
+  const back = scoreDir("backward");
+  return back > fwd + 8 ? "backward" : "forward";
 }
 
 /** Score board nodes for a one-shot warp teleport. */
@@ -181,7 +222,12 @@ function chooseBreak(
     const steps = total - br;
     // leave burn scales with steps; rough check using leaveBurnPreview for full roll
     // Prefer not stranding: need some fuel after break for leave
-    const path = walkMovePath(state.board, p.position, steps);
+    const path = walkMovePath(
+      state.board,
+      p.position,
+      steps,
+      p.moveDirection,
+    );
     const endId = path.endId;
     const end = getNode(state.board, endId);
     let score = 0;
@@ -218,7 +264,12 @@ function chooseBreak(
 
   // If best is barely better than 0, don't bother
   if (bestBr > 0) {
-    const basePath = walkMovePath(state.board, p.position, total);
+    const basePath = walkMovePath(
+      state.board,
+      p.position,
+      total,
+      p.moveDirection,
+    );
     const baseEnd = getNode(state.board, basePath.endId);
     let baseScore = 0;
     if (basePath.endId === "earth") baseScore += 28;

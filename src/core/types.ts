@@ -49,6 +49,9 @@ export type AgentKind = "human" | "ai";
 /** AI seat skill — set at New game. */
 export type AiDifficulty = "normal" | "difficult";
 
+/** Mainline travel facing (#47 palindrome unlock). */
+export type MoveDirection = "forward" | "backward";
+
 /** Oregon Trail–style mid-game interrupt (leak, gusher, later disasters). */
 export interface GameAnnouncement {
   kind: "gusher" | "leak" | "info" | "out";
@@ -129,6 +132,14 @@ export interface Player {
    * First depot this circuit is free; further ones cost cash (#45 Option C).
    */
   depotsPlacedThisCircuit: number;
+  /**
+   * Hidden #47: true if rocket name is a palindrome → may set moveDirection.
+   */
+  canBidirectional: boolean;
+  /** Mainline facing; permanent after first move when bidirectional. */
+  moveDirection: MoveDirection;
+  /** After first Move action, direction cannot change (whole charter). */
+  directionLocked: boolean;
 }
 
 export type TurnPhase =
@@ -273,7 +284,9 @@ export type PlayerAction =
   | { type: "duel_stance"; stance: DuelStance }
   | { type: "duel_roll" }
   /** One-time charter warp: teleport to destination node (no en-route). */
-  | { type: "warp"; destination: string };
+  | { type: "warp"; destination: string }
+  /** Palindrome #47: set Mainline facing before first move. */
+  | { type: "set_direction"; direction: MoveDirection };
 
 export interface LegalActions {
   refuel: boolean;
@@ -303,4 +316,9 @@ export interface LegalActions {
    * Only in await_action with warpCharges > 0.
    */
   warp: boolean;
+  /** May change moveDirection (palindrome, not locked yet). */
+  setDirection: boolean;
+  moveDirection: MoveDirection;
+  directionLocked: boolean;
+  canBidirectional: boolean;
 }
