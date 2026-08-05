@@ -1,7 +1,12 @@
 import { getNode, isPurchasable } from "./board";
 import { formatMoney } from "./currency";
 import { gravityClassOf, leaveBurnCost } from "./fuel";
-import { GUSHER_BONUS, isGusherBody, pickStrikeHeadline } from "./isru";
+import {
+  GUSHER_BONUS,
+  isGusherBody,
+  pickStrikeHeadline,
+  strikeAnnouncementBody,
+} from "./isru";
 import { stepBackAlong, walkMovePath } from "./path";
 import {
   abandonedCharter,
@@ -1313,7 +1318,8 @@ function maybeStrikeGusher(
     p.name,
     isHuman,
   );
-  const logHeadline = isHuman ? `${headline} ${p.name}` : headline;
+  // Log always names the striker (title may be second-person for human)
+  const logHeadline = isHuman ? `${headline} (${p.name})` : headline;
   pushLog(
     state,
     `${logHeadline} · ${body.name} · +${formatMoney(bonus)} (${fuelWord}).`,
@@ -1322,11 +1328,12 @@ function maybeStrikeGusher(
   state.pendingAnnouncement = {
     kind: "gusher",
     title: headline,
-    body: [
-      `${p.name} on ${body.name}.`,
-      `+${formatMoney(bonus)} on the charter ledger.`,
-      `Your depot tapped a natural fuel reservoir — sell excess propellant to pilots who land here.`,
-    ].join("\n"),
+    body: strikeAnnouncementBody(
+      p.name,
+      body.name,
+      `+${formatMoney(bonus)}`,
+      isHuman,
+    ),
   };
 }
 

@@ -59,7 +59,11 @@ export function strikeLinesFor(prop: PropellantId): readonly string[] {
   return prop === "hydrogen" ? HYDROGEN_STRIKE_LINES : METHANE_STRIKE_LINES;
 }
 
-/** Pick a strike headline (caller supplies rand01 in [0,1)). */
+/**
+ * Pick a strike headline (caller supplies rand01 in [0,1)).
+ * Human seat: second person ("You've…").
+ * AI seat: third person with rocket name — never "You've" (#17).
+ */
 export function pickStrikeHeadline(
   prop: PropellantId,
   rand01: number,
@@ -70,5 +74,25 @@ export function pickStrikeHeadline(
   const i = Math.min(lines.length - 1, Math.floor(rand01 * lines.length));
   const line = lines[i] ?? lines[0];
   if (isHuman) return line;
-  return line.replace(/^You've /, `${playerName} `);
+  // "You've struck …" → "Turing struck …"
+  if (/^You've\s+/i.test(line)) {
+    return line.replace(/^You've\s+/i, `${playerName} `);
+  }
+  // "Hydrogen vein tapped!" → "Turing: Hydrogen vein tapped!"
+  return `${playerName}: ${line}`;
+}
+
+/** Body lines for the resource-strike popup (person matches striker seat). */
+export function strikeAnnouncementBody(
+  playerName: string,
+  bodyName: string,
+  bonusLabel: string,
+  isHuman: boolean,
+): string {
+  const where = `${playerName} on ${bodyName}.`;
+  const cash = `${bonusLabel} on the charter ledger.`;
+  const depot = isHuman
+    ? "Your depot tapped a natural fuel reservoir — sell excess propellant to pilots who land here."
+    : `${playerName}'s depot tapped a natural fuel reservoir — excess propellant can be sold to pilots who land here.`;
+  return [where, cash, depot].join("\n");
 }

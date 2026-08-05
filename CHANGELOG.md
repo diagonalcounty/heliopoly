@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.19] — 2026-08-04
+
+### Play
+- **Fuel strike attribution (#17):** AI strikes use third-person titles and body (`Name's depot…`); never “You've / Your” for non-human seats
+
+### Meta
+- Version **0.0.19**
+
 ## [0.0.18] — 2026-08-04
 
 ### UX
