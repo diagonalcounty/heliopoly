@@ -31,7 +31,7 @@ const LORE_TOPICS: HandbookTopic[] = [
     id: "welcome",
     title: "Welcome, Venture",
     html: `
-<p><strong>Heliopoly</strong> — <em>Free Enterprise In Space</em> (v0.0.12).</p>
+<p><strong>Heliopoly</strong> — <em>Free Enterprise In Space</em> (v0.0.13).</p>
 <p>Open source: <a href="https://github.com/diagonalcounty/heliopoly" target="_blank" rel="noopener">github.com/diagonalcounty/heliopoly</a> — issues and PRs welcome.</p>
 <p>This is a <strong>preparatory simulator</strong> for near-future space enterprise: close-quarters economics like chess or Monopoly, abstracting fuel, orbits, and frontier capitalism so you can practice the mental model before the real Mainline opens.</p>
 <p>Earth’s old regulations stop at the edge of the system. Independent operators fly a rigid one-way orbital circuit — <strong>the Mainline</strong> — to build fortunes while propellant, claims, and the ledger stay honest.</p>
@@ -239,9 +239,10 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
 
 <h4>Stakes</h4>
 <ul>
-  <li><strong>Loser</strong> — skips their <strong>next full seat turn</strong> (that skip also counts as a <strong>park</strong> for feral risk).</li>
+  <li><strong>Loser</strong> — skips their <strong>next full seat turn</strong> (that skip also counts as a <strong>park</strong> for feral risk) <strong>and</strong> is <strong>knocked back one space</strong> on the Mainline (toward the previous beacon). Knockback can charge rent / Earth pay / leak at the new node; it does not start a second duel.</li>
   <li><strong>Winner</strong> — gains a one-time <strong>rent waiver</strong> against the loser: the next time the winner would pay rent to that pilot’s claims, the fee is free (waiver consumed).</li>
-  <li><strong>Tie</strong> — both hold the lane; nobody skips; no waiver. The next arrival may face the last roller as defender.</li>
+  <li><strong>Tie</strong> — both hold the lane; nobody skips, no knockback, no waiver. The next arrival may face the last roller as defender.</li>
+  <li>If the loser is already on <strong>Earth</strong>, they cannot be shoved further back.</li>
 </ul>
 
 <h4>What the panel is showing you</h4>

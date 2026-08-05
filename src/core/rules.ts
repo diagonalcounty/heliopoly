@@ -2,7 +2,7 @@ import { getNode, isPurchasable } from "./board";
 import { formatMoney } from "./currency";
 import { gravityClassOf, leaveBurnCost } from "./fuel";
 import { GUSHER_BONUS, isGusherBody, pickStrikeHeadline } from "./isru";
-import { walkMovePath } from "./path";
+import { stepBackAlong, walkMovePath } from "./path";
 import {
   abandonedCharter,
   duelWinSummary,
@@ -841,9 +841,11 @@ function resolveDuelIfComplete(state: GameState): void {
   if (!winner.rentWaiversAgainst.includes(loser.id)) {
     winner.rentWaiversAgainst.push(loser.id);
   }
+  // #48: loser is also knocked back one Mainline space (in addition to skip + waiver)
+  knockBackOneSpace(state, loser);
   const summary = duelWinSummary(winner.name, loser.name);
   pushLog(state, `Gravity Duel: ${summary}`);
-  delta(state, `Duel WIN ${winner.name} / ${loser.name} skips + waiver`);
+  delta(state, `Duel WIN ${winner.name} / ${loser.name} skips + knockback + waiver`);
   state.lastDuelResult = {
     nodeName: getNode(state.board, d.nodeId).name,
     challengerName: c.name,
@@ -860,6 +862,103 @@ function resolveDuelIfComplete(state: GameState): void {
   };
   state.pendingDuel = null;
   state.phase = "await_post_land";
+}
+
+/**
+ * Gravity Duel forfeit (#48): move loser one hop reverse on the Mainline.
+ * No leave fuel. Applies light landing (rent / Earth / leak) at the new node;
+ * does **not** start a new duel (avoids cascade mid-resolution).
+ * Cannot be pushed off Earth further back while already on Earth.
+ */
+function knockBackOneSpace(state: GameState, loser: Player): void {
+  if (loser.eliminated) return;
+  const fromId = loser.position;
+  const fromName = getNode(state.board, fromId).name;
+
+  if (fromId === "earth") {
+    pushLog(
+      state,
+      `${loser.name} holds Earth — cannot be knocked further back.`,
+    );
+    return;
+  }
+
+  const backId = stepBackAlong(state.board, fromId);
+  if (!backId || backId === fromId) {
+    pushLog(state, `${loser.name} cannot be knocked back from ${fromName}.`);
+    return;
+  }
+
+  const backName = getNode(state.board, backId).name;
+  loser.position = backId;
+  pushLog(
+    state,
+    `${loser.name} is knocked back ${fromName} → ${backName} (duel forfeit).`,
+  );
+  delta(state, `${loser.name}: knockback → ${backName}`);
+
+  applyKnockbackLanding(state, loser);
+}
+
+/** Rent / Earth / leak for a pilot who was shoved (not the seat current). */
+function applyKnockbackLanding(state: GameState, p: Player): void {
+  if (p.eliminated || state.phase === "game_over") return;
+  const node = getNode(state.board, p.position);
+
+  if (state.owners[node.id] === p.id) {
+    touchClaim(state, node.id);
+  }
+
+  if (node.id === "earth") {
+    payEarthVisit(state, p, "land");
+    if (p.circuitActive) {
+      onCircuitComplete(state, p);
+    }
+  } else if (node.landingBonus && node.landingBonus > 0) {
+    p.cash += node.landingBonus;
+    pushLog(
+      state,
+      `${p.name} collects ${formatMoney(node.landingBonus)} from ${node.name} (knockback).`,
+    );
+    delta(state, `+${formatMoney(node.landingBonus)} ${node.name}`);
+  }
+
+  const qualifies = node.kind === "planet" || node.kind === "moon";
+  applyLandingLeak(state, p, node.name, qualifies);
+
+  const ownerId = state.owners[node.id];
+  if (ownerId && ownerId !== p.id && isPurchasable(node)) {
+    const owner = state.players.find((x) => x.id === ownerId);
+    if (!owner || owner.eliminated) return;
+    const waiverIdx = p.rentWaiversAgainst.indexOf(owner.id);
+    if (waiverIdx >= 0) {
+      p.rentWaiversAgainst.splice(waiverIdx, 1);
+      pushLog(
+        state,
+        `${p.name} uses Gravity Duel free pass — no rent to ${owner.name} (knockback).`,
+      );
+      delta(state, `rent waived vs ${owner.name}`);
+    } else {
+      const rent = rentDue(state, node.id, ownerId);
+      if (p.cash >= rent) {
+        p.cash -= rent;
+        owner.cash += rent;
+        pushLog(
+          state,
+          `${p.name} pays ${formatMoney(rent)} rent to ${owner.name} (knockback).`,
+        );
+        delta(state, `−${formatMoney(rent)} rent → ${owner.name}`);
+      } else {
+        owner.cash += p.cash;
+        pushLog(
+          state,
+          `${p.name} cannot pay ${formatMoney(rent)} rent (knockback).`,
+        );
+        delta(state, `bankrupt to ${owner.name}`);
+        eliminate(state, p, "bankruptcy");
+      }
+    }
+  }
 }
 
 function movePlayer(state: GameState, steps: number): void {

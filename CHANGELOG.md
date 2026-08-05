@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.0.13] — 2026-08-04
+
+### Play
+- **Gravity Duel knockback (#48):** loser is shoved **one space back** on the Mainline (plus skip turn + rent waiver). Light landing at new node; no second duel; cannot knock past Earth while already on Earth.
+
+### Ops Manual
+- Duel stakes updated for knockback
+
+### Meta
+- Version **0.0.13**
+
 ## [0.0.12] — 2026-08-04
 
 ### UX

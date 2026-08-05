@@ -8,6 +8,17 @@ export function stepAlong(board: Board, fromId: string): string {
   return nextId ?? fromId;
 }
 
+/**
+ * One hop reverse along the Mainline (unique predecessor on the circuit).
+ * Returns `null` if no predecessor (should not happen on the closed path).
+ */
+export function stepBackAlong(board: Board, fromId: string): string | null {
+  for (const n of Object.values(board.nodes)) {
+    if (n.next.includes(fromId)) return n.id;
+  }
+  return null;
+}
+
 export interface MovePath {
   /** Resting spaces after each die step (length === steps). */
   stops: string[];

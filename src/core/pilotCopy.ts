@@ -29,8 +29,8 @@ export function duelWinSummary(winnerName: string, loserName: string): string {
     winnerName === "You" ? "You win!" : `${winnerName} wins!`;
   const loseBit =
     loserName === "You"
-      ? "You lose a turn"
-      : `${loserName} loses a turn`;
+      ? "You lose a turn and are knocked back one space"
+      : `${loserName} loses a turn and is knocked back one space`;
   const passOwner = winnerName === "You" ? "You get" : `${winnerName} gets`;
   const claimOf =
     loserName === "You" ? "your claims" : `${loserName}'s claims`;
