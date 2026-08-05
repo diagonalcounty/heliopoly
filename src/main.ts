@@ -1338,9 +1338,16 @@ function resizeLog(): void {
   const pilotControls = document.getElementById("pilot-controls") as HTMLElement;
   const logCard = document.querySelector(".log-card") as HTMLElement;
   if (!board || !pilotControls || !logCard) return;
-  const gap = 12;
-  const desired = board.getBoundingClientRect().bottom - pilotControls.getBoundingClientRect().bottom - gap;
-  logCard.style.height = `${Math.max(80, desired)}px`;
+  const gap = 10;
+  const remaining =
+    board.getBoundingClientRect().bottom -
+    pilotControls.getBoundingClientRect().bottom -
+    gap;
+  // Cap log so it stays compact under Pilot Controls (was filling to board bottom)
+  const maxLog = Math.min(200, Math.floor(window.innerHeight * 0.22));
+  const h = Math.max(72, Math.min(remaining, maxLog));
+  logCard.style.height = `${h}px`;
+  logCard.style.maxHeight = `${maxLog}px`;
 }
 
 function render(): void {

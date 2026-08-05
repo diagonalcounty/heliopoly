@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.17] — 2026-08-04
+
+### UX
+- **Log panel shorter:** cap ~22vh / 200px so it no longer crowds Pilot Controls; pilot panel height is auto again (Course + Break + actions fit)
+
+### Meta
+- Version **0.0.17**
+
 ## [0.0.16] — 2026-08-04
 
 ### Play
