@@ -872,10 +872,9 @@ button:not(:disabled):active {
 }
 
 .log-card {
-  /* Compact log — does not crowd Pilot Controls (height also capped in resizeLog) */
-  flex: 0 1 auto;
-  min-height: 72px;
-  max-height: min(22vh, 200px);
+  /* Height set in resizeLog: pilot-controls bottom → board bottom */
+  flex: 0 0 auto;
+  min-height: 80px;
   display: flex;
   flex-direction: column;
   overflow: hidden;

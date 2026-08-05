@@ -1,9 +1,17 @@
 # Changelog
 
+## [0.0.18] — 2026-08-04
+
+### UX
+- **Log fills sidebar:** height from bottom of Pilot Controls to bottom of board (pilot stays auto-height so controls don’t clip)
+
+### Meta
+- Version **0.0.18**
+
 ## [0.0.17] — 2026-08-04
 
 ### UX
-- **Log panel shorter:** cap ~22vh / 200px so it no longer crowds Pilot Controls; pilot panel height is auto again (Course + Break + actions fit)
+- **Log panel / pilot layout:** pilot controls auto-height so Course + Break + actions fit
 
 ### Meta
 - Version **0.0.17**

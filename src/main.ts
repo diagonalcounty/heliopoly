@@ -1333,21 +1333,22 @@ for (const btn of document.querySelectorAll<HTMLButtonElement>(
   });
 }
 
+/** Size log from bottom of Pilot Controls to bottom of the board panel. */
 function resizeLog(): void {
   const board = document.querySelector(".board-panel") as HTMLElement;
-  const pilotControls = document.getElementById("pilot-controls") as HTMLElement;
+  const pilotControls = document.getElementById(
+    "pilot-controls",
+  ) as HTMLElement;
   const logCard = document.querySelector(".log-card") as HTMLElement;
   if (!board || !pilotControls || !logCard) return;
   const gap = 10;
-  const remaining =
-    board.getBoundingClientRect().bottom -
-    pilotControls.getBoundingClientRect().bottom -
-    gap;
-  // Cap log so it stays compact under Pilot Controls (was filling to board bottom)
-  const maxLog = Math.min(200, Math.floor(window.innerHeight * 0.22));
-  const h = Math.max(72, Math.min(remaining, maxLog));
+  const boardBottom = board.getBoundingClientRect().bottom;
+  const pilotBottom = pilotControls.getBoundingClientRect().bottom;
+  const remaining = boardBottom - pilotBottom - gap;
+  const h = Math.max(80, remaining);
   logCard.style.height = `${h}px`;
-  logCard.style.maxHeight = `${maxLog}px`;
+  logCard.style.maxHeight = `${h}px`;
+  logCard.style.flex = "0 0 auto";
 }
 
 function render(): void {

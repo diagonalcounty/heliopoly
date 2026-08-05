@@ -31,7 +31,7 @@ const LORE_TOPICS: HandbookTopic[] = [
     id: "welcome",
     title: "Welcome, Venture",
     html: `
-<p><strong>Heliopoly</strong> — <em>Free Enterprise In Space</em> (v0.0.17).</p>
+<p><strong>Heliopoly</strong> — <em>Free Enterprise In Space</em> (v0.0.18).</p>
 <p>Open source: <a href="https://github.com/diagonalcounty/heliopoly" target="_blank" rel="noopener">github.com/diagonalcounty/heliopoly</a> — issues and PRs welcome.</p>
 <p>This is a <strong>preparatory simulator</strong> for near-future space enterprise: close-quarters economics like chess or Monopoly, abstracting fuel, orbits, and frontier capitalism so you can practice the mental model before the real Mainline opens.</p>
 <p>Earth’s old regulations stop at the edge of the system. Independent operators fly a rigid one-way orbital circuit — <strong>the Mainline</strong> — to build fortunes while propellant, claims, and the ledger stay honest.</p>
