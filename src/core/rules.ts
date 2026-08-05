@@ -116,7 +116,7 @@ export function rankings(
   return alive.map((row, i) => ({ ...row, rank: i + 1 }));
 }
 
-function rentDue(state: GameState, nodeId: string, ownerId: string): number {
+export function rentDue(state: GameState, nodeId: string, ownerId: string): number {
   const node = getNode(state.board, nodeId);
   const base = node.rent ?? 0;
   const sys = systemOfGroup(node.group);
@@ -1179,7 +1179,7 @@ function resolveLanding(state: GameState, stayed: boolean): void {
   state.phase = "await_post_land";
 }
 
-function canRefuelAtAll(state: GameState, p: Player): boolean {
+export function canRefuelAtAll(state: GameState, p: Player): boolean {
   const node = getNode(state.board, p.position);
   if (node.refuel === "free" || node.id === "earth") return true;
   if (node.refuel === "paid") return true;
