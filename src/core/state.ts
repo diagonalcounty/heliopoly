@@ -81,6 +81,7 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
       monolithEarthPending: false,
       freeBreakPending: false,
       warpCharges: 0,
+      depotsPlacedThisCircuit: 0,
     });
   }
 

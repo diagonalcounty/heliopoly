@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.15] — 2026-08-04
+
+### Play
+- **Fuel depot cash (#45 Option C):** first depot per circuit free; additional planetoid depots cost **10%** of claim price. Hubs never get depots. Cost on button + inspect; free slot resets on Earth circuit complete.
+
+### Meta
+- Version **0.0.15**
+
 ## [0.0.14] — 2026-08-04
 
 ### UX

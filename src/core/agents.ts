@@ -73,9 +73,12 @@ export function heuristicAI(state: GameState): PlayerAction {
   if (legal.buy && p.cash >= legal.buyPrice + 150) {
     return { type: "buy" };
   }
-  // Prefer depot on gusher-ish own claims when fuel ok
+  // Prefer depot on gusher-ish own claims when fuel ok (respect cash cost #45)
   if (legal.placeStation && (p.fuel <= 14 || p.stationsInHand >= 2)) {
-    return { type: "place_station" };
+    const cost = legal.placeStationCost;
+    if (cost === 0 || p.cash >= cost + 120) {
+      return { type: "place_station" };
+    }
   }
   if (legal.refuel && p.fuel <= 8 && fuel.costPer === 0) {
     return { type: "refuel", amount: Math.min(fuel.max, 10) };

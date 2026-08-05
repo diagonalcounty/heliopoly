@@ -11,6 +11,7 @@ import {
 import { pilotByCallsign, sanitizePilotName } from "./core/pilotNames";
 import {
   applyAction,
+  depotPlaceCashCost,
   getLegalActions,
   meanDiceTotal,
   netWorth,
@@ -1490,7 +1491,11 @@ function renderSide(): void {
   }
 
   if (legal.placeStation) {
-    btnStation.textContent = `Fuel depot (${p.stationsInHand} left)`;
+    const cost = legal.placeStationCost;
+    btnStation.textContent =
+      cost > 0
+        ? `Fuel depot ${formatMoney(cost)} (${p.stationsInHand} left)`
+        : `Fuel depot free (${p.stationsInHand} left)`;
   } else {
     const here = getNode(state.board, p.position);
     if (state.owners[here.id] !== p.id) btnStation.textContent = "Depot (must own)";
@@ -1498,7 +1503,12 @@ function renderSide(): void {
     else if (p.stationsInHand <= 0) btnStation.textContent = "No depots left";
     else if (here.kind !== "planet" && here.kind !== "moon")
       btnStation.textContent = "Depot (moons/planets only)";
-    else btnStation.textContent = "Place depot";
+    else if (
+      p.depotsPlacedThisCircuit > 0 &&
+      p.cash < depotPlaceCashCost(p.depotsPlacedThisCircuit, here.price)
+    ) {
+      btnStation.textContent = `Need ${formatMoney(depotPlaceCashCost(p.depotsPlacedThisCircuit, here.price))} for depot`;
+    } else btnStation.textContent = "Place depot";
   }
 
   logEl.textContent = "";

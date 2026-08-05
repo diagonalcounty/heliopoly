@@ -124,6 +124,11 @@ export interface Player {
    * Each charge is one teleport; unused charges persist until used.
    */
   warpCharges: number;
+  /**
+   * Fuel depots placed since last Earth circuit complete (or game start).
+   * First depot this circuit is free; further ones cost cash (#45 Option C).
+   */
+  depotsPlacedThisCircuit: number;
 }
 
 export type TurnPhase =
@@ -287,6 +292,8 @@ export interface LegalActions {
   sellNodeId: string | null;
   sellValue: number;
   placeStation: boolean;
+  /** Cash to place a depot now (0 if first this circuit). */
+  placeStationCost: number;
   endTurn: boolean;
   leaveBurnPreview: number;
   duelStance: boolean;

@@ -200,11 +200,29 @@ function onCircuitComplete(state: GameState, pilot: Player): void {
 
   const resupply = state.config.stationsEach;
   pilot.stationsInHand += resupply;
+  // Next circuit: first planetoid depot is free again (#45 Option C)
+  pilot.depotsPlacedThisCircuit = 0;
   pushLog(
     state,
     `${pilot.name} resupplies at Earth: +${resupply} fuel depot(s) in hand (now ${pilot.stationsInHand}).`,
   );
   delta(state, `+${resupply} fuel depots (Earth resupply)`);
+}
+
+/** Fraction of body price for 2nd+ depot this circuit (#45). */
+export const DEPOT_PLACE_COST_FRACTION = 0.1;
+
+/**
+ * Cash cost to place a fuel depot on a planetoid you own.
+ * First depot per circuit is free; later ones are 10% of purchase price.
+ * Hub stations are not depot sites (planet/moon only).
+ */
+export function depotPlaceCashCost(
+  depotsPlacedThisCircuit: number,
+  bodyPrice: number | undefined,
+): number {
+  if (depotsPlacedThisCircuit <= 0) return 0;
+  return Math.floor(Math.max(0, bodyPrice ?? 0) * DEPOT_PLACE_COST_FRACTION);
 }
 
 /** +1 neglect for every pilot who skipped rolling (except the one who just hit Earth). */
@@ -484,6 +502,7 @@ export function getLegalActions(state: GameState): LegalActions {
     sellNodeId: null,
     sellValue: 0,
     placeStation: false,
+    placeStationCost: 0,
     endTurn: false,
     leaveBurnPreview: 0,
     duelStance: false,
@@ -525,11 +544,16 @@ export function getLegalActions(state: GameState): LegalActions {
   const fuel = refuelInfo(state);
   const node = getNode(state.board, p.position);
   const ownsHere = state.owners[node.id] === p.id;
-  const canStation =
+  // Depots: planetoids only (planet/moon) — never hub space stations
+  const depotSite =
     ownsHere &&
     (node.kind === "planet" || node.kind === "moon") &&
     !state.stations[node.id] &&
     p.stationsInHand > 0;
+  const placeStationCost = depotSite
+    ? depotPlaceCashCost(p.depotsPlacedThisCircuit, node.price)
+    : 0;
+  const canStation = depotSite && p.cash >= placeStationCost;
 
   const sellValue = ownsHere && isPurchasable(node)
     ? Math.floor((node.price ?? 0) / 2)
@@ -556,6 +580,7 @@ export function getLegalActions(state: GameState): LegalActions {
       sellNodeId: canSell ? node.id : null,
       sellValue,
       placeStation: canStation,
+      placeStationCost,
       endTurn: false,
     };
   }
@@ -579,6 +604,7 @@ export function getLegalActions(state: GameState): LegalActions {
       sellNodeId: canSell ? node.id : null,
       sellValue,
       placeStation: canStation,
+      placeStationCost,
       endTurn: true,
       leaveBurnPreview,
       duelStance: false,
@@ -605,6 +631,7 @@ export function getLegalActions(state: GameState): LegalActions {
     sellNodeId: canSell ? node.id : null,
     sellValue,
     placeStation: canStation,
+    placeStationCost,
     endTurn: true,
     leaveBurnPreview,
     duelStance: false,
@@ -1178,18 +1205,44 @@ function doPlaceStation(state: GameState): void {
   const p = currentPlayer(state);
   const legal = getLegalActions(state);
   if (!legal.placeStation) {
-    pushLog(state, `${p.name} cannot place a station here.`);
+    pushLog(state, `${p.name} cannot place a fuel depot here.`);
     return;
   }
+  const body = getNode(state.board, p.position);
+  // Planetoids only (planet/moon); hubs are never depot sites
+  if (body.kind !== "planet" && body.kind !== "moon") {
+    pushLog(state, `${p.name} cannot place a depot on ${body.name}.`);
+    return;
+  }
+  const cost = depotPlaceCashCost(p.depotsPlacedThisCircuit, body.price);
+  if (p.cash < cost) {
+    pushLog(
+      state,
+      `${p.name} cannot afford depot on ${body.name} (${formatMoney(cost)}).`,
+    );
+    return;
+  }
+  if (cost > 0) {
+    p.cash -= cost;
+  }
   p.stationsInHand -= 1;
+  p.depotsPlacedThisCircuit += 1;
   state.stations[p.position] = true;
   touchClaim(state, p.position); // legacy care stamp (parking feral does not use this)
-  const body = getNode(state.board, p.position);
+  const freeNote =
+    cost === 0
+      ? " (first this circuit free)"
+      : ` for ${formatMoney(cost)} (10% of claim)`;
   pushLog(
     state,
-    `${p.name} places a fuel depot on ${body.name} (feral timer reset).`,
+    `${p.name} places a fuel depot on ${body.name}${freeNote}.`,
   );
-  delta(state, `+depot ${body.name}`);
+  delta(
+    state,
+    cost > 0
+      ? `+depot ${body.name} (−${formatMoney(cost)})`
+      : `+depot ${body.name} free`,
+  );
   maybeStrikeGusher(state, p, p.position);
 }
 

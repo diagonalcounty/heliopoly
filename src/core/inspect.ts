@@ -2,7 +2,12 @@ import { getNode, isPurchasable } from "./board";
 import { formatMoney } from "./currency";
 import { leaveBurnCost } from "./fuel";
 import { PROPELLANTS } from "./propellant";
-import { netWorth, parkFeralChance, PARK_FERAL_THRESHOLD } from "./rules";
+import {
+  depotPlaceCashCost,
+  netWorth,
+  parkFeralChance,
+  PARK_FERAL_THRESHOLD,
+} from "./rules";
 import { hasSystemMonopoly, systemOfGroup } from "./systems";
 import type { GameState, Player } from "./types";
 import { ephemerisForBody } from "./ephemeris";
@@ -125,9 +130,19 @@ export function inspectBody(
       if (state.stations[nodeId]) lines.push(`Depot already built here`);
       else if (viewer.stationsInHand <= 0)
         lines.push(`Cannot build depot — no depots left in hand`);
-      else if (node.kind === "planet" || node.kind === "moon")
-        lines.push(`You can place a FUEL DEPOT here (${viewer.stationsInHand} left)`);
-      else lines.push(`Cannot build depot on stations/hubs — only planets & moons`);
+      else if (node.kind === "planet" || node.kind === "moon") {
+        const cost = depotPlaceCashCost(
+          viewer.depotsPlacedThisCircuit,
+          node.price,
+        );
+        const costBit =
+          cost === 0
+            ? "first this circuit FREE"
+            : `${formatMoney(cost)} (10% of claim)`;
+        lines.push(
+          `You can place a FUEL DEPOT here (${viewer.stationsInHand} left · ${costBit})`,
+        );
+      } else lines.push(`Cannot build depot on stations/hubs — only planets & moons`);
     }
   }
 

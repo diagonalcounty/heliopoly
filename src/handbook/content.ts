@@ -31,7 +31,7 @@ const LORE_TOPICS: HandbookTopic[] = [
     id: "welcome",
     title: "Welcome, Venture",
     html: `
-<p><strong>Heliopoly</strong> — <em>Free Enterprise In Space</em> (v0.0.14).</p>
+<p><strong>Heliopoly</strong> — <em>Free Enterprise In Space</em> (v0.0.15).</p>
 <p>Open source: <a href="https://github.com/diagonalcounty/heliopoly" target="_blank" rel="noopener">github.com/diagonalcounty/heliopoly</a> — issues and PRs welcome.</p>
 <p>This is a <strong>preparatory simulator</strong> for near-future space enterprise: close-quarters economics like chess or Monopoly, abstracting fuel, orbits, and frontier capitalism so you can practice the mental model before the real Mainline opens.</p>
 <p>Earth’s old regulations stop at the edge of the system. Independent operators fly a rigid one-way orbital circuit — <strong>the Mainline</strong> — to build fortunes while propellant, claims, and the ledger stay honest.</p>
@@ -178,9 +178,10 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     id: "depots",
     title: "Fuel depots",
     html: `
-<p>You start with <strong>3 fuel depots</strong> in hand. Place them on <strong>planets or moons you own</strong> (not on hub stations like Holst/Elon/Daktulios).</p>
+<p>You start with <strong>3 fuel depots</strong> in hand. Place them on <strong>planets or moons you own</strong> (planetoids only — <strong>not</strong> hub space stations like Holst / Elon / Daktulios).</p>
 <p>Depots boost rent and enable free refuel on that body (for you).</p>
-<p><strong>Earth resupply:</strong> each time you complete a full board circuit and return to Earth, you receive <strong>+3 depots</strong> in hand again (so you can expand the network each loop). Placed depots stay on the map until feral/elimination.</p>
+<p><strong>Cash cost (per circuit):</strong> your <strong>first</strong> depot after game start or after finishing a board rotation is <strong>free</strong>. Each additional depot that circuit costs <strong>10%</strong> of that body’s purchase price (e.g. a ⍼200 claim → ⍼20 to place the 2nd+ depot). Completing a circuit resets the free first placement.</p>
+<p><strong>Earth resupply:</strong> each full board circuit home grants <strong>+3 depots</strong> in hand again. Placed depots stay until feral/elimination.</p>
 <p>If a claim goes feral or you are eliminated, depots on those claims are <strong>destroyed</strong>.</p>
 `,
   },
