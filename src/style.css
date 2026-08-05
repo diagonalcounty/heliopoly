@@ -219,6 +219,48 @@ body.handbook-open {
   padding: 16px;
 }
 
+/* Ops Manual above Gravity Duel so rules can open mid-duel (#21) */
+#handbook-root.handbook {
+  z-index: 1060;
+}
+
+#duel-root.duel-overlay {
+  z-index: 1000;
+}
+
+/* Compact Ops Manual launch inside duel header */
+.duel-ops-manual {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 6px 12px 6px 6px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #1a2744;
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.duel-ops-manual:hover {
+  border-color: var(--accent);
+  color: var(--accent-2);
+}
+
+.duel-ops-manual .ops-manual-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  border-radius: 6px;
+  flex-shrink: 0;
+  background: #070b14;
+}
+
 .handbook.hidden {
   display: none;
 }

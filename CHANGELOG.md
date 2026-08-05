@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.14] — 2026-08-04
+
+### UX
+- **Gravity Duel → Ops Manual (#21):** Rules button (ops icon) on the duel panel opens Gameplay → Gravity Duel without dismissing the duel
+
+### Meta
+- Version **0.0.14**
+
 ## [0.0.13] — 2026-08-04
 
 ### Play

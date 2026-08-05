@@ -1055,6 +1055,12 @@ document
   .getElementById("btn-handbook-header")
   ?.addEventListener("click", () => handbook.open());
 
+/** Gravity Duel panel → Ops Manual Gravity Duel topic (#21). */
+document.getElementById("btn-duel-handbook")?.addEventListener("click", (ev) => {
+  ev.stopPropagation();
+  handbook.open("duel");
+});
+
 /** Full player-facing log (same stream as the Log panel, not UI-truncated to last 60). */
 function gameLogText(): string {
   if (!state?.log.length) return "";

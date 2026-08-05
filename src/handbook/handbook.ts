@@ -204,11 +204,23 @@ export function mountHandbook(root: HTMLElement): HandbookController {
     article.scrollTop = 0;
   }
 
+  function otherOverlayOpen(): boolean {
+    const duel = document.getElementById("duel-root");
+    const lab = document.getElementById("lab-root");
+    const end = document.getElementById("end-root");
+    return (
+      (!!duel && !duel.classList.contains("hidden")) ||
+      (!!lab && !lab.classList.contains("hidden")) ||
+      (!!end && !end.classList.contains("hidden"))
+    );
+  }
+
   function setOpen(next: boolean): void {
     open = next;
     root.classList.toggle("hidden", !open);
     root.setAttribute("aria-hidden", open ? "false" : "true");
-    document.body.classList.toggle("handbook-open", open);
+    // Keep body scroll locked if duel/lab/end is still up under the manual
+    document.body.classList.toggle("handbook-open", open || otherOverlayOpen());
     if (open) {
       lastFocus = document.activeElement as HTMLElement | null;
       if (!getTopic(currentId)) currentId = DEFAULT_TOPIC_ID;
