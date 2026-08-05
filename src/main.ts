@@ -9,6 +9,7 @@ import {
   winsHeadline,
 } from "./core/pilotCopy";
 import { pilotByCallsign, sanitizePilotName } from "./core/pilotNames";
+import { goingUnderFlags } from "./core/goingUnder";
 import {
   applyAction,
   depotPlaceCashCost,
@@ -1407,8 +1408,13 @@ function renderSide(): void {
       const shown = shipNodeId(pl.id, pl.position);
       const at = getNode(state!.board, shown).name;
       const skip = !pl.eliminated && pl.skipTurns ? " · skip" : "";
+      // Soft death-risk signal (#3) — display only, never a rules change
+      const atRisk = goingUnderFlags(state!, pl);
+      const riskBadge = atRisk.atRisk
+        ? `<span class="at-risk-badge" title="Going under: ${atRisk.reasons.join(" · ")}" role="img" aria-label="Going under">⚠</span>`
+        : "";
       // Single-line markup: avoids anonymous whitespace grid items if pre-wrap sneaks back
-      return `<div class="rank-row${lead}${active ? " active" : ""}${pl.eliminated ? " out" : ""}"><div class="swatch" style="background:${pl.color}" aria-hidden="true"></div><div class="rank-body"><div class="rank-top"><span class="rank-id">${rankLabel} ${rocketNameButton(pl.name)}${skip} · <span class="rank-prop">${plProp}</span></span><span class="rank-money"><span class="cash">${formatMoney(pl.cash)} cash</span> · NW ${formatMoney(worth)}</span></div><div class="rank-detail">${pl.fuel} fuel · ${pl.properties.length} claims · ${at}</div></div></div>`;
+      return `<div class="rank-row${lead}${active ? " active" : ""}${pl.eliminated ? " out" : ""}${atRisk.atRisk ? " at-risk" : ""}"><div class="swatch" style="background:${pl.color}" aria-hidden="true"></div><div class="rank-body"><div class="rank-top"><span class="rank-id">${rankLabel} ${rocketNameButton(pl.name)}${skip} · <span class="rank-prop">${plProp}</span>${riskBadge}</span><span class="rank-money"><span class="cash">${formatMoney(pl.cash)} cash</span> · NW ${formatMoney(worth)}</span></div><div class="rank-detail">${pl.fuel} fuel · ${pl.properties.length} claims · ${at}</div></div></div>`;
     })
     .join("");
 

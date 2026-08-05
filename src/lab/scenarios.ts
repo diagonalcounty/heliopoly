@@ -144,6 +144,26 @@ export const LAB_SCENARIOS: LabScenario[] = [
       return tagLab(s, `End · ${ai1.name} wins`);
     },
   },
+  {
+    id: "going-under-warnings",
+    title: "Going-under warnings",
+    blurb: "You're stranded on a rival's claim with no fuel and low cash — standings show ⚠ risk badges.",
+    group: "economy",
+    build: () => {
+      const s = baseGame(2);
+      const you = s.players[0];
+      const ai = s.players[1];
+      s.owners["europa"] = ai.id;
+      s.owners["callisto"] = ai.id;
+      ai.properties = ["europa", "callisto"];
+      you.position = "europa";
+      you.fuel = 0;
+      you.cash = 10;
+      ai.position = "earth";
+      ai.fuel = 25;
+      return tagLab(s, "Going-under risk badges (standings)");
+    },
+  },
 ];
 
 export function getLabScenario(id: string): LabScenario | undefined {
