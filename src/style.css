@@ -1033,6 +1033,25 @@ button:not(:disabled):active {
   opacity: 0.45;
 }
 
+/* Soft death-risk signal (#3) — display only */
+.rank-row.at-risk {
+  background: rgba(220, 60, 60, 0.08);
+}
+
+.rank-row.at-risk.active {
+  background: #341f2a;
+}
+
+.at-risk-badge {
+  display: inline-block;
+  margin-left: 4px;
+  color: #ff6b6b;
+  font-size: 0.72rem;
+  line-height: 1;
+  cursor: help;
+  vertical-align: baseline;
+}
+
 .rank-body {
   min-width: 0;
   display: flex;
