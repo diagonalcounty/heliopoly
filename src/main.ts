@@ -33,6 +33,14 @@ import { bodyRadius, drawBodyIcon, drawFuelDepotIcon } from "./bodyIcons";
 import { inspectBody } from "./core/inspect";
 import { mountHandbook } from "./handbook/handbook";
 import { LAB_SCENARIOS } from "./lab/scenarios";
+import {
+  applyCompareChoice,
+  playAgainCompareDrill,
+  startCompareDrill,
+  toEasternArabic,
+  type CompareDrillState,
+  type CompareSide,
+} from "./lab/easternArabicCompare";
 import type { Board } from "./core/types";
 import { submitGameTelemetry } from "./telemetry";
 
@@ -123,6 +131,12 @@ const endStory = document.getElementById("end-story")!;
 const endRanks = document.getElementById("end-ranks")!;
 const labRoot = document.getElementById("lab-root")!;
 const labScenariosEl = document.getElementById("lab-scenarios")!;
+const eacRoot = document.getElementById("eac-root")!;
+const eacRoundEl = document.getElementById("eac-round")!;
+const eacPlayEl = document.getElementById("eac-play")!;
+const eacWinEl = document.getElementById("eac-win")!;
+const eacLeftBtn = document.getElementById("eac-left") as HTMLButtonElement;
+const eacRightBtn = document.getElementById("eac-right") as HTMLButtonElement;
 
 const btnNew = document.getElementById("btn-new") as HTMLButtonElement;
 const btnSelf = document.getElementById("btn-selfplay") as HTMLButtonElement;
@@ -1140,10 +1154,77 @@ function closeLab(): void {
   labRoot.setAttribute("aria-hidden", "true");
   if (
     duelRoot.classList.contains("hidden") &&
+    eacRoot.classList.contains("hidden") &&
     document.getElementById("handbook-root")?.classList.contains("hidden")
   ) {
     document.body.classList.remove("handbook-open");
   }
+}
+
+/** —— Eastern Arabic compare drill (#81) —— */
+let eacState: CompareDrillState | null = null;
+
+const EAC_ROUND_LABEL: Record<1 | 2 | 3, string> = {
+  1: "Round 1 · one digit",
+  2: "Round 2 · two digits",
+  3: "Round 3 · three digits",
+};
+
+function isEacOpen(): boolean {
+  return !eacRoot.classList.contains("hidden");
+}
+
+function renderEac(): void {
+  if (!eacState) return;
+  const won = eacState.phase === "won";
+  eacPlayEl.classList.toggle("hidden", won);
+  eacWinEl.classList.toggle("hidden", !won);
+  if (won) {
+    eacRoundEl.textContent = "Complete";
+    return;
+  }
+  eacRoundEl.textContent = EAC_ROUND_LABEL[eacState.round];
+  const leftGlyph = toEasternArabic(eacState.left);
+  const rightGlyph = toEasternArabic(eacState.right);
+  eacLeftBtn.textContent = leftGlyph;
+  eacRightBtn.textContent = rightGlyph;
+  eacLeftBtn.setAttribute("aria-label", `Left number ${leftGlyph}`);
+  eacRightBtn.setAttribute("aria-label", `Right number ${rightGlyph}`);
+}
+
+function openEasternArabicCompare(): void {
+  eacState = startCompareDrill();
+  renderEac();
+  closeLab();
+  eacRoot.classList.remove("hidden");
+  eacRoot.setAttribute("aria-hidden", "false");
+  document.body.classList.add("handbook-open");
+  eacLeftBtn.focus();
+}
+
+function closeEasternArabicCompare(): void {
+  eacRoot.classList.add("hidden");
+  eacRoot.setAttribute("aria-hidden", "true");
+  eacState = null;
+  if (
+    duelRoot.classList.contains("hidden") &&
+    labRoot.classList.contains("hidden") &&
+    document.getElementById("handbook-root")?.classList.contains("hidden")
+  ) {
+    document.body.classList.remove("handbook-open");
+  }
+}
+
+function eacChoose(side: CompareSide): void {
+  if (!eacState || eacState.phase === "won") return;
+  eacState = applyCompareChoice(eacState, side);
+  renderEac();
+}
+
+function eacPlayAgain(): void {
+  eacState = playAgainCompareDrill();
+  renderEac();
+  eacLeftBtn.focus();
 }
 
 function mountLabScenarios(): void {
@@ -1183,6 +1264,12 @@ async function runLabScenario(id: string): Promise<void> {
   if (animating) return;
   const sc = LAB_SCENARIOS.find((x) => x.id === id);
   if (!sc) return;
+  if (sc.kind === "standalone") {
+    if (sc.standaloneId === "eastern-arabic-compare") {
+      openEasternArabicCompare();
+    }
+    return;
+  }
   closeLab();
   hideEndScreen();
   hideDuelResultSplash();
@@ -1195,8 +1282,34 @@ async function runLabScenario(id: string): Promise<void> {
 document.getElementById("btn-lab")?.addEventListener("click", () => openLab());
 document.getElementById("lab-close")?.addEventListener("click", () => closeLab());
 document.getElementById("lab-backdrop")?.addEventListener("click", () => closeLab());
+document.getElementById("eac-close")?.addEventListener("click", () => closeEasternArabicCompare());
+document.getElementById("eac-backdrop")?.addEventListener("click", () => closeEasternArabicCompare());
+document.getElementById("eac-again")?.addEventListener("click", () => eacPlayAgain());
+document.getElementById("eac-done")?.addEventListener("click", () => {
+  closeEasternArabicCompare();
+  openLab();
+});
+eacLeftBtn.addEventListener("click", () => eacChoose("left"));
+eacRightBtn.addEventListener("click", () => eacChoose("right"));
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && !labRoot.classList.contains("hidden")) closeLab();
+  if (e.key === "Escape") {
+    if (isEacOpen()) {
+      e.preventDefault();
+      closeEasternArabicCompare();
+      return;
+    }
+    if (!labRoot.classList.contains("hidden")) closeLab();
+    return;
+  }
+  if (!isEacOpen() || !eacState || eacState.phase === "won") return;
+  // Point-at-winner: < / ← = left larger; > / → = right larger
+  if (e.key === "ArrowLeft" || e.key === "<" || e.key === ",") {
+    e.preventDefault();
+    eacChoose("left");
+  } else if (e.key === "ArrowRight" || e.key === ">" || e.key === ".") {
+    e.preventDefault();
+    eacChoose("right");
+  }
 });
 mountLabScenarios();
 
