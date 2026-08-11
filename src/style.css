@@ -303,6 +303,77 @@ body {
   color: var(--accent-2);
 }
 
+.eac-recap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 14px 0 4px;
+  text-align: left;
+}
+
+.eac-recap.hidden {
+  display: none;
+}
+
+.eac-recap-row {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #121a30;
+}
+
+.eac-recap-label {
+  margin: 0 0 6px;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #c9a227;
+}
+
+.eac-recap-pair {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 14px;
+  font-size: 1.05rem;
+}
+
+.eac-recap-side {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 3.5rem;
+}
+
+.eac-recap-side.is-larger .eac-recap-east {
+  color: var(--accent-2);
+}
+
+.eac-recap-east {
+  font-size: 1.35rem;
+  font-weight: 700;
+  font-family:
+    "Segoe UI",
+    "Noto Sans Arabic",
+    "Noto Naskh Arabic",
+    "Arial Unicode MS",
+    Tahoma,
+    sans-serif;
+  color: var(--text);
+}
+
+.eac-recap-west {
+  font-size: 0.9rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: var(--muted);
+}
+
+.eac-recap-vs {
+  font-size: 0.8rem;
+  color: var(--muted);
+  align-self: center;
+}
+
 .eac-win-actions {
   display: flex;
   flex-wrap: wrap;

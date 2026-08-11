@@ -149,6 +149,7 @@ const eacLeftWest = document.getElementById("eac-left-west")!;
 const eacRightWest = document.getElementById("eac-right-west")!;
 const eacHintBtn = document.getElementById("eac-hint") as HTMLButtonElement;
 const eacResetBtn = document.getElementById("eac-reset") as HTMLButtonElement;
+const eacRecapEl = document.getElementById("eac-recap")!;
 
 const btnNew = document.getElementById("btn-new") as HTMLButtonElement;
 const btnSelf = document.getElementById("btn-selfplay") as HTMLButtonElement;
@@ -1196,6 +1197,42 @@ function eacSetWestern(el: HTMLElement, value: number | null): void {
   el.classList.remove("hidden");
 }
 
+function renderEacRecap(): void {
+  if (!eacState || eacState.phase !== "won" || eacState.cleanClears.length === 0) {
+    eacRecapEl.innerHTML = "";
+    eacRecapEl.classList.add("hidden");
+    return;
+  }
+  eacRecapEl.classList.remove("hidden");
+  const digitWord: Record<1 | 2 | 3, string> = {
+    1: "one digit",
+    2: "two digits",
+    3: "three digits",
+  };
+  eacRecapEl.innerHTML = eacState.cleanClears
+    .map((c) => {
+      const leftEast = toEasternArabic(c.left);
+      const rightEast = toEasternArabic(c.right);
+      const leftLarger = c.larger === "left" ? " is-larger" : "";
+      const rightLarger = c.larger === "right" ? " is-larger" : "";
+      return `<div class="eac-recap-row">
+        <p class="eac-recap-label">Level ${c.round} · ${digitWord[c.round]}</p>
+        <div class="eac-recap-pair">
+          <span class="eac-recap-side${leftLarger}">
+            <span class="eac-recap-east">${leftEast}</span>
+            <span class="eac-recap-west">${c.left}</span>
+          </span>
+          <span class="eac-recap-vs">vs</span>
+          <span class="eac-recap-side${rightLarger}">
+            <span class="eac-recap-east">${rightEast}</span>
+            <span class="eac-recap-west">${c.right}</span>
+          </span>
+        </div>
+      </div>`;
+    })
+    .join("");
+}
+
 function renderEac(): void {
   if (!eacState) return;
   const ended = eacState.phase === "won" || eacState.phase === "lost";
@@ -1207,16 +1244,21 @@ function renderEac(): void {
     eacRoundEl.textContent = "Complete";
     eacEndTitle.textContent = "Ladder clear";
     eacEndBlurb.textContent =
-      "Three clean levels — one-, two-, then three-digit — with no hints on those clears.";
+      "Your three clean clears — Eastern Arabic with Western values:";
+    renderEacRecap();
     return;
   }
   if (eacState.phase === "lost") {
     eacRoundEl.textContent = "Out of answers";
     eacEndTitle.textContent = "Run over";
     eacEndBlurb.textContent = `Used all ${MAX_COMPARE_ROUNDS} answers before three clean ladder clears. Reset or play again.`;
+    eacRecapEl.innerHTML = "";
+    eacRecapEl.classList.add("hidden");
     return;
   }
 
+  eacRecapEl.innerHTML = "";
+  eacRecapEl.classList.add("hidden");
   eacRoundEl.textContent = EAC_ROUND_LABEL[eacState.round];
   const leftGlyph = toEasternArabic(eacState.left);
   const rightGlyph = toEasternArabic(eacState.right);

@@ -5,8 +5,9 @@
  * Win: clear R1 → R2 → R3 with **clean** (no-hint) correct answers in a row.
  * Hint: reveal one side in Western digits; a correct answer after a hint does
  * **not** advance the ladder — player must clear that digit level again clean.
- * Fail R1: stay R1; fail R2/R3: back to R1.
+ * Fail R1: stay R1; fail R2/R3: back to R1 (wipes clean-clear recap).
  * Cap: MAX_COMPARE_ROUNDS answers total; then lost if not won.
+ * On win: `cleanClears` holds the three pairs for a recap (Eastern + Western).
  */
 
 const EASTERN_DIGITS = ["٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩"] as const;
@@ -23,6 +24,15 @@ export interface ComparePair {
   right: number;
 }
 
+/** One clean (no-hint) ladder clear — used for end-of-win recap. */
+export interface CleanClear {
+  round: CompareRound;
+  left: number;
+  right: number;
+  /** Side the player correctly picked as larger. */
+  larger: CompareSide;
+}
+
 export interface CompareDrillState {
   /** Digit difficulty / clean ladder step (1 → 2 → 3). */
   round: CompareRound;
@@ -35,6 +45,8 @@ export interface CompareDrillState {
   hintUsed: boolean;
   /** Which side is shown in Western digits (if hinted). */
   hintSide: CompareSide | null;
+  /** Clean clears this streak (wiped when ladder resets to R1 on fail). */
+  cleanClears: CleanClear[];
 }
 
 export type Rng = () => number;
@@ -82,6 +94,7 @@ export function makeUnequalPair(round: CompareRound, rng: Rng = Math.random): Co
 function dealPair(
   round: CompareRound,
   attempts: number,
+  cleanClears: CleanClear[],
   rng: Rng,
 ): CompareDrillState {
   const { left, right } = makeUnequalPair(round, rng);
@@ -93,11 +106,12 @@ function dealPair(
     attempts,
     hintUsed: false,
     hintSide: null,
+    cleanClears,
   };
 }
 
 export function startCompareDrill(rng: Rng = Math.random): CompareDrillState {
-  return dealPair(1, 0, rng);
+  return dealPair(1, 0, [], rng);
 }
 
 /**
@@ -113,11 +127,23 @@ export function useCompareHint(
   return { ...state, hintUsed: true, hintSide: side };
 }
 
+function recordClean(state: CompareDrillState): CleanClear[] {
+  return [
+    ...state.cleanClears,
+    {
+      round: state.round,
+      left: state.left,
+      right: state.right,
+      larger: largerSide(state.left, state.right),
+    },
+  ];
+}
+
 /**
  * Apply a player choice.
- * - Wrong: R1 stay / R2–R3 → R1; attempt +1
+ * - Wrong: R1 stay / R2–R3 → R1 (clears recap); attempt +1
  * - Correct + hint: stay on same digit level; attempt +1 (must clear again clean)
- * - Correct clean: advance ladder; R3 clean → won
+ * - Correct clean: record pair for recap; advance ladder; R3 clean → won
  * - After answer, if attempts ≥ MAX and not won → lost
  */
 export function applyCompareChoice(
@@ -131,7 +157,8 @@ export function applyCompareChoice(
   const correct = largerSide(state.left, state.right);
 
   if (choice !== correct) {
-    const next = dealPair(1, attempts, rng);
+    // Ladder fail → wipe clean streak recap
+    const next = dealPair(1, attempts, [], rng);
     if (attempts >= MAX_COMPARE_ROUNDS) {
       return { ...next, phase: "lost" };
     }
@@ -140,14 +167,16 @@ export function applyCompareChoice(
 
   // Correct but hinted — does not count toward the clean ladder
   if (state.hintUsed) {
-    const next = dealPair(state.round, attempts, rng);
+    const next = dealPair(state.round, attempts, state.cleanClears, rng);
     if (attempts >= MAX_COMPARE_ROUNDS) {
       return { ...next, phase: "lost" };
     }
     return next;
   }
 
-  // Clean correct
+  // Clean correct — record for win recap
+  const cleanClears = recordClean(state);
+
   if (state.round === 3) {
     return {
       ...state,
@@ -155,14 +184,14 @@ export function applyCompareChoice(
       phase: "won",
       hintUsed: false,
       hintSide: null,
+      cleanClears,
     };
   }
 
   const nextRound = (state.round + 1) as CompareRound;
-  const next = dealPair(nextRound, attempts, rng);
-  // Still need more clean rounds but out of attempts
+  const next = dealPair(nextRound, attempts, cleanClears, rng);
   if (attempts >= MAX_COMPARE_ROUNDS) {
-    return { ...next, phase: "lost" };
+    return { ...next, phase: "lost", cleanClears: [] };
   }
   return next;
 }
