@@ -255,26 +255,40 @@
           </button>
         </header>
         <div class="eac-body">
-          <p id="eac-round" class="eac-round mono" aria-live="polite">Round 1 · one digit</p>
+          <div class="eac-status-row">
+            <p id="eac-round" class="eac-round mono" aria-live="polite">Ladder 1 · one digit</p>
+            <p id="eac-attempts" class="eac-attempts mono" aria-live="polite">0 / 12</p>
+          </div>
           <p class="hint eac-hint">
-            Both values are Eastern Arabic digits only. Pick the larger number —
-            tap/click it, or use <kbd>←</kbd> <kbd>→</kbd> / <kbd>&lt;</kbd>
-            <kbd>&gt;</kbd> (points at the larger side).
+            Pick the larger number (Eastern Arabic digits). Clean clears climb
+            1→2→3 digit levels; a <strong>Hint</strong> shows one value in Western
+            digits but that clear does not count — redo the level without a hint.
+            Max 12 answers. <kbd>←</kbd> <kbd>→</kbd> / <kbd>&lt;</kbd>
+            <kbd>&gt;</kbd> point at the larger side.
           </p>
           <div id="eac-play" class="eac-play">
             <div class="eac-choices" role="group" aria-label="Choose the larger number">
               <button type="button" class="eac-num" id="eac-left" data-side="left" aria-label="Left number">
-                —
+                <span class="eac-glyph" id="eac-left-glyph">—</span>
+                <span class="eac-western hidden" id="eac-left-west"></span>
               </button>
               <span class="eac-vs" aria-hidden="true">vs</span>
               <button type="button" class="eac-num" id="eac-right" data-side="right" aria-label="Right number">
-                —
+                <span class="eac-glyph" id="eac-right-glyph">—</span>
+                <span class="eac-western hidden" id="eac-right-west"></span>
               </button>
             </div>
+            <div class="eac-toolbar">
+              <button type="button" id="eac-hint" class="eac-secondary">Hint</button>
+              <button type="button" id="eac-reset" class="eac-secondary">Reset</button>
+            </div>
           </div>
-          <div id="eac-win" class="eac-win hidden" aria-live="polite">
-            <p class="eac-win-title">Ladder clear</p>
-            <p class="hint">Three rounds in a row — one-, two-, then three-digit.</p>
+          <div id="eac-end" class="eac-win hidden" aria-live="polite">
+            <p id="eac-end-title" class="eac-win-title">Ladder clear</p>
+            <p id="eac-end-blurb" class="hint">
+              Three clean levels — one-, two-, then three-digit — with no hints on
+              those clears.
+            </p>
             <div class="eac-win-actions">
               <button type="button" id="eac-again" class="eac-primary">Play again</button>
               <button type="button" id="eac-done" class="eac-secondary">Back to Lab</button>

@@ -35,9 +35,12 @@ import { mountHandbook } from "./handbook/handbook";
 import { LAB_SCENARIOS } from "./lab/scenarios";
 import {
   applyCompareChoice,
+  MAX_COMPARE_ROUNDS,
   playAgainCompareDrill,
+  resetCompareDrill,
   startCompareDrill,
   toEasternArabic,
+  useCompareHint,
   type CompareDrillState,
   type CompareSide,
 } from "./lab/easternArabicCompare";
@@ -133,10 +136,19 @@ const labRoot = document.getElementById("lab-root")!;
 const labScenariosEl = document.getElementById("lab-scenarios")!;
 const eacRoot = document.getElementById("eac-root")!;
 const eacRoundEl = document.getElementById("eac-round")!;
+const eacAttemptsEl = document.getElementById("eac-attempts")!;
 const eacPlayEl = document.getElementById("eac-play")!;
-const eacWinEl = document.getElementById("eac-win")!;
+const eacEndEl = document.getElementById("eac-end")!;
+const eacEndTitle = document.getElementById("eac-end-title")!;
+const eacEndBlurb = document.getElementById("eac-end-blurb")!;
 const eacLeftBtn = document.getElementById("eac-left") as HTMLButtonElement;
 const eacRightBtn = document.getElementById("eac-right") as HTMLButtonElement;
+const eacLeftGlyph = document.getElementById("eac-left-glyph")!;
+const eacRightGlyph = document.getElementById("eac-right-glyph")!;
+const eacLeftWest = document.getElementById("eac-left-west")!;
+const eacRightWest = document.getElementById("eac-right-west")!;
+const eacHintBtn = document.getElementById("eac-hint") as HTMLButtonElement;
+const eacResetBtn = document.getElementById("eac-reset") as HTMLButtonElement;
 
 const btnNew = document.getElementById("btn-new") as HTMLButtonElement;
 const btnSelf = document.getElementById("btn-selfplay") as HTMLButtonElement;
@@ -1165,31 +1177,66 @@ function closeLab(): void {
 let eacState: CompareDrillState | null = null;
 
 const EAC_ROUND_LABEL: Record<1 | 2 | 3, string> = {
-  1: "Round 1 · one digit",
-  2: "Round 2 · two digits",
-  3: "Round 3 · three digits",
+  1: "Ladder 1 · one digit",
+  2: "Ladder 2 · two digits",
+  3: "Ladder 3 · three digits",
 };
 
 function isEacOpen(): boolean {
   return !eacRoot.classList.contains("hidden");
 }
 
-function renderEac(): void {
-  if (!eacState) return;
-  const won = eacState.phase === "won";
-  eacPlayEl.classList.toggle("hidden", won);
-  eacWinEl.classList.toggle("hidden", !won);
-  if (won) {
-    eacRoundEl.textContent = "Complete";
+function eacSetWestern(el: HTMLElement, value: number | null): void {
+  if (value === null) {
+    el.textContent = "";
+    el.classList.add("hidden");
     return;
   }
+  el.textContent = String(value);
+  el.classList.remove("hidden");
+}
+
+function renderEac(): void {
+  if (!eacState) return;
+  const ended = eacState.phase === "won" || eacState.phase === "lost";
+  eacPlayEl.classList.toggle("hidden", ended);
+  eacEndEl.classList.toggle("hidden", !ended);
+  eacAttemptsEl.textContent = `${eacState.attempts} / ${MAX_COMPARE_ROUNDS}`;
+
+  if (eacState.phase === "won") {
+    eacRoundEl.textContent = "Complete";
+    eacEndTitle.textContent = "Ladder clear";
+    eacEndBlurb.textContent =
+      "Three clean levels — one-, two-, then three-digit — with no hints on those clears.";
+    return;
+  }
+  if (eacState.phase === "lost") {
+    eacRoundEl.textContent = "Out of answers";
+    eacEndTitle.textContent = "Run over";
+    eacEndBlurb.textContent = `Used all ${MAX_COMPARE_ROUNDS} answers before three clean ladder clears. Reset or play again.`;
+    return;
+  }
+
   eacRoundEl.textContent = EAC_ROUND_LABEL[eacState.round];
   const leftGlyph = toEasternArabic(eacState.left);
   const rightGlyph = toEasternArabic(eacState.right);
-  eacLeftBtn.textContent = leftGlyph;
-  eacRightBtn.textContent = rightGlyph;
-  eacLeftBtn.setAttribute("aria-label", `Left number ${leftGlyph}`);
-  eacRightBtn.setAttribute("aria-label", `Right number ${rightGlyph}`);
+  eacLeftGlyph.textContent = leftGlyph;
+  eacRightGlyph.textContent = rightGlyph;
+  const showLeftWest = eacState.hintSide === "left";
+  const showRightWest = eacState.hintSide === "right";
+  eacSetWestern(eacLeftWest, showLeftWest ? eacState.left : null);
+  eacSetWestern(eacRightWest, showRightWest ? eacState.right : null);
+  eacLeftBtn.setAttribute(
+    "aria-label",
+    showLeftWest ? `Left number ${leftGlyph} (${eacState.left})` : `Left number ${leftGlyph}`,
+  );
+  eacRightBtn.setAttribute(
+    "aria-label",
+    showRightWest
+      ? `Right number ${rightGlyph} (${eacState.right})`
+      : `Right number ${rightGlyph}`,
+  );
+  eacHintBtn.disabled = eacState.hintUsed;
 }
 
 function openEasternArabicCompare(): void {
@@ -1216,9 +1263,21 @@ function closeEasternArabicCompare(): void {
 }
 
 function eacChoose(side: CompareSide): void {
-  if (!eacState || eacState.phase === "won") return;
+  if (!eacState || eacState.phase !== "playing") return;
   eacState = applyCompareChoice(eacState, side);
   renderEac();
+}
+
+function eacHint(): void {
+  if (!eacState || eacState.phase !== "playing") return;
+  eacState = useCompareHint(eacState);
+  renderEac();
+}
+
+function eacReset(): void {
+  eacState = resetCompareDrill();
+  renderEac();
+  eacLeftBtn.focus();
 }
 
 function eacPlayAgain(): void {
@@ -1289,6 +1348,8 @@ document.getElementById("eac-done")?.addEventListener("click", () => {
   closeEasternArabicCompare();
   openLab();
 });
+eacHintBtn.addEventListener("click", () => eacHint());
+eacResetBtn.addEventListener("click", () => eacReset());
 eacLeftBtn.addEventListener("click", () => eacChoose("left"));
 eacRightBtn.addEventListener("click", () => eacChoose("right"));
 document.addEventListener("keydown", (e) => {
@@ -1301,7 +1362,7 @@ document.addEventListener("keydown", (e) => {
     if (!labRoot.classList.contains("hidden")) closeLab();
     return;
   }
-  if (!isEacOpen() || !eacState || eacState.phase === "won") return;
+  if (!isEacOpen() || !eacState || eacState.phase !== "playing") return;
   // Point-at-winner: < / ← = left larger; > / → = right larger
   if (e.key === "ArrowLeft" || e.key === "<" || e.key === ",") {
     e.preventDefault();
@@ -1309,6 +1370,14 @@ document.addEventListener("keydown", (e) => {
   } else if (e.key === "ArrowRight" || e.key === ">" || e.key === ".") {
     e.preventDefault();
     eacChoose("right");
+  } else if (e.key === "h" || e.key === "H") {
+    e.preventDefault();
+    eacHint();
+  } else if (e.key === "r" || e.key === "R") {
+    // Avoid stealing browser refresh chord when meta/ctrl held
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    e.preventDefault();
+    eacReset();
   }
 });
 mountLabScenarios();

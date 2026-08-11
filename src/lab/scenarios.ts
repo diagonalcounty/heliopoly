@@ -56,7 +56,7 @@ export const LAB_SCENARIOS: LabScenario[] = [
     id: "eastern-arabic-compare",
     title: "Eastern Arabic — which is larger?",
     blurb:
-      "Lab literacy drill (#81). Numbers only in Eastern Arabic digits. Round 1: one digit → Round 2: two digits → Round 3: three digits. Three correct in a row wins; wrong on R2/R3 restarts at R1. Click the larger number, or use ← → / < >. Does not replace your charter.",
+      "Lab literacy drill (#81). Eastern Arabic digits only. Clean clears climb 1→2→3 digit levels (win). Hint reveals one value in Western digits but that clear does not count. Wrong on ladder 2/3 resets to 1. Max 12 answers. Click or ← → / < >. Reset anytime. Does not replace your charter.",
     group: "minigame",
     kind: "standalone",
     standaloneId: "eastern-arabic-compare",
