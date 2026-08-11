@@ -167,11 +167,25 @@ body {
   overflow-y: auto;
 }
 
+.eac-status-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 .eac-round {
   margin: 0;
   font-size: 0.95rem;
   color: var(--accent-2);
   letter-spacing: 0.04em;
+}
+
+.eac-attempts {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
 }
 
 .eac-hint {
@@ -199,6 +213,11 @@ body {
 }
 
 .eac-num {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   min-width: min(42vw, 160px);
   min-height: 96px;
   padding: 16px 20px;
@@ -206,9 +225,14 @@ body {
   border: 1px solid #5a4a20;
   background: linear-gradient(180deg, #1e2a48 0%, #141c32 100%);
   color: var(--accent-2);
-  font-size: clamp(2rem, 8vw, 2.75rem);
   font-weight: 700;
   line-height: 1.1;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.eac-glyph {
+  font-size: clamp(2rem, 8vw, 2.75rem);
   /* Prefer fonts that render Eastern Arabic digits clearly */
   font-family:
     "Segoe UI",
@@ -217,8 +241,18 @@ body {
     "Arial Unicode MS",
     Tahoma,
     sans-serif;
-  cursor: pointer;
-  touch-action: manipulation;
+}
+
+.eac-western {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.04em;
+}
+
+.eac-western.hidden {
+  display: none;
 }
 
 .eac-num:hover,
@@ -237,6 +271,19 @@ body {
   color: var(--muted);
   text-transform: lowercase;
   letter-spacing: 0.08em;
+}
+
+.eac-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.eac-toolbar .eac-secondary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .eac-win {
