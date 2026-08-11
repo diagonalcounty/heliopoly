@@ -5,6 +5,9 @@
 ### Play
 - **Remove legacy neglect / care stamps (#54):** feral is parking-only; dropped `neglectClock`, `claimCareRotations`, `touchClaim`, skipper neglect logs, and unused `FERAL_*` constants
 
+### UX
+- **Animation speed (#10):** Slow / Normal / Fast / Instant in the header; persists in localStorage; scales ship hops, dice rolls, and AI pacing
+
 ### Lab
 - **Eastern Arabic compare drill (#81):** Lab literacy minigame (hint, reset, 12-try cap, win recap)
 
