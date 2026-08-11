@@ -37,15 +37,10 @@ import type {
   PlayerAction,
 } from "./types";
 
-/** @deprecated Prefer PARK_FERAL_THRESHOLD — kept for inspect/UI compat. */
-export const FERAL_ROTATIONS = 5;
 /** Parks before first feral check (inclusive). */
 export const PARK_FERAL_THRESHOLD = 5;
 /** Chance at parkCount === threshold; doubles each park after (capped at 1). */
 export const PARK_FERAL_BASE_CHANCE = 0.5;
-/** Legacy monopoly softener (unused by parking feral). */
-export const FERAL_CHANCE = 0.5;
-export const FERAL_CHANCE_MONOPOLY = 0.15;
 
 /** Feral chance for a pilot who just parked `parkCount` times (0 if under threshold). */
 export function parkFeralChance(parkCount: number): number {
@@ -130,14 +125,6 @@ export function rentDue(state: GameState, nodeId: string, ownerId: string): numb
   return Math.floor(base * mult * hubMult * depotBonus);
 }
 
-function touchClaim(state: GameState, nodeId: string, owner?: Player): void {
-  const o =
-    owner ??
-    state.players.find((p) => p.id === state.owners[nodeId]) ??
-    currentPlayer(state);
-  state.claimCareRotations[nodeId] = o.neglectClock;
-}
-
 /** Earth GO pay: land 400 / pass 200, each +10 per completed rotation. */
 export const EARTH_LAND_BASE = 400;
 export const EARTH_PASS_BASE = 200;
@@ -178,21 +165,17 @@ function payEarthVisit(
 
 /**
  * Pilot finished a full board circuit (returned to Earth after leaving).
- * Own neglect +1; depot resupply; rotation counter; decade bonus at 10/20/30…
+ * Depot resupply; rotation counter; decade bonus at 10/20/30…
  */
 function onCircuitComplete(state: GameState, pilot: Player): void {
   state.boardRotations += 1;
   pilot.circuitActive = false;
-  pilot.neglectClock += 1;
   pilot.circuitsCompleted += 1;
 
   pushLog(
     state,
     `Circuit complete: ${pilot.name} · rotation ${pilot.circuitsCompleted} (board loops ${state.boardRotations}).`,
   );
-
-  // Anyone who skipped their roll (camping anywhere) takes a foe Earth-pass tick
-  tickNeglectForSkippers(state, pilot.id, `${pilot.name} reached Earth`);
 
   if (pilot.circuitsCompleted > 0 && pilot.circuitsCompleted % 10 === 0) {
     pilot.cash += EARTH_DECADE_BONUS;
@@ -230,23 +213,6 @@ export function depotPlaceCashCost(
   return Math.floor(Math.max(0, bodyPrice ?? 0) * DEPOT_PLACE_COST_FRACTION);
 }
 
-/** +1 neglect for every pilot who skipped rolling (except the one who just hit Earth). */
-function tickNeglectForSkippers(
-  state: GameState,
-  exceptId: string,
-  reason: string,
-): void {
-  for (const other of state.players) {
-    if (other.id === exceptId || other.eliminated) continue;
-    if (!other.skippedRoll) continue;
-    other.neglectClock += 1;
-    pushLog(
-      state,
-      `${other.name} skipped roll — ${reason} counts (+1 neglect → ${other.neglectClock}).`,
-    );
-  }
-}
-
 /** Fuel cost to break N spaces: 0.5 per space. */
 export function breakFuelCost(spaces: number): number {
   return Math.max(0, spaces) * 0.5;
@@ -270,7 +236,6 @@ function releaseClaimToBank(state: GameState, nodeId: string): void {
   if (state.stations[nodeId]) {
     delete state.stations[nodeId];
   }
-  delete state.claimCareRotations[nodeId];
 }
 
 /**
@@ -420,7 +385,6 @@ function advanceTurn(state: GameState): void {
   if (p.skipTurns > 0) {
     // Skipped seat still consumed a turn tick (already counted above)
     p.skipTurns -= 1;
-    p.skippedRoll = true;
     p.movedThisTurn = false;
     pushLog(
       state,
@@ -953,10 +917,6 @@ function applyKnockbackLanding(state: GameState, p: Player): void {
   if (p.eliminated || state.phase === "game_over") return;
   const node = getNode(state.board, p.position);
 
-  if (state.owners[node.id] === p.id) {
-    touchClaim(state, node.id);
-  }
-
   if (node.id === "earth") {
     payEarthVisit(state, p, "land");
     if (p.circuitActive) {
@@ -1103,11 +1063,6 @@ function resolveLanding(state: GameState, stayed: boolean): void {
     applyLandingLeak(state, p, node.name, qualifies);
   }
 
-  // Visit your own claim → reset feral care clock
-  if (state.owners[node.id] === p.id) {
-    touchClaim(state, node.id);
-  }
-
   // Earth land uses rotation-scaled pay; other bodies keep landingBonus if any
   if (!stayed && node.id === "earth") {
     payEarthVisit(state, p, "land");
@@ -1229,7 +1184,6 @@ function doBuy(state: GameState): void {
   p.cash -= legal.buyPrice;
   state.owners[node.id] = p.id;
   p.properties.push(node.id);
-  touchClaim(state, node.id);
   if (!p.ephemerisBodyId) {
     p.ephemerisBodyId = node.id;
     pushLog(
@@ -1274,7 +1228,6 @@ function doPlaceStation(state: GameState): void {
   p.stationsInHand -= 1;
   p.depotsPlacedThisCircuit += 1;
   state.stations[p.position] = true;
-  touchClaim(state, p.position); // legacy care stamp (parking feral does not use this)
   const freeNote =
     cost === 0
       ? " (first this circuit free)"
@@ -1541,7 +1494,6 @@ export function applyAction(state: GameState, action: PlayerAction): GameState {
       next.lastRoll = roll;
       next.breakSpaces = 0;
       p.rolledThisTurn = true;
-      p.skippedRoll = false;
       pushLog(
         next,
         `${p.name} rolls ${roll.d1}+${roll.d2}=${roll.total}${roll.doubles ? " (doubles)" : ""}, Break=${next.breakSpaces}, Move`,
@@ -1589,10 +1541,7 @@ export function applyAction(state: GameState, action: PlayerAction): GameState {
     case "end_turn":
       if (next.phase === "await_post_land" || next.phase === "await_action") {
         if (!p.rolledThisTurn) {
-          p.skippedRoll = true;
           pushLog(next, `${p.name} ends turn without rolling (camping).`);
-        } else {
-          p.skippedRoll = false;
         }
         if (!p.movedThisTurn) {
           applyParkingTick(next, p);

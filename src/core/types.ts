@@ -92,13 +92,6 @@ export interface Player {
    * Scales Earth land/pass pay (+10 each) and decade bonuses at 10, 20, 30…
    */
   circuitsCompleted: number;
-  /**
-   * Legacy circuit neglect (still incremented on Earth loops / skippers).
-   * Does **not** drive feral — parking `parkCount` does. Kept for logs/compat.
-   */
-  neglectClock: number;
-  /** True if this pilot ended their last turn without rolling. */
-  skippedRoll: boolean;
   /** True if they rolled on the current turn. */
   rolledThisTurn: boolean;
   /** True if they advanced along the path this turn. */
@@ -237,11 +230,6 @@ export interface GameState {
   encounterMem: Record<string, NodeEncounterMem>;
   /** Total circuits completed by anyone (display / stats). */
   boardRotations: number;
-  /**
-   * Per claim: owner.neglectClock at last visit / purchase / depot.
-   * Legacy care stamp — not used by parking feral checks.
-   */
-  claimCareRotations: Record<string, number>;
   winnerId: string | null;
   /** How the game ended, for end screen. */
   endReason: string | null;

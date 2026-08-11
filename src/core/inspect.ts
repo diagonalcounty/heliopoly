@@ -83,7 +83,7 @@ export function inspectBody(
     else lines.push(`Refuel here: none`);
   }
 
-  // Feral: parking model (no-move parks) — not legacy neglect clock
+  // Feral risk from owner's cumulative no-move parks
   if (ownerId && isPurchasable(node)) {
     const owner = state.players.find((p) => p.id === ownerId)!;
     const parks = owner.parkCount;
