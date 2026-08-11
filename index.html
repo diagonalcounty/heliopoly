@@ -256,15 +256,19 @@
         </header>
         <div class="eac-body">
           <div class="eac-status-row">
-            <p id="eac-round" class="eac-round mono" aria-live="polite">Ladder 1 · one digit</p>
+            <p id="eac-round" class="eac-round mono" aria-live="polite">Level 1 · one digit</p>
             <p id="eac-attempts" class="eac-attempts mono" aria-live="polite">0 / 12</p>
           </div>
           <p class="hint eac-hint">
-            Pick the larger number (Eastern Arabic digits). Clean clears climb
-            1→2→3 digit levels; a <strong>Hint</strong> shows one value in Western
-            digits but that clear does not count — redo the level without a hint.
-            Max 12 answers. <kbd>←</kbd> <kbd>→</kbd> / <kbd>&lt;</kbd>
-            <kbd>&gt;</kbd> point at the larger side.
+            Two numbers appear in Eastern Arabic digits. Choose the larger one by
+            tapping it, or use the arrow keys / <kbd>&lt;</kbd> <kbd>&gt;</kbd>
+            to point at that side.
+            You win by finishing three levels in a row—one-digit, then two-digit,
+            then three-digit—without help on those steps.
+            Need a hand? <strong>Hint</strong> reveals one number in familiar
+            Western digits, but that try won’t advance you; you’ll need to clear
+            the level again without a hint.
+            You have up to 12 tries. <strong>Reset</strong> starts over anytime.
           </p>
           <div id="eac-play" class="eac-play">
             <div class="eac-choices" role="group" aria-label="Choose the larger number">
@@ -284,10 +288,10 @@
             </div>
           </div>
           <div id="eac-end" class="eac-win hidden" aria-live="polite">
-            <p id="eac-end-title" class="eac-win-title">Ladder clear</p>
+            <p id="eac-end-title" class="eac-win-title">Nice work</p>
             <p id="eac-end-blurb" class="hint">
-              Three clean levels — one-, two-, then three-digit — with no hints on
-              those clears.
+              You finished all three levels without using a hint on those steps.
+              Here’s what you saw, with Western numbers alongside:
             </p>
             <div id="eac-recap" class="eac-recap hidden" aria-label="Numbers you cleared"></div>
             <div class="eac-win-actions">

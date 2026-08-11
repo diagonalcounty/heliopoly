@@ -1178,9 +1178,9 @@ function closeLab(): void {
 let eacState: CompareDrillState | null = null;
 
 const EAC_ROUND_LABEL: Record<1 | 2 | 3, string> = {
-  1: "Ladder 1 · one digit",
-  2: "Ladder 2 · two digits",
-  3: "Ladder 3 · three digits",
+  1: "Level 1 · one digit",
+  2: "Level 2 · two digits",
+  3: "Level 3 · three digits",
 };
 
 function isEacOpen(): boolean {
@@ -1242,16 +1242,16 @@ function renderEac(): void {
 
   if (eacState.phase === "won") {
     eacRoundEl.textContent = "Complete";
-    eacEndTitle.textContent = "Ladder clear";
+    eacEndTitle.textContent = "Nice work";
     eacEndBlurb.textContent =
-      "Your three clean clears — Eastern Arabic with Western values:";
+      "You finished all three levels without using a hint on those steps. Here’s what you saw, with Western numbers alongside:";
     renderEacRecap();
     return;
   }
   if (eacState.phase === "lost") {
-    eacRoundEl.textContent = "Out of answers";
-    eacEndTitle.textContent = "Run over";
-    eacEndBlurb.textContent = `Used all ${MAX_COMPARE_ROUNDS} answers before three clean ladder clears. Reset or play again.`;
+    eacRoundEl.textContent = "Out of tries";
+    eacEndTitle.textContent = "That’s all for this run";
+    eacEndBlurb.textContent = `You used all ${MAX_COMPARE_ROUNDS} tries before finishing the three levels. Play again when you’re ready.`;
     eacRecapEl.innerHTML = "";
     eacRecapEl.classList.add("hidden");
     return;
