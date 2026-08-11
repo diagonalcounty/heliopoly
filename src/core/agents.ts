@@ -240,7 +240,7 @@ function chooseBreak(
     ) {
       score += 40 + Math.min(30, (end.price ?? 0) / 40);
     }
-    // Prefer own claims (feral care / depot)
+    // Prefer own claims (depot / presence)
     if (state.owners[endId] === p.id) score += 18;
     // Prefer Earth (cash + circuit)
     if (endId === "earth") score += 28;

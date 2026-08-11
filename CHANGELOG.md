@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.0.20] — 2026-08-11
+
+### Play
+- **Remove legacy neglect / care stamps (#54):** feral is parking-only; dropped `neglectClock`, `claimCareRotations`, `touchClaim`, skipper neglect logs, and unused `FERAL_*` constants
+
+### Lab
+- **Eastern Arabic compare drill (#81):** Lab literacy minigame (hint, reset, 12-try cap, win recap)
+
+### Meta
+- Version **0.0.20**
+
 ## [0.0.19] — 2026-08-04
 
 ### Play

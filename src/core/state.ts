@@ -76,8 +76,6 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
       ephemerisBodyId: null,
       circuitActive: false,
       circuitsCompleted: 0,
-      neglectClock: 0,
-      skippedRoll: false,
       rolledThisTurn: false,
       movedThisTurn: false,
       parkCount: 0,
@@ -132,7 +130,6 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
     lastDuelResult: null,
     encounterMem: {},
     boardRotations: 0,
-    claimCareRotations: {},
     winnerId: null,
     endReason: null,
     gusherPaid: {},
@@ -213,7 +210,6 @@ export function cloneState(state: GameState): GameState {
         }
       : null,
     encounterMem: { ...state.encounterMem },
-    claimCareRotations: { ...state.claimCareRotations },
     gusherPaid: { ...state.gusherPaid },
     pendingAnnouncement: state.pendingAnnouncement
       ? { ...state.pendingAnnouncement }
