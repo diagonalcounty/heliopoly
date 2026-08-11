@@ -35,7 +35,10 @@ export function buildTelemetryPayload(s: GameState): {
       winnerName: winner?.name ?? null,
       endReason: s.endReason,
       boardRotations: s.boardRotations,
-      client: "heliopoly-web",
+      client:
+        typeof location !== "undefined" && location.protocol === "file:"
+          ? "heliopoly-ios"
+          : "heliopoly-web",
     },
   };
 }

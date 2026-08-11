@@ -2,7 +2,7 @@
 //  HeliopolyApp.swift
 //  Heliopoly
 //
-//  Created by Jacob Roecker on 7/29/26.
+//  Free Enterprise In Space — iOS shell (#66).
 //
 
 import SwiftUI
@@ -12,6 +12,7 @@ struct HeliopolyApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .preferredColorScheme(.dark)
         }
     }
 }

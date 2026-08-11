@@ -11,6 +11,11 @@
 ### Lab
 - **Eastern Arabic compare drill (#81):** Lab literacy minigame (hint, reset, 12-try cap, win recap)
 
+### iOS (#66 Phase A+)
+- Xcode project hygiene: App icons, display name, iPhone+iPad, iOS 17+, shared scheme, PrivacyInfo stub
+- Offline **WebDist** game via WKWebView; `npm run ios:sync` packages Vite build
+- Vite `base: './'` for portable assets (web + file bundle)
+
 ### Meta
 - Version **0.0.20**
 
