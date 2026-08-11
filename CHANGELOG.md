@@ -11,6 +11,9 @@
 ### Lab
 - **Eastern Arabic compare drill (#81):** Lab literacy minigame (hint, reset, 12-try cap, win recap)
 
+### UX
+- **iPad / tablet layout:** smaller map in portrait so Pilot Controls stay on-screen; landscape side-by-side fit; safe-area padding; sticky controls
+
 ### iOS (#66 Phase A+)
 - Xcode project hygiene: App icons, display name, iPhone+iPad, iOS 17+, shared scheme, PrivacyInfo stub
 - Offline **WebDist** game via WKWebView; `npm run ios:sync` packages Vite build

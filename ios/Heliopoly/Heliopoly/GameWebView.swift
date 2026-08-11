@@ -27,13 +27,21 @@ struct GameWebView: UIViewRepresentable {
         webView.isOpaque = false
         webView.backgroundColor = Self.spaceBackground
         webView.scrollView.backgroundColor = Self.spaceBackground
+        // Let CSS safe-area-inset-* handle notches; avoid double padding.
         webView.scrollView.contentInsetAdjustmentBehavior = .never
-        webView.scrollView.bounces = false
+        webView.scrollView.bounces = true
+        webView.scrollView.alwaysBounceVertical = false
         webView.allowsBackForwardNavigationGestures = false
+        // Match page to device width (critical for iPad layout CSS).
+        webView.scrollView.contentInset = .zero
+        webView.scrollView.scrollIndicatorInsets = .zero
 
         // Pinch-zoom off — game is touch-laid out for the viewport.
         webView.scrollView.minimumZoomScale = 1
         webView.scrollView.maximumZoomScale = 1
+        if #available(iOS 16.4, *) {
+            webView.isInspectable = true
+        }
 
         context.coordinator.loadBundledGame(into: webView)
         return webView

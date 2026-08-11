@@ -1620,6 +1620,15 @@ for (const btn of document.querySelectorAll<HTMLButtonElement>(
   });
 }
 
+/** True when board + sidebar stack (portrait tablet / phone). */
+function isStackedShell(): boolean {
+  if (typeof window === "undefined" || !window.matchMedia) return false;
+  return (
+    window.matchMedia("(max-width: 900px)").matches ||
+    window.matchMedia("(max-width: 1180px) and (orientation: portrait)").matches
+  );
+}
+
 /** Size log from bottom of Pilot Controls to bottom of the board panel. */
 function resizeLog(): void {
   const board = document.querySelector(".board-panel") as HTMLElement;
@@ -1628,6 +1637,15 @@ function resizeLog(): void {
   ) as HTMLElement;
   const logCard = document.querySelector(".log-card") as HTMLElement;
   if (!board || !pilotControls || !logCard) return;
+
+  // Stacked iPad/phone: fixed compact log (CSS also caps). Don't stretch to map.
+  if (isStackedShell()) {
+    logCard.style.height = "120px";
+    logCard.style.maxHeight = "120px";
+    logCard.style.flex = "0 0 auto";
+    return;
+  }
+
   const gap = 10;
   const boardBottom = board.getBoundingClientRect().bottom;
   const pilotBottom = pilotControls.getBoundingClientRect().bottom;
@@ -2186,6 +2204,30 @@ canvas.addEventListener("click", (ev) => {
 });
 
 window.addEventListener("resize", resizeLog);
+window.addEventListener("orientationchange", () => {
+  window.setTimeout(resizeLog, 200);
+});
+
+/** iPad WKWebView / home-screen: shell classes for layout. */
+(function markNativeShell(): void {
+  try {
+    const file =
+      typeof location !== "undefined" && location.protocol === "file:";
+    const standalone =
+      typeof navigator !== "undefined" &&
+      Boolean((navigator as Navigator & { standalone?: boolean }).standalone);
+    const coarse =
+      typeof window !== "undefined" &&
+      !!window.matchMedia?.("(pointer: coarse)").matches;
+    if (file || standalone) {
+      document.documentElement.classList.add("native-shell");
+    }
+    if (coarse) document.documentElement.classList.add("touch-ui");
+  } catch {
+    /* ignore */
+  }
+})();
+
 setSetupCollapsed(false);
 drawBoard();
 renderSide();
