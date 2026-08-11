@@ -21,14 +21,21 @@ html,
 body {
   margin: 0;
   min-height: 100%;
+  min-height: 100dvh;
   background: radial-gradient(ellipse at top, #152044 0%, var(--bg) 55%);
   color: var(--text);
+  /* Avoid iOS rubber-band scroll fighting the game UI */
+  overscroll-behavior: none;
 }
 
 #app {
   max-width: 1400px;
   margin: 0 auto;
   padding: 12px 16px 32px;
+  padding-top: max(12px, env(safe-area-inset-top, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-bottom: max(24px, env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
 }
 
 .top-row {
@@ -1023,9 +1030,12 @@ body.handbook-open {
   display: block;
   width: 100%;
   height: auto;
+  aspect-ratio: 1 / 1;
   touch-action: manipulation;
   border-radius: 12px;
   background: #070b16;
+  /* Prefer crisp ship hops on high-DPI iPads */
+  max-width: 100%;
 }
 
 .side {
@@ -1035,10 +1045,161 @@ body.handbook-open {
   gap: 10px;
   /* Cap to viewport; never taller than the map column (stretch + overflow) */
   max-height: min(100%, calc(100vh - 88px));
+  max-height: min(100%, calc(100dvh - 88px));
   min-height: 0;
   overflow: hidden;
   position: sticky;
   top: 12px;
+}
+
+/**
+ * Tablet / phone shell — board must not push Pilot Controls off-screen.
+ * Portrait iPad was unplayable: 800px+ square map + full sidebar below the fold.
+ */
+@media (max-width: 1100px) {
+  #app {
+    max-width: none;
+    padding-top: max(8px, env(safe-area-inset-top, 0px));
+    padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .top h1 {
+    font-size: 1.05rem;
+  }
+
+  .title-tagline {
+    display: none;
+  }
+
+  .top-actions {
+    gap: 6px;
+  }
+
+  .anim-speed-label {
+    display: none;
+  }
+}
+
+/* Stacked layout: narrow windows + all portrait tablets */
+@media (max-width: 900px), ((max-width: 1180px) and (orientation: portrait)) {
+  .layout {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    align-items: start;
+  }
+
+  .board-panel {
+    /* Keep map short enough that Roll / End turn sit on the first screen */
+    max-width: min(100%, 56dvh, 640px);
+    margin: 0 auto;
+    width: 100%;
+    padding: 6px;
+  }
+
+  #board {
+    width: 100%;
+    max-height: min(56dvh, 640px);
+  }
+
+  .side {
+    position: static;
+    max-height: none;
+    overflow: visible;
+    gap: 8px;
+  }
+
+  .fleet-card.mode-setup {
+    min-height: 0;
+  }
+
+  .fleet-card {
+    padding: 8px 10px;
+  }
+
+  /* Pilot controls stay reachable while scrolling the column */
+  .pilot-controls {
+    position: sticky;
+    bottom: max(0px, env(safe-area-inset-bottom, 0px));
+    z-index: 20;
+    box-shadow: 0 -10px 28px rgba(0, 0, 0, 0.45);
+    border-color: #3d5080;
+    background: linear-gradient(180deg, #1a2440 0%, #141b2f 40%);
+  }
+
+  .log-card {
+    /* Fixed compact log — resizeLog JS also cooperates in stacked mode */
+    min-height: 72px !important;
+    max-height: 120px !important;
+    height: 120px !important;
+  }
+
+  .actions {
+    gap: 6px;
+  }
+
+  button {
+    padding: 10px 8px;
+    font-size: 0.9rem;
+  }
+}
+
+/* Landscape tablet: side-by-side, fit board into remaining height */
+@media (min-width: 901px) and (max-width: 1366px) and (orientation: landscape) and (max-height: 980px) {
+  #app {
+    max-width: none;
+    padding-top: max(6px, env(safe-area-inset-top, 0px));
+    padding-bottom: max(8px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .title-tagline {
+    display: none;
+  }
+
+  .layout {
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 32vw);
+    gap: 10px;
+    /* Header ~56–72px depending on wrap */
+    height: calc(100dvh - 76px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    min-height: 0;
+    align-items: stretch;
+  }
+
+  .board-panel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+    height: 100%;
+    padding: 6px;
+  }
+
+  #board {
+    /* Square board fits the shorter side of the panel */
+    width: min(100%, calc(100dvh - 100px));
+    max-width: 100%;
+    max-height: min(100%, calc(100dvh - 100px));
+    height: auto;
+  }
+
+  .side {
+    max-height: 100%;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    position: relative;
+    top: 0;
+    gap: 8px;
+  }
+
+  .fleet-card.mode-setup {
+    min-height: 0;
+  }
+
+  .log-card {
+    flex: 1 1 auto;
+    min-height: 80px;
+  }
 }
 
 .card {
