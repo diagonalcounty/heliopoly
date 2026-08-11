@@ -62,6 +62,51 @@ const DWELL_STOP_MS = 420;
 const DWELL_PASS_MS = 140;
 const DWELL_AI_STOP_MS = 280;
 const DWELL_AI_PASS_MS = 90;
+const AI_ACTION_PAUSE_MS = 160;
+const DICE_FRAME_MS = 55;
+const DICE_FRAMES = 12;
+
+/** Player preference: hop / dice / AI pacing (#10). */
+const ANIM_SPEED_KEY = "heliopoly-anim-speed";
+type AnimSpeedId = "slow" | "normal" | "fast" | "instant";
+const ANIM_SPEED_MULT: Record<AnimSpeedId, number> = {
+  slow: 1.65,
+  normal: 1,
+  fast: 0.42,
+  instant: 0,
+};
+
+function isAnimSpeedId(v: string | null): v is AnimSpeedId {
+  return v === "slow" || v === "normal" || v === "fast" || v === "instant";
+}
+
+function loadAnimSpeed(): AnimSpeedId {
+  try {
+    const raw = localStorage.getItem(ANIM_SPEED_KEY);
+    if (isAnimSpeedId(raw)) return raw;
+  } catch {
+    /* private mode */
+  }
+  return "normal";
+}
+
+let animSpeed: AnimSpeedId = loadAnimSpeed();
+
+function saveAnimSpeed(id: AnimSpeedId): void {
+  animSpeed = id;
+  try {
+    localStorage.setItem(ANIM_SPEED_KEY, id);
+  } catch {
+    /* ignore */
+  }
+}
+
+/** Scale a base duration by the current speed preference. */
+function animMs(baseMs: number): number {
+  const m = ANIM_SPEED_MULT[animSpeed];
+  if (m <= 0 || baseMs <= 0) return 0;
+  return Math.max(0, Math.round(baseMs * m));
+}
 
 /** Escape player-typed names before injecting into rankings HTML. */
 function escapeHtml(s: string): string {
@@ -105,6 +150,16 @@ const standingsPanel = document.getElementById("standings-panel")!;
 const setupBody = document.getElementById("setup-body")!;
 const setupToggle = document.getElementById("setup-toggle")!;
 const btnQuit = document.getElementById("btn-quit")!;
+const animSpeedSelect = document.getElementById(
+  "anim-speed",
+) as HTMLSelectElement | null;
+if (animSpeedSelect) {
+  animSpeedSelect.value = animSpeed;
+  animSpeedSelect.addEventListener("change", () => {
+    const v = animSpeedSelect.value;
+    if (isAnimSpeedId(v)) saveAnimSpeed(v);
+  });
+}
 const duelRoot = document.getElementById("duel-root")!;
 const duelMatchup = document.getElementById("duel-matchup")!;
 const duelStatus = document.getElementById("duel-status")!;
@@ -223,7 +278,9 @@ syncPilotNameField();
 includeHuman.addEventListener("change", () => syncPilotNameField());
 
 function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  const t = animMs(ms);
+  if (t <= 0) return Promise.resolve();
+  return new Promise((resolve) => setTimeout(resolve, t));
 }
 
 function selectedPropellant(): PropellantId {
@@ -417,11 +474,16 @@ async function animateDicePair(
   d2El: HTMLElement,
   final: { d1: number; d2: number },
 ): Promise<void> {
-  const frames = 12;
+  if (animSpeed === "instant") {
+    setDie(d1El, final.d1, false);
+    setDie(d2El, final.d2, false);
+    return;
+  }
+  const frames = animSpeed === "fast" ? 6 : DICE_FRAMES;
   for (let i = 0; i < frames; i++) {
     setDie(d1El, 1 + Math.floor(Math.random() * 6), true);
     setDie(d2El, 1 + Math.floor(Math.random() * 6), true);
-    await sleep(55);
+    await sleep(DICE_FRAME_MS);
   }
   setDie(d1El, final.d1, false);
   setDie(d2El, final.d2, false);
@@ -926,7 +988,7 @@ async function runAiUntilHumanOrEnd(s: GameState): Promise<GameState> {
     cur = await applyActionAnimated(cur, action);
     state = cur;
     render();
-    if (action.type !== "roll") await sleep(160);
+    if (action.type !== "roll") await sleep(AI_ACTION_PAUSE_MS);
   }
   return cur;
 }
