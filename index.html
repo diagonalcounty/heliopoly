@@ -227,10 +227,59 @@
         </header>
         <div class="lab-body">
           <p class="hint lab-intro">
-            Run isolated scenarios without playing a full charter. Choosing a
-            scenario replaces the current game.
+            Run isolated scenarios without playing a full charter. Most scenarios
+            replace the current game; standalone drills (e.g. Eastern Arabic)
+            open their own panel and leave the charter alone.
           </p>
           <div id="lab-scenarios" class="lab-scenarios"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lab drill: Eastern Arabic compare ladder (#81) -->
+    <div id="eac-root" class="handbook eac-overlay hidden" aria-hidden="true">
+      <div class="handbook-backdrop" id="eac-backdrop"></div>
+      <div
+        class="handbook-panel eac-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="eac-title"
+      >
+        <header class="handbook-header">
+          <div>
+            <p class="handbook-kicker">Lab · literacy</p>
+            <h2 id="eac-title">Which is larger?</h2>
+          </div>
+          <button type="button" id="eac-close" class="handbook-close" aria-label="Close drill">
+            ✕
+          </button>
+        </header>
+        <div class="eac-body">
+          <p id="eac-round" class="eac-round mono" aria-live="polite">Round 1 · one digit</p>
+          <p class="hint eac-hint">
+            Both values are Eastern Arabic digits only. Pick the larger number —
+            tap/click it, or use <kbd>←</kbd> <kbd>→</kbd> / <kbd>&lt;</kbd>
+            <kbd>&gt;</kbd> (points at the larger side).
+          </p>
+          <div id="eac-play" class="eac-play">
+            <div class="eac-choices" role="group" aria-label="Choose the larger number">
+              <button type="button" class="eac-num" id="eac-left" data-side="left" aria-label="Left number">
+                —
+              </button>
+              <span class="eac-vs" aria-hidden="true">vs</span>
+              <button type="button" class="eac-num" id="eac-right" data-side="right" aria-label="Right number">
+                —
+              </button>
+            </div>
+          </div>
+          <div id="eac-win" class="eac-win hidden" aria-live="polite">
+            <p class="eac-win-title">Ladder clear</p>
+            <p class="hint">Three rounds in a row — one-, two-, then three-digit.</p>
+            <div class="eac-win-actions">
+              <button type="button" id="eac-again" class="eac-primary">Play again</button>
+              <button type="button" id="eac-done" class="eac-secondary">Back to Lab</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

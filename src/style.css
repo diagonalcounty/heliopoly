@@ -148,6 +148,152 @@ body {
   line-height: 1.35;
 }
 
+/* —— Lab: Eastern Arabic compare ladder (#81) —— */
+#eac-root.eac-overlay {
+  z-index: 1050;
+}
+
+.eac-panel {
+  width: min(520px, calc(100vw - 32px));
+  height: auto;
+  max-height: min(88vh, 640px);
+}
+
+.eac-body {
+  padding: 16px 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+}
+
+.eac-round {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--accent-2);
+  letter-spacing: 0.04em;
+}
+
+.eac-hint {
+  margin: 0;
+}
+
+.eac-hint kbd {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: #0d1424;
+  font-size: 0.78rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: var(--text);
+}
+
+.eac-choices {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 8px 0 4px;
+}
+
+.eac-num {
+  min-width: min(42vw, 160px);
+  min-height: 96px;
+  padding: 16px 20px;
+  border-radius: 14px;
+  border: 1px solid #5a4a20;
+  background: linear-gradient(180deg, #1e2a48 0%, #141c32 100%);
+  color: var(--accent-2);
+  font-size: clamp(2rem, 8vw, 2.75rem);
+  font-weight: 700;
+  line-height: 1.1;
+  /* Prefer fonts that render Eastern Arabic digits clearly */
+  font-family:
+    "Segoe UI",
+    "Noto Sans Arabic",
+    "Noto Naskh Arabic",
+    "Arial Unicode MS",
+    Tahoma,
+    sans-serif;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.eac-num:hover,
+.eac-num:focus-visible {
+  border-color: var(--accent-2);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(201, 162, 39, 0.35);
+}
+
+.eac-num:active {
+  transform: scale(0.98);
+}
+
+.eac-vs {
+  font-size: 0.85rem;
+  color: var(--muted);
+  text-transform: lowercase;
+  letter-spacing: 0.08em;
+}
+
+.eac-win {
+  text-align: center;
+  padding: 8px 0 4px;
+}
+
+.eac-win.hidden,
+.eac-play.hidden {
+  display: none;
+}
+
+.eac-win-title {
+  margin: 0 0 6px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--accent-2);
+}
+
+.eac-win-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 14px;
+}
+
+.eac-primary,
+.eac-secondary {
+  min-height: 44px;
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.eac-primary {
+  border: 1px solid #5a4a20;
+  background: #2a2210;
+  color: var(--accent-2);
+}
+
+.eac-primary:hover {
+  border-color: var(--accent-2);
+}
+
+.eac-secondary {
+  border: 1px solid var(--border);
+  background: #121a30;
+  color: var(--text);
+}
+
+.eac-secondary:hover {
+  border-color: var(--accent);
+}
+
 .hint {
   margin: 8px 0 0;
   font-size: 0.8rem;

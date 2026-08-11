@@ -208,10 +208,12 @@ export function mountHandbook(root: HTMLElement): HandbookController {
     const duel = document.getElementById("duel-root");
     const lab = document.getElementById("lab-root");
     const end = document.getElementById("end-root");
+    const eac = document.getElementById("eac-root");
     return (
       (!!duel && !duel.classList.contains("hidden")) ||
       (!!lab && !lab.classList.contains("hidden")) ||
-      (!!end && !end.classList.contains("hidden"))
+      (!!end && !end.classList.contains("hidden")) ||
+      (!!eac && !eac.classList.contains("hidden"))
     );
   }
 

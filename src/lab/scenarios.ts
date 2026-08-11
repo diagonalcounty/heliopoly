@@ -6,14 +6,34 @@ import { forceGravityDuel } from "../core/rules";
 import { createGame } from "../core/state";
 import type { GameState } from "../core/types";
 
-export interface LabScenario {
+export type LabScenarioGroup = "minigame" | "end" | "economy";
+
+/** Charter GameState drop-in (replaces current game). */
+export interface LabGameScenario {
   id: string;
   title: string;
   blurb: string;
-  group: "minigame" | "end" | "economy";
+  group: LabScenarioGroup;
+  kind: "game";
   /** Build a fresh GameState ready to drop into the shell. */
   build: () => GameState;
 }
+
+/**
+ * Standalone Lab drill/overlay — does not replace charter state.
+ * Shell opens the drill UI when the scenario is chosen.
+ */
+export interface LabStandaloneScenario {
+  id: string;
+  title: string;
+  blurb: string;
+  group: LabScenarioGroup;
+  kind: "standalone";
+  /** Stable id for shell handlers (e.g. eastern-arabic-compare). */
+  standaloneId: string;
+}
+
+export type LabScenario = LabGameScenario | LabStandaloneScenario;
 
 function baseGame(playerCount = 2): GameState {
   return createGame({
@@ -33,10 +53,20 @@ function tagLab(s: GameState, label: string): GameState {
 
 export const LAB_SCENARIOS: LabScenario[] = [
   {
+    id: "eastern-arabic-compare",
+    title: "Eastern Arabic — which is larger?",
+    blurb:
+      "Lab literacy drill (#81). Numbers only in Eastern Arabic digits. Round 1: one digit → Round 2: two digits → Round 3: three digits. Three correct in a row wins; wrong on R2/R3 restarts at R1. Click the larger number, or use ← → / < >. Does not replace your charter.",
+    group: "minigame",
+    kind: "standalone",
+    standaloneId: "eastern-arabic-compare",
+  },
+  {
     id: "duel-you-challenger",
     title: "Gravity Duel — you challenge",
     blurb: "Venture arrives on a belt blank occupied by an AI pilot. Stance, then roll.",
     group: "minigame",
+    kind: "game",
     build: () => {
       const s = baseGame(2);
       const you = s.players[0];
@@ -50,6 +80,7 @@ export const LAB_SCENARIOS: LabScenario[] = [
     title: "Gravity Duel — you defend",
     blurb: "AI arrives on your blank. You are defender (stance + roll when prompted).",
     group: "minigame",
+    kind: "game",
     build: () => {
       const s = baseGame(2);
       const you = s.players[0];
@@ -64,6 +95,7 @@ export const LAB_SCENARIOS: LabScenario[] = [
     title: "Gravity Duel — AI vs AI",
     blurb: "Two AI seats duel; shell auto-plays. Use to watch ceremony / splash.",
     group: "minigame",
+    kind: "game",
     build: () => {
       const s = createGame({
         playerCount: 2,
@@ -79,6 +111,7 @@ export const LAB_SCENARIOS: LabScenario[] = [
     title: "Gravity Duel — 4 pilots (you challenge)",
     blurb: "Full pilot count; you vs AI 1 on a blank (others elsewhere).",
     group: "minigame",
+    kind: "game",
     build: () => {
       const s = baseGame(4);
       forceGravityDuel(s, s.players[0].id, s.players[1].id, "belt4");
@@ -94,6 +127,7 @@ export const LAB_SCENARIOS: LabScenario[] = [
     title: "End screen — you prevail",
     blurb: "All other pilots eliminated; opens charter end UI.",
     group: "end",
+    kind: "game",
     build: () => {
       const s = baseGame(4);
       const you = s.players[0];
@@ -122,6 +156,7 @@ export const LAB_SCENARIOS: LabScenario[] = [
     title: "End screen — AI prevails",
     blurb: "Human out; one AI remains (grammar / postmortem check).",
     group: "end",
+    kind: "game",
     build: () => {
       const s = baseGame(3);
       const you = s.players[0];
@@ -149,6 +184,7 @@ export const LAB_SCENARIOS: LabScenario[] = [
     title: "Going-under warnings",
     blurb: "You're stranded on a rival's claim with no fuel and low cash — standings show ⚠ risk badges.",
     group: "economy",
+    kind: "game",
     build: () => {
       const s = baseGame(2);
       const you = s.players[0];
