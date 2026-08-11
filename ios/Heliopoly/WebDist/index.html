@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#0b1020" />
+    <title>Heliopoly v0.0.20</title>
+    <link rel="icon" href="./favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" href="./favicon.png" sizes="32x32" />
+    <link rel="icon" type="image/png" href="./favicon-32.png" sizes="32x32" />
+    <link rel="icon" type="image/png" href="./favicon-16.png" sizes="16x16" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" sizes="180x180" />
+    <script type="module" crossorigin src="./assets/index-ZWaJyW4z.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-C1EQnvEm.css">
+  </head>
+  <body>
+    <div id="app">
+      <header class="top">
+        <div class="top-row">
+          <h1>Heliopoly <span class="badge">v0.0.20</span> · Free Enterprise In Space</h1>
+          <div class="top-actions">
+            <label class="anim-speed-field" title="Ship hops, dice, and AI pacing">
+              <span class="anim-speed-label">Speed</span>
+              <select id="anim-speed" aria-label="Animation speed">
+                <option value="slow">Slow</option>
+                <option value="normal" selected>Normal</option>
+                <option value="fast">Fast</option>
+                <option value="instant">Instant</option>
+              </select>
+            </label>
+            <button
+              id="btn-lab"
+              type="button"
+              class="lab-launch"
+              title="Lab — test minigames and scenarios"
+              aria-label="Open testing lab"
+            >
+              ⚗ Lab
+            </button>
+            <button
+              id="btn-handbook-header"
+              type="button"
+              class="handbook-launch"
+              title="Helios Ops Manual"
+              aria-label="Open Helios Ops Manual"
+            >
+              <img
+                class="ops-manual-icon"
+                src="./ops-manual-icon.png"
+                alt=""
+                width="32"
+                height="32"
+                decoding="async"
+              />
+              <span>Ops Manual</span>
+            </button>
+            <button
+              type="button"
+              id="setup-toggle"
+              class="setup-toggle new-game-launch hidden"
+              title="New game setup"
+              aria-label="Open new game setup"
+              aria-expanded="false"
+              aria-controls="setup-body"
+            >
+              New game
+            </button>
+            <button id="btn-quit" type="button" class="quit-btn hidden">
+              Quit
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div class="layout">
+        <section class="board-panel">
+          <canvas
+            id="board"
+            width="900"
+            height="900"
+            aria-label="Solar system board"
+          ></canvas>
+        </section>
+
+        <aside class="side">
+          <!-- Shared slot: standings XOR setup (same card real estate) -->
+          <section class="card fleet-card mode-setup" id="fleet-card">
+            <div id="standings-panel" class="fleet-panel" hidden>
+              <h2>Charter standings</h2>
+              <div id="rankings" class="rankings">—</div>
+            </div>
+            <div id="setup-body" class="fleet-panel">
+              <h2>New game</h2>
+              <label>
+                Total pilots (2–6)
+                <input
+                  id="player-count"
+                  type="number"
+                  min="2"
+                  max="6"
+                  value="4"
+                />
+              </label>
+              <label class="check">
+                <input id="include-human" type="checkbox" checked />
+                Seat 1 is human
+              </label>
+              <label id="pilot-name-label">
+                Name your rocket
+                <input
+                  id="pilot-name"
+                  type="text"
+                  maxlength="24"
+                  placeholder="Venture"
+                  autocomplete="nickname"
+                />
+              </label>
+              <fieldset class="propellant-field">
+                <legend>Your propellant</legend>
+                <label class="check">
+                  <input
+                    type="radio"
+                    name="propellant"
+                    value="methane"
+                    checked
+                  />
+                  Methane (CH₄) — stable; fuel strikes on Titan / Enceladus
+                </label>
+                <label class="check">
+                  <input type="radio" name="propellant" value="hydrogen" />
+                  Hydrogen (H₂) — cheaper leave; leak risk; more ice-strike sites
+                </label>
+              </fieldset>
+              <fieldset class="propellant-field">
+                <legend>AI difficulty</legend>
+                <label class="check">
+                  <input
+                    type="radio"
+                    name="ai-difficulty"
+                    value="normal"
+                    checked
+                  />
+                  Normal — break only when low on leave fuel
+                </label>
+                <label class="check">
+                  <input type="radio" name="ai-difficulty" value="difficult" />
+                  Difficult — aggressive break for landings &amp; rent dodge
+                </label>
+              </fieldset>
+              <button id="btn-new" type="button" class="primary">Launch</button>
+              <button id="btn-selfplay" type="button">Self-play burst</button>
+            </div>
+          </section>
+
+          <section class="card pilot-controls" id="pilot-controls">
+            <h2>Pilot Controls</h2>
+            <div id="telemetry" class="telemetry"></div>
+            <div class="dir-row hidden-vis" id="dir-row">
+              <span class="dir-label">Course</span>
+              <div class="dir-stepper">
+                <button type="button" id="btn-dir-fwd" class="dir-btn" disabled>
+                  Prograde
+                </button>
+                <button type="button" id="btn-dir-back" class="dir-btn" disabled>
+                  Retrograde
+                </button>
+              </div>
+              <span id="dir-hint" class="dir-hint mono"></span>
+            </div>
+            <div class="break-row" id="break-row">
+              <button type="button" id="btn-break-label" class="break-label" disabled>
+                Break
+              </button>
+              <div class="break-stepper">
+                <button type="button" id="btn-break-minus" disabled>−</button>
+                <span id="break-count" class="break-count">0</span>
+                <button type="button" id="btn-break-plus" disabled>+</button>
+              </div>
+              <span id="break-cost" class="break-cost mono"></span>
+            </div>
+            <div class="actions">
+              <button id="btn-refuel" type="button" disabled>Refuel</button>
+              <button id="btn-roll" type="button" class="primary" disabled>
+                Roll
+              </button>
+              <button id="btn-buy" type="button" disabled>Buy</button>
+              <button id="btn-sell" type="button" disabled>Sell claim</button>
+              <button id="btn-station" type="button" disabled>
+                Fuel depot
+              </button>
+              <button id="btn-end" type="button" disabled>End turn</button>
+            </div>
+          </section>
+
+          <section class="card log-card">
+            <div class="log-card-head">
+              <h2>Log</h2>
+              <button
+                type="button"
+                id="btn-copy-log"
+                class="btn-copy-log"
+                title="Copy full game log to clipboard"
+                aria-label="Copy game log to clipboard"
+              >
+                Copy
+              </button>
+            </div>
+            <div id="log" class="mono log"></div>
+          </section>
+        </aside>
+      </div>
+    </div>
+
+    <div id="handbook-root" class="handbook hidden" aria-hidden="true"></div>
+
+    <!-- Lab: scenario testing (minigames / end screens) -->
+    <div id="lab-root" class="handbook hidden" aria-hidden="true">
+      <div class="handbook-backdrop" id="lab-backdrop"></div>
+      <div
+        class="handbook-panel lab-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="lab-title"
+      >
+        <header class="handbook-header">
+          <div>
+            <p class="handbook-kicker">Developer / playtest</p>
+            <h2 id="lab-title">Lab</h2>
+          </div>
+          <button type="button" id="lab-close" class="handbook-close" aria-label="Close lab">
+            ✕
+          </button>
+        </header>
+        <div class="lab-body">
+          <p class="hint lab-intro">
+            Run isolated scenarios without playing a full charter. Most scenarios
+            replace the current game; standalone drills (e.g. Eastern Arabic)
+            open their own panel and leave the charter alone.
+          </p>
+          <div id="lab-scenarios" class="lab-scenarios"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lab drill: Eastern Arabic compare ladder (#81) -->
+    <div id="eac-root" class="handbook eac-overlay hidden" aria-hidden="true">
+      <div class="handbook-backdrop" id="eac-backdrop"></div>
+      <div
+        class="handbook-panel eac-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="eac-title"
+      >
+        <header class="handbook-header">
+          <div>
+            <p class="handbook-kicker">Lab · literacy</p>
+            <h2 id="eac-title">Which is larger?</h2>
+          </div>
+          <button type="button" id="eac-close" class="handbook-close" aria-label="Close drill">
+            ✕
+          </button>
+        </header>
+        <div class="eac-body">
+          <div class="eac-status-row">
+            <p id="eac-round" class="eac-round mono" aria-live="polite">Level 1 · one digit</p>
+            <p id="eac-attempts" class="eac-attempts mono" aria-live="polite">0 / 12</p>
+          </div>
+          <p class="hint eac-hint">
+            Two numbers appear in Eastern Arabic digits. Choose the larger one by
+            tapping it, or use the arrow keys / <kbd>&lt;</kbd> <kbd>&gt;</kbd>
+            to point at that side.
+            You win by finishing three levels in a row—one-digit, then two-digit,
+            then three-digit—without help on those steps.
+            Need a hand? <strong>Hint</strong> reveals one number in familiar
+            Western digits, but that try won’t advance you; you’ll need to clear
+            the level again without a hint.
+            You have up to 12 tries. <strong>Reset</strong> starts over anytime.
+          </p>
+          <div id="eac-play" class="eac-play">
+            <div class="eac-choices" role="group" aria-label="Choose the larger number">
+              <button type="button" class="eac-num" id="eac-left" data-side="left" aria-label="Left number">
+                <span class="eac-glyph" id="eac-left-glyph">—</span>
+                <span class="eac-western hidden" id="eac-left-west"></span>
+              </button>
+              <span class="eac-vs" aria-hidden="true">vs</span>
+              <button type="button" class="eac-num" id="eac-right" data-side="right" aria-label="Right number">
+                <span class="eac-glyph" id="eac-right-glyph">—</span>
+                <span class="eac-western hidden" id="eac-right-west"></span>
+              </button>
+            </div>
+            <div class="eac-toolbar">
+              <button type="button" id="eac-hint" class="eac-secondary">Hint</button>
+              <button type="button" id="eac-reset" class="eac-secondary">Reset</button>
+            </div>
+          </div>
+          <div id="eac-end" class="eac-win hidden" aria-live="polite">
+            <p id="eac-end-title" class="eac-win-title">Nice work</p>
+            <p id="eac-end-blurb" class="hint">
+              You finished all three levels without using a hint on those steps.
+              Here’s what you saw, with Western numbers alongside:
+            </p>
+            <div id="eac-recap" class="eac-recap hidden" aria-label="Numbers you cleared"></div>
+            <div class="eac-win-actions">
+              <button type="button" id="eac-again" class="eac-primary">Play again</button>
+              <button type="button" id="eac-done" class="eac-secondary">Back to Lab</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hover inspect -->
+    <div id="body-tooltip" class="body-tooltip hidden" role="tooltip"></div>
+
+    <!-- Gravity Duel modal -->
+    <div id="duel-root" class="handbook duel-overlay hidden" aria-hidden="true">
+      <div class="handbook-backdrop" id="duel-backdrop"></div>
+      <div class="handbook-panel duel-panel" role="dialog" aria-modal="true" aria-labelledby="duel-title">
+        <header class="handbook-header">
+          <div>
+            <p class="handbook-kicker">Crossing vectors</p>
+            <h2 id="duel-title">Gravity Duel</h2>
+          </div>
+          <button
+            type="button"
+            id="btn-duel-handbook"
+            class="duel-ops-manual"
+            title="Read Gravity Duel rules in the Ops Manual"
+            aria-label="Open Ops Manual: Gravity Duel rules"
+          >
+            <img
+              class="ops-manual-icon"
+              src="./ops-manual-icon.png"
+              alt=""
+              width="32"
+              height="32"
+              decoding="async"
+            />
+            <span>Rules</span>
+          </button>
+        </header>
+        <div class="duel-body">
+          <p id="duel-matchup" class="duel-matchup"></p>
+          <p id="duel-status" class="mono"></p>
+          <p class="hint">
+            Stances stay secret until both pilots have rolled 2d6. You are on the
+            <strong>right</strong>.
+          </p>
+          <!-- Mirrored sides: left = opponent, right = human (#57) -->
+          <div class="dice-stage" id="dice-stage">
+            <div class="duel-side" id="duel-side-left" data-visual="left">
+              <span class="dice-label" id="dice-label-l">Opponent</span>
+              <div class="dice-pair">
+                <div class="die" id="die-l1" role="img" aria-label="Die face unknown"><span class="die-unknown" aria-hidden="true">?</span></div>
+                <div class="die" id="die-l2" role="img" aria-label="Die face unknown"><span class="die-unknown" aria-hidden="true">?</span></div>
+              </div>
+              <div class="duel-side-actions" id="duel-actions-left">
+                <button
+                  type="button"
+                  class="duel-btn"
+                  data-visual="left"
+                  data-stance="high"
+                >
+                  High
+                </button>
+                <button
+                  type="button"
+                  class="duel-btn"
+                  data-visual="left"
+                  data-stance="low"
+                >
+                  Low
+                </button>
+                <button
+                  type="button"
+                  class="duel-btn duel-roll-btn"
+                  data-visual="left"
+                  data-roll
+                >
+                  Roll 2d6
+                </button>
+              </div>
+            </div>
+            <div class="dice-vs" aria-hidden="true">vs</div>
+            <div class="duel-side" id="duel-side-right" data-visual="right">
+              <span class="dice-label" id="dice-label-r">You</span>
+              <div class="dice-pair">
+                <div class="die" id="die-r1" role="img" aria-label="Die face unknown"><span class="die-unknown" aria-hidden="true">?</span></div>
+                <div class="die" id="die-r2" role="img" aria-label="Die face unknown"><span class="die-unknown" aria-hidden="true">?</span></div>
+              </div>
+              <div class="duel-side-actions" id="duel-actions-right">
+                <button
+                  type="button"
+                  class="duel-btn"
+                  data-visual="right"
+                  data-stance="high"
+                >
+                  High
+                </button>
+                <button
+                  type="button"
+                  class="duel-btn"
+                  data-visual="right"
+                  data-stance="low"
+                >
+                  Low
+                </button>
+                <button
+                  type="button"
+                  class="duel-btn duel-roll-btn"
+                  data-visual="right"
+                  data-roll
+                >
+                  Roll 2d6
+                </button>
+              </div>
+            </div>
+          </div>
+          <p id="duel-dice" class="mono duel-dice"></p>
+          <footer id="duel-result-footer" class="duel-result-footer hidden">
+            <p id="duel-result-headline" class="duel-result-headline"></p>
+            <p id="duel-result-punchy" class="duel-punchy">
+              punchy message here Suggest a line:
+              https://github.com/diagonalcounty/heliopoly/issues
+            </p>
+            <p id="duel-result-summary" class="mono duel-result-summary"></p>
+            <button type="button" id="duel-result-ok" class="primary">
+              Continue
+            </button>
+          </footer>
+        </div>
+      </div>
+    </div>
+
+    <!-- Legacy host for dismiss waiters (hidden; result is in-panel footer) -->
+    <div id="duel-result" class="duel-result hidden" aria-hidden="true"></div>
+
+    <!-- Oregon Trail–style charter announcement (gusher, leak, …) -->
+    <div id="announce-root" class="announce-screen hidden" aria-live="assertive">
+      <div class="announce-card" id="announce-card">
+        <p class="announce-kicker" id="announce-kicker">Charter alert</p>
+        <h2 id="announce-title">Alert</h2>
+        <p id="announce-body" class="announce-body"></p>
+        <button type="button" id="announce-ok" class="primary">Continue</button>
+      </div>
+    </div>
+
+    <!-- End game (KQ-inspired) -->
+    <div id="end-root" class="end-screen hidden" aria-hidden="true">
+      <div class="end-inner">
+        <p class="end-kicker">The charter is sealed</p>
+        <h2 id="end-title">Heliopoly</h2>
+        <p id="end-story" class="end-story"></p>
+        <div id="end-ranks" class="end-ranks mono"></div>
+        <div class="end-actions">
+          <button type="button" id="end-again" class="primary">
+            Play again
+          </button>
+          <button type="button" id="end-close">Return</button>
+        </div>
+      </div>
+    </div>
+
+  </body>
+</html>

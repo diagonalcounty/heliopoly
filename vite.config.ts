@@ -2,6 +2,9 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   root: ".",
+  // Relative asset URLs so the same build works on heliopoly.live and in the
+  // iOS WKWebView file:// bundle (ios/Heliopoly/Heliopoly/WebDist).
+  base: "./",
   server: {
     host: true,
     port: 5173,
