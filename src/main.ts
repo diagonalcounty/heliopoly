@@ -21,13 +21,14 @@ import {
   resolveDuelAiFully,
 } from "./core/rules";
 import { createGame, currentPlayer } from "./core/state";
-import type {
-  AiDifficulty,
-  DuelStance,
-  GameState,
-  Player,
-  PlayerAction,
-  PropellantId,
+import {
+  normalizeAiDifficulty,
+  type AiDifficulty,
+  type DuelStance,
+  type GameState,
+  type Player,
+  type PlayerAction,
+  type PropellantId,
 } from "./core/types";
 import { bodyRadius, drawBodyIcon, drawFuelDepotIcon } from "./bodyIcons";
 import { inspectBody } from "./core/inspect";
@@ -160,6 +161,24 @@ if (animSpeedSelect) {
     if (isAnimSpeedId(v)) saveAnimSpeed(v);
   });
 }
+
+// AI difficulty: header select + setup radios (#87)
+(() => {
+  const stored = loadStoredAiDifficulty();
+  syncAiDifficultyUi(stored);
+  const live = document.getElementById(
+    "ai-difficulty-live",
+  ) as HTMLSelectElement | null;
+  live?.addEventListener("change", () => {
+    applyAiDifficulty(normalizeAiDifficulty(live.value));
+  });
+  document.querySelectorAll('input[name="ai-difficulty"]').forEach((el) => {
+    el.addEventListener("change", () => {
+      const v = (el as HTMLInputElement).value;
+      applyAiDifficulty(normalizeAiDifficulty(v));
+    });
+  });
+})();
 const duelRoot = document.getElementById("duel-root")!;
 const duelMatchup = document.getElementById("duel-matchup")!;
 const duelStatus = document.getElementById("duel-status")!;
@@ -290,11 +309,55 @@ function selectedPropellant(): PropellantId {
   return el?.value === "hydrogen" ? "hydrogen" : "methane";
 }
 
+const AI_DIFF_KEY = "heliopoly-ai-difficulty";
+
 function selectedAiDifficulty(): AiDifficulty {
+  const live = document.getElementById(
+    "ai-difficulty-live",
+  ) as HTMLSelectElement | null;
+  if (live?.value) return normalizeAiDifficulty(live.value);
   const el = document.querySelector(
     'input[name="ai-difficulty"]:checked',
   ) as HTMLInputElement | null;
-  return el?.value === "difficult" ? "difficult" : "normal";
+  return normalizeAiDifficulty(el?.value);
+}
+
+function syncAiDifficultyUi(level: AiDifficulty): void {
+  const live = document.getElementById(
+    "ai-difficulty-live",
+  ) as HTMLSelectElement | null;
+  if (live) live.value = level;
+  const radio = document.querySelector(
+    `input[name="ai-difficulty"][value="${level}"]`,
+  ) as HTMLInputElement | null;
+  if (radio) radio.checked = true;
+  // Legacy "difficult" radios removed — map hard if present
+  if (!radio && level === "hard") {
+    const legacy = document.querySelector(
+      'input[name="ai-difficulty"][value="difficult"]',
+    ) as HTMLInputElement | null;
+    if (legacy) legacy.checked = true;
+  }
+  try {
+    localStorage.setItem(AI_DIFF_KEY, level);
+  } catch {
+    /* ignore */
+  }
+}
+
+function applyAiDifficulty(level: AiDifficulty): void {
+  syncAiDifficultyUi(level);
+  if (state) {
+    state = { ...state, config: { ...state.config, aiDifficulty: level } };
+  }
+}
+
+function loadStoredAiDifficulty(): AiDifficulty {
+  try {
+    return normalizeAiDifficulty(localStorage.getItem(AI_DIFF_KEY));
+  } catch {
+    return "normal";
+  }
 }
 
 const announceRoot = document.getElementById("announce-root")!;

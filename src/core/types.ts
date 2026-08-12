@@ -46,8 +46,23 @@ export interface Board {
 
 export type AgentKind = "human" | "ai";
 
-/** AI seat skill — set at New game. */
-export type AiDifficulty = "normal" | "difficult";
+/**
+ * AI seat skill (#87).
+ * easy → normal → hard → expert (break use + bidirectional quality).
+ * Legacy "difficult" maps to hard.
+ */
+export type AiDifficulty = "easy" | "normal" | "hard" | "expert";
+
+/** Normalize config / UI values (legacy "difficult" → hard). */
+export function normalizeAiDifficulty(
+  raw: string | undefined | null,
+): AiDifficulty {
+  if (raw === "easy" || raw === "normal" || raw === "hard" || raw === "expert") {
+    return raw;
+  }
+  if (raw === "difficult") return "hard";
+  return "normal";
+}
 
 /** Mainline travel facing (#47 palindrome unlock). */
 export type MoveDirection = "forward" | "backward";
@@ -148,7 +163,7 @@ export interface GameConfig {
   /** Display name for the human seat (ignored if humanSeat is false). */
   humanName: string;
   humanPropellant: PropellantId;
-  /** Heuristic AI aggression (break for advantage on difficult). */
+  /** Heuristic AI skill: easy | normal | hard | expert (#87). */
   aiDifficulty: AiDifficulty;
   startingCash: number;
   startingFuel: number;

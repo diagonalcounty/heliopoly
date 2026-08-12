@@ -7,7 +7,13 @@ import {
 } from "./pilotNames";
 import { PROPELLANTS } from "./propellant";
 import { tickSeatTurn } from "./turnClock";
-import type { GameConfig, GameState, Player, PropellantId } from "./types";
+import {
+  normalizeAiDifficulty,
+  type GameConfig,
+  type GameState,
+  type Player,
+  type PropellantId,
+} from "./types";
 
 const COLORS = ["#6ec8ff", "#ffc857", "#5ddea0", "#ff6b7a", "#c792ea", "#ff9f43"];
 
@@ -141,14 +147,18 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
       lastEventId: null,
       firedIds: [],
     },
-    config: { ...config, seed },
+    config: {
+      ...config,
+      seed,
+      aiDifficulty: normalizeAiDifficulty(config.aiDifficulty),
+    },
     rngState: seed || 1,
   };
 
   // Seed + AI difficulty for bug reports — not the player log (#56)
   if (typeof console !== "undefined" && console.debug) {
     console.debug(
-      `[heliopoly] seed ${seed} · AI ${config.aiDifficulty}${
+      `[heliopoly] seed ${seed} · AI ${state.config.aiDifficulty}${
         config.humanSeat ? ` · human ${PROPELLANTS[config.humanPropellant].short}` : " · self-play"
       }`,
     );
