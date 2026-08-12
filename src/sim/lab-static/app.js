@@ -68,94 +68,165 @@ function rateRows(map) {
 
 const ORDINAL = ["1st", "2nd", "3rd", "4th", "5th", "6th"];
 
-/** Align three histograms onto a shared set of round buckets. */
-function mergeHistBuckets(timing) {
-  if (!timing) return [];
-  const map = new Map();
-  const add = (hist, key) => {
-    for (const b of hist?.histogram || []) {
-      const id = `${b.lo}-${b.hi}`;
-      if (!map.has(id)) {
-        map.set(id, {
-          lo: b.lo,
-          hi: b.hi,
-          label: b.label,
-          human: 0,
-          pack: 0,
-          game: 0,
-        });
-      }
-      map.get(id)[key] = b.count;
-    }
-  };
-  add(timing.humanElimRound, "human");
-  add(timing.packElimRound, "pack");
-  add(timing.gameLengthRounds, "game");
-  return [...map.values()].sort((a, b) => a.lo - b.lo);
-}
+/** Colors aligned with the Gemini-style elimination chart. */
+const CURVE_COLORS = {
+  firstOut: "#e74c3c",
+  secondOut: "#f39c12",
+  thirdOut: "#2ecc71",
+  gameEnd: "#2980b9",
+  humanOut: "#c792ea",
+};
 
-function renderHumanLossTiming(timing) {
+/**
+ * Horizontal density chart: x = game round, y = density (KDE from server).
+ */
+function renderDensityChart(placeCurves, humanLoss) {
   const panel = document.getElementById("loss-timing");
-  if (!timing || !timing.games) {
-    panel.hidden = true;
+  const chart = document.getElementById("loss-timing-chart");
+  const legend = document.getElementById("elim-legend");
+  const note = document.getElementById("human-loss-note");
+
+  if (!placeCurves || !placeCurves.curves?.length) {
+    // Fall back: show human-loss stats only
+    if (humanLoss?.games) {
+      panel.hidden = false;
+      document.getElementById("loss-timing-caption").textContent =
+        humanLoss.caption || "";
+      const h = humanLoss.humanElimRound;
+      const g = humanLoss.gameLengthRounds;
+      document.getElementById("loss-timing-stats").innerHTML = `
+        <div class="loss-stat"><div class="ls-v">${fmtInt(humanLoss.games)}</div><div class="ls-l">Human losses</div></div>
+        <div class="loss-stat"><div class="ls-v">R${h.p50.toFixed(0)}</div><div class="ls-l">Human out (median)</div></div>
+        <div class="loss-stat"><div class="ls-v">R${g.p50.toFixed(0)}</div><div class="ls-l">Game ends (median)</div></div>
+      `;
+      chart.innerHTML = "";
+      legend.innerHTML = "";
+      note.hidden = true;
+    } else {
+      panel.hidden = true;
+    }
     return;
   }
+
   panel.hidden = false;
   document.getElementById("loss-timing-caption").textContent =
-    timing.caption ||
-    `Dropout timing over ${timing.games} games the human proxy lost.`;
+    placeCurves.caption ||
+    `Elimination densities over ${placeCurves.games} finished games.`;
 
-  const h = timing.humanElimRound;
-  const g = timing.gameLengthRounds;
-  const p = timing.packElimRound;
+  const curves = placeCurves.curves;
+  const xMax = placeCurves.xMax || 100;
+
+  // KPI chips from place curves
+  const byId = Object.fromEntries(curves.map((c) => [c.id, c]));
   document.getElementById("loss-timing-stats").innerHTML = `
     <div class="loss-stat">
-      <div class="ls-v">${fmtInt(timing.games)}</div>
-      <div class="ls-l">Human losses (n)</div>
+      <div class="ls-v">${fmtInt(placeCurves.games)}</div>
+      <div class="ls-l">Finished games</div>
     </div>
     <div class="loss-stat">
-      <div class="ls-v">R${h.p50.toFixed(0)}</div>
-      <div class="ls-l">Human out (median) · IQR ${h.p25.toFixed(0)}–${h.p75.toFixed(0)}</div>
+      <div class="ls-v">R${(byId.firstOut?.mean ?? 0).toFixed(0)}</div>
+      <div class="ls-l">Mean 1st out</div>
     </div>
     <div class="loss-stat">
-      <div class="ls-v">R${p.p50.toFixed(0)}</div>
-      <div class="ls-l">Pack AI out (median)</div>
+      <div class="ls-v">R${(byId.secondOut?.mean ?? 0).toFixed(0)}</div>
+      <div class="ls-l">Mean 2nd out</div>
     </div>
     <div class="loss-stat">
-      <div class="ls-v">R${g.p50.toFixed(0)}</div>
-      <div class="ls-l">Game ends (median)</div>
+      <div class="ls-v">R${(byId.thirdOut?.mean ?? 0).toFixed(0)}</div>
+      <div class="ls-l">Mean 3rd out</div>
     </div>
     <div class="loss-stat">
-      <div class="ls-v">+${timing.medianRoundsAfterHumanOut.toFixed(0)}</div>
-      <div class="ls-l">Median rounds after human out</div>
+      <div class="ls-v">R${(byId.gameEnd?.mean ?? 0).toFixed(0)}</div>
+      <div class="ls-l">Mean game end</div>
     </div>
   `;
 
-  const buckets = mergeHistBuckets(timing);
-  const maxC = Math.max(
-    1,
-    ...buckets.flatMap((b) => [b.human, b.pack, b.game]),
-  );
-  const chart = document.getElementById("loss-timing-chart");
-  chart.innerHTML = buckets
-    .map((b) => {
-      const row = (cls, count) => {
-        const w = (100 * count) / maxC;
-        return `<div class="hist-bar-wrap">
-          <div class="hist-track"><div class="hist-fill ${cls}" style="width:${w.toFixed(1)}%"></div></div>
-          <div class="hist-count">${count || ""}</div>
-        </div>`;
-      };
-      return `<div class="hist-row">
-        <div class="hist-label">${escapeHtml(b.label)}</div>
-        <div class="hist-bars">
-          ${row("human", b.human)}
-          ${row("pack", b.pack)}
-          ${row("game", b.game)}
-        </div>
-      </div>`;
+  legend.innerHTML = curves
+    .map((c) => {
+      const col = CURVE_COLORS[c.id] || "#6ec8ff";
+      return `<span class="leg"><span class="swatch" style="background:${col}"></span>${escapeHtml(c.label)} · μ R${c.mean.toFixed(0)}</span>`;
     })
     .join("");
+
+  if (humanLoss?.games && humanLoss.caption) {
+    note.hidden = false;
+    note.textContent = humanLoss.caption;
+  } else {
+    note.hidden = true;
+  }
+
+  // SVG layout
+  const W = 720;
+  const H = 320;
+  const pad = { l: 48, r: 16, t: 16, b: 40 };
+  const plotW = W - pad.l - pad.r;
+  const plotH = H - pad.t - pad.b;
+  let yMax = 0;
+  for (const c of curves) {
+    for (const y of c.ys || []) yMax = Math.max(yMax, y);
+  }
+  yMax = yMax * 1.08 || 1;
+
+  const xScale = (x) => pad.l + (x / xMax) * plotW;
+  const yScale = (y) => pad.t + plotH - (y / yMax) * plotH;
+
+  const areaPath = (c) => {
+    const xs = c.xs || [];
+    const ys = c.ys || [];
+    if (!xs.length) return "";
+    let d = `M ${xScale(xs[0])} ${yScale(0)}`;
+    for (let i = 0; i < xs.length; i++) {
+      d += ` L ${xScale(xs[i])} ${yScale(ys[i] || 0)}`;
+    }
+    d += ` L ${xScale(xs[xs.length - 1])} ${yScale(0)} Z`;
+    return d;
+  };
+
+  const linePath = (c) => {
+    const xs = c.xs || [];
+    const ys = c.ys || [];
+    if (!xs.length) return "";
+    let d = `M ${xScale(xs[0])} ${yScale(ys[0] || 0)}`;
+    for (let i = 1; i < xs.length; i++) {
+      d += ` L ${xScale(xs[i])} ${yScale(ys[i] || 0)}`;
+    }
+    return d;
+  };
+
+  // Grid + axes
+  const xTicks = [];
+  const step = xMax <= 60 ? 10 : xMax <= 100 ? 10 : 20;
+  for (let t = 0; t <= xMax; t += step) xTicks.push(t);
+
+  let grid = "";
+  for (const t of xTicks) {
+    const x = xScale(t);
+    grid += `<line class="grid-line" x1="${x}" y1="${pad.t}" x2="${x}" y2="${pad.t + plotH}"/>`;
+    grid += `<text class="tick" x="${x}" y="${H - 12}" text-anchor="middle">${t}</text>`;
+  }
+  grid += `<text class="axis-label" x="${pad.l + plotW / 2}" y="${H - 2}" text-anchor="middle">Game round →</text>`;
+  grid += `<text class="axis-label" x="14" y="${pad.t + plotH / 2}" text-anchor="middle" transform="rotate(-90 14 ${pad.t + plotH / 2})">Density</text>`;
+
+  let series = "";
+  for (const c of curves) {
+    const col = CURVE_COLORS[c.id] || "#6ec8ff";
+    const isHuman = c.id === "humanOut";
+    series += `<path d="${areaPath(c)}" fill="${col}" fill-opacity="${isHuman ? 0.12 : 0.28}" stroke="none"/>`;
+    series += `<path d="${linePath(c)}" fill="none" stroke="${col}" stroke-width="${isHuman ? 2.5 : 2}" stroke-dasharray="${isHuman ? "6 3" : "none"}"/>`;
+    // mean marker
+    const mx = xScale(Math.min(xMax, Math.max(0, c.mean)));
+    series += `<line class="mean-line" x1="${mx}" y1="${pad.t}" x2="${mx}" y2="${pad.t + plotH}" stroke="${col}"/>`;
+  }
+
+  chart.innerHTML = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <rect x="${pad.l}" y="${pad.t}" width="${plotW}" height="${plotH}" fill="rgba(5,8,20,0.35)" rx="6"/>
+    ${grid}
+    ${series}
+  </svg>`;
+}
+
+function renderHumanLossTiming(timing, placeCurves) {
+  renderDensityChart(placeCurves, timing);
 }
 
 function renderLaunchOrder(summary, finished, players) {
@@ -272,7 +343,10 @@ function renderResults(payload) {
   }
   document.getElementById("outcome-summary").textContent = narrative;
 
-  renderHumanLossTiming(summary.humanLossTiming || null);
+  renderHumanLossTiming(
+    summary.humanLossTiming || null,
+    summary.eliminationPlaceCurves || null,
+  );
 
   renderLaunchOrder(summary, finished, players);
 

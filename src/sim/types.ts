@@ -133,6 +133,36 @@ export interface SimSummary {
    * Example story: human out ~R15, pack AIs out later, game ends ~R55.
    */
   humanLossTiming: HumanLossTiming | null;
+  /**
+   * Place-order elimination densities for **all finished games**
+   * (horizontal axis = game round; KDE-style curves like classic sim charts).
+   */
+  eliminationPlaceCurves: EliminationPlaceCurves | null;
+}
+
+/** One density curve along the round axis (precomputed for the browser). */
+export interface DensityCurve {
+  label: string;
+  /** Short id for styling: firstOut | secondOut | thirdOut | gameEnd | humanOut */
+  id: string;
+  mean: number;
+  p50: number;
+  n: number;
+  /** Evenly spaced x from 0..xMax */
+  xs: number[];
+  /** Density y (same length as xs); not necessarily normalized to area 1 in UI */
+  ys: number[];
+}
+
+/**
+ * 1st / 2nd / 3rd player eliminated (by place, not seat index) + game end.
+ * Mirrors the “Monopoly-style” elimination distribution chart.
+ */
+export interface EliminationPlaceCurves {
+  games: number;
+  xMax: number;
+  curves: DensityCurve[];
+  caption: string;
 }
 
 /** Histogram bucket for round-number distributions. */
