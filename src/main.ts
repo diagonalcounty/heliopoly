@@ -1161,7 +1161,10 @@ document.getElementById("btn-duel-handbook")?.addEventListener("click", (ev) => 
   handbook.open("duel");
 });
 
-/** Full player-facing log (same stream as the Log panel, not UI-truncated to last 60). */
+/**
+ * Full player-facing log retained in state (see LOG_RETAIN_MAX in rules).
+ * Log panel UI still shows only a recent window for performance.
+ */
 function gameLogText(): string {
   if (!state?.log.length) return "";
   return state.log
@@ -1169,18 +1172,23 @@ function gameLogText(): string {
     .join("\n");
 }
 
-async function copyGameLog(): Promise<void> {
+function flashCopyButton(btn: HTMLButtonElement, idleLabel: string): void {
+  btn.classList.add("copied");
+  const prev = btn.textContent;
+  btn.textContent = "Copied";
+  window.setTimeout(() => {
+    btn.classList.remove("copied");
+    btn.textContent = prev || idleLabel;
+  }, 1600);
+}
+
+async function copyGameLog(feedbackBtn?: HTMLButtonElement): Promise<void> {
   const text = gameLogText();
   if (!text) return;
+  const btn = feedbackBtn ?? btnCopyLog;
   try {
     await navigator.clipboard.writeText(text);
-    btnCopyLog.classList.add("copied");
-    const prev = btnCopyLog.textContent;
-    btnCopyLog.textContent = "Copied";
-    window.setTimeout(() => {
-      btnCopyLog.classList.remove("copied");
-      btnCopyLog.textContent = prev || "Copy";
-    }, 1600);
+    flashCopyButton(btn, btn === btnCopyLog ? "Copy" : "Copy log");
   } catch {
     // Fallback for non-secure contexts
     const ta = document.createElement("textarea");
@@ -1192,10 +1200,7 @@ async function copyGameLog(): Promise<void> {
     ta.select();
     try {
       document.execCommand("copy");
-      btnCopyLog.textContent = "Copied";
-      window.setTimeout(() => {
-        btnCopyLog.textContent = "Copy";
-      }, 1600);
+      flashCopyButton(btn, btn === btnCopyLog ? "Copy" : "Copy log");
     } finally {
       document.body.removeChild(ta);
     }
@@ -1203,7 +1208,14 @@ async function copyGameLog(): Promise<void> {
 }
 
 btnCopyLog.addEventListener("click", () => {
-  void copyGameLog();
+  void copyGameLog(btnCopyLog);
+});
+
+const btnEndCopyLog = document.getElementById(
+  "end-copy-log",
+) as HTMLButtonElement | null;
+btnEndCopyLog?.addEventListener("click", () => {
+  void copyGameLog(btnEndCopyLog);
 });
 
 /** Charter standings: rocket name → Rival rockets / pilot page. */
@@ -1369,6 +1381,10 @@ function closeEasternArabicCompare(): void {
 function eacChoose(side: CompareSide): void {
   if (!eacState || eacState.phase !== "playing") return;
   eacState = applyCompareChoice(eacState, side);
+  // Drop sticky focus highlight so the next round doesn't look pre-selected (#85)
+  if (document.activeElement instanceof HTMLElement) {
+    document.activeElement.blur();
+  }
   renderEac();
 }
 
