@@ -14,8 +14,8 @@
     <link rel="icon" type="image/png" href="./favicon-32.png" sizes="32x32" />
     <link rel="icon" type="image/png" href="./favicon-16.png" sizes="16x16" />
     <link rel="apple-touch-icon" href="./apple-touch-icon.png" sizes="180x180" />
-    <script type="module" src="./assets/index-BS2Ucram.js"></script>
-    <link rel="stylesheet" href="./assets/index-DP-Xm5A8.css">
+    <script type="module" src="./assets/index-Ft34HXQF.js"></script>
+    <link rel="stylesheet" href="./assets/index-G68yfcqM.css">
   </head>
   <body>
     <div id="app">
@@ -141,19 +141,30 @@
               <fieldset class="propellant-field">
                 <legend>AI difficulty</legend>
                 <label class="check">
+                  <input type="radio" name="ai-difficulty" value="easy" />
+                  Easy — no break; always prograde
+                </label>
+                <label class="check">
                   <input
                     type="radio"
                     name="ai-difficulty"
                     value="normal"
                     checked
                   />
-                  Normal — break only when low on leave fuel
+                  Normal — small break only to afford leave
                 </label>
                 <label class="check">
-                  <input type="radio" name="ai-difficulty" value="difficult" />
-                  Difficult — aggressive break for landings &amp; rent dodge
+                  <input type="radio" name="ai-difficulty" value="hard" />
+                  Hard — break for buys, hubs, Earth landings
+                </label>
+                <label class="check">
+                  <input type="radio" name="ai-difficulty" value="expert" />
+                  Expert — deep break (even 1-space grabs), monopoly &amp; Earth focus
                 </label>
               </fieldset>
+              <p class="hint" style="margin-top:4px">
+                Locked after Launch. Details: Ops Manual → AI difficulty.
+              </p>
               <button id="btn-new" type="button" class="primary">Launch</button>
               <button id="btn-selfplay" type="button">Self-play burst</button>
             </div>
@@ -318,6 +329,7 @@
 
     <!-- Hover inspect -->
     <div id="body-tooltip" class="body-tooltip hidden" role="tooltip"></div>
+    <div id="path-flash" class="path-flash hidden" role="status" aria-live="polite"></div>
 
     <!-- Gravity Duel modal -->
     <div id="duel-root" class="handbook duel-overlay hidden" aria-hidden="true">
@@ -460,6 +472,9 @@
         <p id="end-story" class="end-story"></p>
         <div id="end-ranks" class="end-ranks mono"></div>
         <div class="end-actions">
+          <button type="button" id="end-copy-log" class="end-copy-log">
+            Copy log
+          </button>
           <button type="button" id="end-again" class="primary">
             Play again
           </button>
