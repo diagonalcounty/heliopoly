@@ -570,6 +570,11 @@ export function getLegalActions(state: GameState): LegalActions {
   const previewSteps = state.lastRoll?.total ?? 7;
   const leaveBurnPreview = leaveBurnCost(node, previewSteps, p.propellant);
 
+  // Buy underfoot when unowned + affordable — on land *or* later before leave (#88)
+  const unowned = isPurchasable(node) && !state.owners[node.id];
+  const canBuy = unowned && p.cash >= (node.price ?? 0);
+  const buyPrice = node.price ?? 0;
+
   if (state.phase === "await_action") {
     return {
       refuel: fuel.allowed && fuel.max > 0,
@@ -580,8 +585,8 @@ export function getLegalActions(state: GameState): LegalActions {
       maxBreak: 0,
       breakSpaces: 0,
       breakFuelCost: 0,
-      buy: false,
-      buyPrice: 0,
+      buy: canBuy,
+      buyPrice,
       sell: canSell,
       sellNodeId: canSell ? node.id : null,
       sellValue,
@@ -599,9 +604,6 @@ export function getLegalActions(state: GameState): LegalActions {
     };
   }
 
-  const unowned = isPurchasable(node) && !state.owners[node.id];
-  const canBuy = unowned && p.cash >= (node.price ?? 0);
-
   return {
     refuel: fuel.allowed && fuel.max > 0,
     refuelMax: fuel.max,
@@ -612,7 +614,7 @@ export function getLegalActions(state: GameState): LegalActions {
     breakSpaces: 0,
     breakFuelCost: 0,
     buy: canBuy,
-    buyPrice: node.price ?? 0,
+    buyPrice,
     sell: canSell,
     sellNodeId: canSell ? node.id : null,
     sellValue,
@@ -1523,7 +1525,10 @@ export function applyAction(state: GameState, action: PlayerAction): GameState {
       doMove(next);
       break;
     case "buy":
-      if (next.phase === "await_post_land") doBuy(next);
+      // Claim underfoot after landing *or* on a later turn before leave (#88)
+      if (next.phase === "await_post_land" || next.phase === "await_action") {
+        doBuy(next);
+      }
       break;
     case "sell":
       if (

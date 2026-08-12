@@ -2355,7 +2355,8 @@ function drawBoard(): void {
       ctx.lineJoin = "round";
       ctx.strokeStyle = p.color;
       ctx.globalAlpha = 0.28;
-      ctx.lineWidth = 7;
+      // ~¾ of original thickness (was 7 / 2.25) — playtest #15
+      ctx.lineWidth = 5.25;
       ctx.beginPath();
       ctx.moveTo(poly[0]!.x, poly[0]!.y);
       for (let i = 1; i < poly.length; i++) {
@@ -2363,7 +2364,7 @@ function drawBoard(): void {
       }
       ctx.stroke();
       ctx.globalAlpha = 0.95;
-      ctx.lineWidth = 2.25;
+      ctx.lineWidth = 1.7;
       ctx.beginPath();
       ctx.moveTo(poly[0]!.x, poly[0]!.y);
       for (let i = 1; i < poly.length; i++) {
