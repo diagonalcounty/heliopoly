@@ -1143,25 +1143,68 @@ body.handbook-open {
   }
 }
 
-/* Landscape tablet: side-by-side, fit board into remaining height */
+/**
+ * Landscape tablet (iPad Pro 11" / Air 11" class) — #83
+ * Fit full square map below header. Do NOT size the board from raw 100dvh
+ * (that ignores title row + Lab/Ops/Speed chrome and clips outer Mainline).
+ */
 @media (min-width: 901px) and (max-width: 1366px) and (orientation: landscape) and (max-height: 980px) {
+  html,
+  body {
+    height: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+  }
+
   #app {
     max-width: none;
-    padding-top: max(6px, env(safe-area-inset-top, 0px));
-    padding-bottom: max(8px, env(safe-area-inset-bottom, 0px));
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    max-height: 100dvh;
+    box-sizing: border-box;
+    overflow: hidden;
+    /* Tight padding — safe areas still honored */
+    padding-top: max(4px, env(safe-area-inset-top, 0px));
+    padding-right: max(10px, env(safe-area-inset-right, 0px));
+    padding-bottom: max(4px, env(safe-area-inset-bottom, 0px));
+    padding-left: max(10px, env(safe-area-inset-left, 0px));
+  }
+
+  /* Header consumes only its natural height; layout gets the rest */
+  .top {
+    flex: 0 0 auto;
+    min-height: 0;
+  }
+
+  .top-row {
+    align-items: center;
+    gap: 8px;
+  }
+
+  .top h1 {
+    font-size: 1rem;
+    line-height: 1.2;
   }
 
   .title-tagline {
     display: none;
   }
 
+  .top-actions {
+    gap: 6px;
+    padding: 0;
+  }
+
   .layout {
-    grid-template-columns: minmax(0, 1fr) minmax(260px, 32vw);
-    gap: 10px;
-    /* Header ~56–72px depending on wrap */
-    height: calc(100dvh - 76px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    flex: 1 1 auto;
     min-height: 0;
+    height: auto;
+    grid-template-columns: minmax(0, 1fr) minmax(240px, min(32vw, 340px));
+    gap: 8px;
     align-items: stretch;
+    overflow: hidden;
   }
 
   .board-panel {
@@ -1169,36 +1212,61 @@ body.handbook-open {
     align-items: center;
     justify-content: center;
     min-height: 0;
+    min-width: 0;
     height: 100%;
-    padding: 6px;
+    max-height: 100%;
+    padding: 4px;
+    box-sizing: border-box;
+    overflow: hidden;
+    /* Size containment so the square canvas can use 100% of the panel */
+    container-type: size;
   }
 
   #board {
-    /* Square board fits the shorter side of the panel */
-    width: min(100%, calc(100dvh - 100px));
+    /* Fit square inside the panel (after header), not almost-full viewport */
+    width: min(100%, 100cqh);
+    height: min(100%, 100cqw);
     max-width: 100%;
-    max-height: min(100%, calc(100dvh - 100px));
-    height: auto;
+    max-height: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: contain;
   }
 
   .side {
     max-height: 100%;
     height: 100%;
+    min-height: 0;
     overflow-x: hidden;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     position: relative;
     top: 0;
-    gap: 8px;
+    gap: 6px;
   }
 
   .fleet-card.mode-setup {
     min-height: 0;
   }
 
+  .card {
+    padding: 8px 10px;
+  }
+
   .log-card {
     flex: 1 1 auto;
-    min-height: 80px;
+    min-height: 64px;
+  }
+}
+
+/* Fallback when container queries unavailable: still subtract a safer chrome budget */
+@supports not (width: 1cqh) {
+  @media (min-width: 901px) and (max-width: 1366px) and (orientation: landscape) and (max-height: 980px) {
+    #board {
+      /* Header + padding + gap ≈ 88–110px on 11" landscape; stay conservative */
+      width: min(100%, calc(100dvh - 120px));
+      max-height: min(100%, calc(100dvh - 120px));
+      height: auto;
+    }
   }
 }
 
@@ -1579,6 +1647,29 @@ button:not(:disabled):active {
   flex: none;
   margin: 0;
   padding: 0;
+}
+
+/* Charter standings: ●◐○ fuel tank (full / half / empty unit segments) */
+.rank-detail .fuel-bar {
+  display: inline;
+  font-family: ui-monospace, "Apple Symbols", "Segoe UI Symbol",
+    "Noto Sans Symbols2", SFMono-Regular, Menlo, sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--ok);
+  vertical-align: baseline;
+}
+
+.rank-detail .fuel-bar-amber {
+  color: var(--accent-2);
+}
+
+.rank-detail .fuel-bar-red {
+  color: var(--danger);
+}
+
+.rank-detail .fuel-n {
+  font-variant-numeric: tabular-nums;
 }
 
 .rank-row .swatch {
