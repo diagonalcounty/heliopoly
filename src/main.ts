@@ -1651,55 +1651,91 @@ function isStackedShell(): boolean {
 }
 
 /**
- * Squish the square map so it fits under the top chrome (#83).
- * Available height ≈ visual viewport − header (title + Lab/Ops/Speed row + buffer).
+ * Squish the square map into the play area *below* the top menu (#83).
+ *
+ * iPad Pro 11" landscape (~1194×834 CSS px) is roughly 16:10 overall; after the
+ * title + Speed/Lab/Ops/New game/Quit row the remaining play strip is shorter.
+ * A width-driven square board (side ≈ column width) is taller than that strip
+ * and clips Titan/Enceladus/Holst at the bottom.
+ *
+ * Fix: available height = visual viewport bottom − header bottom − buffer
+ * (measured, not guessed). side = min(column width, that height).
  */
 function fitBoardToViewport(): void {
   const canvas = document.getElementById("board") as HTMLCanvasElement | null;
   const top = document.querySelector(".top") as HTMLElement | null;
-  const app = document.getElementById("app");
+  const layout = document.querySelector(".layout") as HTMLElement | null;
   const boardPanel = document.querySelector(".board-panel") as HTMLElement | null;
-  if (!canvas) return;
+  if (!canvas || !top) return;
 
   const vv = window.visualViewport;
   const vh = vv?.height ?? window.innerHeight;
   const vw = vv?.width ?? window.innerWidth;
-  const landscape = vw > vh;
-  // iPad Pro 11" / Air class landscape (and similar short-wide shells)
-  const shouldFit = landscape && vh <= 1000 && vw >= 900 && vw <= 1400;
+  const vOffset = vv?.offsetTop ?? 0;
+  const viewBottom = vOffset + vh;
 
-  if (!shouldFit) {
+  const topRect = top.getBoundingClientRect();
+  // Buffer under the menu row (padding around Lab/Ops buttons)
+  const buffer = 16;
+  const availH = Math.floor(viewBottom - topRect.bottom - buffer);
+
+  const landscape = vw > vh;
+  const shortWide = landscape && vh <= 1100;
+  const overflowing =
+    canvas.getBoundingClientRect().bottom > viewBottom - 2;
+
+  if ((!shortWide && !overflowing) || availH < 120) {
     canvas.style.removeProperty("width");
     canvas.style.removeProperty("height");
     canvas.style.removeProperty("max-width");
     canvas.style.removeProperty("max-height");
+    boardPanel?.style.removeProperty("max-height");
+    boardPanel?.style.removeProperty("height");
+    layout?.style.removeProperty("height");
+    layout?.style.removeProperty("max-height");
     document.documentElement.style.removeProperty("--board-fit");
+    document.documentElement.style.removeProperty("--header-bottom");
     return;
   }
 
-  const topH = top?.getBoundingClientRect().height ?? 64;
-  let padY = 12;
-  if (app) {
-    const s = getComputedStyle(app);
-    padY =
-      (parseFloat(s.paddingTop) || 0) + (parseFloat(s.paddingBottom) || 0);
-  }
-  // Buffer around header buttons (matches user request: chrome + padding)
-  const buffer = 12;
-  const chrome = topH + padY + buffer;
-  const availH = Math.max(160, Math.floor(vh - chrome));
+  document.documentElement.style.setProperty(
+    "--header-bottom",
+    `${Math.ceil(topRect.bottom)}px`,
+  );
 
-  let availW = Math.floor(vw * 0.66);
+  // 1) Lock the game grid to the strip under the menu (height only)
+  const layoutH = Math.max(160, availH);
+  if (layout) {
+    layout.style.height = `${layoutH}px`;
+    layout.style.maxHeight = `${layoutH}px`;
+    layout.style.minHeight = "0";
+    layout.style.overflow = "hidden";
+  }
+  if (boardPanel) {
+    boardPanel.style.height = "100%";
+    boardPanel.style.maxHeight = "100%";
+    boardPanel.style.minHeight = "0";
+    boardPanel.style.overflow = "hidden";
+  }
+
+  // 2) Column width from panel (or estimate); height from locked strip
+  let availW = Math.floor(vw * 0.65);
   if (boardPanel) {
     const r = boardPanel.getBoundingClientRect();
-    if (r.width > 48) availW = Math.floor(r.width - 8);
+    if (r.width > 48) availW = Math.floor(r.width - 10);
   }
+  const panelH =
+    boardPanel && boardPanel.clientHeight > 40
+      ? boardPanel.clientHeight - 8
+      : layoutH - 8;
 
-  const side = Math.max(160, Math.min(availW, availH));
-  canvas.style.width = `${side}px`;
-  canvas.style.height = `${side}px`;
-  canvas.style.maxWidth = `${side}px`;
-  canvas.style.maxHeight = `${side}px`;
+  // Square must fit BOTH axes of the play strip (this is the squish)
+  const side = Math.max(140, Math.min(availW, panelH, layoutH - 8));
+
+  canvas.style.setProperty("width", `${side}px`, "important");
+  canvas.style.setProperty("height", `${side}px`, "important");
+  canvas.style.setProperty("max-width", `${side}px`, "important");
+  canvas.style.setProperty("max-height", `${side}px`, "important");
   document.documentElement.style.setProperty("--board-fit", `${side}px`);
 }
 
