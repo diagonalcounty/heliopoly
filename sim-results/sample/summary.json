@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "runId": "run-20260812T183934Z",
+  "config": {
+    "schemaVersion": 1,
+    "runId": "run-20260812T183934Z",
+    "createdAt": "2026-08-12T18:39:34.127Z",
+    "gitCommit": "a881ec2",
+    "engine": "typescript-core",
+    "engineNote": "Live src/core/** via tsx; not the optional Python port (heliopoly_retrograde_sim.py).",
+    "games": 20,
+    "players": 4,
+    "baseSeed": 1000,
+    "seedStride": 997,
+    "maxTurns": 3000,
+    "experiment": "prograde",
+    "aiDifficulty": "normal",
+    "cliArgs": [
+      "--games",
+      "20",
+      "--experiment",
+      "prograde",
+      "--seed",
+      "1000",
+      "--out",
+      "sim-results/sample",
+      "--quiet"
+    ]
+  },
+  "games": 20,
+  "unfinished": 0,
+  "unfinishedRate": 0,
+  "meanRounds": 32.15,
+  "meanTurns": 359.45,
+  "wallMs": 47,
+  "gamesPerSec": 425.531914893617,
+  "winsByName": {
+    "Recorde": 3,
+    "Turing": 2,
+    "Clarke": 1,
+    "Sagan": 5,
+    "K-127": 3,
+    "Goddard": 1,
+    "Asimov": 2,
+    "Ada": 3
+  },
+  "winsBySeat": {
+    "0": 9,
+    "1": 3,
+    "2": 6,
+    "3": 2
+  },
+  "winsByDirection": {
+    "forward": 20
+  },
+  "winsByPropellant": {
+    "methane": 11,
+    "hydrogen": 9
+  },
+  "winRateByDirection": {
+    "forward": {
+      "n": 80,
+      "wins": 20,
+      "rate": 0.25
+    }
+  },
+  "winRateByPropellant": {
+    "methane": {
+      "n": 40,
+      "wins": 11,
+      "rate": 0.275
+    },
+    "hydrogen": {
+      "n": 40,
+      "wins": 9,
+      "rate": 0.225
+    }
+  },
+  "winRateBySeat": {
+    "0": {
+      "n": 20,
+      "wins": 9,
+      "rate": 0.45
+    },
+    "1": {
+      "n": 20,
+      "wins": 3,
+      "rate": 0.15
+    },
+    "2": {
+      "n": 20,
+      "wins": 6,
+      "rate": 0.3
+    },
+    "3": {
+      "n": 20,
+      "wins": 2,
+      "rate": 0.1
+    }
+  }
+}

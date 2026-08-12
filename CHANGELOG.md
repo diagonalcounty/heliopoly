@@ -10,6 +10,9 @@
 - **Path preview click-to-land (#15):** after roll, rocket-color range line on the board; click/tap a stop to set break and move; break fuel on path-segment hover (planetoid inspect unchanged); line ~¾ prior thickness after playtest
 - **Buy before leave (#88):** claim unowned deed underfoot in `await_action` as well as post-land (rent income can fund a later buy)
 
+### Tooling
+- **Batch sim harness (#89):** `npm run sim` drives live TS core; writes `sim-results/<run>/{config,games.ndjson,summary}.json`; experiments (prograde/retrograde/choice/mixed); `python3 scripts/sim_report.py`; docs `scripts/README-sim.md`
+
 ### Lab
 - **Eastern Arabic compare drill (#81):** Lab literacy minigame (hint, reset, 12-try cap, win recap)
 
