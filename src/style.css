@@ -2299,6 +2299,29 @@ button:not(:disabled):active {
   color: var(--muted);
   white-space: nowrap;
 }
+.break-cost.break-cost-warn {
+  color: var(--danger, #ff6b7a);
+  font-weight: 700;
+}
+.path-flash {
+  position: fixed;
+  left: 50%;
+  bottom: max(24px, env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 80;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: rgba(12, 16, 32, 0.94);
+  border: 1px solid var(--danger, #ff6b7a);
+  color: #ffb4bc;
+  font-size: 0.85rem;
+  font-weight: 600;
+  pointer-events: none;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+.path-flash.hidden {
+  display: none;
+}
 
 /* Action grid — fills remaining space, 6 buttons always present */
 .pilot-controls .actions {
