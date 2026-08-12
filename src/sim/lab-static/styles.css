@@ -252,20 +252,6 @@ table {
   font-size: 0.88rem;
 }
 
-table.stats-table {
-  table-layout: fixed;
-}
-
-table.stats-table th:first-child,
-table.stats-table td.label-cell {
-  width: 48%;
-}
-
-table.stats-table th:not(:first-child),
-table.stats-table td.num {
-  width: 17.33%;
-}
-
 th,
 td {
   text-align: left;
@@ -286,17 +272,31 @@ th {
   white-space: nowrap;
 }
 
-.label-cell {
-  overflow: hidden;
-  min-width: 0;
+.rate-hint {
+  margin: 0 0 8px;
 }
 
-.label {
+.stat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stat-row .label {
   font-weight: 600;
+  margin-bottom: 4px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  margin-bottom: 5px;
+}
+
+.stat-row .stat-line {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .bar-track {

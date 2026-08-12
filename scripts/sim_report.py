@@ -55,44 +55,55 @@ def main() -> int:
           f"({summary.get('gamesPerSec', 0):.1f} g/s)")
     print()
 
+    games = max(1, int(summary.get("games") or 1))
+    finished = int(
+        summary.get("finishedGames")
+        if summary.get("finishedGames") is not None
+        else games - int(summary.get("unfinished") or 0)
+    )
+    finished = max(1, finished)
+
+    print("Share of finished games (winner’s attribute; rates sum ≈ 100%)")
+    print(f"finished games n={finished}  (unfinished={summary.get('unfinished', 0)})")
+    print()
+
     print("Wins by rocket name")
     print("-" * 40)
     wins = summary.get("winsByName") or {}
-    games = max(1, int(summary.get("games") or 1))
     for name, n in sorted(wins.items(), key=lambda x: -x[1]):
-        print(f"  {name:16} {n:5}  {pct(n / games)}")
+        print(f"  {name:16} {n:5}  {pct(n / finished)}")
     print()
 
-    print("Win rate by travel direction (finished games, seat observations)")
+    print("By travel direction (winner)")
     print("-" * 40)
     for key, row in sorted((summary.get("winRateByDirection") or {}).items()):
         print(
-            f"  {key:12} n={row.get('n', 0):5}  wins={row.get('wins', 0):5}  "
-            f"rate={pct(row.get('rate', 0))}"
+            f"  {key:12} wins={row.get('wins', 0):5}  "
+            f"n={row.get('n', finished):5}  rate={pct(row.get('rate', 0))}"
         )
     print()
 
-    print("Win rate by propellant")
+    print("By propellant (winner)")
     print("-" * 40)
     for key, row in sorted((summary.get("winRateByPropellant") or {}).items()):
         print(
-            f"  {key:12} n={row.get('n', 0):5}  wins={row.get('wins', 0):5}  "
-            f"rate={pct(row.get('rate', 0))}"
+            f"  {key:12} wins={row.get('wins', 0):5}  "
+            f"n={row.get('n', finished):5}  rate={pct(row.get('rate', 0))}"
         )
     print()
 
-    print("Win rate by seat index")
+    print("By seat index (winner)")
     print("-" * 40)
     for key, row in sorted(
         (summary.get("winRateBySeat") or {}).items(),
         key=lambda x: int(x[0]) if str(x[0]).isdigit() else 0,
     ):
         print(
-            f"  seat {key:4} n={row.get('n', 0):5}  wins={row.get('wins', 0):5}  "
-            f"rate={pct(row.get('rate', 0))}"
+            f"  seat {key:4} wins={row.get('wins', 0):5}  "
+            f"n={row.get('n', finished):5}  rate={pct(row.get('rate', 0))}"
         )
     print()
-    print("Tip: compare two runs (prograde vs retrograde) for direction EV.")
+    print("Tip: all-retro → backward ≈ 100%. Mixed → forward+backward ≈ 100%.")
     print("Ask an AI: point at summary.json + your question.")
     return 0
 

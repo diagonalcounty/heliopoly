@@ -56,22 +56,18 @@ def esc(s: Any) -> str:
     return html.escape(str(s), quote=True)
 
 
-def bar_row(label: str, wins: int, n: int, max_wins: int) -> str:
+def bar_block(label: str, wins: int, n: int, max_wins: int) -> str:
+    """Stacked label + bar + stats line (share of finished games)."""
     rate = wins / n if n else 0.0
     width = (wins / max_wins * 100.0) if max_wins else 0.0
-    # Bar lives in a track under the label so % width cannot spill into other cells
     return f"""
-    <tr>
-      <td class="label-cell">
-        <div class="label">{esc(label)}</div>
-        <div class="bar-track" aria-hidden="true">
-          <div class="bar" style="width:{width:.1f}%"></div>
-        </div>
-      </td>
-      <td class="num">{wins}</td>
-      <td class="num">{n}</td>
-      <td class="num">{pct(rate)}</td>
-    </tr>"""
+    <div class="stat-row">
+      <div class="label">{esc(label)}</div>
+      <div class="bar-track" aria-hidden="true">
+        <div class="bar" style="width:{width:.1f}%"></div>
+      </div>
+      <div class="stat-line mono">{wins:,} wins · n={n:,} · {pct(rate)}</div>
+    </div>"""
 
 
 def table_win_rate(
@@ -88,7 +84,7 @@ def table_win_rate(
         items.sort(key=lambda kv: (-(kv[1].get("wins") or 0), str(kv[0])))
     max_wins = max((int(v.get("wins") or 0) for _, v in items), default=1) or 1
     body = "".join(
-        bar_row(
+        bar_block(
             str(k),
             int(v.get("wins") or 0),
             int(v.get("n") or 0),
@@ -99,32 +95,21 @@ def table_win_rate(
     return f"""
     <section>
       <h2>{esc(title)}</h2>
-      <table class="stats-table">
-        <thead>
-          <tr><th>Key</th><th>Wins</th><th>n</th><th>Rate</th></tr>
-        </thead>
-        <tbody>{body}</tbody>
-      </table>
+      <div class="stat-list">{body}</div>
     </section>"""
 
 
-def table_wins_by_name(wins: dict[str, int], games: int) -> str:
+def table_wins_by_name(wins: dict[str, int], finished: int) -> str:
     if not wins:
         return "<section><h2>Wins by rocket</h2><p class='muted'>No finished winners.</p></section>"
     items = sorted(wins.items(), key=lambda x: -x[1])
     max_w = max(n for _, n in items) or 1
-    body = "".join(
-        bar_row(name, n, games, max_w) for name, n in items
-    )
+    n = max(1, finished)
+    body = "".join(bar_block(name, w, n, max_w) for name, w in items)
     return f"""
     <section>
       <h2>Wins by rocket name</h2>
-      <table class="stats-table">
-        <thead>
-          <tr><th>Rocket</th><th>Wins</th><th>Games</th><th>Share</th></tr>
-        </thead>
-        <tbody>{body}</tbody>
-      </table>
+      <div class="stat-list">{body}</div>
     </section>"""
 
 
@@ -215,20 +200,30 @@ def build_html(
     </div>
     """
 
+    finished = int(
+        summary.get("finishedGames")
+        if summary.get("finishedGames") is not None
+        else games - unfinished
+    )
+    note = (
+        f"<p class='muted'>Rates = share of <strong>finished</strong> games "
+        f"(n={finished:,}) by <strong>winner</strong> attribute. "
+        f"All-retro → backward ≈ 100%. Mixed → forward + backward ≈ 100%.</p>"
+    )
     seats = table_win_rate(
-        "Win rate by seat",
+        "By seat (winner)",
         summary.get("winRateBySeat") or {},
         key_sort=lambda kv: int(kv[0]) if str(kv[0]).isdigit() else 0,
     )
     dirs = table_win_rate(
-        "Win rate by travel direction",
+        "By direction (winner)",
         summary.get("winRateByDirection") or {},
     )
     props = table_win_rate(
-        "Win rate by propellant",
+        "By propellant (winner)",
         summary.get("winRateByPropellant") or {},
     )
-    names = table_wins_by_name(summary.get("winsByName") or {}, games)
+    names = table_wins_by_name(summary.get("winsByName") or {}, finished)
     sample = sample_games_html(run_dir / "games.ndjson")
 
     css = """
@@ -324,17 +319,6 @@ table {
   border-collapse: collapse;
   font-size: 0.9rem;
 }
-table.stats-table {
-  table-layout: fixed;
-}
-table.stats-table th:first-child,
-table.stats-table td.label-cell {
-  width: 46%;
-}
-table.stats-table th:not(:first-child),
-table.stats-table td.num {
-  width: 18%;
-}
 th, td {
   text-align: left;
   padding: 8px 8px;
@@ -347,18 +331,20 @@ th { color: var(--muted); font-weight: 600; font-size: 0.75rem; text-transform: 
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-.label-cell {
-  overflow: hidden;
-  min-width: 0;
-}
-.label {
+.stat-list { display: flex; flex-direction: column; gap: 12px; }
+.stat-row .label {
   font-weight: 600;
+  margin-bottom: 4px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  margin-bottom: 5px;
 }
-/* Full-width track; fill bar is clipped — never paints over other columns */
+.stat-row .stat-line {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
 .bar-track {
   display: block;
   width: 100%;
@@ -413,6 +399,7 @@ footer {
       {meta}
       {kpi}
     </section>
+    <section>{note}</section>
     {names}
     {dirs}
     {props}

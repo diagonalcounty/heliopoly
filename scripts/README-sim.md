@@ -94,6 +94,8 @@ python3 scripts/sim_html_report.py sim-results/sample --out /tmp/heliopoly-sim.h
 
 Shows experiment metadata, KPIs (mean rounds/turns, unfinished), win bars by rocket / direction / propellant / seat, and a sample of games from `games.ndjson`.
 
+**Rates** = share of **finished games** by the **winner’s** attribute (not seat-observations). All-retrograde → `backward` ≈ **100%**. Mixed → forward + backward ≈ **100%**.
+
 ---
 
 ## What gets written
