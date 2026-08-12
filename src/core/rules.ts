@@ -52,9 +52,14 @@ export function parkFeralChance(parkCount: number): number {
 export { walkMovePath } from "./path";
 export type { MovePath, PathFrame } from "./path";
 
+/** Retain enough lines for marathon 4p charters (UI still shows a recent window). */
+export const LOG_RETAIN_MAX = 5000;
+
 function pushLog(state: GameState, msg: string): void {
   state.log.push(msg);
-  if (state.log.length > 200) state.log.splice(0, state.log.length - 200);
+  if (state.log.length > LOG_RETAIN_MAX) {
+    state.log.splice(0, state.log.length - LOG_RETAIN_MAX);
+  }
 }
 
 function delta(state: GameState, line: string): void {

@@ -302,11 +302,21 @@ body {
   display: none;
 }
 
-.eac-num:hover,
+.eac-num:hover {
+  border-color: var(--accent-2);
+}
+
 .eac-num:focus-visible {
   border-color: var(--accent-2);
   outline: none;
   box-shadow: 0 0 0 2px rgba(201, 162, 39, 0.35);
+}
+
+/* Avoid sticky “selected” look after tap (iOS/WebKit keeps :focus) */
+.eac-num:focus:not(:focus-visible) {
+  border-color: #5a4a20;
+  box-shadow: none;
+  outline: none;
 }
 
 .eac-num:active {
@@ -1789,6 +1799,27 @@ button:not(:disabled):active {
   gap: 10px;
   justify-content: center;
   flex-wrap: wrap;
+}
+
+.end-copy-log {
+  min-height: 44px;
+  padding: 8px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #1a2744;
+  color: var(--text);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.end-copy-log:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.end-copy-log.copied {
+  border-color: var(--ok);
+  color: var(--ok);
 }
 
 /* —— Body hover tooltip —— */
