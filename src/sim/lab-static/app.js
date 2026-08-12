@@ -66,6 +66,56 @@ function rateRows(map) {
     .sort((a, b) => b.wins - a.wins);
 }
 
+const ORDINAL = ["1st", "2nd", "3rd", "4th", "5th", "6th"];
+
+function renderLaunchOrder(summary, finished, players) {
+  const fair = players > 0 ? 1 / players : 0.25;
+  const seats = rateRows(summary.winRateBySeat).sort(
+    (a, b) => Number(a.key) - Number(b.key),
+  );
+  // Ensure all seats 0..players-1 appear even if 0 wins
+  const bySeat = new Map(seats.map((s) => [Number(s.key), s]));
+  const cards = [];
+  for (let i = 0; i < players; i++) {
+    const row = bySeat.get(i) || { key: String(i), wins: 0, n: finished };
+    const rate = finished ? row.wins / finished : 0;
+    const delta = rate - fair;
+    const deltaTxt =
+      Math.abs(delta) < 0.005
+        ? "≈ fair share"
+        : `${delta > 0 ? "+" : ""}${(100 * delta).toFixed(1)} pp vs fair`;
+    const hot = rate >= fair + 0.05 ? " hot" : rate <= fair - 0.05 ? " cold" : "";
+    cards.push(`
+      <div class="launch-card${hot}">
+        <div class="launch-ord">${ORDINAL[i] || `Seat ${i}`} to launch</div>
+        <div class="launch-pct">${pct(rate)}</div>
+        <div class="launch-sub">seat ${i} · ${fmtInt(row.wins)} / ${fmtInt(finished)} finished</div>
+        <div class="launch-delta">${deltaTxt}</div>
+        <div class="bar-track launch-bar" aria-hidden="true">
+          <div class="bar" style="width:${Math.min(100, 100 * rate / Math.max(fair * 2, 0.01)).toFixed(1)}%"></div>
+        </div>
+      </div>`);
+  }
+  document.getElementById("launch-cards").innerHTML = cards.join("");
+
+  const callout = document.getElementById("launch-callout");
+  const first = bySeat.get(0);
+  const firstRate = first && finished ? first.wins / finished : 0;
+  if (firstRate >= 0.4) {
+    callout.hidden = false;
+    callout.className = "launch-callout warn";
+    callout.textContent = `First launcher wins ${pct(firstRate)} of finished games — strong seat-0 bias (fair is ${pct(fair)}).`;
+  } else if (Math.abs(firstRate - fair) < 0.03) {
+    callout.hidden = false;
+    callout.className = "launch-callout ok";
+    callout.textContent = `First launcher is near fair share (~${pct(fair)}). Going first is not a large advantage in this run.`;
+  } else {
+    callout.hidden = false;
+    callout.className = "launch-callout";
+    callout.textContent = `Fair share with ${players} players = ${pct(fair)} each. Compare cards above.`;
+  }
+}
+
 function renderResults(payload) {
   const { summary, sampleGames, outDir } = payload;
   const games = summary.games || 1;
@@ -79,6 +129,7 @@ function renderResults(payload) {
   `;
 
   const cfg = summary.config || {};
+  const players = cfg.players || 4;
   document.getElementById("meta").textContent = [
     `run ${summary.runId}`,
     `experiment=${cfg.experiment}`,
@@ -90,6 +141,8 @@ function renderResults(payload) {
 
   const finished =
     summary.finishedGames ?? Math.max(0, games - (summary.unfinished || 0));
+
+  renderLaunchOrder(summary, finished, players);
 
   // Share of finished games (rates sum ≈ 100% across keys)
   const nameRows = Object.entries(summary.winsByName || {})
@@ -111,7 +164,12 @@ function renderResults(payload) {
   const seats = rateRows(summary.winRateBySeat).sort(
     (a, b) => Number(a.key) - Number(b.key),
   );
-  document.getElementById("tbl-seat").innerHTML = barTable(seats);
+  document.getElementById("tbl-seat").innerHTML = barTable(
+    seats.map((s) => ({
+      ...s,
+      key: `${ORDINAL[Number(s.key)] || `seat ${s.key}`} (seat ${s.key})`,
+    })),
+  );
 
   const sample = (sampleGames || [])
     .map((g) => {
