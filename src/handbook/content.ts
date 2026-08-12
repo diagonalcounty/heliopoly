@@ -253,6 +253,52 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
 `,
   },
   {
+    id: "ai-difficulty",
+    title: "AI difficulty",
+    html: `
+<p>Rival seats use a heuristic pilot. Choose difficulty at <strong>New game</strong> only — it is <strong>locked for the rest of the charter</strong> (change it before Launch, not mid-flight).</p>
+<p>The first skill scale we tune is <strong>travel</strong>: how well the AI uses <strong>break</strong> (and, for palindrome callsigns like Ada, <strong>prograde vs retrograde</strong>). Higher levels break more deliberately — including long breaks to land on a single key deed. Buy / depot scales can be layered later the same way.</p>
+<table class="glossary">
+  <thead>
+    <tr>
+      <th>Level</th>
+      <th>Break (travel)</th>
+      <th>Retrograde (palindrome)</th>
+      <th>What to expect</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Easy</strong></td>
+      <td>Never breaks</td>
+      <td>Always prograde</td>
+      <td>Soft rival. Rolls and lands where the dice put them; no tactical slowdown.</td>
+    </tr>
+    <tr>
+      <td><strong>Normal</strong></td>
+      <td>Only a small break (≤2) when full leave fuel would strand them</td>
+      <td>Slight prograde bias; reverse only if clearly better</td>
+      <td>Default. Survival break only — not hunting monopolies with break.</td>
+    </tr>
+    <tr>
+      <td><strong>Hard</strong></td>
+      <td>Scores landings; may break up to about half the roll</td>
+      <td>Compares both directions</td>
+      <td>Will slow to buy open deeds, dodge rent, or reach Earth/own claims. Won’t usually break 11 of a 12.</td>
+    </tr>
+    <tr>
+      <td><strong>Expert</strong></td>
+      <td>Full break depth (can move 1 space after a 12)</td>
+      <td>Low bar to reverse if the landing is better</td>
+      <td>Ruthless travel: break hard for monopoly pieces, hub stations, landing on Earth (not just passing), fuel-aware blanks, free-brake tokens.</td>
+    </tr>
+  </tbody>
+</table>
+<p><strong>Expert examples:</strong> roll 12 but the deed that completes a system monopoly is 1 space ahead → break 11 and take it. Full roll would <em>pass</em> Earth for ⍼200+ while a shorter move <em>lands</em> for ⍼400+ → break to land. Leave burn on a heavy well is worse than 0.5 fuel per break space onto a blank → prefer the blank.</p>
+<p>Control: header has <strong>Speed</strong> for animation only. AI skill is under New game setup. See also <strong>Roll, break, move</strong> and <strong>Rival rockets</strong>.</p>
+`,
+  },
+  {
     id: "feral",
     title: "Parking & feral claims",
     html: `

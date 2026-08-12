@@ -162,20 +162,22 @@ if (animSpeedSelect) {
   });
 }
 
-// AI difficulty: header select + setup radios (#87)
+// AI difficulty: setup only (locked once a game starts — #87)
 (() => {
   const stored = loadStoredAiDifficulty();
   syncAiDifficultyUi(stored);
-  const live = document.getElementById(
-    "ai-difficulty-live",
-  ) as HTMLSelectElement | null;
-  live?.addEventListener("change", () => {
-    applyAiDifficulty(normalizeAiDifficulty(live.value));
-  });
   document.querySelectorAll('input[name="ai-difficulty"]').forEach((el) => {
     el.addEventListener("change", () => {
+      // Only apply mid-setup; ignore if a charter is already running
+      if (state && state.phase !== "game_over") return;
       const v = (el as HTMLInputElement).value;
-      applyAiDifficulty(normalizeAiDifficulty(v));
+      const level = normalizeAiDifficulty(v);
+      syncAiDifficultyUi(level);
+      try {
+        localStorage.setItem(AI_DIFF_KEY, level);
+      } catch {
+        /* ignore */
+      }
     });
   });
 })();
@@ -312,43 +314,22 @@ function selectedPropellant(): PropellantId {
 const AI_DIFF_KEY = "heliopoly-ai-difficulty";
 
 function selectedAiDifficulty(): AiDifficulty {
-  const live = document.getElementById(
-    "ai-difficulty-live",
-  ) as HTMLSelectElement | null;
-  if (live?.value) return normalizeAiDifficulty(live.value);
   const el = document.querySelector(
     'input[name="ai-difficulty"]:checked',
   ) as HTMLInputElement | null;
   return normalizeAiDifficulty(el?.value);
 }
 
+/** Sync setup radios only — difficulty is fixed for the duration of a charter (#87). */
 function syncAiDifficultyUi(level: AiDifficulty): void {
-  const live = document.getElementById(
-    "ai-difficulty-live",
-  ) as HTMLSelectElement | null;
-  if (live) live.value = level;
   const radio = document.querySelector(
     `input[name="ai-difficulty"][value="${level}"]`,
   ) as HTMLInputElement | null;
   if (radio) radio.checked = true;
-  // Legacy "difficult" radios removed — map hard if present
-  if (!radio && level === "hard") {
-    const legacy = document.querySelector(
-      'input[name="ai-difficulty"][value="difficult"]',
-    ) as HTMLInputElement | null;
-    if (legacy) legacy.checked = true;
-  }
   try {
     localStorage.setItem(AI_DIFF_KEY, level);
   } catch {
     /* ignore */
-  }
-}
-
-function applyAiDifficulty(level: AiDifficulty): void {
-  syncAiDifficultyUi(level);
-  if (state) {
-    state = { ...state, config: { ...state.config, aiDifficulty: level } };
   }
 }
 
@@ -358,6 +339,13 @@ function loadStoredAiDifficulty(): AiDifficulty {
   } catch {
     return "normal";
   }
+}
+
+/** Disable setup AI radios while a game is in progress. */
+function setAiDifficultyLocked(locked: boolean): void {
+  document.querySelectorAll('input[name="ai-difficulty"]').forEach((el) => {
+    (el as HTMLInputElement).disabled = locked;
+  });
 }
 
 const announceRoot = document.getElementById("announce-root")!;
@@ -428,6 +416,8 @@ function setSetupCollapsed(showStandings: boolean): void {
   standingsPanel.hidden = !showStandings;
   setupBody.hidden = showStandings;
 
+  // Difficulty locked once a charter exists (even mid New game UI) until Return/end
+  setAiDifficultyLocked(!!state && state.phase !== "game_over");
   const inGame = !!state;
   if (showStandings) {
     setupToggle.classList.remove("hidden");
@@ -1852,6 +1842,7 @@ function render(): void {
   renderSide();
   resizeLog();
   updateDuelModal(state);
+  setAiDifficultyLocked(!!state && state.phase !== "game_over");
 }
 
 function renderSide(): void {
