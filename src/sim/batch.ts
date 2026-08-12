@@ -7,6 +7,8 @@ import { execSync } from "node:child_process";
 import { normalizeAiDifficulty, type AiDifficulty } from "../core/types";
 import { playOneGame, DEFAULT_MAX_TURNS, DEFAULT_SEED_STRIDE } from "./play";
 import type {
+  DensityCurve,
+  EliminationPlaceCurves,
   HumanLossTiming,
   RoundDist,
   RoundHistBucket,
@@ -219,6 +221,117 @@ function buildRoundDist(values: number[], bucketWidth = 5): RoundDist {
   };
 }
 
+/** Gaussian KDE on [0, xMax] for horizontal density charts. */
+function densityCurveFromSamples(
+  samples: number[],
+  id: string,
+  label: string,
+  xMax: number,
+  nPoints = 121,
+): DensityCurve {
+  const cleaned = samples
+    .map((v) => Math.max(0, Math.min(xMax, v)))
+    .filter((v) => Number.isFinite(v));
+  const n = cleaned.length;
+  const emptyXs = Array.from({ length: nPoints }, (_, i) => (i / (nPoints - 1)) * xMax);
+  if (n === 0) {
+    return {
+      id,
+      label,
+      mean: 0,
+      p50: 0,
+      n: 0,
+      xs: emptyXs,
+      ys: emptyXs.map(() => 0),
+    };
+  }
+  const sorted = [...cleaned].sort((a, b) => a - b);
+  const mean = cleaned.reduce((a, b) => a + b, 0) / n;
+  const p50 = percentile(sorted, 0.5);
+  let variance = 0;
+  for (const v of cleaned) variance += (v - mean) ** 2;
+  variance /= Math.max(1, n - 1);
+  const std = Math.sqrt(variance) || 1;
+  // Silverman's rule of thumb
+  const bw = Math.max(1.5, 1.06 * std * n ** -0.2);
+  const xs = emptyXs;
+  const ys = xs.map((x) => {
+    let s = 0;
+    for (const xi of cleaned) {
+      const u = (x - xi) / bw;
+      s += Math.exp(-0.5 * u * u);
+    }
+    return s / (n * bw * Math.sqrt(2 * Math.PI));
+  });
+  return { id, label, mean, p50, n, xs, ys };
+}
+
+/**
+ * Place-order eliminations for finished games (1st out, 2nd out, 3rd out, game end).
+ */
+function buildEliminationPlaceCurves(
+  firstOut: number[],
+  secondOut: number[],
+  thirdOut: number[],
+  gameEnd: number[],
+  humanOutWhenLost: number[],
+): EliminationPlaceCurves | null {
+  if (!gameEnd.length) return null;
+  const xMax = Math.min(
+    120,
+    Math.max(
+      40,
+      Math.ceil(
+        Math.max(
+          ...gameEnd,
+          ...firstOut,
+          ...secondOut,
+          ...thirdOut,
+          1,
+        ) / 10,
+      ) * 10 + 10,
+    ),
+  );
+  const curves: DensityCurve[] = [
+    densityCurveFromSamples(
+      firstOut,
+      "firstOut",
+      "1st player out (4th place)",
+      xMax,
+    ),
+    densityCurveFromSamples(
+      secondOut,
+      "secondOut",
+      "2nd player out (3rd place)",
+      xMax,
+    ),
+    densityCurveFromSamples(
+      thirdOut,
+      "thirdOut",
+      "3rd player out (2nd place)",
+      xMax,
+    ),
+    densityCurveFromSamples(gameEnd, "gameEnd", "Game end / sole survivor", xMax),
+  ];
+  if (humanOutWhenLost.length >= 8) {
+    curves.push(
+      densityCurveFromSamples(
+        humanOutWhenLost,
+        "humanOut",
+        "Human proxy out (when they lose)",
+        xMax,
+      ),
+    );
+  }
+  const m1 = curves[0]!.mean;
+  const m2 = curves[1]!.mean;
+  const mG = curves[3]!.mean;
+  const caption =
+    `Elimination place densities over ${gameEnd.length} finished games (x = game round). ` +
+    `Mean 1st out ≈ R${m1.toFixed(0)}, 2nd out ≈ R${m2.toFixed(0)}, game end ≈ R${mG.toFixed(0)}.`;
+  return { games: gameEnd.length, xMax, curves, caption };
+}
+
 function buildHumanLossTiming(
   humanElim: number[],
   gameLen: number[],
@@ -338,6 +451,11 @@ export function runBatch(params: BatchParams): {
   const lossHumanElim: number[] = [];
   const lossGameLen: number[] = [];
   const lossPackElim: number[] = [];
+  /** Place-order elim rounds (all finished games). */
+  const placeFirstOut: number[] = [];
+  const placeSecondOut: number[] = [];
+  const placeThirdOut: number[] = [];
+  const placeGameEnd: number[] = [];
 
   const t0 = Date.now();
   const progressEvery = Math.max(1, Math.floor(games / 25));
@@ -399,6 +517,19 @@ export function runBatch(params: BatchParams): {
             }
           }
         }
+
+        // Place-order timeline (who left 1st/2nd/3rd — not seat index)
+        const elimRounds = game.seats
+          .filter((s) => s.eliminated && s.eliminatedOnRound != null)
+          .map((s) => Math.max(1, s.eliminatedOnRound as number))
+          .sort((a, b) => a - b);
+        const endR = Math.max(1, game.rounds);
+        placeGameEnd.push(endR);
+        if (elimRounds[0] != null) placeFirstOut.push(elimRounds[0]);
+        if (elimRounds[1] != null) placeSecondOut.push(elimRounds[1]);
+        // 3rd out ≈ last elimination before sole survivor (or game end)
+        if (elimRounds[2] != null) placeThirdOut.push(elimRounds[2]);
+        else if (elimRounds.length >= 1) placeThirdOut.push(endR);
       }
     }
 
@@ -461,7 +592,16 @@ export function runBatch(params: BatchParams): {
     lossGameLen,
     lossPackElim,
   );
-  if (humanLossTiming) {
+  const eliminationPlaceCurves = buildEliminationPlaceCurves(
+    placeFirstOut,
+    placeSecondOut,
+    placeThirdOut,
+    placeGameEnd,
+    lossHumanElim,
+  );
+  if (eliminationPlaceCurves) {
+    outcomeSummary = `${outcomeSummary} ${eliminationPlaceCurves.caption}`;
+  } else if (humanLossTiming) {
     outcomeSummary = `${outcomeSummary} ${humanLossTiming.caption}`;
   }
 
@@ -490,6 +630,7 @@ export function runBatch(params: BatchParams): {
     humanLiftVsFair: humanWinRate - fairShare,
     outcomeSummary,
     humanLossTiming,
+    eliminationPlaceCurves,
   };
 
   if (outDir) {
