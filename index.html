@@ -34,18 +34,6 @@
                 <option value="instant">Instant</option>
               </select>
             </label>
-            <label
-              class="anim-speed-field ai-diff-field"
-              title="AI break use and landing skill (affects AI seats mid-game)"
-            >
-              <span class="anim-speed-label">AI</span>
-              <select id="ai-difficulty-live" aria-label="AI difficulty">
-                <option value="easy">Easy</option>
-                <option value="normal" selected>Normal</option>
-                <option value="hard">Hard</option>
-                <option value="expert">Expert</option>
-              </select>
-            </label>
             <button
               id="btn-lab"
               type="button"
@@ -153,7 +141,7 @@
                 <legend>AI difficulty</legend>
                 <label class="check">
                   <input type="radio" name="ai-difficulty" value="easy" />
-                  Easy — no break, no retrograde
+                  Easy — no break; always prograde
                 </label>
                 <label class="check">
                   <input
@@ -162,17 +150,20 @@
                     value="normal"
                     checked
                   />
-                  Normal — break only to afford leave
+                  Normal — small break only to afford leave
                 </label>
                 <label class="check">
                   <input type="radio" name="ai-difficulty" value="hard" />
-                  Hard — break for landings &amp; rent dodge
+                  Hard — break for buys, hubs, Earth landings
                 </label>
                 <label class="check">
                   <input type="radio" name="ai-difficulty" value="expert" />
-                  Expert — aggressive break + reverse course when better
+                  Expert — deep break (even 1-space grabs), monopoly &amp; Earth focus
                 </label>
               </fieldset>
+              <p class="hint" style="margin-top:4px">
+                Locked after Launch. Details: Ops Manual → AI difficulty.
+              </p>
               <button id="btn-new" type="button" class="primary">Launch</button>
               <button id="btn-selfplay" type="button">Self-play burst</button>
             </div>

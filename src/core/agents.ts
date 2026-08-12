@@ -8,6 +8,12 @@ import {
 } from "./rules";
 import { currentPlayer } from "./state";
 import {
+  hasSystemMonopoly,
+  isStationHub,
+  systemOfGroup,
+  STATION_HUB_IDS,
+} from "./systems";
+import {
   normalizeAiDifficulty,
   type AiDifficulty,
   type GameState,
@@ -26,7 +32,6 @@ export function heuristicAI(state: GameState): PlayerAction {
       const roll =
         p.id === d.challengerId ? d.challengerRoll : d.defenderRoll;
       if (stance === null) {
-        // Easy: timid Low; expert: fuel-aware High more often
         const difficulty = normalizeAiDifficulty(state.config.aiDifficulty);
         if (difficulty === "easy") {
           return { type: "duel_stance", stance: "low" };
@@ -68,7 +73,6 @@ export function heuristicAI(state: GameState): PlayerAction {
     if (legal.sell && p.cash < 100 && p.properties.length > 2) {
       return { type: "sell", nodeId: legal.sellNodeId! };
     }
-    // King's Quest: use warp when charged (prefer strong destinations / low fuel)
     if (legal.warp && p.warpCharges > 0) {
       const dest = chooseWarpDestination(state, difficulty);
       if (dest) return { type: "warp", destination: dest };
@@ -77,7 +81,6 @@ export function heuristicAI(state: GameState): PlayerAction {
   }
 
   if (state.phase === "await_move") {
-    // #47 palindrome: pick permanent Mainline facing before first move
     if (legal.setDirection && p.canBidirectional && !p.directionLocked) {
       const dir = chooseMoveDirection(state, difficulty);
       if (dir !== p.moveDirection) {
@@ -88,7 +91,6 @@ export function heuristicAI(state: GameState): PlayerAction {
     if (br !== state.breakSpaces) {
       return { type: "set_break", spaces: br };
     }
-    // If we still cannot afford break fuel, force break 0 then move
     if (!legal.move && state.breakSpaces > 0) {
       return { type: "set_break", spaces: 0 };
     }
@@ -98,7 +100,6 @@ export function heuristicAI(state: GameState): PlayerAction {
   if (legal.buy && p.cash >= legal.buyPrice + (difficulty === "easy" ? 250 : 150)) {
     return { type: "buy" };
   }
-  // Prefer depot on gusher-ish own claims when fuel ok (respect cash cost #45)
   if (legal.placeStation && (p.fuel <= 14 || p.stationsInHand >= 2)) {
     const cost = legal.placeStationCost;
     if (cost === 0 || p.cash >= cost + 120) {
@@ -111,81 +112,154 @@ export function heuristicAI(state: GameState): PlayerAction {
   return { type: "end_turn" };
 }
 
-/** Palindrome AI: compare forward vs reverse landing quality for full roll. */
+/** How deep into the roll the AI may break (travel skill scale — #87). */
+function maxBreakConsidered(
+  difficulty: AiDifficulty,
+  legalMax: number,
+  rollTotal: number,
+): number {
+  if (legalMax <= 0 || rollTotal <= 0) return 0;
+  switch (difficulty) {
+    case "easy":
+      return 0;
+    case "normal":
+      // Only tiny shave when leave is unaffordable (handled separately)
+      return Math.min(legalMax, 2);
+    case "hard":
+      // Up to half the roll (rounded up), not the full "break to 1 space"
+      return Math.min(legalMax, Math.max(2, Math.ceil(rollTotal / 2)));
+    case "expert":
+      // Full depth: break total−1 allowed (land one space ahead)
+      return legalMax;
+    default:
+      return Math.min(legalMax, 2);
+  }
+}
+
+/** Score how good it is to *land* on endId for this pilot. */
+function scoreLanding(
+  state: GameState,
+  pilotId: string,
+  cash: number,
+  endId: string,
+  difficulty: AiDifficulty,
+): number {
+  const end = getNode(state.board, endId);
+  let score = 0;
+
+  // Buy opportunity
+  if (
+    isPurchasable(end) &&
+    !state.owners[endId] &&
+    (end.price ?? 0) <= cash - 80
+  ) {
+    score += 40 + Math.min(35, (end.price ?? 0) / 35);
+    // Hub stations: high strategic value
+    if (isStationHub(endId)) {
+      score += difficulty === "expert" ? 55 : difficulty === "hard" ? 35 : 15;
+      const hubsOwned = STATION_HUB_IDS.filter(
+        (id) => state.owners[id] === pilotId,
+      ).length;
+      if (hubsOwned === 2) score += difficulty === "expert" ? 80 : 40; // complete hub net
+      else if (hubsOwned === 1) score += difficulty === "expert" ? 30 : 12;
+    }
+    // System monopoly completion
+    const sys = systemOfGroup(end.group);
+    if (sys) {
+      const owned = sys.deedIds.filter((id) => state.owners[id] === pilotId)
+        .length;
+      const need = sys.deedIds.length;
+      if (owned === need - 1) {
+        // This landing completes monopoly
+        score += difficulty === "expert" ? 100 : difficulty === "hard" ? 55 : 20;
+      } else if (owned >= Math.floor(need / 2)) {
+        score += difficulty === "expert" ? 25 : difficulty === "hard" ? 12 : 4;
+      }
+    }
+  }
+
+  if (state.owners[endId] === pilotId) {
+    score += 18;
+    if (state.stations[endId]) score += 10; // free refuel home
+  }
+
+  // Landing ON Earth (not pass) — advanced AI strongly prefers this
+  if (endId === "earth") {
+    score +=
+      difficulty === "expert" ? 70 : difficulty === "hard" ? 40 : 28;
+  }
+
+  const ownerId = state.owners[endId];
+  if (ownerId && ownerId !== pilotId && isPurchasable(end)) {
+    const rent = end.rent ?? 0;
+    const mono =
+      !!systemOfGroup(end.group) &&
+      hasSystemMonopoly(
+        state.owners,
+        ownerId,
+        systemOfGroup(end.group)!.id,
+      );
+    const rentNow = Math.floor(rent * (mono ? 2 : 1) * (state.stations[endId] ? 1.5 : 1));
+    score -= 25 + rentNow / 4;
+    if (cash < rentNow) score -= 55;
+    if (difficulty === "expert") score -= 20 + rentNow / 5;
+    if (isStationHub(endId)) score -= difficulty === "expert" ? 35 : 15;
+  }
+
+  if (end.kind === "space") {
+    // Blank: no leave burn next turn — fuel conservation value
+    score += difficulty === "expert" ? 14 : difficulty === "hard" ? 6 : 0;
+    score -= 4; // duel risk slight
+  }
+
+  return score;
+}
+
+/** True if this move rests on Earth mid-path then continues (pass pay), not final land. */
+function pathPassesEarth(
+  state: GameState,
+  fromId: string,
+  steps: number,
+  direction: "forward" | "backward",
+): boolean {
+  if (steps <= 1) return false;
+  const path = walkMovePath(state.board, fromId, steps, direction);
+  if (path.endId === "earth") return false;
+  return path.stops.some((id) => id === "earth");
+}
+
 function chooseMoveDirection(
   state: GameState,
   difficulty: AiDifficulty,
 ): "forward" | "backward" {
   const p = currentPlayer(state);
-  // Easy: never consider retrograde
   if (difficulty === "easy") return "forward";
 
   const total = state.lastRoll?.total ?? 7;
-  const scoreDir = (dir: "forward" | "backward") => {
-    const path = walkMovePath(state.board, p.position, total, dir);
-    const end = getNode(state.board, path.endId);
-    let score = 0;
-    if (
-      isPurchasable(end) &&
-      !state.owners[path.endId] &&
-      (end.price ?? 0) <= p.cash - 100
-    ) {
-      score += 40;
-    }
-    if (state.owners[path.endId] === p.id) score += 18;
-    if (path.endId === "earth") score += 28;
-    const ownerId = state.owners[path.endId];
-    if (ownerId && ownerId !== p.id && isPurchasable(end)) {
-      score -= 25 + (end.rent ?? 0) / 4;
-      if (p.cash < (end.rent ?? 0)) score -= 50;
-      // Expert: stronger rent dodge
-      if (difficulty === "expert") score -= 15;
-    }
-    if (end.kind === "space") score -= 8;
-    if (difficulty === "normal") score += dir === "forward" ? 2 : 0;
-    if (difficulty === "hard" && dir === "forward") score += 1;
-    return score;
-  };
+  const scoreDir = (dir: "forward" | "backward") =>
+    scoreLanding(state, p.id, p.cash, walkMovePath(state.board, p.position, total, dir).endId, difficulty) +
+    (difficulty === "normal" && dir === "forward" ? 2 : 0) +
+    (difficulty === "hard" && dir === "forward" ? 1 : 0);
+
   const fwd = scoreDir("forward");
   const back = scoreDir("backward");
-  // Threshold: easy N/A; normal needs clear win; expert switches on small edge
   const need =
     difficulty === "expert" ? 3 : difficulty === "hard" ? 5 : 8;
   return back > fwd + need ? "backward" : "forward";
 }
 
-/** Score board nodes for a one-shot warp teleport. */
 function chooseWarpDestination(
   state: GameState,
   difficulty: AiDifficulty,
 ): string | null {
   const p = currentPlayer(state);
-  // Easy: rarely warp
   if (difficulty === "easy" && p.fuel > 6) return null;
 
   let bestId: string | null = null;
   let bestScore = -1e9;
   for (const id of Object.keys(state.board.nodes)) {
     if (id === p.position) continue;
-    const end = getNode(state.board, id);
-    let score = 0;
-    if (
-      isPurchasable(end) &&
-      !state.owners[id] &&
-      (end.price ?? 0) <= p.cash - 80
-    ) {
-      score += 50 + Math.min(40, (end.price ?? 0) / 30);
-    }
-    if (state.owners[id] === p.id) score += 22;
-    if (id === "earth") score += 30;
-    if (end.refuel === "free" || id === "earth") score += 12;
-    const ownerId = state.owners[id];
-    if (ownerId && ownerId !== p.id && isPurchasable(end)) {
-      const rent = end.rent ?? 0;
-      score -= 30 + rent / 3;
-      if (p.cash < rent) score -= 80;
-    }
-    if (end.kind === "space") score -= 8;
+    let score = scoreLanding(state, p.id, p.cash, id, difficulty);
     if (difficulty === "normal") score += Math.random() * 4;
     else if (difficulty === "easy") score += Math.random() * 8;
     else score += Math.random() * 2;
@@ -211,13 +285,9 @@ function chooseBreak(
 
   const node = getNode(state.board, p.position);
 
-  // —— Easy: never break (accept strand risk) ——
-  if (difficulty === "easy") {
-    return 0;
-  }
+  if (difficulty === "easy") return 0;
 
-  // —— Normal: only shave when full leave burn is unaffordable ——
-  // Decide from the *full roll*, not legal.leaveBurnPreview (avoids 0↔n oscillation).
+  // —— Normal: only shave when full leave burn is unaffordable (cap 2) ——
   if (difficulty === "normal") {
     const fullLeave = leaveBurnCost(node, Math.max(1, total), p.propellant);
     let br = 0;
@@ -244,65 +314,63 @@ function chooseBreak(
     return br;
   }
 
-  // —— Hard / Expert: score every break amount for landing quality ——
+  // —— Hard / Expert: score every break up to difficulty-capped depth ——
   const expert = difficulty === "expert";
+  const maxBr = maxBreakConsidered(difficulty, legal.maxBreak, total);
   let bestBr = 0;
   let bestScore = -1e9;
-  const maxBr = legal.maxBreak;
+
   for (let br = 0; br <= maxBr; br++) {
     const bCost = effectiveBreakFuelCost(p.freeBreakPending, br);
-    if (p.fuel < bCost) continue;
-    const steps = Math.max(0, total - br);
-    if (steps <= 0 && br > 0) continue;
+    if (p.fuel + 1e-9 < bCost) continue;
+    const steps = total - br;
+    if (steps < 1) continue;
 
-    const leaveAfter = leaveBurnCost(
-      node,
-      Math.max(1, steps || 1),
-      p.propellant,
-    );
-    // Must be able to leave after move (or free-break edge)
-    if (p.fuel + 1e-9 < bCost + leaveAfter && steps > 0) {
-      // Expert: still allow if break alone is affordable and leave was worse without
-      if (!expert || p.fuel + 1e-9 < bCost) continue;
+    const leaveAfter = leaveBurnCost(node, steps, p.propellant);
+    if (p.fuel + 1e-9 < bCost + leaveAfter) {
+      // Still consider if we were worse without break
+      const fullLeave = leaveBurnCost(node, total, p.propellant);
+      if (!(p.fuel < fullLeave && p.fuel >= bCost)) continue;
     }
 
     const path = walkMovePath(
       state.board,
       p.position,
-      Math.max(1, steps || 1),
+      steps,
       p.moveDirection,
     );
-    const endId = path.endId;
-    const end = getNode(state.board, endId);
-    let score = 0;
+    let score = scoreLanding(state, p.id, p.cash, path.endId, difficulty);
 
-    if (
-      isPurchasable(end) &&
-      !state.owners[endId] &&
-      (end.price ?? 0) <= p.cash - 100
+    // Prefer *landing* on Earth over *passing* Earth on a longer move
+    if (path.endId === "earth") {
+      score += expert ? 25 : 12;
+    } else if (
+      pathPassesEarth(state, p.position, total, p.moveDirection) &&
+      !path.stops.includes("earth")
     ) {
-      score += 40 + Math.min(30, (end.price ?? 0) / 40);
+      // Full roll would pass Earth; this break still doesn't land Earth — small penalty for hard/expert
+      if (expert || difficulty === "hard") score -= 8;
     }
-    if (state.owners[endId] === p.id) score += 18;
-    if (endId === "earth") score += 28;
-    const ownerId = state.owners[endId];
-    if (ownerId && ownerId !== p.id && isPurchasable(end)) {
-      const rent = end.rent ?? 0;
-      score -= 25 + rent / 4;
-      if (p.cash < rent) score -= 50;
-      if (expert) score -= 20 + rent / 5; // stronger rent dodge
+    // Bonus if full roll passes Earth but this break lands on Earth
+    if (
+      path.endId === "earth" &&
+      pathPassesEarth(state, p.position, total, p.moveDirection)
+    ) {
+      score += expert ? 45 : 22;
     }
-    // Free break token: prefer using it when available
-    if (p.freeBreakPending && br >= 1) score += expert ? 12 : 6;
-    score -= bCost * (expert ? 1.5 : 3);
-    // Expert: value shaving leave cost when tank is tight
+
+    // Fuel: break cost vs leave savings / blank parking
+    score -= bCost * (expert ? 1.2 : 2.5);
+    if (p.freeBreakPending && br >= 1) score += expert ? 14 : 6;
     if (expert && p.fuel < 14) {
-      const fullLeave = leaveBurnCost(node, Math.max(1, total), p.propellant);
-      score += Math.max(0, fullLeave - leaveAfter) * 2;
+      const fullLeave = leaveBurnCost(node, total, p.propellant);
+      score += Math.max(0, fullLeave - leaveAfter) * 2.5;
     }
-    if (br === 0) score += expert ? 0 : 2;
-    // Hard: slight inertia against break
-    if (!expert && br > 0) score -= 1;
+    // Blank landing: next leave is free (no gravity)
+    const end = getNode(state.board, path.endId);
+    if (end.kind === "space" && expert) {
+      score += 8;
+    }
 
     if (score > bestScore) {
       bestScore = score;
@@ -310,7 +378,7 @@ function chooseBreak(
     }
   }
 
-  // If best is barely better than 0, don't bother (lower bar for expert)
+  // Require meaningful improvement over break-0
   if (bestBr > 0) {
     const basePath = walkMovePath(
       state.board,
@@ -318,23 +386,14 @@ function chooseBreak(
       total,
       p.moveDirection,
     );
-    const baseEnd = getNode(state.board, basePath.endId);
-    let baseScore = 0;
-    if (basePath.endId === "earth") baseScore += 28;
-    if (state.owners[basePath.endId] === p.id) baseScore += 18;
-    if (
-      isPurchasable(baseEnd) &&
-      !state.owners[basePath.endId] &&
-      (baseEnd.price ?? 0) <= p.cash - 100
-    ) {
-      baseScore += 40;
-    }
-    const ownerId = state.owners[basePath.endId];
-    if (ownerId && ownerId !== p.id && isPurchasable(baseEnd)) {
-      baseScore -= 25 + (baseEnd.rent ?? 0) / 4;
-      if (p.cash < (baseEnd.rent ?? 0)) baseScore -= 50;
-    }
-    const margin = expert ? 3 : 8;
+    const baseScore = scoreLanding(
+      state,
+      p.id,
+      p.cash,
+      basePath.endId,
+      difficulty,
+    );
+    const margin = expert ? 2 : difficulty === "hard" ? 6 : 8;
     if (bestScore < baseScore + margin) return 0;
   }
 
