@@ -13,6 +13,7 @@ import { goingUnderFlags } from "./core/goingUnder";
 import {
   applyAction,
   depotPlaceCashCost,
+  effectiveBreakFuelCost,
   getLegalActions,
   meanDiceTotal,
   netWorth,
@@ -58,6 +59,35 @@ let lastProject:
       project: (x: number, y: number) => { x: number; y: number };
       board: Board;
     } = null;
+
+/** Travel path preview after roll (#15) — hit targets for click-to-land. */
+type RouteStopHit = {
+  stopIndex: number;
+  nodeId: string;
+  moveSteps: number;
+  breakSpaces: number;
+  breakFuel: number;
+  affordable: boolean;
+  x: number;
+  y: number;
+};
+type RouteSegHit = {
+  stopIndex: number;
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+};
+let lastRoutePreview: {
+  color: string;
+  selectedBreak: number;
+  total: number;
+  stops: RouteStopHit[];
+  segs: RouteSegHit[];
+  poly: { x: number; y: number }[];
+} | null = null;
+/** Hovered stop along path (not body inspect). */
+let routeHoverStop: number | null = null;
 
 const DWELL_STOP_MS = 420;
 const DWELL_PASS_MS = 140;
@@ -2030,11 +2060,22 @@ function renderSide(): void {
     } else {
       breakCostEl.textContent = "0 fuel";
     }
+    // Path preview sticky hint (esp. tablet — no hover)
+    if (can && p.agent === "human") {
+      breakCostEl.title =
+        "Click/tap a stop on your rocket-color path to land there";
+      if (legal.breakSpaces === 0 && !p.freeBreakPending) {
+        breakCostEl.textContent = "0 fuel · path click to land";
+      }
+    } else {
+      breakCostEl.title = "";
+    }
     btnBreakMinus.disabled = !can || legal.breakSpaces <= 0;
     btnBreakPlus.disabled =
       !can || legal.breakSpaces >= legal.maxBreak;
   } else {
     breakRow.classList.add("hidden-vis");
+    if (routeHoverStop !== null) routeHoverStop = null;
   }
 
   if (legal.sell) {
@@ -2136,6 +2177,60 @@ function boardProjector(board: ReturnType<typeof createV0Board>, w: number, h: n
   return { project, sun, scale };
 }
 
+/** Human can click path to set break / land (#15). */
+function humanRoutePreviewReady(): boolean {
+  if (!state || animating) return false;
+  const p = currentPlayer(state);
+  return (
+    p.agent === "human" &&
+    state.phase === "await_move" &&
+    !!state.lastRoll &&
+    state.lastRoll.total > 0
+  );
+}
+
+function distPointToSeg(
+  px: number,
+  py: number,
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+): number {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const len2 = dx * dx + dy * dy;
+  if (len2 < 1e-9) return Math.hypot(px - x1, py - y1);
+  let t = ((px - x1) * dx + (py - y1) * dy) / len2;
+  t = Math.max(0, Math.min(1, t));
+  return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
+}
+
+function hitRouteStopAt(sx: number, sy: number): RouteStopHit | null {
+  if (!lastRoutePreview) return null;
+  const hitR = 16;
+  let best: RouteStopHit | null = null;
+  let bestD = hitR * hitR;
+  for (const stop of lastRoutePreview.stops) {
+    const d = (stop.x - sx) ** 2 + (stop.y - sy) ** 2;
+    if (d <= bestD) {
+      bestD = d;
+      best = stop;
+    }
+  }
+  if (best) return best;
+  let bestSeg: RouteStopHit | null = null;
+  let bestSegD = 12;
+  for (const seg of lastRoutePreview.segs) {
+    const d = distPointToSeg(sx, sy, seg.x1, seg.y1, seg.x2, seg.y2);
+    if (d <= bestSegD) {
+      bestSegD = d;
+      bestSeg = lastRoutePreview.stops[seg.stopIndex] ?? null;
+    }
+  }
+  return bestSeg;
+}
+
 function drawBoard(): void {
   const w = canvas.width;
   const h = canvas.height;
@@ -2155,6 +2250,7 @@ function drawBoard(): void {
   const board = state?.board ?? createV0Board();
   const { project, sun, scale } = boardProjector(board, w, h);
   lastProject = { project, board };
+  lastRoutePreview = null;
   const cx = sun.x;
   const cy = sun.y;
 
@@ -2196,6 +2292,144 @@ function drawBoard(): void {
       ctx.moveTo(px(node), py(node));
       ctx.lineTo(px(to), py(to));
       ctx.stroke();
+    }
+  }
+
+  // Travel range preview (#15) — rocket-color line + clickable landings
+  if (state && humanRoutePreviewReady()) {
+    const p = currentPlayer(state);
+    const total = state.lastRoll!.total;
+    const path = walkMovePath(state.board, p.position, total, p.moveDirection);
+    const startNode = board.nodes[p.position];
+    const poly: { x: number; y: number }[] = [];
+    if (startNode) poly.push({ x: px(startNode), y: py(startNode) });
+    for (const fr of path.frames) {
+      const n = board.nodes[fr.nodeId];
+      if (n) poly.push({ x: px(n), y: py(n) });
+    }
+    const stops: RouteStopHit[] = [];
+    for (let i = 0; i < path.stops.length; i++) {
+      const nodeId = path.stops[i]!;
+      const n = board.nodes[nodeId];
+      if (!n) continue;
+      const moveSteps = i + 1;
+      const breakSpaces = total - moveSteps;
+      const breakFuel = effectiveBreakFuelCost(p.freeBreakPending, breakSpaces);
+      stops.push({
+        stopIndex: i,
+        nodeId,
+        moveSteps,
+        breakSpaces,
+        breakFuel,
+        affordable: p.fuel + 1e-9 >= breakFuel,
+        x: px(n),
+        y: py(n),
+      });
+    }
+    const segs: RouteSegHit[] = [];
+    let prevX = startNode ? px(startNode) : 0;
+    let prevY = startNode ? py(startNode) : 0;
+    for (const stop of stops) {
+      segs.push({
+        stopIndex: stop.stopIndex,
+        x1: prevX,
+        y1: prevY,
+        x2: stop.x,
+        y2: stop.y,
+      });
+      prevX = stop.x;
+      prevY = stop.y;
+    }
+    lastRoutePreview = {
+      color: p.color,
+      selectedBreak: state.breakSpaces,
+      total,
+      stops,
+      segs,
+      poly,
+    };
+
+    if (poly.length >= 2) {
+      ctx.save();
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.strokeStyle = p.color;
+      ctx.globalAlpha = 0.28;
+      ctx.lineWidth = 7;
+      ctx.beginPath();
+      ctx.moveTo(poly[0]!.x, poly[0]!.y);
+      for (let i = 1; i < poly.length; i++) {
+        ctx.lineTo(poly[i]!.x, poly[i]!.y);
+      }
+      ctx.stroke();
+      ctx.globalAlpha = 0.95;
+      ctx.lineWidth = 2.25;
+      ctx.beginPath();
+      ctx.moveTo(poly[0]!.x, poly[0]!.y);
+      for (let i = 1; i < poly.length; i++) {
+        ctx.lineTo(poly[i]!.x, poly[i]!.y);
+      }
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    const selBreak = state.breakSpaces;
+    for (const stop of stops) {
+      const isSel = stop.breakSpaces === selBreak;
+      const isHover = routeHoverStop === stop.stopIndex;
+      const rr = isHover || isSel ? 7 : 4.5;
+      ctx.beginPath();
+      ctx.arc(stop.x, stop.y, rr, 0, Math.PI * 2);
+      if (!stop.affordable) {
+        ctx.fillStyle = "rgba(80,80,90,0.55)";
+        ctx.strokeStyle = "rgba(140,140,150,0.7)";
+      } else {
+        ctx.fillStyle = isSel || isHover ? p.color : "rgba(10,14,28,0.85)";
+        ctx.strokeStyle = p.color;
+      }
+      ctx.lineWidth = isSel ? 2.5 : 1.5;
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    if (routeHoverStop !== null) {
+      const hs = stops.find((s) => s.stopIndex === routeHoverStop);
+      const seg = hs ? segs[hs.stopIndex] : undefined;
+      if (hs && seg) {
+        const costTxt = !hs.affordable
+          ? `Break −${hs.breakSpaces} · need ${hs.breakFuel} fuel`
+          : hs.breakSpaces === 0
+            ? `Full roll · ${hs.moveSteps} spaces · 0 fuel`
+            : hs.breakFuel === 0 && p.freeBreakPending
+              ? `Break −${hs.breakSpaces} · FREE (M&Ms)`
+              : `Break −${hs.breakSpaces} · ${hs.breakFuel} fuel`;
+        const mx = (seg.x1 + hs.x) / 2;
+        const my = (seg.y1 + hs.y) / 2 - 14;
+        ctx.save();
+        ctx.font = "bold 11px system-ui";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        const tw = ctx.measureText(costTxt).width + 14;
+        const th = 18;
+        const bx = Math.max(tw / 2 + 4, Math.min(w - tw / 2 - 4, mx));
+        const by = Math.max(th / 2 + 4, Math.min(h - th / 2 - 4, my));
+        ctx.fillStyle = "rgba(8,12,24,0.92)";
+        ctx.strokeStyle = hs.affordable ? p.color : "rgba(255,107,122,0.85)";
+        ctx.lineWidth = 1.5;
+        const rx = tw / 2;
+        const ry = th / 2;
+        ctx.beginPath();
+        if (typeof ctx.roundRect === "function") {
+          ctx.roundRect(bx - rx, by - ry, tw, th, 6);
+        } else {
+          ctx.rect(bx - rx, by - ry, tw, th);
+        }
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = hs.affordable ? "#e8eefc" : "#ff9aa5";
+        ctx.fillText(costTxt, bx, by);
+        ctx.restore();
+      }
     }
   }
 
@@ -2299,13 +2533,16 @@ function drawBoard(): void {
   void isPurchasable;
 }
 
-// —— Board pick (hover inspect + King's Quest warp click) ——
-function canvasBoardCoords(ev: MouseEvent): { sx: number; sy: number } | null {
+// —— Board pick (hover inspect + path land #15 + King's Quest warp) ——
+function canvasBoardCoords(
+  clientX: number,
+  clientY: number,
+): { sx: number; sy: number } | null {
   if (!lastProject) return null;
   const rect = canvas.getBoundingClientRect();
   return {
-    sx: (ev.clientX - rect.left) * (canvas.width / rect.width),
-    sy: (ev.clientY - rect.top) * (canvas.height / rect.height),
+    sx: (clientX - rect.left) * (canvas.width / rect.width),
+    sy: (clientY - rect.top) * (canvas.height / rect.height),
   };
 }
 
@@ -2329,18 +2566,66 @@ function humanWarpReady(): boolean {
   return p.warpCharges > 0 && getLegalActions(state).warp;
 }
 
+/** Click/tap a path stop: set break and move (land). */
+async function landOnRouteStop(stop: RouteStopHit): Promise<void> {
+  if (!state || !humanRoutePreviewReady()) return;
+  if (!stop.affordable) {
+    pushUiFlash(
+      `Need ${stop.breakFuel} fuel to break −${stop.breakSpaces} spaces`,
+    );
+    return;
+  }
+  routeHoverStop = null;
+  await act({ type: "set_break", spaces: stop.breakSpaces });
+  if (!state || state.phase !== "await_move") return;
+  await act({ type: "move" });
+}
+
+/** Brief feedback when path land is blocked (no log spam). */
+function pushUiFlash(msg: string): void {
+  const el = document.getElementById("path-flash");
+  if (el) {
+    el.textContent = msg;
+    el.classList.remove("hidden");
+    window.setTimeout(() => el.classList.add("hidden"), 2200);
+    return;
+  }
+  // Fallback: break-cost line
+  breakCostEl.textContent = msg;
+  breakCostEl.classList.add("break-cost-warn");
+  window.setTimeout(() => breakCostEl.classList.remove("break-cost-warn"), 2200);
+}
+
 canvas.addEventListener("mousemove", (ev) => {
   if (!lastProject || !state) {
     bodyTooltip.classList.add("hidden");
     canvas.style.cursor = "default";
+    if (routeHoverStop !== null) {
+      routeHoverStop = null;
+      drawBoard();
+    }
     return;
   }
-  const coords = canvasBoardCoords(ev);
+  const coords = canvasBoardCoords(ev.clientX, ev.clientY);
   if (!coords) {
     bodyTooltip.classList.add("hidden");
     return;
   }
   const { sx, sy } = coords;
+
+  // Path segment hover first — break cost on line, not body tooltip (#15)
+  const routeHit = humanRoutePreviewReady() ? hitRouteStopAt(sx, sy) : null;
+  const nextHover = routeHit?.stopIndex ?? null;
+  if (nextHover !== routeHoverStop) {
+    routeHoverStop = nextHover;
+    drawBoard();
+  }
+  if (routeHit) {
+    bodyTooltip.classList.add("hidden");
+    canvas.style.cursor = routeHit.affordable ? "pointer" : "not-allowed";
+    return;
+  }
+
   const bestId = hitNodeAt(sx, sy);
   const warpOn = humanWarpReady();
   canvas.style.cursor =
@@ -2381,12 +2666,26 @@ canvas.addEventListener("mousemove", (ev) => {
 canvas.addEventListener("mouseleave", () => {
   bodyTooltip.classList.add("hidden");
   canvas.style.cursor = "default";
+  if (routeHoverStop !== null) {
+    routeHoverStop = null;
+    drawBoard();
+  }
 });
 
 canvas.addEventListener("click", (ev) => {
-  if (!humanWarpReady() || !state) return;
-  const coords = canvasBoardCoords(ev);
+  if (!state || animating) return;
+  const coords = canvasBoardCoords(ev.clientX, ev.clientY);
   if (!coords) return;
+
+  if (humanRoutePreviewReady()) {
+    const stop = hitRouteStopAt(coords.sx, coords.sy);
+    if (stop) {
+      void landOnRouteStop(stop);
+      return;
+    }
+  }
+
+  if (!humanWarpReady()) return;
   const id = hitNodeAt(coords.sx, coords.sy);
   if (!id) return;
   if (id === currentPlayer(state).position) return;

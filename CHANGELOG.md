@@ -7,6 +7,7 @@
 
 ### UX
 - **Animation speed (#10):** Slow / Normal / Fast / Instant in the header; persists in localStorage; scales ship hops, dice rolls, and AI pacing
+- **Path preview click-to-land (#15):** after roll, rocket-color range line on the board; click/tap a stop to set break and move; break fuel on path-segment hover (planetoid inspect unchanged)
 
 ### Lab
 - **Eastern Arabic compare drill (#81):** Lab literacy minigame (hint, reset, 12-try cap, win recap)
@@ -18,6 +19,7 @@
 - Xcode project hygiene: App icons, display name, iPhone+iPad, iOS 17+, shared scheme, PrivacyInfo stub
 - Offline **WebDist** game via WKWebView; `npm run ios:sync` packages Vite build
 - Vite `base: './'` for portable assets (web + file bundle)
+- **Offline WebDist load:** WKWebView serves the game over `heliopoly://` (custom scheme) so ES modules run; `ios:sync` still strips Vite `crossorigin` for file:// fallback. Fixes empty board + dead buttons (JS never executed under `file://`)
 
 ### Meta
 - Version **0.0.20**
