@@ -47,6 +47,17 @@ header h1 {
   font-size: 0.9rem;
 }
 
+.server-boot {
+  display: inline;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.server-boot.warn {
+  color: var(--accent-2);
+  font-weight: 600;
+}
+
 .status {
   padding: 6px 12px;
   border-radius: 999px;
