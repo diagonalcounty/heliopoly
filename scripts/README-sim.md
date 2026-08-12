@@ -15,7 +15,7 @@ This is a **terminal tool**, not the browser game. It drives the live **TypeScri
 |------|-----|
 | **Node.js 20+** | Run the sim via `tsx` |
 | **npm** | Install deps (`tsx` is already a devDependency) |
-| **Python 3** (optional) | Pretty tables from `summary.json` — stdlib only |
+| **Python 3** (optional) | Terminal tables + **HTML report** from `summary.json` — stdlib only |
 
 ```bash
 cd /path/to/heliopoly   # repo root
@@ -49,13 +49,32 @@ Equivalent without the npm script:
 npx tsx src/sim/run.ts --games 100 --experiment choice
 ```
 
-### Print a report
+### Print a report (terminal)
 
 ```bash
 python3 scripts/sim_report.py sim-results/<run-folder>
 # sample committed in-repo:
 python3 scripts/sim_report.py sim-results/sample
 ```
+
+### HTML report (browser) — #90
+
+Self-contained dark-theme page (inline CSS, no network). Defaults to the **latest** run under `sim-results/` (by `summary.json` mtime).
+
+```bash
+# After any sim:
+python3 scripts/sim_html_report.py
+open sim-results/<latest>/report.html          # macOS
+
+# Explicit run:
+python3 scripts/sim_html_report.py sim-results/sample
+open sim-results/sample/report.html
+
+# Custom output path:
+python3 scripts/sim_html_report.py sim-results/sample --out /tmp/heliopoly-sim.html
+```
+
+Shows experiment metadata, KPIs (mean rounds/turns, unfinished), win bars by rocket / direction / propellant / seat, and a sample of games from `games.ndjson`.
 
 ---
 
@@ -75,6 +94,7 @@ sim-results/run-<UTC>-<experiment>/
 | `config.json` | Reproduce the run (`baseSeed`, `seedStride`, experiment, difficulty) |
 | `games.ndjson` | Per-game detail (seats, directions, cash/NW, counters) |
 | `summary.json` | Fast AI / human overview |
+| `report.html` | Optional browser view (`sim_html_report.py`) |
 
 Large dumps under `sim-results/` are **gitignored** except `sim-results/sample/` (tiny committed example of the schema).
 
@@ -172,6 +192,7 @@ Schema version is `1` (`schemaVersion` field). Prefer stable field names when ex
 - Runner: `src/sim/run.ts`
 - One game: `src/sim/play.ts` (uses `heuristicAI` + `applyAction`)
 - Types / schema: `src/sim/types.ts`
-- Report: `scripts/sim_report.py`
+- Terminal report: `scripts/sim_report.py`
+- HTML report: `scripts/sim_html_report.py` (#90)
 
 Keep the engine in **TypeScript core**. Add counters in the game result object rather than forking rules into Python.

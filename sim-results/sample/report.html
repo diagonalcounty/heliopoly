@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Heliopoly sim · prograde · run-20260812T183934Z</title>
+  <style>
+:root {
+  color-scheme: dark;
+  --bg: #0b1020;
+  --panel: #141b2f;
+  --border: #2a3555;
+  --text: #e8eefc;
+  --muted: #9aa8c7;
+  --accent: #6ec8ff;
+  --accent-2: #ffc857;
+  --ok: #5ddea0;
+  --bar: linear-gradient(90deg, #3a7bd5, #6ec8ff);
+  font-family: "SF Pro Text", system-ui, -apple-system, sans-serif;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: radial-gradient(ellipse at top, #152044 0%, var(--bg) 55%);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.45;
+}
+header {
+  padding: 28px 24px 8px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+header h1 {
+  margin: 0 0 6px;
+  font-size: 1.55rem;
+  letter-spacing: -0.02em;
+}
+header .sub { color: var(--muted); font-size: 0.92rem; }
+main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 8px 24px 48px;
+  display: grid;
+  gap: 18px;
+}
+section {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px 18px 18px;
+}
+h2 {
+  margin: 0 0 12px;
+  font-size: 1.05rem;
+  color: var(--accent);
+}
+.meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px 16px;
+  margin: 0;
+}
+.meta dt {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin: 0 0 2px;
+}
+.meta dd { margin: 0; font-size: 0.95rem; }
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+.kpi {
+  background: rgba(0,0,0,0.22);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+.kpi-v { font-size: 1.45rem; font-weight: 700; color: var(--accent-2); }
+.kpi-l { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+.pill {
+  display: inline-block;
+  background: rgba(110,200,255,0.15);
+  border: 1px solid rgba(110,200,255,0.35);
+  color: var(--accent);
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+th, td {
+  text-align: left;
+  padding: 7px 8px;
+  border-bottom: 1px solid rgba(42,53,85,0.85);
+}
+th { color: var(--muted); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.03em; }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+.label { font-weight: 600; }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.86em; }
+.muted { color: var(--muted); }
+.bar-cell { width: 40%; min-width: 100px; }
+.bar {
+  height: 10px;
+  border-radius: 6px;
+  background: var(--bar);
+  min-width: 2px;
+}
+footer {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px 40px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+@media print {
+  body { background: #fff; color: #111; }
+  section { break-inside: avoid; border-color: #ccc; background: #fff; }
+  .bar { background: #336; }
+}
+</style>
+</head>
+<body>
+  <header>
+    <h1>Heliopoly sim report</h1>
+    <p class="sub">Batch balance / AI review · generated 2026-08-12 18:43:09 UTC · schema v1</p>
+  </header>
+  <main>
+    <section>
+      <h2>Run metadata</h2>
+      
+    <dl class="meta">
+      <div><dt>Run id</dt><dd class="mono">run-20260812T183934Z</dd></div>
+      <div><dt>Experiment</dt><dd><span class="pill">prograde</span></dd></div>
+      <div><dt>AI difficulty</dt><dd>normal</dd></div>
+      <div><dt>Players</dt><dd>4</dd></div>
+      <div><dt>Games</dt><dd>20</dd></div>
+      <div><dt>Git</dt><dd class="mono">a881ec2</dd></div>
+      <div><dt>Base seed</dt><dd class="mono">1000 + i×997</dd></div>
+      <div><dt>Created</dt><dd class="mono">2026-08-12T18:39:34.127Z</dd></div>
+      <div><dt>Engine</dt><dd>typescript-core</dd></div>
+      <div><dt>Run folder</dt><dd class="mono">sample</dd></div>
+    </dl>
+    
+      
+    <div class="kpis">
+      <div class="kpi"><div class="kpi-v">32.1</div><div class="kpi-l">Mean rounds</div></div>
+      <div class="kpi"><div class="kpi-v">359</div><div class="kpi-l">Mean turns</div></div>
+      <div class="kpi"><div class="kpi-v">0.0%</div><div class="kpi-l">Unfinished (0)</div></div>
+      <div class="kpi"><div class="kpi-v">0.05s</div><div class="kpi-l">425.5 games/s</div></div>
+    </div>
+    
+    </section>
+    
+    <section>
+      <h2>Wins by rocket name</h2>
+      <table>
+        <thead>
+          <tr><th>Rocket</th><th>Wins</th><th>Games</th><th>Share</th><th></th></tr>
+        </thead>
+        <tbody>
+    <tr>
+      <td class="label">Sagan</td>
+      <td class="num">5</td>
+      <td class="num">20</td>
+      <td class="num">25.0%</td>
+      <td class="bar-cell"><div class="bar" style="width:100.0%"></div></td>
+    </tr>
+    <tr>
+      <td class="label">Recorde</td>
+      <td class="num">3</td>
+      <td class="num">20</td>
+      <td class="num">15.0%</td>
+      <td class="bar-cell"><div class="bar" style="width:60.0%"></div></td>
+    </tr>
+    <tr>
+      <td class="label">K-127</td>
+      <td class="num">3</td>
+      <td class="num">20</td>
+      <td class="num">15.0%</td>
+      <td class="bar-cell"><div class="bar" style="width:60.0%"></div></td>
+    </tr>
+    <tr>
+      <td class="label">Ada</td>
+      <td class="num">3</td>
+      <td class="num">20</td>
+      <td class="num">15.0%</td>
+      <td class="bar-cell"><div class="bar" style="width:60.0%"></div></td>
+    </tr>
+    <tr>
+      <td class="label">Turing</td>
+      <td class="num">2</td>
+      <td class="num">20</td>
+      <td class="num">10.0%</td>
+      <td class="bar-cell"><div class="bar" style="width:40.0%"></div></td>
+    </tr>
+    <tr>
+      <td class="label">Asimov</td>
+      <td class="num">2</td>
+      <td class="num">20</td>
+      <td class="num">10.0%</td>
+      <td class="bar-cell"><div class="bar" style="width:40.0%"></div></td>
+    </tr>
+    <tr>
+      <td class="label">Clarke</td>
+      <td class="num">1</td>
+      <td class="num">20</td>
+      <td class="num">5.0%</td>
+      <td class="bar-cell"><div class="bar" style="width:20.0%"></div></td>
+    </tr>
+    <tr>
+      <td class="label">Goddard</td>
+      <td class="num">1</td>
+      <td class="num">20</td>
+      <td class="num">5.0%</td>
+      <td class="bar-cell"><div class="bar" style="width:20.0%"></div></td>
+    </tr></tbody>
+      </table>
+    </section>
+    
+    <section>
+      <h2>Win rate by travel direction</h2>
+      <table>
+        <thead>
+          <tr><th>Key</th><th>Wins</th><th>n</th><th>Rate</th><th></th></tr>
+        </thead>
+        <tbody>
+    <tr>
+      <td class="label">forward</td>
+      <td class="num">20</td>
+      <td class="num">80</td>
+      <td class="num">25.0%</td>
+      <td class="bar-cell"><div class="bar" style="width:100.0%"></div></td>
+    </tr></tbody>
+      </table>
+    </section>
+    
+    <section>
+      <h2>Win rate by propellant</h2>
+      <table>
+        <thead>
+          <tr><th>Key</th><th>Wins</th><th>n</th><th>Rate</th><th></th></tr>
+        </thead>
+        <tbody>
+    <tr>
+      <td class="label">methane</td>
+      <td class="num">11</td>
+      <td class="num">40</td>
+      <td class="num">27.5%</td>
+      <td class="bar-cell"><div class="bar" style="width:100.0%"></div></td>
+    </tr>
+    <tr>
+      <td class="label">hydrogen</td>
+      <td class="num">9</td>
+      <td class="num">40</td>
+      <td class="num">22.5%</td>
+      <td class="bar-cell"><div class="bar" style="width:81.8%"></div></td>
+    </tr></tbody>
+      </table>
+    </section>
+    
+    <section>
+      <h2>Win rate by seat</h2>
+      <table>
+        <thead>
+          <tr><th>Key</th><th>Wins</th><th>n</th><th>Rate</th><th></th></tr>
+        </thead>
+        <tbody>
+    <tr>
+      <td class="label">0</td>
+      <td class="num">9</td>
+      <td class="num">20</td>
+      <td class="num">45.0%</td>
+      <td class="bar-cell"><div class="bar" style="width:100.0%"></div></td>
+    </tr>
+    <tr>
+      <td class="label">1</td>
+      <td class="num">3</td>
+      <td class="num">20</td>
+      <td class="num">15.0%</td>
+      <td class="bar-cell"><div class="bar" style="width:33.3%"></div></td>
+    </tr>
+    <tr>
+      <td class="label">2</td>
+      <td class="num">6</td>
+      <td class="num">20</td>
+      <td class="num">30.0%</td>
+      <td class="bar-cell"><div class="bar" style="width:66.7%"></div></td>
+    </tr>
+    <tr>
+      <td class="label">3</td>
+      <td class="num">2</td>
+      <td class="num">20</td>
+      <td class="num">10.0%</td>
+      <td class="bar-cell"><div class="bar" style="width:22.2%"></div></td>
+    </tr></tbody>
+      </table>
+    </section>
+    
+    <section>
+      <h2>Sample games</h2>
+      
+      <table>
+        <thead>
+          <tr><th>#</th><th>Seed</th><th>Winner</th><th>Rounds</th><th>Turns</th><th>Dirs</th></tr>
+        </thead>
+        <tbody><tr><td class='num'>0</td><td class='num mono'>1000</td><td>Recorde</td><td class='num'>30</td><td class='num'>352</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>1</td><td class='num mono'>1997</td><td>Turing</td><td class='num'>23</td><td class='num'>283</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>2</td><td class='num mono'>2994</td><td>Clarke</td><td class='num'>43</td><td class='num'>409</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>3</td><td class='num mono'>3991</td><td>Sagan</td><td class='num'>39</td><td class='num'>477</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>4</td><td class='num mono'>4988</td><td>Recorde</td><td class='num'>27</td><td class='num'>316</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>5</td><td class='num mono'>5985</td><td>K-127</td><td class='num'>47</td><td class='num'>537</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>6</td><td class='num mono'>6982</td><td>Turing</td><td class='num'>37</td><td class='num'>454</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>7</td><td class='num mono'>7979</td><td>Goddard</td><td class='num'>42</td><td class='num'>461</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>8</td><td class='num mono'>8976</td><td>Sagan</td><td class='num'>21</td><td class='num'>225</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>9</td><td class='num mono'>9973</td><td>K-127</td><td class='num'>24</td><td class='num'>319</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>10</td><td class='num mono'>10970</td><td>Asimov</td><td class='num'>33</td><td class='num'>335</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>11</td><td class='num mono'>11967</td><td>Ada</td><td class='num'>19</td><td class='num'>227</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>12</td><td class='num mono'>12964</td><td>Sagan</td><td class='num'>27</td><td class='num'>324</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>13</td><td class='num mono'>13961</td><td>Ada</td><td class='num'>40</td><td class='num'>390</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>14</td><td class='num mono'>14958</td><td>Sagan</td><td class='num'>38</td><td class='num'>392</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>15</td><td class='num mono'>15955</td><td>Ada</td><td class='num'>29</td><td class='num'>365</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>16</td><td class='num mono'>16952</td><td>Sagan</td><td class='num'>47</td><td class='num'>460</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>17</td><td class='num mono'>17949</td><td>Asimov</td><td class='num'>25</td><td class='num'>265</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>18</td><td class='num mono'>18946</td><td>Recorde</td><td class='num'>19</td><td class='num'>203</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>19</td><td class='num mono'>19943</td><td>K-127</td><td class='num'>33</td><td class='num'>395</td><td class='mono muted'>f,f,f,f</td></tr></tbody>
+      </table>
+    </section>
+  </main>
+  <footer>
+    Source: <span class="mono">/Users/jacobroecker/code/heliopoly/sim-results/sample</span><br/>
+    Re-run: <span class="mono">python3 scripts/sim_html_report.py /Users/jacobroecker/code/heliopoly/sim-results/sample</span><br/>
+    Terminal tables: <span class="mono">python3 scripts/sim_report.py …</span> · harness #89 · HTML report #90
+  </footer>
+</body>
+</html>
