@@ -127,6 +127,21 @@
           <p class="outcome-summary" id="outcome-summary"></p>
         </div>
 
+        <div class="loss-timing card-inner" id="loss-timing" hidden>
+          <h3 class="launch-title">When human loses — dropout timing</h3>
+          <p class="hint launch-blurb" id="loss-timing-caption">
+            Aggregate over games the human proxy did not win: when human is
+            eliminated, when pack seats leave, and total game length (rounds).
+          </p>
+          <div class="loss-stats" id="loss-timing-stats"></div>
+          <div class="hist-legend">
+            <span class="leg human">Human out</span>
+            <span class="leg pack">Pack AI out</span>
+            <span class="leg game">Game ends</span>
+          </div>
+          <div class="hist-chart" id="loss-timing-chart" role="img" aria-label="Round histograms when human loses"></div>
+        </div>
+
         <div class="launch-order" id="launch-order">
           <h3 class="launch-title">Who wins by launch order?</h3>
           <p class="hint launch-blurb">

@@ -34,7 +34,7 @@ npm run sim-lab
 ```
 
 - Form: games, players, experiment, **Human level** (seat 0), **AI pack level** (other seats), seed, optional **Save** to `sim-results/`
-- Results: **human win %** vs fair share, plain-language outcome summary (no LLM), launch-order cards, direction/propellant/rocket tables
+- Results: **human win %** vs fair share, plain-language outcome summary (no LLM), **when-human-loses dropout chart** (human out / pack out / game end by round), launch-order cards, direction/propellant/rocket tables
 - Progress stream while running
 - **Localhost only** — not deployed to heliopoly.live
 - Stop with Ctrl+C in the terminal
