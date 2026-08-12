@@ -96,7 +96,11 @@ interface RunBody {
   games?: number;
   players?: number;
   experiment?: string;
+  /** @deprecated use packDifficulty */
   difficulty?: string;
+  humanDifficulty?: string;
+  packDifficulty?: string;
+  aiDifficulty?: string;
   seed?: number;
   seedStride?: number;
   maxTurns?: number;
@@ -107,7 +111,8 @@ function parseRun(body: RunBody): {
   games: number;
   players: number;
   experiment: SimExperiment;
-  aiDifficulty: AiDifficulty;
+  humanDifficulty: AiDifficulty;
+  packDifficulty: AiDifficulty;
   baseSeed: number;
   seedStride: number;
   maxTurns: number;
@@ -123,11 +128,21 @@ function parseRun(body: RunBody): {
     Math.max(1, Math.floor(Number(body.games) || 100)),
   );
   const players = Math.min(6, Math.max(2, Math.floor(Number(body.players) || 4)));
+  const packDifficulty = normalizeAiDifficulty(
+    body.packDifficulty ??
+      body.aiDifficulty ??
+      body.difficulty ??
+      "normal",
+  );
+  const humanDifficulty = normalizeAiDifficulty(
+    body.humanDifficulty ?? packDifficulty,
+  );
   return {
     games,
     players,
     experiment,
-    aiDifficulty: normalizeAiDifficulty(body.difficulty ?? "normal"),
+    humanDifficulty,
+    packDifficulty,
     baseSeed: (Number(body.seed) || 1000) >>> 0,
     seedStride: Math.max(1, Math.floor(Number(body.seedStride) || 997)),
     maxTurns: Math.max(100, Math.floor(Number(body.maxTurns) || 3000)),
@@ -193,7 +208,8 @@ async function handleApiRun(req: IncomingMessage, res: ServerResponse): Promise<
   sendEvent("start", {
     games: opts.games,
     experiment: opts.experiment,
-    difficulty: opts.aiDifficulty,
+    humanDifficulty: opts.humanDifficulty,
+    packDifficulty: opts.packDifficulty,
     players: opts.players,
     seed: opts.baseSeed,
   });
@@ -211,7 +227,9 @@ async function handleApiRun(req: IncomingMessage, res: ServerResponse): Promise<
       seedStride: opts.seedStride,
       maxTurns: opts.maxTurns,
       experiment: opts.experiment,
-      aiDifficulty: opts.aiDifficulty,
+      humanDifficulty: opts.humanDifficulty,
+      packDifficulty: opts.packDifficulty,
+      humanSeat: 0,
       saveDir,
       runId,
       cliArgs: ["sim-lab", JSON.stringify(opts)],

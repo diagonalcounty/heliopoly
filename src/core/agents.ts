@@ -22,7 +22,18 @@ import {
 
 export { normalizeAiDifficulty };
 
-export function heuristicAI(state: GameState): PlayerAction {
+/**
+ * Heuristic AI. Optional `difficultyOverride` is for sims (#91) so seat 0 can
+ * play at a different skill than the table (human proxy vs AI pack).
+ */
+export function heuristicAI(
+  state: GameState,
+  difficultyOverride?: AiDifficulty,
+): PlayerAction {
+  const difficulty = normalizeAiDifficulty(
+    difficultyOverride ?? state.config.aiDifficulty,
+  );
+
   if (state.phase === "await_duel" && state.pendingDuel) {
     const d = state.pendingDuel;
     const p = currentPlayer(state);
@@ -32,7 +43,6 @@ export function heuristicAI(state: GameState): PlayerAction {
       const roll =
         p.id === d.challengerId ? d.challengerRoll : d.defenderRoll;
       if (stance === null) {
-        const difficulty = normalizeAiDifficulty(state.config.aiDifficulty);
         if (difficulty === "easy") {
           return { type: "duel_stance", stance: "low" };
         }
@@ -54,7 +64,6 @@ export function heuristicAI(state: GameState): PlayerAction {
   const p = currentPlayer(state);
   const legal = getLegalActions(state);
   const fuel = refuelInfo(state);
-  const difficulty = normalizeAiDifficulty(state.config.aiDifficulty);
 
   if (state.phase === "await_action") {
     // Buy underfoot before leave/roll if cash arrived later (rent etc.) — #88

@@ -42,7 +42,8 @@ def main() -> int:
     print(f"run_id:       {summary.get('runId', config.get('runId', '?'))}")
     print(f"git:          {config.get('gitCommit', '?')}")
     print(f"experiment:   {config.get('experiment', '?')}")
-    print(f"difficulty:   {config.get('aiDifficulty', '?')}")
+    print(f"human skill:  {config.get('humanDifficulty', config.get('aiDifficulty', '?'))}")
+    print(f"pack skill:   {config.get('packDifficulty', config.get('aiDifficulty', '?'))}")
     print(f"games:        {summary.get('games')}")
     print(f"players:      {config.get('players')}")
     print(f"mean rounds:  {summary.get('meanRounds', 0):.2f}")
@@ -65,6 +66,17 @@ def main() -> int:
 
     print("Share of finished games (winner’s attribute; rates sum ≈ 100%)")
     print(f"finished games n={finished}  (unfinished={summary.get('unfinished', 0)})")
+    if summary.get("humanWinRate") is not None:
+        print(
+            f"HUMAN PROXY: {summary.get('humanWins', 0)}/{finished} = "
+            f"{pct(summary.get('humanWinRate', 0))}  "
+            f"(fair {pct(summary.get('fairShare', 0.25))})"
+        )
+    if summary.get("outcomeSummary"):
+        print()
+        print("OUTCOME SUMMARY")
+        print("-" * 40)
+        print(summary["outcomeSummary"])
     print()
 
     print("Wins by rocket name")

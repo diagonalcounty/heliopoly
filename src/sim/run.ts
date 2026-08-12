@@ -28,7 +28,8 @@ function parseArgs(argv: string[]): {
   players: number;
   baseSeed: number;
   experiment: SimExperiment;
-  aiDifficulty: AiDifficulty;
+  humanDifficulty: AiDifficulty;
+  packDifficulty: AiDifficulty;
   out?: string;
   maxTurns: number;
   seedStride: number;
@@ -39,7 +40,8 @@ function parseArgs(argv: string[]): {
   let players = 4;
   let baseSeed = 1000;
   let experiment: SimExperiment = "default";
-  let aiDifficulty: AiDifficulty = "normal";
+  let packDifficulty: AiDifficulty = "normal";
+  let humanDifficulty: AiDifficulty | null = null;
   let out: string | undefined;
   let maxTurns = DEFAULT_MAX_TURNS;
   let seedStride = DEFAULT_SEED_STRIDE;
@@ -70,7 +72,11 @@ function parseArgs(argv: string[]): {
       }
       experiment = v;
     } else if (a === "--difficulty" || a === "-d") {
-      aiDifficulty = normalizeAiDifficulty(next());
+      packDifficulty = normalizeAiDifficulty(next());
+    } else if (a === "--human-difficulty" || a === "--human") {
+      humanDifficulty = normalizeAiDifficulty(next());
+    } else if (a === "--pack-difficulty" || a === "--ai-difficulty") {
+      packDifficulty = normalizeAiDifficulty(next());
     } else if (a === "--out" || a === "-o") out = next();
     else if (a.startsWith("-")) {
       console.error(`Unknown flag: ${a}`);
@@ -83,7 +89,8 @@ function parseArgs(argv: string[]): {
     players,
     baseSeed,
     experiment,
-    aiDifficulty,
+    humanDifficulty: humanDifficulty ?? packDifficulty,
+    packDifficulty,
     out,
     maxTurns,
     seedStride,
@@ -106,11 +113,16 @@ Options:
   --seed N               Base seed (default 1000)
   --seed-stride N        seed_i = base + i * stride (default ${DEFAULT_SEED_STRIDE})
   --experiment, -e MODE  ${EXPERIMENTS.join(" | ")} (default default)
-  --difficulty, -d LVL   easy | normal | hard | expert (default normal)
+  --difficulty, -d LVL   Pack skill (all seats if human not set): easy|normal|hard|expert
+  --human-difficulty LVL Seat 0 skill (human proxy); default = pack
+  --pack-difficulty LVL  Other seats' skill (alias: --ai-difficulty)
   --max-turns N          Cap per game (default ${DEFAULT_MAX_TURNS})
   --out, -o DIR          Output directory (default sim-results/<runId>)
   --quiet, -q            Less progress
   --help, -h             This help
+
+Example — novice human proxy vs expert pack:
+  npm run sim -- --games 2000 --human-difficulty easy --pack-difficulty expert
 
 Docs: scripts/README-sim.md
 `);
@@ -136,7 +148,10 @@ function main(): void {
   );
 
   console.log(
-    `Heliopoly sim · ${args.games} games · ${args.players} AI · experiment=${args.experiment} · AI=${args.aiDifficulty}`,
+    `Heliopoly sim · ${args.games} games · ${args.players} seats · experiment=${args.experiment}`,
+  );
+  console.log(
+    `  human seat 0 @ ${args.humanDifficulty} · pack @ ${args.packDifficulty}`,
   );
   console.log(`  out: ${outDir}`);
   console.log(
@@ -150,7 +165,9 @@ function main(): void {
     seedStride: args.seedStride,
     maxTurns: args.maxTurns,
     experiment: args.experiment,
-    aiDifficulty: args.aiDifficulty,
+    humanDifficulty: args.humanDifficulty,
+    packDifficulty: args.packDifficulty,
+    humanSeat: 0,
     saveDir: outDir,
     runId,
     cliArgs: process.argv.slice(2),
@@ -171,6 +188,10 @@ function main(): void {
   console.log(
     `  unfinished: ${summary.unfinished} (${(summary.unfinishedRate * 100).toFixed(1)}%)`,
   );
+  console.log(
+    `  human wins: ${summary.humanWins}/${summary.finishedGames} (${(100 * summary.humanWinRate).toFixed(1)}%; fair ${(100 * summary.fairShare).toFixed(1)}%)`,
+  );
+  console.log(`  ${summary.outcomeSummary}`);
   const sorted = Object.entries(summary.winsByName).sort((a, b) => b[1] - a[1]);
   for (const [name, n] of sorted) {
     console.log(

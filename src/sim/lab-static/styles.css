@@ -240,6 +240,44 @@ label code {
   word-break: break-all;
 }
 
+.human-panel {
+  margin: 16px 0 14px;
+  padding: 14px 14px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 200, 87, 0.4);
+  background: rgba(255, 200, 87, 0.07);
+}
+
+.human-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.human-card {
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.human-card.muted-card .launch-pct.fair {
+  color: var(--muted);
+  font-size: 1.5rem;
+}
+
+.outcome-summary {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--border);
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--text);
+}
+
 .launch-order {
   margin: 16px 0 18px;
   padding: 14px 14px 16px;

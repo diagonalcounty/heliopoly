@@ -50,8 +50,17 @@
               </select>
             </label>
             <label>
-              AI difficulty
-              <select name="difficulty">
+              Human level
+              <select name="humanDifficulty" title="Seat 0 skill (human proxy)">
+                <option value="easy">easy (novice)</option>
+                <option value="normal" selected>normal</option>
+                <option value="hard">hard</option>
+                <option value="expert">expert</option>
+              </select>
+            </label>
+            <label>
+              AI pack level
+              <select name="packDifficulty" title="Seats 1… skill">
                 <option value="easy">easy</option>
                 <option value="normal" selected>normal</option>
                 <option value="hard">hard</option>
@@ -82,10 +91,11 @@
             </button>
           </div>
           <p class="hint">
-            Seed formula: <code>seed_i = base + i × stride</code>. Same seed +
-            experiment arms compare fairly. Up to <strong>1 000 000</strong> games
-            per run (~200–400 g/s on a fast Mac → ~40–80 min at the cap). Long runs
-            stay on this machine only.
+            <strong>Human level</strong> = seat 0 (first to launch) skill.
+            <strong>AI pack level</strong> = everyone else. Same scale as in-game AI
+            difficulty — e.g. easy human vs expert pack answers “does a novice have
+            a chance?” Seed formula: <code>seed_i = base + i × stride</code>. Up to
+            <strong>1 000 000</strong> games. Local only.
           </p>
         </form>
         <div id="progress-wrap" class="progress-wrap hidden">
@@ -99,12 +109,30 @@
         <div id="kpis" class="kpis"></div>
         <div id="meta" class="meta mono"></div>
 
+        <div class="human-panel" id="human-panel">
+          <h3 class="launch-title">Human proxy win chance</h3>
+          <div class="human-row">
+            <div class="human-card">
+              <div class="launch-ord">Human (seat 0)</div>
+              <div class="launch-pct" id="human-pct">—</div>
+              <div class="launch-sub" id="human-sub">—</div>
+              <div class="launch-delta" id="human-delta">—</div>
+            </div>
+            <div class="human-card muted-card">
+              <div class="launch-ord">Fair share</div>
+              <div class="launch-pct fair" id="fair-pct">—</div>
+              <div class="launch-sub" id="skill-line">—</div>
+            </div>
+          </div>
+          <p class="outcome-summary" id="outcome-summary"></p>
+        </div>
+
         <div class="launch-order" id="launch-order">
           <h3 class="launch-title">Who wins by launch order?</h3>
           <p class="hint launch-blurb">
             Share of <strong>finished</strong> games won by each seat.
-            Seat&nbsp;0 = first to launch. Fair 4-player baseline =
-            <strong>25%</strong> each (not 75% for first).
+            Seat&nbsp;0 = human proxy (first to launch). Fair 4-player baseline =
+            <strong>25%</strong> each when skills match.
           </p>
           <div id="launch-cards" class="launch-cards"></div>
           <p id="launch-callout" class="launch-callout" hidden></p>

@@ -33,12 +33,27 @@ npm run sim-lab
 # open http://127.0.0.1:5174/
 ```
 
-- Form: games, players, experiment, AI difficulty, seed, optional **Save** to `sim-results/`
-- Progress stream while running; results panel when done
+- Form: games, players, experiment, **Human level** (seat 0), **AI pack level** (other seats), seed, optional **Save** to `sim-results/`
+- Results: **human win %** vs fair share, plain-language outcome summary (no LLM), launch-order cards, direction/propellant/rocket tables
+- Progress stream while running
 - **Localhost only** — not deployed to heliopoly.live
 - Stop with Ctrl+C in the terminal
 
 Env overrides: `HELIOPOLY_SIM_LAB_HOST` (default `127.0.0.1`), `HELIOPOLY_SIM_LAB_PORT` (default `5174`).
+
+### Human level vs AI pack
+
+Both use the same difficulty scale as the live game (`easy` / `normal` / `hard` / `expert`) — break depth and travel scoring differ by level.
+
+| Goal | Settings |
+|------|----------|
+| Even table (baseline) | Human = pack = same level |
+| “Novice vs experts” | Human **easy**, pack **expert** |
+| “Expert human vs soft pack” | Human **expert**, pack **easy** |
+
+Seat 0 is the **human proxy** (first to launch). Pack seats use `heuristicAI` at pack difficulty.
+
+When all skills match, seat win rates near **1/N** is a **healthy** signal: the AI pack doesn’t create a huge first-player crown; variance is mostly dice/landings.
 
 ---
 

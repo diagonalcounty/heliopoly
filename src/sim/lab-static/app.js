@@ -130,10 +130,13 @@ function renderResults(payload) {
 
   const cfg = summary.config || {};
   const players = cfg.players || 4;
+  const humanDiff = cfg.humanDifficulty || cfg.aiDifficulty || "normal";
+  const packDiff = cfg.packDifficulty || cfg.aiDifficulty || "normal";
   document.getElementById("meta").textContent = [
     `run ${summary.runId}`,
     `experiment=${cfg.experiment}`,
-    `AI=${cfg.aiDifficulty}`,
+    `human@${humanDiff}`,
+    `pack@${packDiff}`,
     `git=${cfg.gitCommit}`,
     `seed ${cfg.baseSeed}+i×${cfg.seedStride}`,
     outDir ? `saved ${outDir}` : "not saved to disk",
@@ -141,6 +144,24 @@ function renderResults(payload) {
 
   const finished =
     summary.finishedGames ?? Math.max(0, games - (summary.unfinished || 0));
+
+  const humanRate = summary.humanWinRate ?? 0;
+  const fair = summary.fairShare ?? 1 / players;
+  const humanWins = summary.humanWins ?? 0;
+  const lift = summary.humanLiftVsFair ?? humanRate - fair;
+  document.getElementById("human-pct").textContent = pct(humanRate);
+  document.getElementById("human-sub").textContent =
+    `${fmtInt(humanWins)} / ${fmtInt(finished)} finished · seat 0`;
+  document.getElementById("human-delta").textContent =
+    Math.abs(lift) < 0.005
+      ? `≈ fair share (${pct(fair)})`
+      : `${lift > 0 ? "+" : ""}${(100 * lift).toFixed(1)} pp vs fair ${pct(fair)}`;
+  document.getElementById("fair-pct").textContent = pct(fair);
+  document.getElementById("skill-line").textContent =
+    `Human ${humanDiff} vs pack ${packDiff}`;
+  document.getElementById("outcome-summary").textContent =
+    summary.outcomeSummary ||
+    "No narrative — re-run with a current Sim Lab server.";
 
   renderLaunchOrder(summary, finished, players);
 
@@ -198,7 +219,8 @@ function formPayload() {
     games: Number(fd.get("games")),
     players: Number(fd.get("players")),
     experiment: String(fd.get("experiment")),
-    difficulty: String(fd.get("difficulty")),
+    humanDifficulty: String(fd.get("humanDifficulty")),
+    packDifficulty: String(fd.get("packDifficulty")),
     seed: Number(fd.get("seed")),
     seedStride: Number(fd.get("seedStride")),
     maxTurns: Number(fd.get("maxTurns")),
@@ -259,7 +281,7 @@ form.addEventListener("submit", async (ev) => {
 
     await readSse(res, {
       start: (d) => {
-        progressText.textContent = `0 / ${d.games} · ${d.experiment} · ${d.difficulty}`;
+        progressText.textContent = `0 / ${d.games} · ${d.experiment} · human ${d.humanDifficulty ?? "?"} vs pack ${d.packDifficulty ?? d.difficulty ?? "?"}`;
       },
       progress: (p) => {
         const pctDone = (p.done / p.total) * 100;
