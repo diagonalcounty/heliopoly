@@ -25,17 +25,23 @@ function barTable(rows, labelKey = "key") {
     .map((r) => {
       const w = (r.wins / max) * 100;
       const rate = r.n ? r.wins / r.n : r.share ?? 0;
+      const label = escapeHtml(r[labelKey] ?? r.key);
+      // Bar in a track under the label — width % cannot overlap other cells
       return `<tr>
-        <td>${escapeHtml(r[labelKey] ?? r.key)}</td>
+        <td class="label-cell">
+          <div class="label">${label}</div>
+          <div class="bar-track" aria-hidden="true">
+            <div class="bar" style="width:${w.toFixed(1)}%"></div>
+          </div>
+        </td>
         <td class="num">${r.wins}</td>
         <td class="num">${r.n ?? "—"}</td>
         <td class="num">${pct(rate)}</td>
-        <td class="bar-cell"><div class="bar" style="width:${w.toFixed(1)}%"></div></td>
       </tr>`;
     })
     .join("");
-  return `<table>
-    <thead><tr><th>Key</th><th>Wins</th><th>n</th><th>Rate</th><th></th></tr></thead>
+  return `<table class="stats-table">
+    <thead><tr><th>Key</th><th>Wins</th><th>n</th><th>Rate</th></tr></thead>
     <tbody>${body}</tbody>
   </table>`;
 }

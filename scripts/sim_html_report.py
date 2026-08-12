@@ -59,13 +59,18 @@ def esc(s: Any) -> str:
 def bar_row(label: str, wins: int, n: int, max_wins: int) -> str:
     rate = wins / n if n else 0.0
     width = (wins / max_wins * 100.0) if max_wins else 0.0
+    # Bar lives in a track under the label so % width cannot spill into other cells
     return f"""
     <tr>
-      <td class="label">{esc(label)}</td>
+      <td class="label-cell">
+        <div class="label">{esc(label)}</div>
+        <div class="bar-track" aria-hidden="true">
+          <div class="bar" style="width:{width:.1f}%"></div>
+        </div>
+      </td>
       <td class="num">{wins}</td>
       <td class="num">{n}</td>
       <td class="num">{pct(rate)}</td>
-      <td class="bar-cell"><div class="bar" style="width:{width:.1f}%"></div></td>
     </tr>"""
 
 
@@ -94,9 +99,9 @@ def table_win_rate(
     return f"""
     <section>
       <h2>{esc(title)}</h2>
-      <table>
+      <table class="stats-table">
         <thead>
-          <tr><th>Key</th><th>Wins</th><th>n</th><th>Rate</th><th></th></tr>
+          <tr><th>Key</th><th>Wins</th><th>n</th><th>Rate</th></tr>
         </thead>
         <tbody>{body}</tbody>
       </table>
@@ -114,9 +119,9 @@ def table_wins_by_name(wins: dict[str, int], games: int) -> str:
     return f"""
     <section>
       <h2>Wins by rocket name</h2>
-      <table>
+      <table class="stats-table">
         <thead>
-          <tr><th>Rocket</th><th>Wins</th><th>Games</th><th>Share</th><th></th></tr>
+          <tr><th>Rocket</th><th>Wins</th><th>Games</th><th>Share</th></tr>
         </thead>
         <tbody>{body}</tbody>
       </table>
@@ -319,23 +324,61 @@ table {
   border-collapse: collapse;
   font-size: 0.9rem;
 }
+table.stats-table {
+  table-layout: fixed;
+}
+table.stats-table th:first-child,
+table.stats-table td.label-cell {
+  width: 46%;
+}
+table.stats-table th:not(:first-child),
+table.stats-table td.num {
+  width: 18%;
+}
 th, td {
   text-align: left;
-  padding: 7px 8px;
+  padding: 8px 8px;
   border-bottom: 1px solid rgba(42,53,85,0.85);
+  vertical-align: middle;
 }
 th { color: var(--muted); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.03em; }
-.num { text-align: right; font-variant-numeric: tabular-nums; }
-.label { font-weight: 600; }
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.label-cell {
+  overflow: hidden;
+  min-width: 0;
+}
+.label {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 5px;
+}
+/* Full-width track; fill bar is clipped — never paints over other columns */
+.bar-track {
+  display: block;
+  width: 100%;
+  height: 8px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(42, 53, 85, 0.9);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+.bar {
+  display: block;
+  height: 100%;
+  max-width: 100%;
+  border-radius: 5px;
+  background: var(--bar);
+  min-width: 0;
+}
 .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.86em; }
 .muted { color: var(--muted); }
-.bar-cell { width: 40%; min-width: 100px; }
-.bar {
-  height: 10px;
-  border-radius: 6px;
-  background: var(--bar);
-  min-width: 2px;
-}
 footer {
   max-width: 1100px;
   margin: 0 auto;
@@ -347,6 +390,7 @@ footer {
   body { background: #fff; color: #111; }
   section { break-inside: avoid; border-color: #ccc; background: #fff; }
   .bar { background: #336; }
+  .bar-track { background: #eee; border-color: #ccc; }
 }
 """
 

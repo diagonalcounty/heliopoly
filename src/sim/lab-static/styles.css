@@ -252,11 +252,26 @@ table {
   font-size: 0.88rem;
 }
 
+table.stats-table {
+  table-layout: fixed;
+}
+
+table.stats-table th:first-child,
+table.stats-table td.label-cell {
+  width: 48%;
+}
+
+table.stats-table th:not(:first-child),
+table.stats-table td.num {
+  width: 17.33%;
+}
+
 th,
 td {
   text-align: left;
-  padding: 6px 6px;
+  padding: 8px 6px;
   border-bottom: 1px solid rgba(42, 53, 85, 0.85);
+  vertical-align: middle;
 }
 
 th {
@@ -268,18 +283,40 @@ th {
 .num {
   text-align: right;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
-.bar-cell {
-  width: 42%;
-  min-width: 80px;
+.label-cell {
+  overflow: hidden;
+  min-width: 0;
+}
+
+.label {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 5px;
+}
+
+.bar-track {
+  display: block;
+  width: 100%;
+  height: 8px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(42, 53, 85, 0.9);
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .bar {
-  height: 8px;
+  display: block;
+  height: 100%;
+  max-width: 100%;
   border-radius: 4px;
   background: linear-gradient(90deg, #3a7bd5, #6ec8ff);
-  min-width: 2px;
+  min-width: 0;
 }
 
 .scroll {
