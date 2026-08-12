@@ -12,6 +12,7 @@
 
 ### Tooling
 - **Batch sim harness (#89):** `npm run sim` drives live TS core; writes `sim-results/<run>/{config,games.ndjson,summary}.json`; experiments (prograde/retrograde/choice/mixed); `python3 scripts/sim_report.py`; docs `scripts/README-sim.md`
+- **Sim HTML report (#90):** `python3 scripts/sim_html_report.py` → self-contained `report.html` for latest (or chosen) run
 
 ### Lab
 - **Eastern Arabic compare drill (#81):** Lab literacy minigame (hint, reset, 12-try cap, win recap)
