@@ -97,23 +97,61 @@ table {
   border-collapse: collapse;
   font-size: 0.9rem;
 }
+table.stats-table {
+  table-layout: fixed;
+}
+table.stats-table th:first-child,
+table.stats-table td.label-cell {
+  width: 46%;
+}
+table.stats-table th:not(:first-child),
+table.stats-table td.num {
+  width: 18%;
+}
 th, td {
   text-align: left;
-  padding: 7px 8px;
+  padding: 8px 8px;
   border-bottom: 1px solid rgba(42,53,85,0.85);
+  vertical-align: middle;
 }
 th { color: var(--muted); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.03em; }
-.num { text-align: right; font-variant-numeric: tabular-nums; }
-.label { font-weight: 600; }
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.label-cell {
+  overflow: hidden;
+  min-width: 0;
+}
+.label {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 5px;
+}
+/* Full-width track; fill bar is clipped — never paints over other columns */
+.bar-track {
+  display: block;
+  width: 100%;
+  height: 8px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(42, 53, 85, 0.9);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+.bar {
+  display: block;
+  height: 100%;
+  max-width: 100%;
+  border-radius: 5px;
+  background: var(--bar);
+  min-width: 0;
+}
 .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.86em; }
 .muted { color: var(--muted); }
-.bar-cell { width: 40%; min-width: 100px; }
-.bar {
-  height: 10px;
-  border-radius: 6px;
-  background: var(--bar);
-  min-width: 2px;
-}
 footer {
   max-width: 1100px;
   margin: 0 auto;
@@ -125,13 +163,14 @@ footer {
   body { background: #fff; color: #111; }
   section { break-inside: avoid; border-color: #ccc; background: #fff; }
   .bar { background: #336; }
+  .bar-track { background: #eee; border-color: #ccc; }
 }
 </style>
 </head>
 <body>
   <header>
     <h1>Heliopoly sim report</h1>
-    <p class="sub">Batch balance / AI review · generated 2026-08-12 18:43:09 UTC · schema v1</p>
+    <p class="sub">Batch balance / AI review · generated 2026-08-12 19:15:50 UTC · schema v1</p>
   </header>
   <main>
     <section>
@@ -162,145 +201,205 @@ footer {
     
     <section>
       <h2>Wins by rocket name</h2>
-      <table>
+      <table class="stats-table">
         <thead>
-          <tr><th>Rocket</th><th>Wins</th><th>Games</th><th>Share</th><th></th></tr>
+          <tr><th>Rocket</th><th>Wins</th><th>Games</th><th>Share</th></tr>
         </thead>
         <tbody>
     <tr>
-      <td class="label">Sagan</td>
+      <td class="label-cell">
+        <div class="label">Sagan</div>
+        <div class="bar-track" aria-hidden="true">
+          <div class="bar" style="width:100.0%"></div>
+        </div>
+      </td>
       <td class="num">5</td>
       <td class="num">20</td>
       <td class="num">25.0%</td>
-      <td class="bar-cell"><div class="bar" style="width:100.0%"></div></td>
     </tr>
     <tr>
-      <td class="label">Recorde</td>
+      <td class="label-cell">
+        <div class="label">Recorde</div>
+        <div class="bar-track" aria-hidden="true">
+          <div class="bar" style="width:60.0%"></div>
+        </div>
+      </td>
       <td class="num">3</td>
       <td class="num">20</td>
       <td class="num">15.0%</td>
-      <td class="bar-cell"><div class="bar" style="width:60.0%"></div></td>
     </tr>
     <tr>
-      <td class="label">K-127</td>
+      <td class="label-cell">
+        <div class="label">K-127</div>
+        <div class="bar-track" aria-hidden="true">
+          <div class="bar" style="width:60.0%"></div>
+        </div>
+      </td>
       <td class="num">3</td>
       <td class="num">20</td>
       <td class="num">15.0%</td>
-      <td class="bar-cell"><div class="bar" style="width:60.0%"></div></td>
     </tr>
     <tr>
-      <td class="label">Ada</td>
+      <td class="label-cell">
+        <div class="label">Ada</div>
+        <div class="bar-track" aria-hidden="true">
+          <div class="bar" style="width:60.0%"></div>
+        </div>
+      </td>
       <td class="num">3</td>
       <td class="num">20</td>
       <td class="num">15.0%</td>
-      <td class="bar-cell"><div class="bar" style="width:60.0%"></div></td>
     </tr>
     <tr>
-      <td class="label">Turing</td>
+      <td class="label-cell">
+        <div class="label">Turing</div>
+        <div class="bar-track" aria-hidden="true">
+          <div class="bar" style="width:40.0%"></div>
+        </div>
+      </td>
       <td class="num">2</td>
       <td class="num">20</td>
       <td class="num">10.0%</td>
-      <td class="bar-cell"><div class="bar" style="width:40.0%"></div></td>
     </tr>
     <tr>
-      <td class="label">Asimov</td>
+      <td class="label-cell">
+        <div class="label">Asimov</div>
+        <div class="bar-track" aria-hidden="true">
+          <div class="bar" style="width:40.0%"></div>
+        </div>
+      </td>
       <td class="num">2</td>
       <td class="num">20</td>
       <td class="num">10.0%</td>
-      <td class="bar-cell"><div class="bar" style="width:40.0%"></div></td>
     </tr>
     <tr>
-      <td class="label">Clarke</td>
+      <td class="label-cell">
+        <div class="label">Clarke</div>
+        <div class="bar-track" aria-hidden="true">
+          <div class="bar" style="width:20.0%"></div>
+        </div>
+      </td>
       <td class="num">1</td>
       <td class="num">20</td>
       <td class="num">5.0%</td>
-      <td class="bar-cell"><div class="bar" style="width:20.0%"></div></td>
     </tr>
     <tr>
-      <td class="label">Goddard</td>
+      <td class="label-cell">
+        <div class="label">Goddard</div>
+        <div class="bar-track" aria-hidden="true">
+          <div class="bar" style="width:20.0%"></div>
+        </div>
+      </td>
       <td class="num">1</td>
       <td class="num">20</td>
       <td class="num">5.0%</td>
-      <td class="bar-cell"><div class="bar" style="width:20.0%"></div></td>
     </tr></tbody>
       </table>
     </section>
     
     <section>
       <h2>Win rate by travel direction</h2>
-      <table>
+      <table class="stats-table">
         <thead>
-          <tr><th>Key</th><th>Wins</th><th>n</th><th>Rate</th><th></th></tr>
+          <tr><th>Key</th><th>Wins</th><th>n</th><th>Rate</th></tr>
         </thead>
         <tbody>
     <tr>
-      <td class="label">forward</td>
+      <td class="label-cell">
+        <div class="label">forward</div>
+        <div class="bar-track" aria-hidden="true">
+          <div class="bar" style="width:100.0%"></div>
+        </div>
+      </td>
       <td class="num">20</td>
       <td class="num">80</td>
       <td class="num">25.0%</td>
-      <td class="bar-cell"><div class="bar" style="width:100.0%"></div></td>
     </tr></tbody>
       </table>
     </section>
     
     <section>
       <h2>Win rate by propellant</h2>
-      <table>
+      <table class="stats-table">
         <thead>
-          <tr><th>Key</th><th>Wins</th><th>n</th><th>Rate</th><th></th></tr>
+          <tr><th>Key</th><th>Wins</th><th>n</th><th>Rate</th></tr>
         </thead>
         <tbody>
     <tr>
-      <td class="label">methane</td>
+      <td class="label-cell">
+        <div class="label">methane</div>
+        <div class="bar-track" aria-hidden="true">
+          <div class="bar" style="width:100.0%"></div>
+        </div>
+      </td>
       <td class="num">11</td>
       <td class="num">40</td>
       <td class="num">27.5%</td>
-      <td class="bar-cell"><div class="bar" style="width:100.0%"></div></td>
     </tr>
     <tr>
-      <td class="label">hydrogen</td>
+      <td class="label-cell">
+        <div class="label">hydrogen</div>
+        <div class="bar-track" aria-hidden="true">
+          <div class="bar" style="width:81.8%"></div>
+        </div>
+      </td>
       <td class="num">9</td>
       <td class="num">40</td>
       <td class="num">22.5%</td>
-      <td class="bar-cell"><div class="bar" style="width:81.8%"></div></td>
     </tr></tbody>
       </table>
     </section>
     
     <section>
       <h2>Win rate by seat</h2>
-      <table>
+      <table class="stats-table">
         <thead>
-          <tr><th>Key</th><th>Wins</th><th>n</th><th>Rate</th><th></th></tr>
+          <tr><th>Key</th><th>Wins</th><th>n</th><th>Rate</th></tr>
         </thead>
         <tbody>
     <tr>
-      <td class="label">0</td>
+      <td class="label-cell">
+        <div class="label">0</div>
+        <div class="bar-track" aria-hidden="true">
+          <div class="bar" style="width:100.0%"></div>
+        </div>
+      </td>
       <td class="num">9</td>
       <td class="num">20</td>
       <td class="num">45.0%</td>
-      <td class="bar-cell"><div class="bar" style="width:100.0%"></div></td>
     </tr>
     <tr>
-      <td class="label">1</td>
+      <td class="label-cell">
+        <div class="label">1</div>
+        <div class="bar-track" aria-hidden="true">
+          <div class="bar" style="width:33.3%"></div>
+        </div>
+      </td>
       <td class="num">3</td>
       <td class="num">20</td>
       <td class="num">15.0%</td>
-      <td class="bar-cell"><div class="bar" style="width:33.3%"></div></td>
     </tr>
     <tr>
-      <td class="label">2</td>
+      <td class="label-cell">
+        <div class="label">2</div>
+        <div class="bar-track" aria-hidden="true">
+          <div class="bar" style="width:66.7%"></div>
+        </div>
+      </td>
       <td class="num">6</td>
       <td class="num">20</td>
       <td class="num">30.0%</td>
-      <td class="bar-cell"><div class="bar" style="width:66.7%"></div></td>
     </tr>
     <tr>
-      <td class="label">3</td>
+      <td class="label-cell">
+        <div class="label">3</div>
+        <div class="bar-track" aria-hidden="true">
+          <div class="bar" style="width:22.2%"></div>
+        </div>
+      </td>
       <td class="num">2</td>
       <td class="num">20</td>
       <td class="num">10.0%</td>
-      <td class="bar-cell"><div class="bar" style="width:22.2%"></div></td>
     </tr></tbody>
       </table>
     </section>
