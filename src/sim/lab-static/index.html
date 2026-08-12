@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Heliopoly Sim Lab</title>
-    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/styles.css?v=loss-timing-1" />
   </head>
   <body>
     <header>
@@ -12,6 +12,7 @@
         <h1>Heliopoly Sim Lab</h1>
         <p class="sub">
           Local batch runner · live TypeScript core · not heliopoly.live
+          <span id="server-boot" class="server-boot"></span>
         </p>
       </div>
       <div id="status" class="status idle" aria-live="polite">Idle</div>
@@ -184,6 +185,6 @@
       Docs: <code>scripts/README-sim.md</code> · harness #89 · HTML report #90 ·
       lab #91 · <code>npm run sim-lab</code>
     </footer>
-    <script src="/app.js" type="module"></script>
+    <script src="/app.js?v=loss-timing-1" type="module"></script>
   </body>
 </html>

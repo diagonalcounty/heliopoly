@@ -235,10 +235,24 @@ function renderResults(payload) {
   const finished =
     summary.finishedGames ?? Math.max(0, games - (summary.unfinished || 0));
 
-  const humanRate = summary.humanWinRate ?? 0;
+  // Prefer explicit humanWins; fall back to seat-0 wins if server is stale/partial
+  const seat0Wins =
+    (summary.winsBySeat && summary.winsBySeat["0"]) ||
+    (summary.winRateBySeat && summary.winRateBySeat["0"]?.wins) ||
+    0;
+  const humanWins =
+    summary.humanWins != null ? summary.humanWins : seat0Wins;
+  const humanRate =
+    summary.humanWinRate != null
+      ? summary.humanWinRate
+      : finished
+        ? humanWins / finished
+        : 0;
   const fair = summary.fairShare ?? 1 / players;
-  const humanWins = summary.humanWins ?? 0;
-  const lift = summary.humanLiftVsFair ?? humanRate - fair;
+  const lift =
+    summary.humanLiftVsFair != null
+      ? summary.humanLiftVsFair
+      : humanRate - fair;
   document.getElementById("human-pct").textContent = pct(humanRate);
   document.getElementById("human-sub").textContent =
     `${fmtInt(humanWins)} / ${fmtInt(finished)} finished · seat 0`;
@@ -249,9 +263,14 @@ function renderResults(payload) {
   document.getElementById("fair-pct").textContent = pct(fair);
   document.getElementById("skill-line").textContent =
     `Human ${humanDiff} vs pack ${packDiff}`;
-  document.getElementById("outcome-summary").textContent =
-    summary.outcomeSummary ||
-    "No narrative — re-run with a current Sim Lab server.";
+
+  let narrative = summary.outcomeSummary || "";
+  if (!narrative) {
+    narrative =
+      "Missing outcome summary — the Sim Lab server is likely outdated. " +
+      "Stop it (Ctrl+C in the terminal running npm run sim-lab), run npm run sim-lab again, hard-refresh this page, then re-run the batch.";
+  }
+  document.getElementById("outcome-summary").textContent = narrative;
 
   renderHumanLossTiming(summary.humanLossTiming || null);
 
@@ -349,6 +368,30 @@ async function readSse(response, handlers) {
     }
   }
 }
+
+/** Show when the Node process booted (stale servers lack new features). */
+async function pingHealth() {
+  const el = document.getElementById("server-boot");
+  if (!el) return;
+  try {
+    const r = await fetch("/api/health");
+    const h = await r.json();
+    const feats = (h.features || []).join(", ");
+    el.textContent = h.startedAt
+      ? ` · server since ${h.startedAt.slice(11, 19)} UTC` +
+        (feats ? ` · ${feats}` : "")
+      : "";
+    if (!h.features?.includes("human-loss-timing")) {
+      el.textContent +=
+        " · ⚠ restart npm run sim-lab for dropout chart + human metrics";
+      el.classList.add("warn");
+    }
+  } catch {
+    el.textContent = " · server unreachable";
+    el.classList.add("warn");
+  }
+}
+pingHealth();
 
 form.addEventListener("submit", async (ev) => {
   ev.preventDefault();

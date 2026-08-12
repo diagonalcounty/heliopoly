@@ -31,6 +31,14 @@ const EXPERIMENTS: SimExperiment[] = [
 
 /** One batch at a time so RAM/CPU stay predictable. */
 let busy = false;
+/** Set at process boot — if UI features look missing, restart sim-lab. */
+const SERVER_STARTED_AT = new Date().toISOString();
+const LAB_FEATURES = [
+  "human-pack-difficulty",
+  "outcome-summary",
+  "human-loss-timing",
+  "launch-order-cards",
+] as const;
 
 function silenceDebug(): void {
   if (typeof console !== "undefined" && console.debug) {
@@ -233,7 +241,7 @@ async function handleApiRun(req: IncomingMessage, res: ServerResponse): Promise<
       saveDir,
       runId,
       cliArgs: ["sim-lab", JSON.stringify(opts)],
-      sampleLimit: 40,
+      sampleLimit: 15,
       onProgress: (p) => {
         sendEvent("progress", p);
       },
@@ -267,7 +275,14 @@ async function handle(
     send(
       res,
       200,
-      JSON.stringify({ ok: true, busy, host: HOST, port: PORT }),
+      JSON.stringify({
+        ok: true,
+        busy,
+        host: HOST,
+        port: PORT,
+        startedAt: SERVER_STARTED_AT,
+        features: LAB_FEATURES,
+      }),
       "application/json",
     );
     return;
@@ -291,5 +306,7 @@ const server = createServer((req, res) => {
 server.listen(PORT, HOST, () => {
   console.log(`Heliopoly Sim Lab  http://${HOST}:${PORT}/`);
   console.log(`  engine: live TypeScript core · one run at a time`);
-  console.log(`  stop: Ctrl+C`);
+  console.log(`  started: ${SERVER_STARTED_AT}`);
+  console.log(`  features: ${LAB_FEATURES.join(", ")}`);
+  console.log(`  stop: Ctrl+C  (restart after git pull to load new code)`);
 });
