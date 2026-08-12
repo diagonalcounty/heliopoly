@@ -77,6 +77,28 @@ def main() -> int:
         print("OUTCOME SUMMARY")
         print("-" * 40)
         print(summary["outcomeSummary"])
+    hlt = summary.get("humanLossTiming")
+    if hlt and hlt.get("games"):
+        print()
+        print("WHEN HUMAN LOSES — dropout timing")
+        print("-" * 40)
+        print(hlt.get("caption", ""))
+        he = hlt.get("humanElimRound") or {}
+        pe = hlt.get("packElimRound") or {}
+        ge = hlt.get("gameLengthRounds") or {}
+        print(
+            f"  human out:  n={he.get('n', 0)}  median R{he.get('p50', 0):.0f}  "
+            f"IQR {he.get('p25', 0):.0f}–{he.get('p75', 0):.0f}"
+        )
+        print(
+            f"  pack out:   n={pe.get('n', 0)}  median R{pe.get('p50', 0):.0f}"
+        )
+        print(
+            f"  game ends:  n={ge.get('n', 0)}  median R{ge.get('p50', 0):.0f}"
+        )
+        print(
+            f"  median rounds after human out: {hlt.get('medianRoundsAfterHumanOut', 0):.0f}"
+        )
     print()
 
     print("Wins by rocket name")

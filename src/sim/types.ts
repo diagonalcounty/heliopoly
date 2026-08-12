@@ -128,4 +128,55 @@ export interface SimSummary {
    * (human skill vs pack, seat bias, propellant, etc.).
    */
   outcomeSummary: string;
+  /**
+   * When human proxy **loses**: distribution of elimination rounds vs game length.
+   * Example story: human out ~R15, pack AIs out later, game ends ~R55.
+   */
+  humanLossTiming: HumanLossTiming | null;
+}
+
+/** Histogram bucket for round-number distributions. */
+export interface RoundHistBucket {
+  /** Inclusive low round (1-based game rounds). */
+  lo: number;
+  /** Inclusive high round. */
+  hi: number;
+  label: string;
+  count: number;
+}
+
+export interface RoundDist {
+  n: number;
+  min: number;
+  max: number;
+  mean: number;
+  p25: number;
+  p50: number;
+  p75: number;
+  /** Fixed-width buckets for charts (empty if n=0). */
+  histogram: RoundHistBucket[];
+}
+
+/**
+ * Aggregates only over finished games where human proxy did **not** win.
+ * Rounds are game `round` values (same as eliminatedOnRound / game length).
+ */
+export interface HumanLossTiming {
+  /** Finished games human lost. */
+  games: number;
+  /** When the human seat was eliminated (or game end if never tagged). */
+  humanElimRound: RoundDist;
+  /** Full game length (winner’s last round / state.round). */
+  gameLengthRounds: RoundDist;
+  /**
+   * Elimination rounds of pack seats (AI) in those same games —
+   * each AI seat that left contributes one sample.
+   */
+  packElimRound: RoundDist;
+  /**
+   * Median gap: gameLength − humanElim (how long the table runs after human is out).
+   */
+  medianRoundsAfterHumanOut: number;
+  /** Short caption for the chart. */
+  caption: string;
 }

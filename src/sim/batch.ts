@@ -7,6 +7,9 @@ import { execSync } from "node:child_process";
 import { normalizeAiDifficulty, type AiDifficulty } from "../core/types";
 import { playOneGame, DEFAULT_MAX_TURNS, DEFAULT_SEED_STRIDE } from "./play";
 import type {
+  HumanLossTiming,
+  RoundDist,
+  RoundHistBucket,
   SimExperiment,
   SimGameResult,
   SimRunConfig,
@@ -156,6 +159,97 @@ export function buildOutcomeSummary(opts: {
   return lines.join(" ");
 }
 
+function percentile(sorted: number[], p: number): number {
+  if (!sorted.length) return 0;
+  if (sorted.length === 1) return sorted[0]!;
+  const idx = (sorted.length - 1) * p;
+  const lo = Math.floor(idx);
+  const hi = Math.ceil(idx);
+  if (lo === hi) return sorted[lo]!;
+  const w = idx - lo;
+  return sorted[lo]! * (1 - w) + sorted[hi]! * w;
+}
+
+function buildRoundDist(values: number[], bucketWidth = 5): RoundDist {
+  if (!values.length) {
+    return {
+      n: 0,
+      min: 0,
+      max: 0,
+      mean: 0,
+      p25: 0,
+      p50: 0,
+      p75: 0,
+      histogram: [],
+    };
+  }
+  const sorted = [...values].sort((a, b) => a - b);
+  const min = sorted[0]!;
+  const max = sorted[sorted.length - 1]!;
+  const mean = values.reduce((a, b) => a + b, 0) / values.length;
+  const width = Math.max(1, bucketWidth);
+  const start = Math.floor((min - 1) / width) * width + 1;
+  const end = Math.ceil(max / width) * width;
+  const histogram: RoundHistBucket[] = [];
+  for (let lo = start; lo <= end; lo += width) {
+    const hi = lo + width - 1;
+    const count = values.filter((v) => v >= lo && v <= hi).length;
+    if (count === 0 && histogram.length === 0) continue;
+    histogram.push({
+      lo,
+      hi,
+      label: lo === hi ? `R${lo}` : `R${lo}–${hi}`,
+      count,
+    });
+  }
+  // Drop leading empty buckets that may remain if start was low
+  while (histogram.length && histogram[0]!.count === 0) histogram.shift();
+  while (histogram.length && histogram[histogram.length - 1]!.count === 0) {
+    histogram.pop();
+  }
+  return {
+    n: values.length,
+    min,
+    max,
+    mean,
+    p25: percentile(sorted, 0.25),
+    p50: percentile(sorted, 0.5),
+    p75: percentile(sorted, 0.75),
+    histogram,
+  };
+}
+
+function buildHumanLossTiming(
+  humanElim: number[],
+  gameLen: number[],
+  packElim: number[],
+): HumanLossTiming | null {
+  if (!humanElim.length) return null;
+  const humanElimRound = buildRoundDist(humanElim);
+  const gameLengthRounds = buildRoundDist(gameLen);
+  const packElimRound = buildRoundDist(packElim);
+  const after: number[] = [];
+  for (let i = 0; i < humanElim.length; i++) {
+    after.push(Math.max(0, (gameLen[i] ?? 0) - (humanElim[i] ?? 0)));
+  }
+  const afterSorted = [...after].sort((a, b) => a - b);
+  const medianRoundsAfterHumanOut = percentile(afterSorted, 0.5);
+  const caption =
+    `When human lost (${humanElim.length} games): human typically out by round ` +
+    `${humanElimRound.p50.toFixed(0)} (median; IQR ${humanElimRound.p25.toFixed(0)}–${humanElimRound.p75.toFixed(0)}). ` +
+    `Pack AIs leave later (median elim R${packElimRound.p50.toFixed(0)}). ` +
+    `Games end around R${gameLengthRounds.p50.toFixed(0)} (median) — ` +
+    `~${medianRoundsAfterHumanOut.toFixed(0)} rounds after the human is gone.`;
+  return {
+    games: humanElim.length,
+    humanElimRound,
+    gameLengthRounds,
+    packElimRound,
+    medianRoundsAfterHumanOut,
+    caption,
+  };
+}
+
 export function gitCommitShort(): string {
   try {
     return execSync("git rev-parse --short HEAD", {
@@ -240,6 +334,10 @@ export function runBatch(params: BatchParams): {
   let unfinished = 0;
   let humanWins = 0;
   const sampleGames: SimGameResult[] = [];
+  /** Human-loss games only: elimination / length samples for charts. */
+  const lossHumanElim: number[] = [];
+  const lossGameLen: number[] = [];
+  const lossPackElim: number[] = [];
 
   const t0 = Date.now();
   const progressEvery = Math.max(1, Math.floor(games / 25));
@@ -283,6 +381,24 @@ export function runBatch(params: BatchParams): {
         winsByDirection[dirKey] = (winsByDirection[dirKey] ?? 0) + 1;
         winsByPropellant[propKey] = (winsByPropellant[propKey] ?? 0) + 1;
         if (game.humanWon || winner.seat === humanSeat) humanWins++;
+        else {
+          // Human lost: when did each seat leave, and how long was the game?
+          const humanSeatRow = game.seats.find((s) => s.seat === humanSeat);
+          const hElim =
+            humanSeatRow?.eliminatedOnRound ??
+            (humanSeatRow?.eliminated ? game.rounds : game.rounds);
+          lossHumanElim.push(Math.max(1, hElim));
+          lossGameLen.push(Math.max(1, game.rounds));
+          for (const s of game.seats) {
+            if (s.seat === humanSeat) continue;
+            if (s.eliminated && s.eliminatedOnRound != null) {
+              lossPackElim.push(Math.max(1, s.eliminatedOnRound));
+            } else if (s.winner) {
+              // Winner lasts the full game
+              lossPackElim.push(Math.max(1, game.rounds));
+            }
+          }
+        }
       }
     }
 
@@ -324,7 +440,7 @@ export function runBatch(params: BatchParams): {
   const winRateByDirection = shareOfFinished(winsByDirection);
   const winRateByPropellant = shareOfFinished(winsByPropellant);
   const winRateBySeat = shareOfFinished(winsBySeat);
-  const outcomeSummary = buildOutcomeSummary({
+  let outcomeSummary = buildOutcomeSummary({
     players,
     humanSeat,
     humanDifficulty,
@@ -339,6 +455,15 @@ export function runBatch(params: BatchParams): {
     unfinished,
     games,
   });
+
+  const humanLossTiming = buildHumanLossTiming(
+    lossHumanElim,
+    lossGameLen,
+    lossPackElim,
+  );
+  if (humanLossTiming) {
+    outcomeSummary = `${outcomeSummary} ${humanLossTiming.caption}`;
+  }
 
   const summary: SimSummary = {
     schemaVersion: 1,
@@ -364,6 +489,7 @@ export function runBatch(params: BatchParams): {
     fairShare,
     humanLiftVsFair: humanWinRate - fairShare,
     outcomeSummary,
+    humanLossTiming,
   };
 
   if (outDir) {

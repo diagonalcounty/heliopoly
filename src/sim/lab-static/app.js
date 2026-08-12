@@ -68,6 +68,96 @@ function rateRows(map) {
 
 const ORDINAL = ["1st", "2nd", "3rd", "4th", "5th", "6th"];
 
+/** Align three histograms onto a shared set of round buckets. */
+function mergeHistBuckets(timing) {
+  if (!timing) return [];
+  const map = new Map();
+  const add = (hist, key) => {
+    for (const b of hist?.histogram || []) {
+      const id = `${b.lo}-${b.hi}`;
+      if (!map.has(id)) {
+        map.set(id, {
+          lo: b.lo,
+          hi: b.hi,
+          label: b.label,
+          human: 0,
+          pack: 0,
+          game: 0,
+        });
+      }
+      map.get(id)[key] = b.count;
+    }
+  };
+  add(timing.humanElimRound, "human");
+  add(timing.packElimRound, "pack");
+  add(timing.gameLengthRounds, "game");
+  return [...map.values()].sort((a, b) => a.lo - b.lo);
+}
+
+function renderHumanLossTiming(timing) {
+  const panel = document.getElementById("loss-timing");
+  if (!timing || !timing.games) {
+    panel.hidden = true;
+    return;
+  }
+  panel.hidden = false;
+  document.getElementById("loss-timing-caption").textContent =
+    timing.caption ||
+    `Dropout timing over ${timing.games} games the human proxy lost.`;
+
+  const h = timing.humanElimRound;
+  const g = timing.gameLengthRounds;
+  const p = timing.packElimRound;
+  document.getElementById("loss-timing-stats").innerHTML = `
+    <div class="loss-stat">
+      <div class="ls-v">${fmtInt(timing.games)}</div>
+      <div class="ls-l">Human losses (n)</div>
+    </div>
+    <div class="loss-stat">
+      <div class="ls-v">R${h.p50.toFixed(0)}</div>
+      <div class="ls-l">Human out (median) · IQR ${h.p25.toFixed(0)}–${h.p75.toFixed(0)}</div>
+    </div>
+    <div class="loss-stat">
+      <div class="ls-v">R${p.p50.toFixed(0)}</div>
+      <div class="ls-l">Pack AI out (median)</div>
+    </div>
+    <div class="loss-stat">
+      <div class="ls-v">R${g.p50.toFixed(0)}</div>
+      <div class="ls-l">Game ends (median)</div>
+    </div>
+    <div class="loss-stat">
+      <div class="ls-v">+${timing.medianRoundsAfterHumanOut.toFixed(0)}</div>
+      <div class="ls-l">Median rounds after human out</div>
+    </div>
+  `;
+
+  const buckets = mergeHistBuckets(timing);
+  const maxC = Math.max(
+    1,
+    ...buckets.flatMap((b) => [b.human, b.pack, b.game]),
+  );
+  const chart = document.getElementById("loss-timing-chart");
+  chart.innerHTML = buckets
+    .map((b) => {
+      const row = (cls, count) => {
+        const w = (100 * count) / maxC;
+        return `<div class="hist-bar-wrap">
+          <div class="hist-track"><div class="hist-fill ${cls}" style="width:${w.toFixed(1)}%"></div></div>
+          <div class="hist-count">${count || ""}</div>
+        </div>`;
+      };
+      return `<div class="hist-row">
+        <div class="hist-label">${escapeHtml(b.label)}</div>
+        <div class="hist-bars">
+          ${row("human", b.human)}
+          ${row("pack", b.pack)}
+          ${row("game", b.game)}
+        </div>
+      </div>`;
+    })
+    .join("");
+}
+
 function renderLaunchOrder(summary, finished, players) {
   const fair = players > 0 ? 1 / players : 0.25;
   const seats = rateRows(summary.winRateBySeat).sort(
@@ -162,6 +252,8 @@ function renderResults(payload) {
   document.getElementById("outcome-summary").textContent =
     summary.outcomeSummary ||
     "No narrative — re-run with a current Sim Lab server.";
+
+  renderHumanLossTiming(summary.humanLossTiming || null);
 
   renderLaunchOrder(summary, finished, players);
 
