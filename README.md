@@ -58,6 +58,10 @@ Headless multi-game runs that write JSON under `sim-results/` (live TypeScript c
 npm run sim -- --help
 npm run sim -- --games 1000 --experiment retrograde
 python3 scripts/sim_report.py sim-results/<run-folder>
+
+# Browser UI (local only) — form → run → results
+npm run sim-lab
+# → http://127.0.0.1:5174/
 ```
 
-Full guide: **[scripts/README-sim.md](scripts/README-sim.md)** · issue [#89](https://github.com/diagonalcounty/heliopoly/issues/89).
+Full guide: **[scripts/README-sim.md](scripts/README-sim.md)** · issues [#89](https://github.com/diagonalcounty/heliopoly/issues/89) · [#91](https://github.com/diagonalcounty/heliopoly/issues/91).

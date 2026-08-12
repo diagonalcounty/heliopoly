@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Heliopoly Sim Lab</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header>
+      <div>
+        <h1>Heliopoly Sim Lab</h1>
+        <p class="sub">
+          Local batch runner · live TypeScript core · not heliopoly.live
+        </p>
+      </div>
+      <div id="status" class="status idle" aria-live="polite">Idle</div>
+    </header>
+
+    <main>
+      <section class="card form-card">
+        <h2>Scenario</h2>
+        <form id="run-form">
+          <div class="grid">
+            <label>
+              Games
+              <input
+                name="games"
+                type="number"
+                min="1"
+                max="50000"
+                value="200"
+                required
+              />
+            </label>
+            <label>
+              Players
+              <input name="players" type="number" min="2" max="6" value="4" />
+            </label>
+            <label>
+              Experiment
+              <select name="experiment">
+                <option value="default">default (live #47 rules)</option>
+                <option value="prograde">prograde (all locked)</option>
+                <option value="retrograde" selected>
+                  retrograde (all locked)
+                </option>
+                <option value="choice">choice (all may pick dir)</option>
+                <option value="mixed">mixed (half pro / half retro)</option>
+              </select>
+            </label>
+            <label>
+              AI difficulty
+              <select name="difficulty">
+                <option value="easy">easy</option>
+                <option value="normal" selected>normal</option>
+                <option value="hard">hard</option>
+                <option value="expert">expert</option>
+              </select>
+            </label>
+            <label>
+              Base seed
+              <input name="seed" type="number" value="1000" />
+            </label>
+            <label>
+              Seed stride
+              <input name="seedStride" type="number" value="997" />
+            </label>
+            <label>
+              Max turns / game
+              <input name="maxTurns" type="number" value="3000" />
+            </label>
+            <label class="check">
+              <input name="save" type="checkbox" />
+              Save JSON under <code>sim-results/</code>
+            </label>
+          </div>
+          <div class="actions">
+            <button type="submit" id="btn-run" class="primary">Run batch</button>
+            <button type="button" id="btn-stop" disabled title="Wait for current batch">
+              Running…
+            </button>
+          </div>
+          <p class="hint">
+            Seed formula: <code>seed_i = base + i × stride</code>. Same seed +
+            experiment arms compare fairly. Long runs stay on this machine only.
+          </p>
+        </form>
+        <div id="progress-wrap" class="progress-wrap hidden">
+          <div class="progress-bar"><div id="progress-fill"></div></div>
+          <div id="progress-text" class="mono">—</div>
+        </div>
+      </section>
+
+      <section class="card" id="results" hidden>
+        <h2>Results</h2>
+        <div id="kpis" class="kpis"></div>
+        <div id="meta" class="meta mono"></div>
+        <div class="tables">
+          <div>
+            <h3>Wins by rocket</h3>
+            <div id="tbl-names"></div>
+          </div>
+          <div>
+            <h3>By direction</h3>
+            <div id="tbl-dir"></div>
+          </div>
+          <div>
+            <h3>By propellant</h3>
+            <div id="tbl-prop"></div>
+          </div>
+          <div>
+            <h3>By seat</h3>
+            <div id="tbl-seat"></div>
+          </div>
+        </div>
+        <h3>Sample games</h3>
+        <div id="tbl-sample" class="scroll"></div>
+      </section>
+    </main>
+
+    <footer>
+      Docs: <code>scripts/README-sim.md</code> · harness #89 · HTML report #90 ·
+      lab #91 · <code>npm run sim-lab</code>
+    </footer>
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>
