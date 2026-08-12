@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Heliopoly Sim Lab</title>
-    <link rel="stylesheet" href="/styles.css?v=density-x-1" />
+    <link rel="stylesheet" href="/styles.css?v=seat-colors-1" />
   </head>
   <body>
     <header>
@@ -131,8 +131,8 @@
         <div class="loss-timing card-inner" id="loss-timing" hidden>
           <h3 class="launch-title">Elimination timing (round axis)</h3>
           <p class="hint launch-blurb" id="loss-timing-caption">
-            Density of when the 1st / 2nd / 3rd player is eliminated and when the
-            game ends. Horizontal axis = game round (like a KDE chart).
+            Density of when each <strong>seat</strong> exits (or wins). Colors match
+            the board rockets. Horizontal axis = game round.
           </p>
           <div class="loss-stats" id="loss-timing-stats"></div>
           <div class="hist-legend" id="elim-legend"></div>
@@ -187,6 +187,6 @@
       Docs: <code>scripts/README-sim.md</code> · harness #89 · HTML report #90 ·
       lab #91 · <code>npm run sim-lab</code>
     </footer>
-    <script src="/app.js?v=density-x-1" type="module"></script>
+    <script src="/app.js?v=seat-colors-1" type="module"></script>
   </body>
 </html>

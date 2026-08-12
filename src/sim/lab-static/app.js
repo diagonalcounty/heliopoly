@@ -68,17 +68,28 @@ function rateRows(map) {
 
 const ORDINAL = ["1st", "2nd", "3rd", "4th", "5th", "6th"];
 
-/** Colors aligned with the Gemini-style elimination chart. */
-const CURVE_COLORS = {
-  firstOut: "#e74c3c",
-  secondOut: "#f39c12",
-  thirdOut: "#2ecc71",
-  gameEnd: "#2980b9",
-  humanOut: "#c792ea",
-};
+/** Fallback if server omits color — same order as `src/core/state.ts` COLORS. */
+const BOARD_PLAYER_COLORS = [
+  "#6ec8ff",
+  "#ffc857",
+  "#5ddea0",
+  "#ff6b7a",
+  "#c792ea",
+  "#ff9f43",
+];
+
+function curveColor(c) {
+  if (c.color) return c.color;
+  if (c.seat != null) {
+    return BOARD_PLAYER_COLORS[c.seat % BOARD_PLAYER_COLORS.length];
+  }
+  if (c.id === "gameEnd") return "rgba(232,238,252,0.85)";
+  return "#6ec8ff";
+}
 
 /**
  * Horizontal density chart: x = game round, y = density (KDE from server).
+ * Seat curves use board rocket colors.
  */
 function renderDensityChart(placeCurves, humanLoss) {
   const panel = document.getElementById("loss-timing");
@@ -87,7 +98,6 @@ function renderDensityChart(placeCurves, humanLoss) {
   const note = document.getElementById("human-loss-note");
 
   if (!placeCurves || !placeCurves.curves?.length) {
-    // Fall back: show human-loss stats only
     if (humanLoss?.games) {
       panel.hidden = false;
       document.getElementById("loss-timing-caption").textContent =
@@ -111,39 +121,40 @@ function renderDensityChart(placeCurves, humanLoss) {
   panel.hidden = false;
   document.getElementById("loss-timing-caption").textContent =
     placeCurves.caption ||
-    `Elimination densities over ${placeCurves.games} finished games.`;
+    `Per-seat exit densities (board colors) over ${placeCurves.games} finished games.`;
 
   const curves = placeCurves.curves;
   const xMax = placeCurves.xMax || 100;
+  const seatCurves = curves.filter((c) => c.seat != null);
+  const gameCurve = curves.find((c) => c.id === "gameEnd");
 
-  // KPI chips from place curves
-  const byId = Object.fromEntries(curves.map((c) => [c.id, c]));
   document.getElementById("loss-timing-stats").innerHTML = `
     <div class="loss-stat">
       <div class="ls-v">${fmtInt(placeCurves.games)}</div>
       <div class="ls-l">Finished games</div>
     </div>
-    <div class="loss-stat">
-      <div class="ls-v">R${(byId.firstOut?.mean ?? 0).toFixed(0)}</div>
-      <div class="ls-l">Mean 1st out</div>
-    </div>
-    <div class="loss-stat">
-      <div class="ls-v">R${(byId.secondOut?.mean ?? 0).toFixed(0)}</div>
-      <div class="ls-l">Mean 2nd out</div>
-    </div>
-    <div class="loss-stat">
-      <div class="ls-v">R${(byId.thirdOut?.mean ?? 0).toFixed(0)}</div>
-      <div class="ls-l">Mean 3rd out</div>
-    </div>
-    <div class="loss-stat">
-      <div class="ls-v">R${(byId.gameEnd?.mean ?? 0).toFixed(0)}</div>
+    ${seatCurves
+      .map(
+        (c) => `
+    <div class="loss-stat" style="border-color:${curveColor(c)}55">
+      <div class="ls-v" style="color:${curveColor(c)}">R${c.mean.toFixed(0)}</div>
+      <div class="ls-l">Seat ${c.seat}${c.seat === 0 ? " human" : ""} mean exit</div>
+    </div>`,
+      )
+      .join("")}
+    ${
+      gameCurve
+        ? `<div class="loss-stat">
+      <div class="ls-v">R${gameCurve.mean.toFixed(0)}</div>
       <div class="ls-l">Mean game end</div>
-    </div>
+    </div>`
+        : ""
+    }
   `;
 
   legend.innerHTML = curves
     .map((c) => {
-      const col = CURVE_COLORS[c.id] || "#6ec8ff";
+      const col = curveColor(c);
       return `<span class="leg"><span class="swatch" style="background:${col}"></span>${escapeHtml(c.label)} · μ R${c.mean.toFixed(0)}</span>`;
     })
     .join("");
@@ -155,7 +166,6 @@ function renderDensityChart(placeCurves, humanLoss) {
     note.hidden = true;
   }
 
-  // SVG layout
   const W = 720;
   const H = 320;
   const pad = { l: 48, r: 16, t: 16, b: 40 };
@@ -193,7 +203,6 @@ function renderDensityChart(placeCurves, humanLoss) {
     return d;
   };
 
-  // Grid + axes
   const xTicks = [];
   const step = xMax <= 60 ? 10 : xMax <= 100 ? 10 : 20;
   for (let t = 0; t <= xMax; t += step) xTicks.push(t);
@@ -209,11 +218,11 @@ function renderDensityChart(placeCurves, humanLoss) {
 
   let series = "";
   for (const c of curves) {
-    const col = CURVE_COLORS[c.id] || "#6ec8ff";
-    const isHuman = c.id === "humanOut";
-    series += `<path d="${areaPath(c)}" fill="${col}" fill-opacity="${isHuman ? 0.12 : 0.28}" stroke="none"/>`;
-    series += `<path d="${linePath(c)}" fill="none" stroke="${col}" stroke-width="${isHuman ? 2.5 : 2}" stroke-dasharray="${isHuman ? "6 3" : "none"}"/>`;
-    // mean marker
+    const col = curveColor(c);
+    const isGameEnd = c.id === "gameEnd";
+    const isHuman = c.seat === 0;
+    series += `<path d="${areaPath(c)}" fill="${col}" fill-opacity="${isGameEnd ? 0.08 : 0.22}" stroke="none"/>`;
+    series += `<path d="${linePath(c)}" fill="none" stroke="${col}" stroke-width="${isHuman ? 2.75 : isGameEnd ? 1.75 : 2}" stroke-dasharray="${isGameEnd ? "5 4" : "none"}"/>`;
     const mx = xScale(Math.min(xMax, Math.max(0, c.mean)));
     series += `<line class="mean-line" x1="${mx}" y1="${pad.t}" x2="${mx}" y2="${pad.t + plotH}" stroke="${col}"/>`;
   }

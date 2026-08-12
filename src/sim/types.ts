@@ -143,20 +143,27 @@ export interface SimSummary {
 /** One density curve along the round axis (precomputed for the browser). */
 export interface DensityCurve {
   label: string;
-  /** Short id for styling: firstOut | secondOut | thirdOut | gameEnd | humanOut */
+  /** Short id for styling: seat0 | seat1 | … | gameEnd | firstOut | … */
   id: string;
   mean: number;
   p50: number;
   n: number;
+  /**
+   * Stroke/fill color — seat curves use the same palette as the board
+   * (`#6ec8ff`, `#ffc857`, …).
+   */
+  color: string;
+  /** Seat index when this curve is a player; omit for aggregate series. */
+  seat?: number;
   /** Evenly spaced x from 0..xMax */
   xs: number[];
-  /** Density y (same length as xs); not necessarily normalized to area 1 in UI */
+  /** Density y (same length as xs) */
   ys: number[];
 }
 
 /**
- * 1st / 2nd / 3rd player eliminated (by place, not seat index) + game end.
- * Mirrors the “Monopoly-style” elimination distribution chart.
+ * Per-seat elimination densities (when each rocket leaves / wins).
+ * Seat colors match `createGame` board palette.
  */
 export interface EliminationPlaceCurves {
   games: number;
@@ -164,6 +171,16 @@ export interface EliminationPlaceCurves {
   curves: DensityCurve[];
   caption: string;
 }
+
+/** Board rocket colors — keep in sync with `src/core/state.ts` COLORS. */
+export const SIM_PLAYER_COLORS = [
+  "#6ec8ff",
+  "#ffc857",
+  "#5ddea0",
+  "#ff6b7a",
+  "#c792ea",
+  "#ff9f43",
+] as const;
 
 /** Histogram bucket for round-number distributions. */
 export interface RoundHistBucket {

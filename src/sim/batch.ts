@@ -17,6 +17,7 @@ import type {
   SimRunConfig,
   SimSummary,
 } from "./types";
+import { SIM_PLAYER_COLORS } from "./types";
 
 export interface BatchParams {
   games: number;
@@ -227,13 +228,18 @@ function densityCurveFromSamples(
   id: string,
   label: string,
   xMax: number,
+  color: string,
+  seat?: number,
   nPoints = 121,
 ): DensityCurve {
   const cleaned = samples
     .map((v) => Math.max(0, Math.min(xMax, v)))
     .filter((v) => Number.isFinite(v));
   const n = cleaned.length;
-  const emptyXs = Array.from({ length: nPoints }, (_, i) => (i / (nPoints - 1)) * xMax);
+  const emptyXs = Array.from(
+    { length: nPoints },
+    (_, i) => (i / (nPoints - 1)) * xMax,
+  );
   if (n === 0) {
     return {
       id,
@@ -241,6 +247,8 @@ function densityCurveFromSamples(
       mean: 0,
       p50: 0,
       n: 0,
+      color,
+      seat,
       xs: emptyXs,
       ys: emptyXs.map(() => 0),
     };
@@ -263,72 +271,64 @@ function densityCurveFromSamples(
     }
     return s / (n * bw * Math.sqrt(2 * Math.PI));
   });
-  return { id, label, mean, p50, n, xs, ys };
+  return { id, label, mean, p50, n, color, seat, xs, ys };
 }
 
 /**
- * Place-order eliminations for finished games (1st out, 2nd out, 3rd out, game end).
+ * Per-seat elimination densities (board rocket colors).
+ * Sample = round eliminated, or game end if that seat won.
  */
-function buildEliminationPlaceCurves(
-  firstOut: number[],
-  secondOut: number[],
-  thirdOut: number[],
+function buildSeatEliminationCurves(
+  seatSamples: number[][],
   gameEnd: number[],
-  humanOutWhenLost: number[],
+  humanSeat: number,
 ): EliminationPlaceCurves | null {
   if (!gameEnd.length) return null;
+  const all = [...gameEnd, ...seatSamples.flat()];
   const xMax = Math.min(
     120,
     Math.max(
       40,
-      Math.ceil(
-        Math.max(
-          ...gameEnd,
-          ...firstOut,
-          ...secondOut,
-          ...thirdOut,
-          1,
-        ) / 10,
-      ) * 10 + 10,
+      Math.ceil(Math.max(...all, 1) / 10) * 10 + 10,
     ),
   );
-  const curves: DensityCurve[] = [
-    densityCurveFromSamples(
-      firstOut,
-      "firstOut",
-      "1st player out (4th place)",
-      xMax,
-    ),
-    densityCurveFromSamples(
-      secondOut,
-      "secondOut",
-      "2nd player out (3rd place)",
-      xMax,
-    ),
-    densityCurveFromSamples(
-      thirdOut,
-      "thirdOut",
-      "3rd player out (2nd place)",
-      xMax,
-    ),
-    densityCurveFromSamples(gameEnd, "gameEnd", "Game end / sole survivor", xMax),
-  ];
-  if (humanOutWhenLost.length >= 8) {
+  const curves: DensityCurve[] = [];
+  for (let seat = 0; seat < seatSamples.length; seat++) {
+    const samples = seatSamples[seat] ?? [];
+    if (!samples.length) continue;
+    const color = SIM_PLAYER_COLORS[seat % SIM_PLAYER_COLORS.length]!;
+    const isHuman = seat === humanSeat;
+    const label = isHuman
+      ? `Seat ${seat} (human) · board color`
+      : `Seat ${seat} · board color`;
     curves.push(
       densityCurveFromSamples(
-        humanOutWhenLost,
-        "humanOut",
-        "Human proxy out (when they lose)",
+        samples,
+        `seat${seat}`,
+        label,
         xMax,
+        color,
+        seat,
       ),
     );
   }
-  const m1 = curves[0]!.mean;
-  const m2 = curves[1]!.mean;
-  const mG = curves[3]!.mean;
+  // Game-end aggregate as thin white/muted reference
+  curves.push(
+    densityCurveFromSamples(
+      gameEnd,
+      "gameEnd",
+      "Game end (any winner)",
+      xMax,
+      "rgba(232,238,252,0.85)",
+    ),
+  );
+  const means = curves
+    .filter((c) => c.seat != null)
+    .map((c) => `seat ${c.seat} μR${c.mean.toFixed(0)}`)
+    .join(", ");
   const caption =
-    `Elimination place densities over ${gameEnd.length} finished games (x = game round). ` +
-    `Mean 1st out ≈ R${m1.toFixed(0)}, 2nd out ≈ R${m2.toFixed(0)}, game end ≈ R${mG.toFixed(0)}.`;
+    `When each rocket leaves (or wins) over ${gameEnd.length} finished games. ` +
+    `Colors match the board. ${means}.`;
   return { games: gameEnd.length, xMax, curves, caption };
 }
 
@@ -451,10 +451,8 @@ export function runBatch(params: BatchParams): {
   const lossHumanElim: number[] = [];
   const lossGameLen: number[] = [];
   const lossPackElim: number[] = [];
-  /** Place-order elim rounds (all finished games). */
-  const placeFirstOut: number[] = [];
-  const placeSecondOut: number[] = [];
-  const placeThirdOut: number[] = [];
+  /** Per-seat exit round (elim or win-at-end) for density chart. */
+  const seatExitSamples: number[][] = Array.from({ length: players }, () => []);
   const placeGameEnd: number[] = [];
 
   const t0 = Date.now();
@@ -518,18 +516,20 @@ export function runBatch(params: BatchParams): {
           }
         }
 
-        // Place-order timeline (who left 1st/2nd/3rd — not seat index)
-        const elimRounds = game.seats
-          .filter((s) => s.eliminated && s.eliminatedOnRound != null)
-          .map((s) => Math.max(1, s.eliminatedOnRound as number))
-          .sort((a, b) => a - b);
+        // Per-seat exit: eliminated round, or full game length if winner
         const endR = Math.max(1, game.rounds);
         placeGameEnd.push(endR);
-        if (elimRounds[0] != null) placeFirstOut.push(elimRounds[0]);
-        if (elimRounds[1] != null) placeSecondOut.push(elimRounds[1]);
-        // 3rd out ≈ last elimination before sole survivor (or game end)
-        if (elimRounds[2] != null) placeThirdOut.push(elimRounds[2]);
-        else if (elimRounds.length >= 1) placeThirdOut.push(endR);
+        for (const s of game.seats) {
+          const samples = seatExitSamples[s.seat];
+          if (!samples) continue;
+          if (s.winner) {
+            samples.push(endR);
+          } else if (s.eliminated && s.eliminatedOnRound != null) {
+            samples.push(Math.max(1, s.eliminatedOnRound));
+          } else if (s.eliminated) {
+            samples.push(endR);
+          }
+        }
       }
     }
 
@@ -592,12 +592,10 @@ export function runBatch(params: BatchParams): {
     lossGameLen,
     lossPackElim,
   );
-  const eliminationPlaceCurves = buildEliminationPlaceCurves(
-    placeFirstOut,
-    placeSecondOut,
-    placeThirdOut,
+  const eliminationPlaceCurves = buildSeatEliminationCurves(
+    seatExitSamples,
     placeGameEnd,
-    lossHumanElim,
+    humanSeat,
   );
   if (eliminationPlaceCurves) {
     outcomeSummary = `${outcomeSummary} ${eliminationPlaceCurves.caption}`;
