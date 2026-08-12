@@ -1,58 +1,14 @@
-import { heuristicAI } from "./core/agents";
-import { applyAction, getLegalActions, resolveDuelAiFully } from "./core/rules";
-import { createGame, currentPlayer } from "./core/state";
-import type { GameState } from "./core/types";
-
-function playGame(seed: number, players: number): {
-  winner: string | null;
-  rounds: number;
-  turns: number;
-} {
-  let state: GameState = createGame({
-    playerCount: players,
-    humanSeat: false,
-    seed,
-    maxRounds: 0,
-  });
-
-  let turns = 0;
-  const maxTurns = 3000;
-  while (state.phase !== "game_over" && turns < maxTurns) {
-    state = resolveDuelAiFully(state);
-    if (state.phase === "game_over") break;
-
-    if (state.phase === "await_duel") {
-      state = applyAction(state, heuristicAI(state));
-      turns++;
-      continue;
-    }
-
-    const p = currentPlayer(state);
-    if (p.eliminated) {
-      state = applyAction(state, { type: "end_turn" });
-      turns++;
-      continue;
-    }
-    let action = heuristicAI(state);
-    const legal = getLegalActions(state);
-    if (state.phase === "await_move" && action.type !== "move" && action.type !== "set_break") {
-      action = { type: "move" };
-    }
-    if (action.type === "end_turn" && !legal.endTurn) action = { type: "roll" };
-    if (action.type === "roll" && !legal.roll) action = { type: "end_turn" };
-    if (action.type === "move" && !legal.move) action = { type: "set_break", spaces: 0 };
-    state = applyAction(state, action);
-    turns++;
-  }
-
-  const winner = state.winnerId
-    ? state.players.find((x) => x.id === state.winnerId)?.name ?? state.winnerId
-    : null;
-
-  return { winner, rounds: state.round, turns };
-}
+/**
+ * Quick self-play to stdout (legacy convenience).
+ * For JSON batch / experiments / reports, use: npm run sim -- --help
+ * Docs: scripts/README-sim.md  (#89)
+ */
+import { playOneGame } from "./sim/play";
 
 function main(): void {
+  if (typeof console !== "undefined" && console.debug) {
+    console.debug = () => {};
+  }
   const games = Number(process.argv[2] ?? 10);
   const players = Number(process.argv[3] ?? 4);
   const wins = new Map<string, number>();
@@ -60,12 +16,19 @@ function main(): void {
   let unfinished = 0;
 
   console.log(`Self-play: ${games} games · ${players} AI · heuristic`);
+  console.log(`(JSON batch harness: npm run sim -- --help · scripts/README-sim.md)`);
 
   for (let i = 0; i < games; i++) {
-    const result = playGame(1000 + i * 997, players);
+    const result = playOneGame({
+      seed: 1000 + i * 997,
+      players,
+      gameIndex: i,
+      experiment: "default",
+      aiDifficulty: "normal",
+    });
     totalRounds += result.rounds;
-    if (!result.winner) unfinished++;
-    else wins.set(result.winner, (wins.get(result.winner) ?? 0) + 1);
+    if (result.unfinished || !result.winnerName) unfinished++;
+    else wins.set(result.winnerName, (wins.get(result.winnerName) ?? 0) + 1);
     if ((i + 1) % 5 === 0) process.stdout.write(`  … ${i + 1}/${games}\n`);
   }
 

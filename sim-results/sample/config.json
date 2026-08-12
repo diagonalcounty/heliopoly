@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "runId": "run-20260812T183934Z",
+  "createdAt": "2026-08-12T18:39:34.127Z",
+  "gitCommit": "a881ec2",
+  "engine": "typescript-core",
+  "engineNote": "Live src/core/** via tsx; not the optional Python port (heliopoly_retrograde_sim.py).",
+  "games": 20,
+  "players": 4,
+  "baseSeed": 1000,
+  "seedStride": 997,
+  "maxTurns": 3000,
+  "experiment": "prograde",
+  "aiDifficulty": "normal",
+  "cliArgs": [
+    "--games",
+    "20",
+    "--experiment",
+    "prograde",
+    "--seed",
+    "1000",
+    "--out",
+    "sim-results/sample",
+    "--quiet"
+  ]
+}

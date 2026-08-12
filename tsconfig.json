@@ -15,5 +15,5 @@
     "resolveJsonModule": true
   },
   "include": ["src"],
-  "exclude": ["src/selfplay.ts"]
+  "exclude": ["src/selfplay.ts", "src/sim/run.ts"]
 }

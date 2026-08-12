@@ -46,5 +46,18 @@ TypeScript + Vite. Pure rules engine in `src/core/` (no DOM); canvas shell in `s
 ```bash
 npm run typecheck
 npm run build      # → dist/
-npm run selfplay -- 10 4
+npm run selfplay -- 10 4          # quick win counts to stdout
+npm run sim -- --games 100        # batch JSON sim (balance / AI / direction)
 ```
+
+### Terminal batch sim (balance / AI)
+
+Headless multi-game runs that write JSON under `sim-results/` (live TypeScript core — not a second rules engine):
+
+```bash
+npm run sim -- --help
+npm run sim -- --games 1000 --experiment retrograde
+python3 scripts/sim_report.py sim-results/<run-folder>
+```
+
+Full guide: **[scripts/README-sim.md](scripts/README-sim.md)** · issue [#89](https://github.com/diagonalcounty/heliopoly/issues/89).

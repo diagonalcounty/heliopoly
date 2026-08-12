@@ -8,3 +8,8 @@ scripts/backlog.env
 ios/**/xcuserdata/
    **/xcuserdata/
    *.xcuserstate
+
+# Batch sim dumps (#89) — keep only committed sample schema
+sim-results/**
+!sim-results/sample/
+!sim-results/sample/**
