@@ -26,7 +26,17 @@ export interface SimRunConfig {
   seedStride: number;
   maxTurns: number;
   experiment: SimExperiment;
+  /**
+   * Legacy single-table difficulty (equals `aiDifficulty` when mixed skill).
+   * Prefer humanDifficulty + aiDifficulty.
+   */
   aiDifficulty: AiDifficulty;
+  /** Skill for the human-proxy seat (same scale as AI: easy…expert). */
+  humanDifficulty: AiDifficulty;
+  /** Skill for all other seats. */
+  packDifficulty: AiDifficulty;
+  /** Seat index treated as human proxy (default 0 = first to launch). */
+  humanSeat: number;
   cliArgs: string[];
 }
 
@@ -49,6 +59,9 @@ export interface SimSeatResult {
   circuitsCompleted: number;
   parkCount: number;
   winner: boolean;
+  /** Skill used for this seat in the sim (human proxy or pack). */
+  difficulty: AiDifficulty;
+  isHumanProxy: boolean;
 }
 
 export interface SimGameResult {
@@ -69,6 +82,8 @@ export interface SimGameResult {
     claimLines: number;
   };
   seats: SimSeatResult[];
+  /** Seat 0 (or humanSeat) won this finished game. */
+  humanWon: boolean | null;
 }
 
 export interface SimSummary {
@@ -100,4 +115,17 @@ export interface SimSummary {
   winRateBySeat: Record<string, { n: number; wins: number; rate: number }>;
   /** Finished games used as denominator for win-rate tables. */
   finishedGames: number;
+  /** Finished games won by human-proxy seat. */
+  humanWins: number;
+  /** humanWins / finishedGames */
+  humanWinRate: number;
+  /** 1 / players */
+  fairShare: number;
+  /** humanWinRate − fairShare (percentage points as fraction) */
+  humanLiftVsFair: number;
+  /**
+   * Plain-language, non-LLM narrative for operators
+   * (human skill vs pack, seat bias, propellant, etc.).
+   */
+  outcomeSummary: string;
 }

@@ -50,18 +50,22 @@ npm run selfplay -- 10 4          # quick win counts to stdout
 npm run sim -- --games 100        # batch JSON sim (balance / AI / direction)
 ```
 
-### Terminal batch sim (balance / AI)
+### Local Sim Lab & batch balance tools
 
-Headless multi-game runs that write JSON under `sim-results/` (live TypeScript core — not a second rules engine):
+**Not deployed to heliopoly.live** — Mac/terminal only. Same TypeScript rules engine as production.
 
 ```bash
-npm run sim -- --help
-npm run sim -- --games 1000 --experiment retrograde
-python3 scripts/sim_report.py sim-results/<run-folder>
-
-# Browser UI (local only) — form → run → results
+# Browser UI: pick experiment, human skill vs AI pack skill, run thousands of games
 npm run sim-lab
 # → http://127.0.0.1:5174/
+
+# CLI equivalent
+npm run sim -- --games 2000 --human-difficulty easy --pack-difficulty expert
+python3 scripts/sim_report.py sim-results/<run-folder>
 ```
+
+**What it’s for:** direction experiments (pro/retro), launch-order bias, and **human-proxy vs AI pack** skill gaps (easy/normal/hard/expert on the same heuristic scale as the live game).
+
+**Design note:** When every seat uses the **same** AI skill, win rates stay near fair share (~25% in a 4-player game). That evenness is **good** — clone AIs don’t invent a fake first-player monopoly; dice and economy still matter. Use **Human level ≠ AI pack level** when you want “does a novice have a chance against experts?”
 
 Full guide: **[scripts/README-sim.md](scripts/README-sim.md)** · issues [#89](https://github.com/diagonalcounty/heliopoly/issues/89) · [#91](https://github.com/diagonalcounty/heliopoly/issues/91).

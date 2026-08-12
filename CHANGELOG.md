@@ -14,6 +14,7 @@
 - **Batch sim harness (#89):** `npm run sim` drives live TS core; writes `sim-results/<run>/{config,games.ndjson,summary}.json`; experiments (prograde/retrograde/choice/mixed); `python3 scripts/sim_report.py`; docs `scripts/README-sim.md`
 - **Sim HTML report (#90):** `python3 scripts/sim_html_report.py` → self-contained `report.html` for latest (or chosen) run
 - **Sim Lab (#91):** `npm run sim-lab` → local web UI (http://127.0.0.1:5174) to run batch scenarios and view results
+- **Sim human vs pack skill:** seat 0 `humanDifficulty` vs other seats `packDifficulty`; Lab shows human win % + plain-language outcome summary; README notes even equal-skill AI tables
 
 ### Lab
 - **Eastern Arabic compare drill (#81):** Lab literacy minigame (hint, reset, 12-try cap, win recap)

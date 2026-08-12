@@ -1,7 +1,17 @@
 import { heuristicAI } from "../core/agents";
-import { applyAction, getLegalActions, netWorth, resolveDuelAiFully } from "../core/rules";
+import {
+  applyAction,
+  getLegalActions,
+  netWorth,
+  resolveDuelAiFully,
+} from "../core/rules";
 import { createGame, currentPlayer } from "../core/state";
-import type { AiDifficulty, GameState, MoveDirection } from "../core/types";
+import {
+  normalizeAiDifficulty,
+  type AiDifficulty,
+  type GameState,
+  type MoveDirection,
+} from "../core/types";
 import type { SimExperiment, SimGameResult, SimSeatResult } from "./types";
 
 export const DEFAULT_MAX_TURNS = 3000;
@@ -26,7 +36,6 @@ export function applyExperiment(
         p.directionLocked = true;
         break;
       case "choice":
-        // Every seat may pick direction once (AI heuristic).
         p.canBidirectional = true;
         p.moveDirection = "forward";
         p.directionLocked = false;
@@ -40,7 +49,6 @@ export function applyExperiment(
       }
       case "default":
       default:
-        // Palindrome callsigns keep hidden #47 unlock; others stay prograde.
         break;
     }
   }
@@ -54,7 +62,25 @@ function countLog(state: GameState, re: RegExp): number {
   return n;
 }
 
-function seatSnapshot(state: GameState, winnerId: string | null): SimSeatResult[] {
+/** Difficulty for each seat: human proxy on humanSeat, pack elsewhere. */
+export function seatDifficulties(
+  players: number,
+  humanSeat: number,
+  humanDifficulty: AiDifficulty,
+  packDifficulty: AiDifficulty,
+): AiDifficulty[] {
+  const h = Math.min(players - 1, Math.max(0, humanSeat));
+  const human = normalizeAiDifficulty(humanDifficulty);
+  const pack = normalizeAiDifficulty(packDifficulty);
+  return Array.from({ length: players }, (_, i) => (i === h ? human : pack));
+}
+
+function seatSnapshot(
+  state: GameState,
+  winnerId: string | null,
+  diffs: AiDifficulty[],
+  humanSeat: number,
+): SimSeatResult[] {
   return state.players.map((p, seat) => ({
     seat,
     playerId: p.id,
@@ -73,7 +99,17 @@ function seatSnapshot(state: GameState, winnerId: string | null): SimSeatResult[
     circuitsCompleted: p.circuitsCompleted,
     parkCount: p.parkCount,
     winner: winnerId !== null && p.id === winnerId,
+    difficulty: diffs[seat] ?? "normal",
+    isHumanProxy: seat === humanSeat,
   }));
+}
+
+function difficultyForCurrent(
+  state: GameState,
+  diffs: AiDifficulty[],
+): AiDifficulty {
+  const idx = state.currentPlayerIndex;
+  return diffs[idx] ?? normalizeAiDifficulty(state.config.aiDifficulty);
 }
 
 export function playOneGame(opts: {
@@ -81,16 +117,31 @@ export function playOneGame(opts: {
   players: number;
   gameIndex: number;
   experiment: SimExperiment;
-  aiDifficulty: AiDifficulty;
+  /** @deprecated use packDifficulty; still accepted as pack default */
+  aiDifficulty?: AiDifficulty;
+  humanDifficulty?: AiDifficulty;
+  packDifficulty?: AiDifficulty;
+  humanSeat?: number;
   maxTurns?: number;
 }): SimGameResult {
   const maxTurns = opts.maxTurns ?? DEFAULT_MAX_TURNS;
+  const pack = normalizeAiDifficulty(
+    opts.packDifficulty ?? opts.aiDifficulty ?? "normal",
+  );
+  const human = normalizeAiDifficulty(opts.humanDifficulty ?? pack);
+  const humanSeat = Math.min(
+    opts.players - 1,
+    Math.max(0, opts.humanSeat ?? 0),
+  );
+  const diffs = seatDifficulties(opts.players, humanSeat, human, pack);
+
   let state: GameState = createGame({
     playerCount: opts.players,
     humanSeat: false,
     seed: opts.seed,
     maxRounds: 0,
-    aiDifficulty: opts.aiDifficulty,
+    // Config field is pack skill; human override is applied per action
+    aiDifficulty: pack,
   });
   applyExperiment(state, opts.experiment);
 
@@ -100,7 +151,8 @@ export function playOneGame(opts: {
     if (state.phase === "game_over") break;
 
     if (state.phase === "await_duel") {
-      state = applyAction(state, heuristicAI(state));
+      const d = difficultyForCurrent(state, diffs);
+      state = applyAction(state, heuristicAI(state, d));
       turns++;
       continue;
     }
@@ -112,7 +164,8 @@ export function playOneGame(opts: {
       continue;
     }
 
-    let action = heuristicAI(state);
+    const d = difficultyForCurrent(state, diffs);
+    let action = heuristicAI(state, d);
     const legal = getLegalActions(state);
     if (
       state.phase === "await_move" &&
@@ -137,6 +190,12 @@ export function playOneGame(opts: {
   const winnerName = winnerId
     ? (state.players.find((x) => x.id === winnerId)?.name ?? winnerId)
     : null;
+  const winnerSeat = winnerId
+    ? state.players.findIndex((x) => x.id === winnerId)
+    : -1;
+  const humanWon = unfinished
+    ? null
+    : winnerSeat === humanSeat;
 
   return {
     schemaVersion: 1,
@@ -154,6 +213,7 @@ export function playOneGame(opts: {
       depotPlaceLines: countLog(state, /\bdepot\b/i),
       claimLines: countLog(state, /\bclaims\b/i),
     },
-    seats: seatSnapshot(state, winnerId),
+    seats: seatSnapshot(state, winnerId, diffs, humanSeat),
+    humanWon,
   };
 }
