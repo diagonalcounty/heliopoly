@@ -98,10 +98,21 @@
         <h2>Results</h2>
         <div id="kpis" class="kpis"></div>
         <div id="meta" class="meta mono"></div>
+
+        <div class="launch-order" id="launch-order">
+          <h3 class="launch-title">Who wins by launch order?</h3>
+          <p class="hint launch-blurb">
+            Share of <strong>finished</strong> games won by each seat.
+            Seat&nbsp;0 = first to launch. Fair 4-player baseline =
+            <strong>25%</strong> each (not 75% for first).
+          </p>
+          <div id="launch-cards" class="launch-cards"></div>
+          <p id="launch-callout" class="launch-callout" hidden></p>
+        </div>
+
         <p class="hint rate-hint">
-          Rates = share of <strong>finished games</strong> won by that key
-          (winner’s direction / propellant / seat / rocket). All-retro →
-          backward ≈ 100%. Mixed → forward + backward ≈ 100%.
+          Other rates = share of finished games by winner’s attribute
+          (direction / propellant / rocket). All-retro → backward ≈ 100%.
         </p>
         <div class="tables">
           <div>
@@ -117,7 +128,7 @@
             <div id="tbl-prop"></div>
           </div>
           <div>
-            <h3>By seat (winner)</h3>
+            <h3>By seat (detail)</h3>
             <div id="tbl-seat"></div>
           </div>
         </div>
