@@ -117,7 +117,11 @@ function parseRun(body: RunBody): {
   if (!EXPERIMENTS.includes(experiment)) {
     throw new Error(`Unknown experiment: ${body.experiment}`);
   }
-  const games = Math.min(50_000, Math.max(1, Math.floor(Number(body.games) || 100)));
+  // Cap for Lab form only — beefy Macs can push large N (~200–400 g/s typical)
+  const games = Math.min(
+    1_000_000,
+    Math.max(1, Math.floor(Number(body.games) || 100)),
+  );
   const players = Math.min(6, Math.max(2, Math.floor(Number(body.players) || 4)));
   return {
     games,

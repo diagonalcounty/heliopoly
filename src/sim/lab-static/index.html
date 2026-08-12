@@ -28,7 +28,7 @@
                 name="games"
                 type="number"
                 min="1"
-                max="50000"
+                max="1000000"
                 value="200"
                 required
               />
@@ -83,7 +83,9 @@
           </div>
           <p class="hint">
             Seed formula: <code>seed_i = base + i × stride</code>. Same seed +
-            experiment arms compare fairly. Long runs stay on this machine only.
+            experiment arms compare fairly. Up to <strong>1 000 000</strong> games
+            per run (~200–400 g/s on a fast Mac → ~40–80 min at the cap). Long runs
+            stay on this machine only.
           </p>
         </form>
         <div id="progress-wrap" class="progress-wrap hidden">
