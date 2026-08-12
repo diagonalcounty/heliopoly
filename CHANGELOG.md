@@ -7,7 +7,8 @@
 
 ### UX
 - **Animation speed (#10):** Slow / Normal / Fast / Instant in the header; persists in localStorage; scales ship hops, dice rolls, and AI pacing
-- **Path preview click-to-land (#15):** after roll, rocket-color range line on the board; click/tap a stop to set break and move; break fuel on path-segment hover (planetoid inspect unchanged)
+- **Path preview click-to-land (#15):** after roll, rocket-color range line on the board; click/tap a stop to set break and move; break fuel on path-segment hover (planetoid inspect unchanged); line ~¾ prior thickness after playtest
+- **Buy before leave (#88):** claim unowned deed underfoot in `await_action` as well as post-land (rent income can fund a later buy)
 
 ### Lab
 - **Eastern Arabic compare drill (#81):** Lab literacy minigame (hint, reset, 12-try cap, win recap)

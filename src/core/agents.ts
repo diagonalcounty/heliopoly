@@ -57,6 +57,13 @@ export function heuristicAI(state: GameState): PlayerAction {
   const difficulty = normalizeAiDifficulty(state.config.aiDifficulty);
 
   if (state.phase === "await_action") {
+    // Buy underfoot before leave/roll if cash arrived later (rent etc.) — #88
+    if (
+      legal.buy &&
+      p.cash >= legal.buyPrice + (difficulty === "easy" ? 250 : 150)
+    ) {
+      return { type: "buy" };
+    }
     if (legal.sell && p.cash < 200 && legal.sellValue > 0) {
       return { type: "sell", nodeId: legal.sellNodeId! };
     }
@@ -72,6 +79,12 @@ export function heuristicAI(state: GameState): PlayerAction {
     }
     if (legal.sell && p.cash < 100 && p.properties.length > 2) {
       return { type: "sell", nodeId: legal.sellNodeId! };
+    }
+    if (legal.placeStation && (p.fuel <= 14 || p.stationsInHand >= 2)) {
+      const cost = legal.placeStationCost;
+      if (cost === 0 || p.cash >= cost + 120) {
+        return { type: "place_station" };
+      }
     }
     if (legal.warp && p.warpCharges > 0) {
       const dest = chooseWarpDestination(state, difficulty);
