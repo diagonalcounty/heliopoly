@@ -1620,6 +1620,27 @@ for (const btn of document.querySelectorAll<HTMLButtonElement>(
   });
 }
 
+/**
+ * Fuel tank as unit dots (language A): ● full · ◐ half · ○ empty.
+ * 10 segments scaled to maxFuel, quantized to half-segments.
+ * Reserve block bars (▓░) for non-fuel meters elsewhere.
+ */
+function fuelTankBar(fuel: number, maxFuel: number, segments = 10): string {
+  const max = Math.max(1, maxFuel);
+  // Nearest half-segment (0, 0.5, 1, … segments)
+  const halfSteps = Math.round(
+    Math.min(1, Math.max(0, fuel / max)) * segments * 2,
+  );
+  let full = Math.floor(halfSteps / 2);
+  let half = halfSteps % 2;
+  if (full >= segments) {
+    full = segments;
+    half = 0;
+  }
+  const empty = Math.max(0, segments - full - half);
+  return `${"●".repeat(full)}${half ? "◐" : ""}${"○".repeat(empty)}`;
+}
+
 /** True when board + sidebar stack (portrait tablet / phone). */
 function isStackedShell(): boolean {
   if (typeof window === "undefined" || !window.matchMedia) return false;
@@ -1629,8 +1650,63 @@ function isStackedShell(): boolean {
   );
 }
 
+/**
+ * Squish the square map so it fits under the top chrome (#83).
+ * Available height ≈ visual viewport − header (title + Lab/Ops/Speed row + buffer).
+ */
+function fitBoardToViewport(): void {
+  const canvas = document.getElementById("board") as HTMLCanvasElement | null;
+  const top = document.querySelector(".top") as HTMLElement | null;
+  const app = document.getElementById("app");
+  const boardPanel = document.querySelector(".board-panel") as HTMLElement | null;
+  if (!canvas) return;
+
+  const vv = window.visualViewport;
+  const vh = vv?.height ?? window.innerHeight;
+  const vw = vv?.width ?? window.innerWidth;
+  const landscape = vw > vh;
+  // iPad Pro 11" / Air class landscape (and similar short-wide shells)
+  const shouldFit = landscape && vh <= 1000 && vw >= 900 && vw <= 1400;
+
+  if (!shouldFit) {
+    canvas.style.removeProperty("width");
+    canvas.style.removeProperty("height");
+    canvas.style.removeProperty("max-width");
+    canvas.style.removeProperty("max-height");
+    document.documentElement.style.removeProperty("--board-fit");
+    return;
+  }
+
+  const topH = top?.getBoundingClientRect().height ?? 64;
+  let padY = 12;
+  if (app) {
+    const s = getComputedStyle(app);
+    padY =
+      (parseFloat(s.paddingTop) || 0) + (parseFloat(s.paddingBottom) || 0);
+  }
+  // Buffer around header buttons (matches user request: chrome + padding)
+  const buffer = 12;
+  const chrome = topH + padY + buffer;
+  const availH = Math.max(160, Math.floor(vh - chrome));
+
+  let availW = Math.floor(vw * 0.66);
+  if (boardPanel) {
+    const r = boardPanel.getBoundingClientRect();
+    if (r.width > 48) availW = Math.floor(r.width - 8);
+  }
+
+  const side = Math.max(160, Math.min(availW, availH));
+  canvas.style.width = `${side}px`;
+  canvas.style.height = `${side}px`;
+  canvas.style.maxWidth = `${side}px`;
+  canvas.style.maxHeight = `${side}px`;
+  document.documentElement.style.setProperty("--board-fit", `${side}px`);
+}
+
 /** Size log from bottom of Pilot Controls to bottom of the board panel. */
 function resizeLog(): void {
+  fitBoardToViewport();
+
   const board = document.querySelector(".board-panel") as HTMLElement;
   const pilotControls = document.getElementById(
     "pilot-controls",
@@ -1703,6 +1779,7 @@ function renderSide(): void {
       rankLabel: "OUT",
     })),
   ];
+  const maxFuel = state.config.maxFuel;
   rankingsEl.innerHTML = standingRows
     .map(({ pl, worth, rankLabel }) => {
       const active = pl.id === p.id && state!.phase !== "game_over";
@@ -1717,8 +1794,15 @@ function renderSide(): void {
       const riskBadge = atRisk.atRisk
         ? `<span class="at-risk-badge" title="Going under: ${atRisk.reasons.join(" · ")}" role="img" aria-label="Going under">⚠</span>`
         : "";
+      const bar = fuelTankBar(pl.fuel, maxFuel);
+      const barTone =
+        pl.eliminated || pl.fuel <= 1
+          ? " fuel-bar-red"
+          : pl.fuel <= 3
+            ? " fuel-bar-amber"
+            : "";
       // Single-line markup: avoids anonymous whitespace grid items if pre-wrap sneaks back
-      return `<div class="rank-row${lead}${active ? " active" : ""}${pl.eliminated ? " out" : ""}${atRisk.atRisk ? " at-risk" : ""}"><div class="swatch" style="background:${pl.color}" aria-hidden="true"></div><div class="rank-body"><div class="rank-top"><span class="rank-id">${rankLabel} ${rocketNameButton(pl.name)}${skip} · <span class="rank-prop">${plProp}</span>${riskBadge}</span><span class="rank-money"><span class="cash">${formatMoney(pl.cash)} cash</span> · NW ${formatMoney(worth)}</span></div><div class="rank-detail">${pl.fuel} fuel · ${pl.properties.length} claims · ${at}</div></div></div>`;
+      return `<div class="rank-row${lead}${active ? " active" : ""}${pl.eliminated ? " out" : ""}${atRisk.atRisk ? " at-risk" : ""}"><div class="swatch" style="background:${pl.color}" aria-hidden="true"></div><div class="rank-body"><div class="rank-top"><span class="rank-id">${rankLabel} ${rocketNameButton(pl.name)}${skip} · <span class="rank-prop">${plProp}</span>${riskBadge}</span><span class="rank-money"><span class="cash">${formatMoney(pl.cash)} cash</span> · NW ${formatMoney(worth)}</span></div><div class="rank-detail"><span class="fuel-bar${barTone}" title="Fuel ${pl.fuel} / ${maxFuel}" aria-label="Fuel ${pl.fuel} of ${maxFuel}">${bar}</span> <span class="fuel-n">${pl.fuel}</span> fuel · ${pl.properties.length} claims · ${at}</div></div></div>`;
     })
     .join("");
 
@@ -2203,23 +2287,32 @@ canvas.addEventListener("click", (ev) => {
   void act({ type: "warp", destination: id });
 });
 
-window.addEventListener("resize", resizeLog);
+function onShellResize(): void {
+  resizeLog();
+  drawBoard();
+}
+
+window.addEventListener("resize", onShellResize);
 window.addEventListener("orientationchange", () => {
-  window.setTimeout(resizeLog, 200);
+  window.setTimeout(onShellResize, 200);
 });
+window.visualViewport?.addEventListener("resize", onShellResize);
 
 /** iPad WKWebView / home-screen: shell classes for layout. */
 (function markNativeShell(): void {
   try {
-    const file =
-      typeof location !== "undefined" && location.protocol === "file:";
-    const standalone =
-      typeof navigator !== "undefined" &&
-      Boolean((navigator as Navigator & { standalone?: boolean }).standalone);
+    const proto =
+      typeof location !== "undefined" ? location.protocol : "";
+    // file:// (legacy) or heliopoly:// (iOS custom scheme — ES modules work there)
+    const native =
+      proto === "file:" ||
+      proto === "heliopoly:" ||
+      (typeof navigator !== "undefined" &&
+        Boolean((navigator as Navigator & { standalone?: boolean }).standalone));
     const coarse =
       typeof window !== "undefined" &&
       !!window.matchMedia?.("(pointer: coarse)").matches;
-    if (file || standalone) {
+    if (native) {
       document.documentElement.classList.add("native-shell");
     }
     if (coarse) document.documentElement.classList.add("touch-ui");
@@ -2231,4 +2324,8 @@ window.addEventListener("orientationchange", () => {
 setSetupCollapsed(false);
 drawBoard();
 renderSide();
-resizeLog();
+// Second pass: header is laid out, then squish board under Lab/Ops chrome (#83)
+requestAnimationFrame(() => {
+  onShellResize();
+  requestAnimationFrame(onShellResize);
+});
