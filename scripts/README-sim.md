@@ -24,7 +24,25 @@ npm install             # once
 
 ---
 
-## Quick start
+## Sim Lab (browser UI) — #91
+
+Local web app: pick scenario → run live core → see charts in the page.
+
+```bash
+npm run sim-lab
+# open http://127.0.0.1:5174/
+```
+
+- Form: games, players, experiment, AI difficulty, seed, optional **Save** to `sim-results/`
+- Progress stream while running; results panel when done
+- **Localhost only** — not deployed to heliopoly.live
+- Stop with Ctrl+C in the terminal
+
+Env overrides: `HELIOPOLY_SIM_LAB_HOST` (default `127.0.0.1`), `HELIOPOLY_SIM_LAB_PORT` (default `5174`).
+
+---
+
+## Quick start (CLI)
 
 ```bash
 # 100 AI games, default direction rules (palindrome #47 unlock as in live)

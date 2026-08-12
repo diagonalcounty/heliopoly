@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "selfplay": "tsx src/selfplay.ts",
     "sim": "tsx src/sim/run.ts",
+    "sim-lab": "tsx src/sim/lab-server.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "ios:sync": "bash scripts/ios-sync-web.sh"
   },
