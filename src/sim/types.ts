@@ -86,11 +86,18 @@ export interface SimSummary {
   winsBySeat: Record<string, number>;
   winsByDirection: Record<string, number>;
   winsByPropellant: Record<string, number>;
-  /** Among finished games only. */
+  /**
+   * Share of **finished games** whose **winner** had this attribute.
+   * `n` = finished game count (same denominator for every row).
+   * `rate` = wins / n — rates across keys sum to ~1.0 (e.g. all-retro → backward 100%).
+   * Not seat-observations (that wrongly baselined 4-player tables at 25%).
+   */
   winRateByDirection: Record<string, { n: number; wins: number; rate: number }>;
   winRateByPropellant: Record<
     string,
     { n: number; wins: number; rate: number }
   >;
   winRateBySeat: Record<string, { n: number; wins: number; rate: number }>;
+  /** Finished games used as denominator for win-rate tables. */
+  finishedGames: number;
 }

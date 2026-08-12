@@ -18,6 +18,14 @@ function pct(x) {
   return `${(100 * x).toFixed(1)}%`;
 }
 
+function fmtInt(n) {
+  return Number(n).toLocaleString("en-US");
+}
+
+/**
+ * One block per key: label, bar, then "W wins · n finished · rate"
+ * (avoids skinny columns overlapping at 20k+ games).
+ */
 function barTable(rows, labelKey = "key") {
   if (!rows.length) return "<p class='hint'>No data</p>";
   const max = Math.max(...rows.map((r) => r.wins), 1);
@@ -26,24 +34,18 @@ function barTable(rows, labelKey = "key") {
       const w = (r.wins / max) * 100;
       const rate = r.n ? r.wins / r.n : r.share ?? 0;
       const label = escapeHtml(r[labelKey] ?? r.key);
-      // Bar in a track under the label — width % cannot overlap other cells
-      return `<tr>
-        <td class="label-cell">
-          <div class="label">${label}</div>
-          <div class="bar-track" aria-hidden="true">
-            <div class="bar" style="width:${w.toFixed(1)}%"></div>
-          </div>
-        </td>
-        <td class="num">${r.wins}</td>
-        <td class="num">${r.n ?? "—"}</td>
-        <td class="num">${pct(rate)}</td>
-      </tr>`;
+      const n = r.n ?? "—";
+      const nTxt = typeof n === "number" ? fmtInt(n) : n;
+      return `<div class="stat-row">
+        <div class="label">${label}</div>
+        <div class="bar-track" aria-hidden="true">
+          <div class="bar" style="width:${w.toFixed(1)}%"></div>
+        </div>
+        <div class="stat-line mono">${fmtInt(r.wins)} wins · n=${nTxt} · ${pct(rate)}</div>
+      </div>`;
     })
     .join("");
-  return `<table class="stats-table">
-    <thead><tr><th>Key</th><th>Wins</th><th>n</th><th>Rate</th></tr></thead>
-    <tbody>${body}</tbody>
-  </table>`;
+  return `<div class="stat-list">${body}</div>`;
 }
 
 function escapeHtml(s) {
@@ -86,8 +88,17 @@ function renderResults(payload) {
     outDir ? `saved ${outDir}` : "not saved to disk",
   ].join(" · ");
 
+  const finished =
+    summary.finishedGames ?? Math.max(0, games - (summary.unfinished || 0));
+
+  // Share of finished games (rates sum ≈ 100% across keys)
   const nameRows = Object.entries(summary.winsByName || {})
-    .map(([key, wins]) => ({ key, wins, n: games, share: wins / games }))
+    .map(([key, wins]) => ({
+      key,
+      wins,
+      n: finished,
+      share: finished ? wins / finished : 0,
+    }))
     .sort((a, b) => b.wins - a.wins);
   document.getElementById("tbl-names").innerHTML = barTable(nameRows);
 

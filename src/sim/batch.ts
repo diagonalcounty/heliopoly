@@ -55,25 +55,6 @@ export function makeRunId(): string {
   );
 }
 
-function emptyWinRate(): Record<
-  string,
-  { n: number; wins: number; rate: number }
-> {
-  return {};
-}
-
-function bumpRate(
-  map: Record<string, { n: number; wins: number; rate: number }>,
-  key: string,
-  win: boolean,
-): void {
-  const cur = map[key] ?? { n: 0, wins: 0, rate: 0 };
-  cur.n += 1;
-  if (win) cur.wins += 1;
-  cur.rate = cur.n ? cur.wins / cur.n : 0;
-  map[key] = cur;
-}
-
 export function runBatch(params: BatchParams): {
   summary: SimSummary;
   sampleGames: SimGameResult[];
@@ -119,9 +100,6 @@ export function runBatch(params: BatchParams): {
   const winsBySeat: Record<string, number> = {};
   const winsByDirection: Record<string, number> = {};
   const winsByPropellant: Record<string, number> = {};
-  const winRateByDirection = emptyWinRate();
-  const winRateByPropellant = emptyWinRate();
-  const winRateBySeat = emptyWinRate();
 
   let totalRounds = 0;
   let totalTurns = 0;
@@ -151,24 +129,23 @@ export function runBatch(params: BatchParams): {
 
     totalRounds += game.rounds;
     totalTurns += game.turns;
-    if (game.unfinished) unfinished++;
-    else if (game.winnerName) {
-      winsByName[game.winnerName] = (winsByName[game.winnerName] ?? 0) + 1;
-    }
-
-    for (const s of game.seats) {
-      const seatKey = String(s.seat);
-      const dirKey = s.moveDirection;
-      const propKey = s.propellant;
-      if (!game.unfinished) {
-        bumpRate(winRateBySeat, seatKey, s.winner);
-        bumpRate(winRateByDirection, dirKey, s.winner);
-        bumpRate(winRateByPropellant, propKey, s.winner);
-        if (s.winner) {
-          winsBySeat[seatKey] = (winsBySeat[seatKey] ?? 0) + 1;
-          winsByDirection[dirKey] = (winsByDirection[dirKey] ?? 0) + 1;
-          winsByPropellant[propKey] = (winsByPropellant[propKey] ?? 0) + 1;
-        }
+    if (game.unfinished) {
+      unfinished++;
+      // progress only
+    } else {
+      // Game-level: count the winner once (not every seat) — #91 metric fix
+      const winner =
+        game.seats.find((s) => s.winner) ??
+        game.seats.find((s) => s.playerId === game.winnerId);
+      if (winner) {
+        const name = game.winnerName ?? winner.name;
+        winsByName[name] = (winsByName[name] ?? 0) + 1;
+        const seatKey = String(winner.seat);
+        const dirKey = winner.moveDirection;
+        const propKey = winner.propellant;
+        winsBySeat[seatKey] = (winsBySeat[seatKey] ?? 0) + 1;
+        winsByDirection[dirKey] = (winsByDirection[dirKey] ?? 0) + 1;
+        winsByPropellant[propKey] = (winsByPropellant[propKey] ?? 0) + 1;
       }
     }
 
@@ -188,6 +165,22 @@ export function runBatch(params: BatchParams): {
     }
   }
 
+  const finishedGames = games - unfinished;
+  /** Share of finished games won by this key (rates sum to ~100%). */
+  function shareOfFinished(
+    wins: Record<string, number>,
+  ): Record<string, { n: number; wins: number; rate: number }> {
+    const out: Record<string, { n: number; wins: number; rate: number }> = {};
+    for (const [key, w] of Object.entries(wins)) {
+      out[key] = {
+        n: finishedGames,
+        wins: w,
+        rate: finishedGames > 0 ? w / finishedGames : 0,
+      };
+    }
+    return out;
+  }
+
   const wallMs = Date.now() - t0;
   const summary: SimSummary = {
     schemaVersion: 1,
@@ -204,9 +197,10 @@ export function runBatch(params: BatchParams): {
     winsBySeat,
     winsByDirection,
     winsByPropellant,
-    winRateByDirection,
-    winRateByPropellant,
-    winRateBySeat,
+    winRateByDirection: shareOfFinished(winsByDirection),
+    winRateByPropellant: shareOfFinished(winsByPropellant),
+    winRateBySeat: shareOfFinished(winsBySeat),
+    finishedGames,
   };
 
   if (outDir) {
