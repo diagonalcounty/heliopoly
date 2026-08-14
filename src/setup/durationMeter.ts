@@ -29,7 +29,7 @@ export const DURATION_METER_VIS = {
   pad: 6,
   radius: 10,
   borderGlow: 0.12,
-  titleSize: 9,
+  titleSize: 8,
   titleA: 0.95,
   scaleMin: 15,
   scaleMax: 60,

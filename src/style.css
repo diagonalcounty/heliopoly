@@ -714,14 +714,14 @@ html.native-shell #app {
 
 .duration-meter-title {
   text-align: center;
-  padding: 6px 4px 4px;
-  /* Match AI difficulty fieldset legend (.propellant-field legend) */
-  font-size: 0.8rem;
+  padding: 5px 3px 3px;
+  /* Slightly smaller than AI difficulty legend (0.8rem) so title wraps in ~2 lines */
+  font-size: 0.68rem;
   font-weight: 400;
   letter-spacing: normal;
   text-transform: none;
   color: var(--accent-2);
-  line-height: 1.3;
+  line-height: 1.2;
   border-bottom: 1px solid #243656;
   text-shadow: none;
 }
