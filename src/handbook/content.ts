@@ -309,7 +309,7 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
 <ul>
   <li>Parks <strong>1–4</strong> — no feral check yet.</li>
   <li>Park <strong>5</strong> — <strong>each</strong> of your claims rolls: <strong>50%</strong> chance to go <strong>feral</strong>.</li>
-  <li>Each park after that <strong>doubles</strong> the chance (100% from park <strong>6</strong> onward).</li>
+  <li>Each park after that closes <strong>half the remaining gap</strong> to 100% (75% → 87.5% → 93.75% …). Risk asymptotes toward certainty without a hard 100% cliff on park 6.</li>
 </ul>
 <p><strong>Feral outcome:</strong> claim returns to the bank (unowned). Any fuel depot on it is <strong>destroyed</strong>. Other pilots may buy it again.</p>
 <p>Moving on a turn avoids adding a park <em>that turn</em>. Park count never resets. Check your park count on the turn panel.</p>

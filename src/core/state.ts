@@ -127,7 +127,7 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
       `Game start: ${count} pilots · bank ${formatMoney(config.startingCash)} each`,
       `Propellants: ${propSummary}`,
       `Path: Earth→Venus→Mercury→Mars→Belt→Jupiter→Saturn→Earth`,
-      `Monopoly rent ×2 · park 5+ no-move → feral risk (50% then doubles) · depots lost on feral/out`,
+      `Monopoly rent ×2 · park 5+ no-move → feral risk (50% then half-gap toward 100%) · depots lost on feral/out`,
       `Earth: land ⍼400 / pass ⍼200 (+⍼10 per your rotations) · ⍼1000 at rotation 10/20/30…`,
     ],
     turnDeltas: [],
