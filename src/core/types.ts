@@ -76,6 +76,18 @@ export interface GameAnnouncement {
   body: string;
 }
 
+/** Human/AI must pick a target after some charter alerts (#107). */
+export type CharterChoiceKind =
+  | "vibe_kick"
+  | "olbers_station"
+  | "blockchain_steal";
+
+export interface PendingCharterChoice {
+  kind: CharterChoiceKind;
+  /** Pilot who chooses. */
+  chooserId: string;
+}
+
 export interface Player {
   id: string;
   name: string;
@@ -265,6 +277,11 @@ export interface GameState {
   /** Pending Oregon Trail–style popup; UI shows then clears. */
   pendingAnnouncement: GameAnnouncement | null;
   /**
+   * After some alerts, chooser must pick a target (standings / board).
+   * Blocks normal actions until resolved (#107).
+   */
+  pendingCharterChoice: PendingCharterChoice | null;
+  /**
    * Timed charter-alert cadence (**rounds**, not seat turns).
    * After 5 rounds: 50%; each miss splits the difference toward 100%;
    * on fire, wait 5 rounds again.
@@ -280,6 +297,11 @@ export interface GameState {
     lastEventId: string | null;
     /** Event ids already announced this charter — each pool event at most once. */
     firedIds: string[];
+    /**
+     * One-shot rare check for vibe-code kick at round ≥60 (#107).
+     * True once the 50% roll has been attempted (hit or miss).
+     */
+    vibeKickChecked: boolean;
   };
   config: GameConfig;
   rngState: number;
@@ -299,7 +321,11 @@ export type PlayerAction =
   /** One-time charter warp: teleport to destination node (no en-route). */
   | { type: "warp"; destination: string }
   /** Palindrome #47: set Mainline facing before first move. */
-  | { type: "set_direction"; direction: MoveDirection };
+  | { type: "set_direction"; direction: MoveDirection }
+  /** Charter alert picks (#107). */
+  | { type: "charter_kick"; targetPlayerId: string }
+  | { type: "charter_olbers"; stationId: string }
+  | { type: "charter_steal"; nodeId: string };
 
 export interface LegalActions {
   refuel: boolean;

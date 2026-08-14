@@ -11,6 +11,7 @@
  */
 import { formatMoney } from "./currency";
 import { lunarRangeCmForDate } from "./lunarRangeTable";
+import { STATION_HUB_IDS, isStationHub } from "./systems";
 import type { GameState, Player } from "./types";
 
 /** Rounds after a fire (or start) before the first 50% roll. */
@@ -26,6 +27,15 @@ export const HARLOCK_FUEL_BONUS = 4;
 export const LEDGER_DIVIDEND_CASH = 250;
 /** Asteroid ice survey: fuel depots added to hand per rocket. */
 export const ASTEROID_DEPOTS = 1;
+/** Olbers award cash when warping to a station hub (#107). */
+export const OLBERS_AWARD_CASH = 350;
+/** Vibe-code kick: first eligible round and one-shot chance (#107). */
+export const VIBE_KICK_MIN_ROUND = 60;
+export const VIBE_KICK_CHANCE = 0.5;
+/** Karen distraction: only after this round (#107). */
+export const KAREN_MIN_ROUND = 30;
+
+const TESLA_MODELS = ["3", "Y", "S", "X", "Roadster"] as const;
 
 export type TimedEventId =
   | "monolith"
@@ -35,7 +45,12 @@ export type TimedEventId =
   | "asteroid_depot"
   | "ledger_dividend"
   | "comet_free_leave"
-  | "rent_holiday";
+  | "rent_holiday"
+  | "rogue_tesla"
+  | "olbers_station"
+  | "karen_skip"
+  | "blockchain_steal";
+// vibe_kick is NOT in the regular pool — special one-shot at round ≥60
 
 /** Human rocket’s 3rd character code.
  * Short names fall back to first printable char or 67 ('C').
@@ -94,16 +109,94 @@ const POOL: TimedEventId[] = [
   "ledger_dividend",
   "comet_free_leave",
   "rent_holiday",
+  "rogue_tesla",
+  "olbers_station",
+  "karen_skip",
+  "blockchain_steal",
 ];
 
 function activeRockets(state: GameState): Player[] {
   return state.players.filter((p) => !p.eliminated);
 }
 
+function pickIndex(state: GameState, n: number): number {
+  if (n <= 0) return 0;
+  return Math.min(n - 1, Math.floor(charterEventRoll01(state) * n));
+}
+
+/** Mars orbit (Elon hub + Mars + moons) — immune to rogue Tesla (#107). */
+export function isMarsOrbitNode(state: GameState, nodeId: string): boolean {
+  const node = state.board.nodes[nodeId];
+  return node?.group === "mars";
+}
+
+/** Owned deeds Tesla may hit: not Mars orbit. */
+export function teslaTargetClaims(state: GameState): string[] {
+  const out: string[] = [];
+  for (const [nodeId, ownerId] of Object.entries(state.owners)) {
+    if (!ownerId) continue;
+    if (isMarsOrbitNode(state, nodeId)) continue;
+    const node = state.board.nodes[nodeId];
+    if (!node || (node.kind !== "planet" && node.kind !== "moon" && node.kind !== "federation")) {
+      continue;
+    }
+    // Only real claims (price / purchasable-ish): hubs + planetoids with owners
+    if (node.price == null && node.kind !== "federation") continue;
+    const owner = state.players.find((p) => p.id === ownerId && !p.eliminated);
+    if (!owner) continue;
+    out.push(nodeId);
+  }
+  return out;
+}
+
+function stripClaimInline(state: GameState, nodeId: string): void {
+  delete state.owners[nodeId];
+  if (state.stations[nodeId]) delete state.stations[nodeId];
+  for (const p of state.players) {
+    if (!p.properties.includes(nodeId)) continue;
+    p.properties = p.properties.filter((id) => id !== nodeId);
+    if (p.ephemerisBodyId === nodeId) {
+      p.ephemerisBodyId = p.properties[0] ?? null;
+    }
+  }
+}
+
+function preferredChooser(state: GameState): Player | null {
+  const human = state.players.find((p) => p.agent === "human" && !p.eliminated);
+  if (human) return human;
+  return activeRockets(state)[0] ?? null;
+}
+
+/** Opponent claims for blockchain steal. */
+export function stealableClaims(state: GameState, chooserId: string): string[] {
+  return Object.entries(state.owners)
+    .filter(([nodeId, ownerId]) => {
+      if (!ownerId || ownerId === chooserId) return false;
+      const owner = state.players.find((p) => p.id === ownerId && !p.eliminated);
+      if (!owner) return false;
+      const node = state.board.nodes[nodeId];
+      return !!node && node.price != null;
+    })
+    .map(([id]) => id);
+}
+
 /** Remaining pool events not yet fired this charter (each fires at most once). */
 function remainingPool(state: GameState): TimedEventId[] {
   const fired = new Set(state.timedEvent.firedIds ?? []);
-  return POOL.filter((id) => !fired.has(id));
+  return POOL.filter((id) => {
+    if (fired.has(id)) return false;
+    // Late-game only: Karen
+    if (id === "karen_skip" && state.round < KAREN_MIN_ROUND) return false;
+    // Tesla needs a non-Mars owned claim
+    if (id === "rogue_tesla" && teslaTargetClaims(state).length === 0) return false;
+    // Blockchain needs an opponent claim
+    if (id === "blockchain_steal") {
+      const chooser = preferredChooser(state);
+      if (!chooser || stealableClaims(state, chooser.id).length === 0) return false;
+    }
+    // Olbers always possible (station hubs exist)
+    return true;
+  });
 }
 
 function pickTimedEvent(state: GameState): TimedEventId | null {
@@ -262,6 +355,135 @@ function fireRentHoliday(state: GameState): void {
   );
 }
 
+/** #107 — Musk's roadster inspiration; Mars orbit immune. */
+function fireRogueTesla(state: GameState): void {
+  const targets = teslaTargetClaims(state);
+  if (targets.length === 0) return;
+  const nodeId = targets[pickIndex(state, targets.length)]!;
+  const node = state.board.nodes[nodeId]!;
+  const ownerId = state.owners[nodeId]!;
+  const owner = state.players.find((p) => p.id === ownerId)!;
+  const hadDepot = !!state.stations[nodeId];
+  stripClaimInline(state, nodeId);
+  const model = TESLA_MODELS[pickIndex(state, TESLA_MODELS.length)]!;
+  state.pendingAnnouncement = {
+    kind: "info",
+    title: `Rogue Tesla Model ${model}`,
+    body: [
+      `A derelict Tesla Model ${model} dropped out of a long-transfer orbit and hit ${node.name}.`,
+      `${owner.name}'s claim is gone${hadDepot ? " — fuel depot destroyed" : ""}.`,
+      "(Mars orbit is hard-coded immune. Elon's car will not hit Elon.)",
+    ].join("\n"),
+  };
+  state.log.push(
+    `Charter alert: rogue Tesla Model ${model} destroyed ${owner.name}'s claim on ${node.name}${hadDepot ? " (depot lost)" : ""}.`,
+  );
+}
+
+function fireOlbersStation(state: GameState): void {
+  const chooser = preferredChooser(state);
+  if (!chooser) return;
+  state.pendingCharterChoice = {
+    kind: "olbers_station",
+    chooserId: chooser.id,
+  };
+  state.pendingAnnouncement = {
+    kind: "info",
+    title: "Olbers' paradox, Netflix optional",
+    body: [
+      "During a streaming outage you accidentally prove Olbers' paradox with a napkin and a star map.",
+      `Award: warp to any station hub (Elon · Holst · Daktulios — not Earth) and collect ${formatMoney(OLBERS_AWARD_CASH)}.`,
+      chooser.agent === "human"
+        ? "Dismiss this, then click a station hub on the board."
+        : `${chooser.name} will chart a hub.`,
+    ].join("\n"),
+  };
+  state.log.push(
+    `Charter alert: Olbers award — ${chooser.name} may warp to a station hub for ${formatMoney(OLBERS_AWARD_CASH)}.`,
+  );
+}
+
+function fireKarenSkip(state: GameState): void {
+  const list = activeRockets(state);
+  if (list.length === 0) return;
+  const victim = list[pickIndex(state, list.length)]!;
+  victim.skipTurns += 1;
+  state.pendingAnnouncement = {
+    kind: "info",
+    title: "Karen in the comments",
+    body: [
+      "Someone named Karen left a novel-length social-media essay under your last telemetry selfie.",
+      `${victim.name} misses a critical ship maneuver — lose one full seat turn.`,
+    ].join("\n"),
+  };
+  state.log.push(
+    `Charter alert: Karen distraction — ${victim.name} will skip a turn.`,
+  );
+}
+
+function fireBlockchainSteal(state: GameState): void {
+  const chooser = preferredChooser(state);
+  if (!chooser) return;
+  if (stealableClaims(state, chooser.id).length === 0) return;
+  state.pendingCharterChoice = {
+    kind: "blockchain_steal",
+    chooserId: chooser.id,
+  };
+  state.pendingAnnouncement = {
+    kind: "info",
+    title: "Invalid claim on the ledger",
+    body: [
+      "You read the AIL chain and prove an opponent's deed hash never finalised.",
+      "The ledger reassigns the body to you — with a fuel depot already bolted down.",
+      chooser.agent === "human"
+        ? "Dismiss this, then click an opponent's claim on the board."
+        : `${chooser.name} will reassign a deed.`,
+    ].join("\n"),
+  };
+  state.log.push(
+    `Charter alert: blockchain reassignment — ${chooser.name} steals one opponent claim + depot.`,
+  );
+}
+
+/** Rare: one 50% roll when the charter first hits round ≥60 (#107). */
+function fireVibeKick(state: GameState): void {
+  const chooser = preferredChooser(state);
+  if (!chooser) return;
+  const victims = activeRockets(state).filter(
+    (p) => p.id !== chooser.id && p.agent === "ai",
+  );
+  // Full AI field: any other rocket
+  const targets =
+    victims.length > 0
+      ? victims
+      : activeRockets(state).filter((p) => p.id !== chooser.id);
+  if (targets.length === 0) return;
+
+  state.pendingCharterChoice = {
+    kind: "vibe_kick",
+    chooserId: chooser.id,
+  };
+  state.pendingAnnouncement = {
+    kind: "info",
+    title: "You vibe-coded the rules",
+    body: [
+      "You shipped a video game about monopoly in space. Congrats — you write the patch notes now.",
+      "Kick one rival rocket out of this charter.",
+      chooser.agent === "human"
+        ? "Dismiss this, then click an AI rocket in Charter standings."
+        : `${chooser.name} will uninvite a rival.`,
+    ].join("\n"),
+  };
+  state.log.push(
+    `Charter alert: vibe-code authority — ${chooser.name} may eliminate one rival.`,
+  );
+  // Mark as fired via special id in firedIds
+  if (!state.timedEvent.firedIds.includes("vibe_kick")) {
+    state.timedEvent.firedIds.push("vibe_kick");
+  }
+  state.timedEvent.lastEventId = "vibe_kick";
+}
+
 function fireTimedEvent(state: GameState, id: TimedEventId): void {
   switch (id) {
     case "monolith":
@@ -288,6 +510,18 @@ function fireTimedEvent(state: GameState, id: TimedEventId): void {
     case "rent_holiday":
       fireRentHoliday(state);
       break;
+    case "rogue_tesla":
+      fireRogueTesla(state);
+      break;
+    case "olbers_station":
+      fireOlbersStation(state);
+      break;
+    case "karen_skip":
+      fireKarenSkip(state);
+      break;
+    case "blockchain_steal":
+      fireBlockchainSteal(state);
+      break;
     default: {
       const _exhaustive: never = id;
       void _exhaustive;
@@ -310,19 +544,39 @@ function fireTimedEvent(state: GameState, id: TimedEventId): void {
  */
 export function processTimedEvents(state: GameState): void {
   const te = state.timedEvent;
+  if (te.vibeKickChecked === undefined) te.vibeKickChecked = false;
+
   // One cadence step per **round**, not per seat turn
   if (te.lastProcessedRound === state.round) return;
   te.lastProcessedRound = state.round;
   te.roundsSinceLast += 1;
 
-  // Pool exhausted — no more charter alerts this game
+  // Open popup or pending pick — count gap time only
+  if (state.pendingAnnouncement || state.pendingCharterChoice) return;
+
+  // Rare one-shot: vibe-code kick at round ≥60, 50% once (#107)
+  if (
+    !te.vibeKickChecked &&
+    state.round >= VIBE_KICK_MIN_ROUND &&
+    !(te.firedIds ?? []).includes("vibe_kick")
+  ) {
+    te.vibeKickChecked = true;
+    if (charterEventRoll01(state) < VIBE_KICK_CHANCE) {
+      fireVibeKick(state);
+      te.roundsSinceLast = 0;
+      te.rollChance = 0;
+      return;
+    }
+    state.log.push(
+      `Charter note: vibe-code authority did not unlock (round ${state.round}, 50% miss).`,
+    );
+  }
+
+  // Pool exhausted — no more regular charter alerts
   if (remainingPool(state).length === 0) return;
 
   // Still in post-fire / start gap
   if (te.roundsSinceLast < TIMED_EVENT_GAP_ROUNDS) return;
-
-  // Don't stack alerts; gap still counted above. Do not midpoint without a roll.
-  if (state.pendingAnnouncement) return;
 
   // Enter (or stay in) the roll window
   if (te.rollChance <= 0) {
@@ -331,7 +585,6 @@ export function processTimedEvents(state: GameState): void {
 
   const roll = charterEventRoll01(state);
   if (roll >= te.rollChance) {
-    // Miss — only midpoints after an actual attempt
     te.rollChance = midpointTowardCertain(te.rollChance);
     return;
   }
@@ -342,6 +595,15 @@ export function processTimedEvents(state: GameState): void {
   fireTimedEvent(state, id);
   te.roundsSinceLast = 0;
   te.rollChance = 0;
+}
+
+/** Station hub ids for Olbers pick (not Earth). */
+export function olbersStationIds(): readonly string[] {
+  return STATION_HUB_IDS;
+}
+
+export function isOlbersStation(nodeId: string): boolean {
+  return isStationHub(nodeId);
 }
 
 /** +1 seat turn (`gameTurn`); may process a **round**-scoped timed event. */

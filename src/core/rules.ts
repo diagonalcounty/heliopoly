@@ -27,7 +27,14 @@ import {
   systemOfGroup,
   type SystemId,
 } from "./systems";
-import { MONOLITH_EARTH_BONUS, tickSeatTurn } from "./turnClock";
+import {
+  MONOLITH_EARTH_BONUS,
+  OLBERS_AWARD_CASH,
+  isOlbersStation,
+  olbersStationIds,
+  stealableClaims,
+  tickSeatTurn,
+} from "./turnClock";
 import type {
   DuelStance,
   GameState,
@@ -490,6 +497,8 @@ export function getLegalActions(state: GameState): LegalActions {
     directionLocked: true,
     canBidirectional: false,
   };
+  // Charter alert pick in progress — no normal seat actions (#107)
+  if (state.pendingCharterChoice) return empty;
   if (state.phase === "game_over") return empty;
 
   const p = currentPlayer(state);
@@ -1501,9 +1510,189 @@ function autoDuelAi(state: GameState): void {
   resolveDuelIfComplete(state);
 }
 
+/** Clone + auto-resolve if chooser is AI (#107). */
+export function resolveCharterChoiceIfAi(state: GameState): GameState {
+  const next = cloneState(state);
+  autoResolveCharterChoice(next);
+  return next;
+}
+
+/** Resolve pending charter pick for AI / selfplay (#107). */
+export function autoResolveCharterChoice(state: GameState): void {
+  const pc = state.pendingCharterChoice;
+  if (!pc) return;
+  const chooser = state.players.find((x) => x.id === pc.chooserId);
+  if (!chooser || chooser.eliminated) {
+    state.pendingCharterChoice = null;
+    return;
+  }
+  if (chooser.agent === "human") return; // wait for UI
+
+  if (pc.kind === "vibe_kick") {
+    let pool = livingPlayers(state).filter(
+      (x) => x.id !== chooser.id && x.agent === "ai",
+    );
+    if (pool.length === 0) {
+      pool = livingPlayers(state).filter((x) => x.id !== chooser.id);
+    }
+    if (pool.length === 0) {
+      state.pendingCharterChoice = null;
+      return;
+    }
+    const t = pool[Math.floor(Math.random() * pool.length)]!;
+    applyCharterKick(state, chooser.id, t.id);
+    return;
+  }
+  if (pc.kind === "olbers_station") {
+    const hubs = olbersStationIds().filter((id) => id !== chooser.position);
+    const dest = hubs[Math.floor(Math.random() * hubs.length)] ?? hubs[0];
+    if (dest) applyCharterOlbers(state, chooser.id, dest);
+    else state.pendingCharterChoice = null;
+    return;
+  }
+  if (pc.kind === "blockchain_steal") {
+    const claims = stealableClaims(state, chooser.id);
+    if (claims.length === 0) {
+      state.pendingCharterChoice = null;
+      return;
+    }
+    const nodeId = claims[Math.floor(Math.random() * claims.length)]!;
+    applyCharterSteal(state, chooser.id, nodeId);
+  }
+}
+
+export function applyCharterKick(
+  state: GameState,
+  chooserId: string,
+  targetId: string,
+): void {
+  const pc = state.pendingCharterChoice;
+  if (!pc || pc.kind !== "vibe_kick" || pc.chooserId !== chooserId) return;
+  const chooser = state.players.find((p) => p.id === chooserId);
+  const target = state.players.find((p) => p.id === targetId);
+  if (!chooser || !target || target.eliminated || target.id === chooser.id) {
+    return;
+  }
+  // Human may only kick AI when a human is seated
+  if (chooser.agent === "human" && target.agent !== "ai") return;
+
+  state.pendingCharterChoice = null;
+  eliminate(
+    state,
+    target,
+    `removed by ${chooser.name} (vibe-code rules authority)`,
+  );
+  pushLog(
+    state,
+    `${chooser.name} patches the build: ${target.name} is out of the charter.`,
+  );
+}
+
+export function applyCharterOlbers(
+  state: GameState,
+  chooserId: string,
+  stationId: string,
+): void {
+  const pc = state.pendingCharterChoice;
+  if (!pc || pc.kind !== "olbers_station" || pc.chooserId !== chooserId) return;
+  const chooser = state.players.find((p) => p.id === chooserId);
+  if (!chooser || chooser.eliminated) {
+    state.pendingCharterChoice = null;
+    return;
+  }
+  if (!isOlbersStation(stationId) || stationId === "earth") return;
+  const dest = state.board.nodes[stationId];
+  if (!dest) return;
+
+  state.pendingCharterChoice = null;
+  const fromName = getNode(state.board, chooser.position).name;
+  if (chooser.position === "earth") chooser.circuitActive = true;
+  chooser.position = stationId;
+  chooser.cash += OLBERS_AWARD_CASH;
+  chooser.rolledThisTurn = true;
+  chooser.movedThisTurn = true;
+  state.lastRoll = null;
+  state.breakSpaces = 0;
+  pushLog(
+    state,
+    `${chooser.name} warps ${fromName} → ${dest.name} (Olbers award · +${formatMoney(OLBERS_AWARD_CASH)}).`,
+  );
+  delta(state, `Olbers → ${dest.name} +${formatMoney(OLBERS_AWARD_CASH)}`);
+  // Landing rules at hub (rent if owned by other, etc.)
+  const wasCurrent = state.players[state.currentPlayerIndex]?.id === chooser.id;
+  if (wasCurrent) {
+    resolveLanding(state, false);
+    if (state.pendingDuel) autoDuelAi(state);
+  }
+}
+
+export function applyCharterSteal(
+  state: GameState,
+  chooserId: string,
+  nodeId: string,
+): void {
+  const pc = state.pendingCharterChoice;
+  if (!pc || pc.kind !== "blockchain_steal" || pc.chooserId !== chooserId) {
+    return;
+  }
+  const chooser = state.players.find((p) => p.id === chooserId);
+  if (!chooser || chooser.eliminated) {
+    state.pendingCharterChoice = null;
+    return;
+  }
+  if (!stealableClaims(state, chooserId).includes(nodeId)) return;
+  const prevOwnerId = state.owners[nodeId];
+  const prev = state.players.find((p) => p.id === prevOwnerId);
+  const node = getNode(state.board, nodeId);
+
+  if (prev) {
+    prev.properties = prev.properties.filter((id) => id !== nodeId);
+    if (prev.ephemerisBodyId === nodeId) {
+      prev.ephemerisBodyId = prev.properties[0] ?? null;
+    }
+  }
+  state.owners[nodeId] = chooser.id;
+  if (!chooser.properties.includes(nodeId)) chooser.properties.push(nodeId);
+  state.stations[nodeId] = true; // free fuel pod
+  if (!chooser.ephemerisBodyId) chooser.ephemerisBodyId = nodeId;
+
+  state.pendingCharterChoice = null;
+  pushLog(
+    state,
+    `${chooser.name} reassigns ${node.name} from ${prev?.name ?? "the bank"} via AIL (depot installed).`,
+  );
+  delta(state, `blockchain claim ${node.name}`);
+}
+
 export function applyAction(state: GameState, action: PlayerAction): GameState {
   const next = cloneState(state);
   if (next.phase === "game_over") return next;
+
+  // Auto-resolve AI charter picks before anything else
+  autoResolveCharterChoice(next);
+  // Kick can end the charter (phase may change after narrowing above)
+  if (next.phase === ("game_over" as typeof next.phase)) return next;
+
+  // While a human pick is pending, only charter_* actions apply
+  if (next.pendingCharterChoice) {
+    const pc = next.pendingCharterChoice;
+    const chooser = next.players.find((x) => x.id === pc.chooserId);
+    if (chooser?.agent === "human") {
+      if (action.type === "charter_kick") {
+        applyCharterKick(next, pc.chooserId, action.targetPlayerId);
+        return next;
+      }
+      if (action.type === "charter_olbers") {
+        applyCharterOlbers(next, pc.chooserId, action.stationId);
+        return next;
+      }
+      if (action.type === "charter_steal") {
+        applyCharterSteal(next, pc.chooserId, action.nodeId);
+        return next;
+      }
+      return next; // ignore other inputs
+    }
+  }
 
   // Auto-progress AI duel sides whenever we enter apply
   if (next.phase === "await_duel") {
@@ -1631,6 +1820,33 @@ export function applyAction(state: GameState, action: PlayerAction): GameState {
       resolveDuelIfComplete(next);
       break;
     }
+    case "charter_kick":
+      if (next.pendingCharterChoice?.kind === "vibe_kick") {
+        applyCharterKick(
+          next,
+          next.pendingCharterChoice.chooserId,
+          action.targetPlayerId,
+        );
+      }
+      break;
+    case "charter_olbers":
+      if (next.pendingCharterChoice?.kind === "olbers_station") {
+        applyCharterOlbers(
+          next,
+          next.pendingCharterChoice.chooserId,
+          action.stationId,
+        );
+      }
+      break;
+    case "charter_steal":
+      if (next.pendingCharterChoice?.kind === "blockchain_steal") {
+        applyCharterSteal(
+          next,
+          next.pendingCharterChoice.chooserId,
+          action.nodeId,
+        );
+      }
+      break;
   }
 
   return next;

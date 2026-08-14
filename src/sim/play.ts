@@ -1,6 +1,7 @@
 import { heuristicAI } from "../core/agents";
 import {
   applyAction,
+  resolveCharterChoiceIfAi,
   getLegalActions,
   netWorth,
   resolveDuelAiFully,
@@ -149,6 +150,11 @@ export function playOneGame(opts: {
   while (state.phase !== "game_over" && turns < maxTurns) {
     state = resolveDuelAiFully(state);
     if (state.phase === "game_over") break;
+    if (state.pendingCharterChoice) {
+      state = resolveCharterChoiceIfAi(state);
+      turns++;
+      continue;
+    }
 
     if (state.phase === "await_duel") {
       const d = difficultyForCurrent(state, diffs);

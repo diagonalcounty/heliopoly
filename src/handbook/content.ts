@@ -119,7 +119,8 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     </tr>
   </tbody>
 </table>
-<p><strong>Charter alerts</strong> (timed popups): after <strong>5 rounds</strong> since the last alert (or start), <strong>50%</strong> chance once per round; each <em>real</em> miss moves chance halfway toward 100% (50% → 75% → 87.5% …) until it fires; then wait 5 rounds again. Each alert type fires <strong>at most once</strong> per charter. Pool includes: Monolith Earth stipend, blue/brown M&amp;Ms free brake, King’s Quest warp, <strong>Captain Harlock / Arcadia</strong> fuel dump, belt ice survey (depot in hand), quantum ledger dividend, comet dust free leave, port rent holiday.</p>
+<p><strong>Charter alerts</strong> (timed popups): after <strong>5 rounds</strong> since the last alert (or start), <strong>50%</strong> chance once per round; each <em>real</em> miss moves chance halfway toward 100% (50% → 75% → 87.5% …) until it fires; then wait 5 rounds again. Each alert type fires <strong>at most once</strong> per charter.</p>
+<p><strong>Pool (samples):</strong> Monolith stipend; M&amp;Ms free brake; King’s Quest warp; Arcadia / Captain Harlock fuel; belt ice depot; AIL dividend; comet free leave; port rent holiday; <strong>rogue Tesla</strong> (destroys a claim + depot — <em>Mars orbit immune</em>); <strong>Olbers award</strong> (warp to a station hub + cash); <strong>Karen distraction</strong> (lose a turn, late game); <strong>blockchain reassignment</strong> (take an opponent claim + free depot). <strong>Vibe-code kick</strong> is rare: one 50% check when the charter first reaches round <strong>60</strong> — kick an AI rival from standings.</p>
 `,
   },
   {

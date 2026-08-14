@@ -1897,6 +1897,27 @@ button:not(:disabled):active {
   margin-bottom: 0.45rem;
 }
 
+.charter-choice-hint {
+  margin: 0 0 8px;
+  padding: 8px 10px;
+  font-size: 0.82rem;
+  line-height: 1.35;
+  color: var(--accent-2);
+  background: rgba(255, 200, 87, 0.1);
+  border: 1px solid rgba(255, 200, 87, 0.35);
+  border-radius: 8px;
+}
+.charter-choice-hint.hidden {
+  display: none;
+}
+.rank-row.vibe-kickable {
+  cursor: pointer;
+  outline: 1px solid rgba(255, 107, 122, 0.55);
+  outline-offset: 1px;
+}
+.rank-row.vibe-kickable:hover {
+  background: rgba(255, 107, 122, 0.12);
+}
 .rankings {
   font-size: 0.8rem;
   line-height: 1.2;

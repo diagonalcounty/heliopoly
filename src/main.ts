@@ -30,6 +30,7 @@ import { pilotByCallsign, sanitizePilotName } from "./core/pilotNames";
 import { goingUnderFlags } from "./core/goingUnder";
 import {
   applyAction,
+  resolveCharterChoiceIfAi,
   depotPlaceCashCost,
   effectiveBreakFuelCost,
   getLegalActions,
@@ -39,6 +40,10 @@ import {
   resignGame,
   resolveDuelAiFully,
 } from "./core/rules";
+import {
+  isOlbersStation,
+  stealableClaims,
+} from "./core/turnClock";
 import { createGame, currentPlayer } from "./core/state";
 import {
   normalizeAiDifficulty,
@@ -1132,6 +1137,18 @@ async function runAiUntilHumanOrEnd(s: GameState): Promise<GameState> {
     if (!duelResultEl.classList.contains("hidden")) break;
     if (!announceRoot.classList.contains("hidden")) break;
 
+    // Charter alert pick (#107): human must act; AI auto-resolves
+    if (cur.pendingCharterChoice) {
+      const chooser = cur.players.find(
+        (x) => x.id === cur.pendingCharterChoice!.chooserId,
+      );
+      if (chooser?.agent === "human") break;
+      cur = resolveCharterChoiceIfAi(cur);
+      state = cur;
+      render();
+      continue;
+    }
+
     const p = currentPlayer(cur);
     if (!p.eliminated && p.agent === "human" && cur.phase !== "await_duel") {
       break;
@@ -2069,6 +2086,11 @@ function renderSide(): void {
     })),
   ];
   const maxFuel = state.config.maxFuel;
+  const vibePick =
+    !!state.pendingCharterChoice &&
+    state.pendingCharterChoice.kind === "vibe_kick" &&
+    state.players.find((x) => x.id === state!.pendingCharterChoice!.chooserId)
+      ?.agent === "human";
   rankingsEl.innerHTML = standingRows
     .map(({ pl, worth, rankLabel }) => {
       const active = pl.id === p.id && state!.phase !== "game_over";
@@ -2090,13 +2112,47 @@ function renderSide(): void {
           : pl.fuel <= 3
             ? " fuel-bar-amber"
             : "";
+      const kickable =
+        vibePick && !pl.eliminated && pl.agent === "ai"
+          ? " vibe-kickable"
+          : "";
+      const kickAttr =
+        kickable !== ""
+          ? ` data-kick-id="${pl.id}" role="button" tabindex="0" title="Kick ${pl.name} out of the charter"`
+          : "";
       // Single-line markup: avoids anonymous whitespace grid items if pre-wrap sneaks back
-      return `<div class="rank-row${lead}${active ? " active" : ""}${pl.eliminated ? " out" : ""}${atRisk.atRisk ? " at-risk" : ""}"><div class="swatch" style="background:${pl.color}" aria-hidden="true"></div><div class="rank-body"><div class="rank-top"><span class="rank-id">${rankLabel} ${rocketNameButton(pl.name)}${skip} · <span class="rank-prop">${plProp}</span>${riskBadge}</span><span class="rank-money"><span class="cash">${formatMoney(pl.cash)} cash</span> · NW ${formatMoney(worth)}</span></div><div class="rank-detail"><span class="fuel-bar${barTone}" title="Fuel ${pl.fuel} / ${maxFuel}" aria-label="Fuel ${pl.fuel} of ${maxFuel}">${bar}</span> <span class="fuel-n">${pl.fuel}</span> fuel · ${pl.properties.length} claims · ${at}</div></div></div>`;
+      return `<div class="rank-row${lead}${active ? " active" : ""}${pl.eliminated ? " out" : ""}${atRisk.atRisk ? " at-risk" : ""}${kickable}"${kickAttr}><div class="swatch" style="background:${pl.color}" aria-hidden="true"></div><div class="rank-body"><div class="rank-top"><span class="rank-id">${rankLabel} ${rocketNameButton(pl.name)}${skip} · <span class="rank-prop">${plProp}</span>${riskBadge}</span><span class="rank-money"><span class="cash">${formatMoney(pl.cash)} cash</span> · NW ${formatMoney(worth)}</span></div><div class="rank-detail"><span class="fuel-bar${barTone}" title="Fuel ${pl.fuel} / ${maxFuel}" aria-label="Fuel ${pl.fuel} of ${maxFuel}">${bar}</span> <span class="fuel-n">${pl.fuel}</span> fuel · ${pl.properties.length} claims · ${at}</div></div></div>`;
     })
     .join("");
 
+  // Charter pick banner
+  const choiceHint = document.getElementById("charter-choice-hint");
+  if (choiceHint) {
+    const pc = state.pendingCharterChoice;
+    const humanChooser =
+      pc &&
+      state.players.find((x) => x.id === pc.chooserId)?.agent === "human";
+    if (pc && humanChooser) {
+      choiceHint.classList.remove("hidden");
+      choiceHint.textContent =
+        pc.kind === "vibe_kick"
+          ? "Vibe-code authority: click an AI rocket in standings to remove them."
+          : pc.kind === "olbers_station"
+            ? "Olbers award: click a station hub (Elon · Holst · Daktulios) on the board."
+            : "Blockchain reassignment: click an opponent claim on the board.";
+    } else {
+      choiceHint.classList.add("hidden");
+      choiceHint.textContent = "";
+    }
+  }
+
+  const humanPickPending =
+    !!state.pendingCharterChoice &&
+    state.players.find((x) => x.id === state!.pendingCharterChoice!.chooserId)
+      ?.agent === "human";
   const can =
     !animating &&
+    !humanPickPending &&
     p.agent === "human" &&
     state.phase !== "game_over" &&
     state.phase !== "await_duel";
@@ -2885,6 +2941,28 @@ canvas.addEventListener("click", (ev) => {
   const coords = canvasBoardCoords(ev.clientX, ev.clientY);
   if (!coords) return;
 
+  // Charter alert board picks (#107)
+  const pc = state.pendingCharterChoice;
+  if (pc) {
+    const chooser = state.players.find((x) => x.id === pc.chooserId);
+    if (chooser?.agent === "human") {
+      const id = hitNodeAt(coords.sx, coords.sy);
+      if (!id) return;
+      if (pc.kind === "olbers_station" && isOlbersStation(id)) {
+        void act({ type: "charter_olbers", stationId: id });
+        return;
+      }
+      if (
+        pc.kind === "blockchain_steal" &&
+        stealableClaims(state, chooser.id).includes(id)
+      ) {
+        void act({ type: "charter_steal", nodeId: id });
+        return;
+      }
+      return;
+    }
+  }
+
   if (humanRoutePreviewReady()) {
     const stop = hitRouteStopAt(coords.sx, coords.sy);
     if (stop) {
@@ -2898,6 +2976,20 @@ canvas.addEventListener("click", (ev) => {
   if (!id) return;
   if (id === currentPlayer(state).position) return;
   void act({ type: "warp", destination: id });
+});
+
+// Vibe-kick: click AI in standings
+rankingsEl.addEventListener("click", (ev) => {
+  if (!state || animating) return;
+  const pc = state.pendingCharterChoice;
+  if (!pc || pc.kind !== "vibe_kick") return;
+  const chooser = state.players.find((x) => x.id === pc.chooserId);
+  if (chooser?.agent !== "human") return;
+  const row = (ev.target as HTMLElement).closest("[data-kick-id]");
+  if (!row) return;
+  const tid = row.getAttribute("data-kick-id");
+  if (!tid) return;
+  void act({ type: "charter_kick", targetPlayerId: tid });
 });
 
 function onShellResize(): void {
