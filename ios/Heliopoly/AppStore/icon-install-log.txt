@@ -1,0 +1,28 @@
+Heliopoly AppIcon install log
+================================
+Agent shell: BROKEN (every run_terminal_command fails with IO Error before execution)
+python3 scripts/install_app_icons.py: NOT EXECUTED from this agent
+
+## What is on disk (list_dir + visual read_file)
+
+AppIcon.appiconset:
+  AppIcon.png         art=rocket+sun color (any/default)   dimensions=UNVERIFIED  size=UNVERIFIED
+  AppIcon-dark.png    art=rocket+sun dark                  dimensions=UNVERIFIED  size=UNVERIFIED
+  AppIcon-tinted.png  art=rocket+sun grayscale             dimensions=UNVERIFIED  size=UNVERIFIED
+  Contents.json       slots=default/dark/tinted 1024x1024 universal iOS
+
+AppStore:
+  AppIcon-1024.png    art=matches default                  dimensions=UNVERIFIED  size=UNVERIFIED
+  sources/any.jpg     master present
+  sources/dark.jpg    master present
+  sources/tinted.jpg  master present
+
+## RESULT: FAIL (conversion/IHDR not verified by this agent)
+
+Art appears installed (no longer Ops Manual book), but this agent could not:
+  - run install_app_icons.py
+  - confirm 1024x1024 / RGB / no-alpha via IHDR
+  - report exact byte sizes
+
+Run locally to finish and rewrite this log with OK lines:
+  python3 /Users/jacobroecker/code/heliopoly/ios/Heliopoly/scripts/install_app_icons.py

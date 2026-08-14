@@ -1,0 +1,14 @@
+Heliopoly is a fully offline single-device game. The UI is a SwiftUI shell that loads a bundled HTML/JS game from the app package via a custom scheme (heliopoly://), not Safari and not a remote website.
+
+No login, no IAP in this version, no ads, no tracking SDKs.
+
+How to play a short review session:
+1. Launch the app.
+2. On New game: leave Seat 1 as human, name any rocket, pick Methane, AI difficulty Easy, 2–3 total pilots.
+3. Tap Launch.
+4. Use Pilot Controls: Roll → optional Break → Move. Buy claims when landed. End turn.
+5. Open Helios Ops Manual (in-game) for full rules.
+
+If the board appears empty, the WebDist bundle was not packaged — rebuild with the shared scheme after npm run ios:sync from the monorepo. Review builds should include WebDist inside the .app.
+
+Demo account: none required.

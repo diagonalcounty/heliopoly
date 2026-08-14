@@ -1,0 +1,26 @@
+Heliopoly is free enterprise in space — a solar-system strategy game of claims, propellant, and rival rockets.
+
+You name a rocket, pick methane or hydrogen fuel, and compete against AI pilots from Mercury to the Saturn moons. Buy deeds, plant fuel depots, manage cash on the Automated Interplanetary Asset Ledger, and stay solvent long enough to be the last rocket flying.
+
+There is no round cap. You win by eliminating every other rocket — bankruptcy, stranding, or abandonment — not by racing a timer.
+
+HOW AN EXPEDITION FEELS
+• Path — One circuit: Earth → Venus → Mercury → Mars → belt → Jupiter → Saturn → home
+• Claims — Buy planets and moons; own a full system and rent doubles
+• Stations — Trade hubs that get meaner as you collect more of them
+• Fuel — Landing is free; leaving a gravity well costs propellant. Break spaces off a roll to land short
+• Propellant — CH₄ is stable. H₂ leaves cheaper but can leak on landing
+• Parking — Sit still too often and claims can go feral back to the bank
+• Gravity Duel — Meet another rocket on a blank lane: secret Low/High, 2d6, winner takes the edge
+
+PLAY YOUR WAY
+• 2–6 pilots (you plus AI, or full self-play)
+• Easy through Expert AI packs
+• Full Helios Ops Manual in-app: rules, glossary, rival-rocket civilopedia
+
+OFFLINE ON IPAD
+Heliopoly for iPad ships the complete game in the app package. It is not a thin wrapper around a website. Open the app and play without an account or network.
+
+Also free in the browser at heliopoly.live — same rules engine, open source (MIT).
+
+Not affiliated with Solarquest or any commercial board game.

@@ -94,9 +94,26 @@ Mini layout CSS: portrait `max-width: 780px`; landscape mini height band `max-he
 
 **Simulators to run after `npm run ios:sync`:** iPad mini (6th gen), iPad Air 11-inch, iPad Pro 11-inch.
 
-## App Store (later)
+## App Store
 
-Paid Apple Developer Program, icons already 1024, privacy labels when telemetry ships on native, review notes: full offline game package — not a website browser. See issue **#66**.
+Full listing copy, privacy answers, review notes, screenshot checklist, and export-compliance answers live in:
+
+**[`Heliopoly/AppStore/LISTING.md`](Heliopoly/AppStore/LISTING.md)**
+
+| Item | Status |
+|------|--------|
+| Display name / version | Heliopoly · **1.0.0** (build 1) |
+| Bundle ID | `heliopoly.live.Heliopoly` |
+| Category | Games |
+| App icon 1024 | `Heliopoly/Assets.xcassets/AppIcon.appiconset/` (+ marketing `AppStore/AppIcon-1024.png`) |
+| Encryption | `ITSAppUsesNonExemptEncryption = NO` |
+| Privacy Manifest | `PrivacyInfo.xcprivacy` — no tracking / no collected types |
+| Privacy Policy URL | https://heliopoly.live/privacy.html (`public/privacy.html` in monorepo — deploy before submit) |
+| Support URL | https://github.com/diagonalcounty/heliopoly/issues |
+| Devices | Currently **iPad** (`TARGETED_DEVICE_FAMILY = 2`) |
+| Review notes | Offline bundled game via `heliopoly://` — not a remote browser |
+
+Paid Apple Developer Program required to upload. See issue **#66**.
 
 ## Web PRD
 
