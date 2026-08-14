@@ -2409,11 +2409,11 @@ button:not(:disabled):active {
   color: var(--accent);
 }
 
-/* Dim system rings (#101) — same row as Pilot Controls title */
+/* Dim system rings (#101) — thin rail + dual-triangle marker (not a boxed track) */
 .ring-opacity-field {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   min-width: 0;
   flex: 1 1 auto;
   justify-content: flex-end;
@@ -2435,17 +2435,45 @@ button:not(:disabled):active {
   align-items: center;
   height: 100%;
   color: #7dd3fc;
-  text-shadow: 0 0 8px rgba(125, 211, 252, 0.35);
+  text-shadow: 0 0 10px rgba(125, 211, 252, 0.45);
 }
 
-/* Retro CRT-style range (matches telemetry chrome) */
+/* Thin glowing baseline; range sits on top with transparent track */
+.ring-opacity-rail {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: min(128px, 44%);
+  min-width: 88px;
+  max-width: 150px;
+  height: 22px;
+  flex: 0 1 auto;
+}
+
+.ring-opacity-rail::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  top: 50%;
+  height: 2px;
+  transform: translateY(-50%);
+  border-radius: 1px;
+  background: #7dd3fc;
+  box-shadow:
+    0 0 6px rgba(125, 211, 252, 0.55),
+    0 0 12px rgba(56, 189, 248, 0.25);
+  pointer-events: none;
+  z-index: 0;
+}
+
 .ring-opacity-slider {
   -webkit-appearance: none;
   appearance: none;
-  width: min(118px, 42%);
-  min-width: 80px;
-  max-width: 140px;
-  height: 10px;
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 22px;
   margin: 0;
   padding: 0;
   background: transparent;
@@ -2457,67 +2485,81 @@ button:not(:disabled):active {
 }
 
 .ring-opacity-slider:focus-visible {
-  outline: 1px solid rgba(125, 211, 252, 0.55);
-  outline-offset: 3px;
+  outline: 1px solid rgba(125, 211, 252, 0.45);
+  outline-offset: 4px;
+  border-radius: 2px;
 }
 
-/* Track — dark well, cyan border, subtle scan ticks */
+/* Invisible track — the rail ::before is the only line */
 .ring-opacity-slider::-webkit-slider-runnable-track {
-  height: 8px;
-  border-radius: 2px;
-  border: 1px solid #1e3a5f;
-  background:
-    repeating-linear-gradient(
-      90deg,
-      transparent 0 5px,
-      rgba(125, 211, 252, 0.06) 5px 6px
-    ),
-    linear-gradient(180deg, #060a12 0%, #0a1220 50%, #050810 100%);
-  box-shadow:
-    inset 0 1px 3px rgba(0, 0, 0, 0.75),
-    0 0 0 1px rgba(0, 0, 0, 0.35);
+  height: 22px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
 .ring-opacity-slider::-moz-range-track {
-  height: 8px;
-  border-radius: 2px;
-  border: 1px solid #1e3a5f;
-  background:
-    repeating-linear-gradient(
-      90deg,
-      transparent 0 5px,
-      rgba(125, 211, 252, 0.06) 5px 6px
-    ),
-    linear-gradient(180deg, #060a12 0%, #0a1220 50%, #050810 100%);
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.75);
+  height: 22px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
-/* Thumb — chunky LED bead, not OS pill */
+.ring-opacity-slider::-moz-range-progress {
+  background: transparent;
+  border: none;
+  height: 22px;
+}
+
+/*
+ * Thumb: dual triangles (▼ above / ▲ below the rail), soft glow — inspired by
+ * the HUD marker mock, not a filled box or OS pill.
+ */
 .ring-opacity-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 14px;
-  height: 14px;
-  margin-top: -4px; /* center on 8px track */
-  border-radius: 2px;
-  border: 1px solid #7dd3fc;
-  background: linear-gradient(180deg, #e0f7ff 0%, #38bdf8 45%, #0284c7 100%);
-  box-shadow:
-    0 0 0 1px #0a0f1a,
-    0 0 8px rgba(56, 189, 248, 0.65),
-    inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  width: 12px;
+  height: 18px;
+  margin-top: 2px; /* center 18px thumb in 22px hit area */
+  border: none;
+  border-radius: 0;
+  background: #7dd3fc;
+  /* top tip, waist on the line, bottom tip */
+  clip-path: polygon(
+    50% 0%,
+    100% 38%,
+    58% 38%,
+    58% 62%,
+    100% 62%,
+    50% 100%,
+    0% 62%,
+    42% 62%,
+    42% 38%,
+    0% 38%
+  );
+  box-shadow: 0 0 8px rgba(125, 211, 252, 0.75);
   cursor: pointer;
 }
 
 .ring-opacity-slider::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
-  border-radius: 2px;
-  border: 1px solid #7dd3fc;
-  background: linear-gradient(180deg, #e0f7ff 0%, #38bdf8 45%, #0284c7 100%);
-  box-shadow:
-    0 0 0 1px #0a0f1a,
-    0 0 8px rgba(56, 189, 248, 0.65);
+  width: 12px;
+  height: 18px;
+  border: none;
+  border-radius: 0;
+  background: #7dd3fc;
+  clip-path: polygon(
+    50% 0%,
+    100% 38%,
+    58% 38%,
+    58% 62%,
+    100% 62%,
+    50% 100%,
+    0% 62%,
+    42% 62%,
+    42% 38%,
+    0% 38%
+  );
+  box-shadow: 0 0 8px rgba(125, 211, 252, 0.75);
   cursor: pointer;
 }
 

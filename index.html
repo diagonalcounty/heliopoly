@@ -177,18 +177,20 @@
                 title="System ring intensity. Mid (50%) is the default look; right end is a modest max (~2× default), not extreme."
               >
                 <span class="ring-opacity-label">Rings</span>
-                <input
-                  type="range"
-                  id="ring-opacity"
-                  class="ring-opacity-slider"
-                  min="0"
-                  max="100"
-                  step="1"
-                  value="50"
-                  aria-valuemin="0"
-                  aria-valuemax="100"
-                  aria-label="System ring opacity"
-                />
+                <span class="ring-opacity-rail">
+                  <input
+                    type="range"
+                    id="ring-opacity"
+                    class="ring-opacity-slider"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value="50"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                    aria-label="System ring opacity"
+                  />
+                </span>
               </label>
             </div>
             <div id="telemetry" class="telemetry"></div>
