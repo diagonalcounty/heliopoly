@@ -14,8 +14,8 @@
     <link rel="icon" type="image/png" href="./favicon-32.png" sizes="32x32" />
     <link rel="icon" type="image/png" href="./favicon-16.png" sizes="16x16" />
     <link rel="apple-touch-icon" href="./apple-touch-icon.png" sizes="180x180" />
-    <script type="module" src="./assets/index-BQDZpUyH.js"></script>
-    <link rel="stylesheet" href="./assets/index-DyJ8InbF.css">
+    <script type="module" src="./assets/index-Iookn0uN.js"></script>
+    <link rel="stylesheet" href="./assets/index-7QJqixLq.css">
   </head>
   <body>
     <div id="app">
@@ -175,16 +175,19 @@
               <h2>Pilot Controls</h2>
               <label
                 class="ring-opacity-field"
-                title="Dim system orbital rings and bands (default = full design strength)"
+                title="System ring / band intensity. Mid (50%) is the default look; slide down to dim, up for max."
               >
                 <span class="ring-opacity-label">Rings</span>
                 <input
                   type="range"
                   id="ring-opacity"
+                  class="ring-opacity-slider"
                   min="0"
                   max="100"
                   step="1"
-                  value="100"
+                  value="50"
+                  aria-valuemin="0"
+                  aria-valuemax="100"
                   aria-label="System ring opacity"
                 />
               </label>
