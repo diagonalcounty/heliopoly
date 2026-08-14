@@ -1,15 +1,20 @@
 # Changelog
 
-## Unreleased
+## [0.0.22] — 2026-08-13
 
-### Lab / docs
-- **Lab menu (#76 structure):** accordion categories; **Which is larger?** lists Eastern Arabic, Chinese, Korean, Hebrew, Binary (all playable); Western omitted; Gravity Duel single entry; scrollable expanded lists
-- **Multi-script compare (#76 / #81):** shared ladder; digit packs + binary bit-strings; Ops Manual **The Lab** topic
-- Handbook icon for Lab topic
+### Play / UX
+- **Curved travel lanes (#99):** Mainline edges draw as polar mid-span arcs (outward **0.08** / inward **0.09**, alternating) so the path—especially home to Earth—reads as orbital trajectories, not straight chords; roll path preview follows the same curves
+- **Belt spacing (#99):** `t_mb` + early belt nodes pulled toward Deimos so the curved Earth-return arc does not overlap belt pips
 
-### iPad / tablet
-- **Viewport zoom lock (#95):** `maximum-scale=1` / `user-scalable=no`, WKWebView pinch off + bounce-zoom off, `native-shell` fill height
-- **iPad mini layout (#96):** tighter portrait board caps (≤780px wide); mini landscape height band (≤800px) for 744/768-tall shells; 44pt control targets
+### Lab / docs (carried from unreleased)
+- **Lab menu (#76 structure):** accordion categories; **Which is larger?** packs (Eastern Arabic, Chinese, Korean, Hebrew, Binary); single Gravity Duel; Ops Manual **The Lab**
+- **Multi-script compare (#76 / #81):** shared ladder + binary bit-strings
+
+### iPad / tablet (carried from unreleased)
+- **Viewport zoom lock (#95)** and **iPad mini layout (#96)**
+
+### Meta
+- Version **0.0.22**
 
 ## [0.0.21] — 2026-08-13
 
