@@ -697,13 +697,15 @@ html.native-shell #app {
 .duration-meter-title {
   text-align: center;
   padding: 6px 4px 4px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #7dd3fc;
-  line-height: 1.25;
+  /* Match AI difficulty fieldset legend (.propellant-field legend) */
+  font-size: 0.8rem;
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--accent-2);
+  line-height: 1.3;
   border-bottom: 1px solid #243656;
-  text-shadow: 0 0 8px rgba(125, 211, 252, 0.35);
-  font-weight: 600;
+  text-shadow: none;
 }
 
 .duration-meter-body {
