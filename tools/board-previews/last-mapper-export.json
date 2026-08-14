@@ -1,0 +1,216 @@
+{
+  "generatedAt": "2026-08-14T04:26:20.835Z",
+  "source": "applied-to-board.ts",
+  "nodes": {
+    "earth": {
+      "ring": 2,
+      "angleDeg": 8.3,
+      "name": "Earth"
+    },
+    "t_ev": {
+      "ring": 2,
+      "angleDeg": 47.5,
+      "name": "Transit"
+    },
+    "venus": {
+      "ring": 2,
+      "angleDeg": 76.6,
+      "name": "Venus"
+    },
+    "t_vm": {
+      "ring": 1,
+      "angleDeg": 120,
+      "name": "Transit"
+    },
+    "mercury": {
+      "ring": 0,
+      "angleDeg": 170.5,
+      "name": "Mercury"
+    },
+    "t_mm": {
+      "ring": 0,
+      "angleDeg": 250.7,
+      "name": "Transit"
+    },
+    "elon": {
+      "ring": 3,
+      "angleDeg": 220,
+      "name": "Elon"
+    },
+    "mars": {
+      "ring": 3,
+      "angleDeg": 250,
+      "name": "Mars"
+    },
+    "phobos": {
+      "ring": 3,
+      "angleDeg": 280,
+      "name": "Phobos"
+    },
+    "deimos": {
+      "ring": 3,
+      "angleDeg": 310,
+      "name": "Deimos"
+    },
+    "t_mb": {
+      "ring": 3,
+      "angleDeg": 333,
+      "name": "Transit"
+    },
+    "belt1": {
+      "ring": 4,
+      "angleDeg": 357,
+      "name": "Belt 1"
+    },
+    "belt2": {
+      "ring": 4,
+      "angleDeg": 21.7,
+      "name": "Belt 2"
+    },
+    "belt3": {
+      "ring": 4,
+      "angleDeg": 68,
+      "name": "Belt 3"
+    },
+    "belt4": {
+      "ring": 4,
+      "angleDeg": 113,
+      "name": "Belt 4"
+    },
+    "belt5": {
+      "ring": 4,
+      "angleDeg": 158,
+      "name": "Belt 5"
+    },
+    "belt6": {
+      "ring": 4,
+      "angleDeg": 207,
+      "name": "Belt 6"
+    },
+    "holst": {
+      "ring": 5,
+      "angleDeg": 240,
+      "name": "Holst Space Station"
+    },
+    "j_b1": {
+      "ring": 5,
+      "angleDeg": 265,
+      "name": "J Transit"
+    },
+    "io": {
+      "ring": 5,
+      "angleDeg": 290,
+      "name": "Io"
+    },
+    "j_b2": {
+      "ring": 5,
+      "angleDeg": 315,
+      "name": "J Transit"
+    },
+    "europa": {
+      "ring": 5,
+      "angleDeg": 340,
+      "name": "Europa"
+    },
+    "j_b3": {
+      "ring": 5,
+      "angleDeg": 5,
+      "name": "J Transit"
+    },
+    "ganymede": {
+      "ring": 5,
+      "angleDeg": 30,
+      "name": "Ganymede"
+    },
+    "j_b4": {
+      "ring": 5,
+      "angleDeg": 58.7,
+      "name": "J Transit"
+    },
+    "callisto": {
+      "ring": 5,
+      "angleDeg": 80,
+      "name": "Callisto"
+    },
+    "j_b5": {
+      "ring": 5,
+      "angleDeg": 105,
+      "name": "J Transit"
+    },
+    "daktulios": {
+      "ring": 6,
+      "angleDeg": 130,
+      "name": "Daktulios"
+    },
+    "titan": {
+      "ring": 6,
+      "angleDeg": 155,
+      "name": "Titan"
+    },
+    "s_b1": {
+      "ring": 6,
+      "angleDeg": 175,
+      "name": "S Transit"
+    },
+    "enceladus": {
+      "ring": 6,
+      "angleDeg": 195,
+      "name": "Enceladus"
+    },
+    "s_b2": {
+      "ring": 6,
+      "angleDeg": 215,
+      "name": "S Transit"
+    },
+    "iapetus": {
+      "ring": 6,
+      "angleDeg": 235,
+      "name": "Iapetus"
+    },
+    "s_b3": {
+      "ring": 6,
+      "angleDeg": 255,
+      "name": "S Transit"
+    },
+    "mimas": {
+      "ring": 6,
+      "angleDeg": 275,
+      "name": "Mimas"
+    },
+    "s_b4": {
+      "ring": 6,
+      "angleDeg": 295,
+      "name": "S Transit"
+    },
+    "rhea": {
+      "ring": 6,
+      "angleDeg": 315,
+      "name": "Rhea"
+    },
+    "s_b5": {
+      "ring": 6,
+      "angleDeg": 335,
+      "name": "S Transit"
+    },
+    "dione": {
+      "ring": 6,
+      "angleDeg": 355,
+      "name": "Dione"
+    },
+    "s_b6": {
+      "ring": 6,
+      "angleDeg": 20,
+      "name": "S Transit"
+    },
+    "tethys": {
+      "ring": 6,
+      "angleDeg": 40,
+      "name": "Tethys"
+    },
+    "t_se": {
+      "ring": 6,
+      "angleDeg": 57,
+      "name": "Homeward"
+    }
+  }
+}

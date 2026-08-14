@@ -44,13 +44,14 @@ function n(
 export function createV0Board(): Board {
   const ringRadii = [0.1, 0.16, 0.22, 0.28, 0.34, 0.4, 0.46];
 
+  // Layout from tools/board-previews/board-mapper.html export 2026-08-14
   const nodes: BoardNode[] = [
     // —— Earth (not purchasable) ——
     n({
       id: "earth",
       name: "Earth",
       kind: "planet",
-      ...onRing(2, 0, ringRadii),
+      ...onRing(2, 8.3, ringRadii),
       landingBonus: 400,
       refuel: "free",
       gravityClass: 3,
@@ -60,7 +61,7 @@ export function createV0Board(): Board {
       id: "t_ev",
       name: "Transit",
       kind: "space",
-      ...onRing(2, 40, ringRadii),
+      ...onRing(2, 47.5, ringRadii),
     }),
 
     // —— Venus ——
@@ -68,7 +69,7 @@ export function createV0Board(): Board {
       id: "venus",
       name: "Venus",
       kind: "planet",
-      ...onRing(1, 80, ringRadii),
+      ...onRing(2, 76.6, ringRadii),
       price: 500,
       rent: 70,
       group: "venus",
@@ -87,7 +88,7 @@ export function createV0Board(): Board {
       id: "mercury",
       name: "Mercury",
       kind: "planet",
-      ...onRing(0, 160, ringRadii),
+      ...onRing(0, 170.5, ringRadii),
       price: 400,
       rent: 60,
       group: "mercury",
@@ -98,7 +99,7 @@ export function createV0Board(): Board {
       id: "t_mm",
       name: "Transit",
       kind: "space",
-      ...onRing(0, 200, ringRadii),
+      ...onRing(0, 250.7, ringRadii),
     }),
 
     // —— Mars system: Elon, Mars, Phobos, Deimos ——
@@ -146,58 +147,48 @@ export function createV0Board(): Board {
       gravityClass: 1,
       refuel: "station",
     }),
-    // Deimos @ 310°; belt chain toward Deimos for home-arc clearance (#99),
-    // then each hop nudged +40% of the way to the *next* belt/Holst stop
-    // so pips sit farther from the Earth-return curve (still not on Holst).
     n({
       id: "t_mb",
       name: "Transit",
       kind: "space",
-      // was 325 → belt1@345; +40% of 20° → 333
       ...onRing(3, 333, ringRadii),
     }),
 
     // —— Asteroid belt (blanks — combat) ——
     n({
       id: "belt1",
-      name: "Belt",
+      name: "Belt 1",
       kind: "space",
-      // was 345 → belt2@15 (30° fwd); +40% → 357
       ...onRing(4, 357, ringRadii),
     }),
     n({
       id: "belt2",
-      name: "Belt",
+      name: "Belt 2",
       kind: "space",
-      // Deimos +3; was 15 → belt3@50; +40% of 35° → 29
-      ...onRing(4, 29, ringRadii),
+      ...onRing(4, 21.7, ringRadii),
     }),
     n({
       id: "belt3",
-      name: "Belt",
+      name: "Belt 3",
       kind: "space",
-      // was 50 → 95; +40% of 45° → 68
       ...onRing(4, 68, ringRadii),
     }),
     n({
       id: "belt4",
-      name: "Belt",
+      name: "Belt 4",
       kind: "space",
-      // was 95 → 140; +40% → 113
       ...onRing(4, 113, ringRadii),
     }),
     n({
       id: "belt5",
-      name: "Belt",
+      name: "Belt 5",
       kind: "space",
-      // was 140 → 185; +40% → 158
       ...onRing(4, 158, ringRadii),
     }),
     n({
       id: "belt6",
-      name: "Belt",
+      name: "Belt 6",
       kind: "space",
-      // was 185 → Holst@240; +40% of 55° → 207
       ...onRing(4, 207, ringRadii),
     }),
 
@@ -271,7 +262,7 @@ export function createV0Board(): Board {
       id: "j_b4",
       name: "J Transit",
       kind: "space",
-      ...onRing(5, 55, ringRadii),
+      ...onRing(5, 58.7, ringRadii),
     }),
     n({
       id: "callisto",
@@ -428,9 +419,7 @@ export function createV0Board(): Board {
       id: "t_se",
       name: "Homeward",
       kind: "space",
-      // Saturn ring, near Earth's angle so the home hop is mostly radial and
-      // does not cut the Jupiter arc between Ganymede and Callisto (was @70°).
-      ...onRing(6, 12, ringRadii),
+      ...onRing(6, 57, ringRadii),
     }),
   ];
 
