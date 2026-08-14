@@ -1495,12 +1495,21 @@ function mountLabScenarios(): void {
     (groups[sc.group] ??= []).push(sc);
   }
   const labels: Record<string, string> = {
+    "which-is-larger": "Which is larger?",
     minigame: "Minigames",
     end: "End screens",
     economy: "Economy",
   };
+  /** Stable section order (Object.entries alone follows first-seen group). */
+  const groupOrder = ["which-is-larger", "minigame", "end", "economy"] as const;
   labScenariosEl.innerHTML = "";
-  for (const [group, list] of Object.entries(groups)) {
+  const orderedGroups = [
+    ...groupOrder.filter((g) => groups[g]?.length),
+    ...Object.keys(groups).filter((g) => !(groupOrder as readonly string[]).includes(g)),
+  ];
+  for (const group of orderedGroups) {
+    const list = groups[group];
+    if (!list?.length) continue;
     const wrap = document.createElement("div");
     wrap.className = "lab-group";
     const h = document.createElement("p");

@@ -31,6 +31,7 @@ export const TOPIC_ICONS: Record<string, string> = {
   duel: "/handbook/duel-rockets.png",
   "ai-difficulty": "/handbook/rival-rockets.png",
   feral: "/handbook/rocket-debris.png",
+  lab: "/handbook/dice-break.png",
   "not-in-build": "/handbook/lock.png",
   readme: "/handbook/badge-rocket.png",
   changelog: "/handbook/gameplay.png",

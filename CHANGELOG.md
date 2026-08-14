@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Lab / docs
+- **Lab menu (#76 structure):** “Which is larger?” section (Eastern Arabic first); Gravity Duel consolidated to **one** entry; Ops Manual **The Lab** topic (Lab stays on production — #12 won’t-do)
+- Handbook icon for Lab topic
+
 ## [0.0.21] — 2026-08-13
 
 ### Play
