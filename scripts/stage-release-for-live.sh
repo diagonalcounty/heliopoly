@@ -56,7 +56,7 @@ import os
 print('staged index', os.path.exists(f\"/var/www/heliopoly-releases/{p['version']}/index.html\"))
 print('cron', open('/etc/cron.d/heliopoly-promote').read())
 PY
-grep -o 'v0\\.[0-9.]*' /var/www/heliopoly/index.html | head -1
+grep -oE '[0-9]+\\.[0-9]+\\.[0-9]+' /var/www/heliopoly/index.html | head -1
 "
 
-echo "OK: v${VERSION} staged; live promotes at ${ENABLED_AFTER} via droplet cron (Sunday 00:01 UTC)."
+echo "OK: ${VERSION} staged; live promotes at ${ENABLED_AFTER} via droplet cron (Sunday 00:01 UTC)."
