@@ -6,6 +6,10 @@
 - **Lab menu (#76 structure):** “Which is larger?” section (Eastern Arabic first); Gravity Duel consolidated to **one** entry; Ops Manual **The Lab** topic (Lab stays on production — #12 won’t-do)
 - Handbook icon for Lab topic
 
+### iPad / tablet
+- **Viewport zoom lock (#95):** `maximum-scale=1` / `user-scalable=no`, WKWebView pinch off + bounce-zoom off, `native-shell` fill height
+- **iPad mini layout (#96):** tighter portrait board caps (≤780px wide); mini landscape height band (≤800px) for 744/768-tall shells; 44pt control targets
+
 ## [0.0.21] — 2026-08-13
 
 ### Play

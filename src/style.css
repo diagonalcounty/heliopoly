@@ -26,6 +26,34 @@ body {
   color: var(--text);
   /* Avoid iOS rubber-band scroll fighting the game UI */
   overscroll-behavior: none;
+  /* Prefer reflow over browser zoom on touch (pairs with viewport scale lock) */
+  touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/**
+ * Native iOS shell (#95): fill the WKWebView, no page-level pinch/pan chrome.
+ * Classes injected from GameWebView on load (native-shell / touch-ui).
+ */
+html.native-shell,
+html.native-shell body {
+  height: 100%;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+  width: 100%;
+  /* Keep the game surface glued to the visual viewport */
+  position: relative;
+}
+
+html.native-shell #app {
+  height: 100dvh;
+  max-height: 100dvh;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 #app {
@@ -1100,7 +1128,7 @@ body.handbook-open {
 
   .board-panel {
     /* Keep map short enough that Roll / End turn sit on the first screen */
-    max-width: min(100%, 56dvh, 640px);
+    max-width: min(100%, 52dvh, 560px);
     margin: 0 auto;
     width: 100%;
     padding: 6px;
@@ -1108,7 +1136,7 @@ body.handbook-open {
 
   #board {
     width: 100%;
-    max-height: min(56dvh, 640px);
+    max-height: min(52dvh, 560px);
   }
 
   .side {
@@ -1150,11 +1178,85 @@ body.handbook-open {
   button {
     padding: 10px 8px;
     font-size: 0.9rem;
+    min-height: 44px;
+  }
+}
+
+/**
+ * iPad mini portrait classes (#96)
+ * mini 5: 768×1024 · mini 6/7: 744×1133 — stacked; keep Pilot Controls on first screen.
+ */
+@media (max-width: 780px) and (orientation: portrait) {
+  #app {
+    padding-left: max(8px, env(safe-area-inset-left, 0px));
+    padding-right: max(8px, env(safe-area-inset-right, 0px));
+    padding-bottom: max(8px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .top h1 {
+    font-size: 0.98rem;
+  }
+
+  .top-actions .lab-launch,
+  .top-actions .handbook-launch {
+    min-height: 40px;
+    padding-inline: 10px;
+    font-size: 0.82rem;
+  }
+
+  .board-panel {
+    max-width: min(100%, 46dvh, 480px);
+  }
+
+  #board {
+    max-height: min(46dvh, 480px);
+  }
+
+  .pilot-controls .actions button {
+    min-height: 44px;
+    font-size: 0.85rem;
+  }
+
+  .log-card {
+    min-height: 64px !important;
+    max-height: 100px !important;
+    height: 100px !important;
+  }
+}
+
+/**
+ * iPad mini landscape (#96)
+ * mini 5: 1024×768 · mini 6/7: 1133×744 — height is the scarce resource.
+ * Tighter than the general landscape-tablet block below.
+ */
+@media (min-width: 1000px) and (max-width: 1200px) and (orientation: landscape) and (max-height: 800px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) minmax(200px, min(28vw, 280px));
+    gap: 6px;
+  }
+
+  .top h1 {
+    font-size: 0.92rem;
+  }
+
+  .fleet-card {
+    padding: 6px 8px;
+  }
+
+  .log-card {
+    min-height: 56px;
+  }
+
+  .pilot-controls .actions button {
+    min-height: 40px;
+    padding: 6px;
+    font-size: 0.78rem;
   }
 }
 
 /**
  * Landscape tablet (iPad Pro 11" ~1194×834 CSS px, ~16:10 shell) — #83
+ * Also covers mini landscape when not matched by the tighter mini block.
  * Play area under the menu is the remaining height; square map must fit that.
  * JS sets --board-fit from measured header bottom; CSS enforces it hard.
  */
