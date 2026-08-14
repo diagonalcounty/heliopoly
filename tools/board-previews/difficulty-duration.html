@@ -406,8 +406,8 @@ function renderAi() {
   sub.className = "hint";
   sub.style.margin = "0 0 8px";
   sub.textContent = "Duration assumes you fly Expert. Weak AI → short games; Expert AI → long fights.";
-  box.appendChild(sub);
   box.appendChild(h);
+  box.appendChild(sub);
   for (const [key, d] of Object.entries(DIFFS)) {
     const lab = document.createElement("label");
     lab.className = "opt" + (key === selected ? " selected" : "");
