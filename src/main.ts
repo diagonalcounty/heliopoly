@@ -2,6 +2,7 @@ import { heuristicAI } from "./core/agents";
 import { createV0Board, getNode, isPurchasable, nodeList } from "./core/board";
 import { formatMoney } from "./core/currency";
 import {
+  LANE_STROKE_WIDTH,
   laneStrokeStyle,
   sampleLaneCurve,
   sampleLanePolyline,
@@ -2452,9 +2453,9 @@ function drawBoard(): void {
   const px = (n: { x: number; y: number }) => project(n.x, n.y).x;
   const py = (n: { x: number; y: number }) => project(n.x, n.y).y;
 
-  // Path edges — curved lanes (#99); edge index = stable draw order for alt in/out
+  // Path edges — curved lanes (#99); thin cyan so roll highlight stays primary
   ctx.strokeStyle = laneStrokeStyle();
-  ctx.lineWidth = 2;
+  ctx.lineWidth = LANE_STROKE_WIDTH;
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
   let laneEdgeIndex = 0;
