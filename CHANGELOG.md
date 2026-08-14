@@ -25,7 +25,7 @@ iOS **MARKETING_VERSION** / web badge / package all **1.0.0** (build number `CUR
 - Dead code removal (#27)
 
 ### Meta
-- Version **1.0.0** (package, badge, Ops Manual welcome, README, Xcode `MARKETING_VERSION`)
+- Version **1.0.0** (package, badge, Ops Manual welcome, README, Xcode `MARKETING_VERSION`) — display drops the leading **v** (`1.0.0`, not `v1.0.0`)
 - **Live window:** Sunday **00:01 UTC** — staged as `heliopoly-releases/1.0.0` on the droplet
 
 ## [0.0.25] — 2026-08-14
@@ -284,7 +284,7 @@ iOS **MARKETING_VERSION** / web badge / package all **1.0.0** (build number `CUR
 
 ### Notes
 
-- Board path v0.0.6 systems; feral/depots; play until elimination
+- Board path 0.0.6 systems; feral/depots; play until elimination
 
 ## [0.0.5] — 2026-07-21
 

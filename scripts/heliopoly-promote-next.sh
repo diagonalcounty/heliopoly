@@ -61,11 +61,11 @@ PY
 )"
 
 if (( NOW_EPOCH < UNLOCK_EPOCH )); then
-  log "pending v${VERSION} not yet unlocked (enabledAfter=${ENABLED_AFTER}, now=${STAMP_UTC}) — skip"
+  log "pending ${VERSION} not yet unlocked (enabledAfter=${ENABLED_AFTER}, now=${STAMP_UTC}) — skip"
   exit 0
 fi
 
-log "promoting v${VERSION} → ${LIVE_ROOT} (enabledAfter=${ENABLED_AFTER})"
+log "promoting ${VERSION} → ${LIVE_ROOT} (enabledAfter=${ENABLED_AFTER})"
 
 # Preserve telemetry logs dir if present under live root
 rsync -a --delete \
@@ -91,5 +91,5 @@ with open(last, "w") as f:
 os.remove(pending_path)
 PY
 
-log "OK promoted v${VERSION}; pending.json cleared → last-promoted.json"
+log "OK promoted ${VERSION}; pending.json cleared → last-promoted.json"
 exit 0
