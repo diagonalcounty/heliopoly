@@ -72,6 +72,8 @@ Full guide: **[scripts/README-sim.md](scripts/README-sim.md)** · issues [#89](h
 
 ### Board look previews (static HTML)
 
+- **Duration meter (#94):** [tools/board-previews/difficulty-duration.html](tools/board-previews/difficulty-duration.html)
+
 Design sandboxes for map paint (not served by the game or .live). Open in a browser:
 
 - [tools/board-previews/elliptical-lanes.html](tools/board-previews/elliptical-lanes.html) — curved Mainline (#99)

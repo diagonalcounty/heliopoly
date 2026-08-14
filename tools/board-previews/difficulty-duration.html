@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Heliopoly — AI difficulty duration meter (#94)</title>
+<style>
+  :root {
+    color-scheme: dark;
+    font-family: system-ui, sans-serif;
+    --bg: #0b1020;
+    --panel: #141b2f;
+    --border: #2a3555;
+    --text: #e8eefc;
+    --muted: #9aa8c7;
+    --accent: #6ec8ff;
+    --accent-2: #ffc857;
+    --glow: #7dd3fc;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); }
+  .nav {
+    display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center;
+    padding: 8px 14px; border-bottom: 1px solid var(--border);
+    font-size: 0.78rem; background: #0a0f1a;
+  }
+  .nav a { color: var(--accent); text-decoration: none; }
+  .nav a:hover { text-decoration: underline; }
+  .nav .here { color: var(--accent-2); font-weight: 600; }
+  .nav span.sep { color: var(--border); }
+  header { padding: 12px 16px; border-bottom: 1px solid var(--border); }
+  header h1 { margin: 0 0 6px; font-size: 1.1rem; }
+  header p { margin: 0; color: var(--muted); font-size: 0.86rem; max-width: 85ch; line-height: 1.45; }
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(280px, 340px) 1fr;
+    min-height: calc(100vh - 110px);
+  }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+  aside {
+    padding: 10px 12px 24px; border-right: 1px solid var(--border);
+    overflow-y: auto; font-size: 0.8rem; color: var(--muted);
+  }
+  aside h2 {
+    margin: 14px 0 8px; font-size: 0.7rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--accent-2);
+  }
+  aside h2:first-child { margin-top: 4px; }
+  label.row {
+    display: grid; grid-template-columns: 1fr auto; gap: 2px 8px;
+    align-items: center; margin-bottom: 8px;
+  }
+  label.row span.name { grid-column: 1 / -1; color: var(--text); font-size: 0.78rem; }
+  label.row input[type="range"] { width: 100%; grid-column: 1 / -1; }
+  label.row .val {
+    grid-column: 2; grid-row: 1; font-variant-numeric: tabular-nums;
+    color: var(--accent-2); min-width: 2.6rem; text-align: right;
+  }
+  .check { display: flex; align-items: center; gap: 8px; margin: 6px 0; color: var(--text); }
+  .diff-pick label {
+    display: flex; gap: 8px; align-items: flex-start; margin: 6px 0;
+    color: var(--text); cursor: pointer; line-height: 1.3;
+  }
+  main {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: flex-start; padding: 20px 16px 40px; gap: 16px;
+    background: radial-gradient(ellipse at top, #152044 0%, var(--bg) 55%);
+  }
+  .stage-label {
+    font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted);
+  }
+  /* Mock AI difficulty card + meter (game-setup style) */
+  .setup-card {
+    display: flex; flex-direction: row; align-items: stretch; gap: 12px;
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 14px; padding: 14px 16px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+    max-width: 100%;
+  }
+  .ai-block { flex: 1 1 auto; min-width: 180px; max-width: 280px; }
+  .ai-block h3 {
+    margin: 0 0 10px; font-size: 0.95rem; color: var(--accent-2); font-weight: 600;
+  }
+  .ai-block .opt {
+    display: flex; gap: 8px; align-items: flex-start; margin: 8px 0;
+    font-size: 0.82rem; color: var(--accent); line-height: 1.35; cursor: pointer;
+  }
+  .ai-block .opt input { margin-top: 3px; accent-color: var(--accent); }
+  .ai-block .opt.selected { color: #b8e6ff; }
+
+  .meter {
+    flex: 0 0 auto;
+    display: flex; flex-direction: column;
+    border: 1px solid #3d5a80;
+    border-radius: 10px;
+    background: linear-gradient(180deg, #121a2c 0%, #0c1220 100%);
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.35), 0 0 20px rgba(110,200,255,0.06);
+    overflow: hidden;
+  }
+  .meter-title {
+    text-align: center; padding: 6px 6px 4px;
+    font-size: 0.58rem; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--glow); line-height: 1.25;
+    border-bottom: 1px solid #243656;
+    text-shadow: 0 0 8px rgba(125,211,252,0.35);
+  }
+  .meter-body {
+    position: relative; flex: 1 1 auto;
+    display: flex; flex-direction: row;
+  }
+  .meter-rail-col {
+    position: relative; flex: 0 0 auto;
+    display: flex; align-items: stretch; justify-content: center;
+  }
+  .meter-rail {
+    position: absolute; left: 50%; top: var(--pad-top); bottom: var(--pad-bot);
+    width: 2px; transform: translateX(-50%);
+    background: var(--glow);
+    box-shadow: 0 0 6px rgba(125,211,252,0.5);
+  }
+  .meter-marker {
+    position: absolute; left: 50%; z-index: 3;
+    transform: translate(-50%, -50%);
+    width: 14px; height: 18px;
+    pointer-events: none;
+    filter: drop-shadow(0 0 5px rgba(125,211,252,0.85));
+  }
+  .meter-marker svg { display: block; width: 100%; height: 100%; }
+  .meter-bars {
+    position: relative; flex: 1 1 auto;
+    min-width: 0;
+  }
+  .meter-bar {
+    position: absolute; left: 0;
+    border-radius: 1px;
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+  .meter-ticks {
+    position: relative; flex: 0 0 auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    color: var(--glow);
+    text-shadow: 0 0 6px rgba(125,211,252,0.3);
+  }
+  .meter-tick {
+    position: absolute; right: 0; transform: translateY(-50%);
+    white-space: nowrap; line-height: 1;
+  }
+  .meter-tick .line {
+    display: inline-block; vertical-align: middle;
+    height: 1px; background: rgba(125,211,252,0.45);
+    margin-right: 4px;
+  }
+
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  button {
+    font: inherit; color: var(--text); background: #1e2a48;
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 12px; cursor: pointer;
+  }
+  button.primary { background: #0e7490; border-color: #22d3ee; }
+  button:hover { border-color: var(--accent); }
+  #export {
+    width: 100%; min-height: 160px; max-height: 280px; resize: vertical;
+    font-family: ui-monospace, Menlo, monospace; font-size: 0.7rem;
+    background: #0a0f1a; color: #7dd3fc; border: 1px solid #1e3a5f;
+    border-radius: 8px; padding: 8px;
+  }
+  kbd { background: #1e2a48; border: 1px solid var(--border); border-radius: 4px; padding: 0 5px; font-size: 0.72rem; }
+  .hint { font-size: 0.74rem; line-height: 1.35; margin: 0 0 8px; }
+</style>
+</head>
+<body>
+<nav class="nav" aria-label="Board previews">
+  <span class="here">Duration meter</span>
+  <span class="sep">·</span>
+  <a href="./elliptical-lanes.html">Lanes</a>
+  <span class="sep">·</span>
+  <a href="./ring-colors.html">Rings</a>
+  <span class="sep">·</span>
+  <a href="./board-mapper.html">Mapper</a>
+  <span class="sep">·</span>
+  <a href="./README.md">README</a>
+</nav>
+<header>
+  <h1>AI difficulty · estimated round duration <span style="color:var(--muted);font-weight:500">(#94 preview)</span></h1>
+  <p>
+    Tweak the vertical µ / density meter next to AI difficulty. Bars encode distribution mass;
+    dual triangles mark median (R50). Not shipped — export settings when it looks right.
+    Placeholder distros until real Sim Lab table is wired.
+  </p>
+</header>
+<div class="layout">
+  <aside>
+    <h2>Difficulty (selected)</h2>
+    <div class="diff-pick" id="diffPick"></div>
+
+    <h2>Panel proportion</h2>
+    <label class="row"><span class="name">Panel width (px)</span><span class="val" id="v_panelW"></span>
+      <input type="range" id="panelW" min="48" max="160" step="1" value="72"/></label>
+    <label class="row"><span class="name">Panel height (px)</span><span class="val" id="v_panelH"></span>
+      <input type="range" id="panelH" min="100" max="320" step="1" value="168"/></label>
+    <label class="row"><span class="name">Panel padding (px)</span><span class="val" id="v_pad"></span>
+      <input type="range" id="pad" min="2" max="16" step="1" value="6"/></label>
+    <label class="row"><span class="name">Corner radius</span><span class="val" id="v_radius"></span>
+      <input type="range" id="radius" min="0" max="16" step="1" value="10"/></label>
+    <label class="row"><span class="name">Border glow</span><span class="val" id="v_borderGlow"></span>
+      <input type="range" id="borderGlow" min="0" max="1" step="0.01" value="0.12"/></label>
+
+    <h2>Title</h2>
+    <label class="row"><span class="name">Title font size (px)</span><span class="val" id="v_titleSize"></span>
+      <input type="range" id="titleSize" min="6" max="14" step="0.5" value="9"/></label>
+    <label class="row"><span class="name">Title opacity</span><span class="val" id="v_titleA"></span>
+      <input type="range" id="titleA" min="0.2" max="1" step="0.01" value="0.95"/></label>
+    <label class="check"><input type="checkbox" id="showMu" checked/> Show (µ R50) in title</label>
+
+    <h2>Scale (rounds axis)</h2>
+    <label class="row"><span class="name">Scale top (round)</span><span class="val" id="v_scaleMin"></span>
+      <input type="range" id="scaleMin" min="10" max="80" step="5" value="40"/></label>
+    <label class="row"><span class="name">Scale bottom (round)</span><span class="val" id="v_scaleMax"></span>
+      <input type="range" id="scaleMax" min="60" max="200" step="5" value="120"/></label>
+    <label class="row"><span class="name">Tick font (px)</span><span class="val" id="v_tickFont"></span>
+      <input type="range" id="tickFont" min="7" max="14" step="0.5" value="10"/></label>
+    <label class="row"><span class="name">Tick column width</span><span class="val" id="v_tickColW"></span>
+      <input type="range" id="tickColW" min="22" max="48" step="1" value="30"/></label>
+    <label class="row"><span class="name">Tick mark length</span><span class="val" id="v_tickMark"></span>
+      <input type="range" id="tickMark" min="2" max="16" step="1" value="6"/></label>
+    <label class="check"><input type="checkbox" id="showPlus" checked/> Bottom label as N+</label>
+
+    <h2>Rail + marker</h2>
+    <label class="row"><span class="name">Rail column width</span><span class="val" id="v_railColW"></span>
+      <input type="range" id="railColW" min="12" max="36" step="1" value="18"/></label>
+    <label class="row"><span class="name">Rail thickness</span><span class="val" id="v_railW"></span>
+      <input type="range" id="railW" min="1" max="4" step="0.5" value="2"/></label>
+    <label class="row"><span class="name">Rail glow</span><span class="val" id="v_railGlow"></span>
+      <input type="range" id="railGlow" min="0" max="20" step="0.5" value="6"/></label>
+    <label class="row"><span class="name">Marker size</span><span class="val" id="v_markerSize"></span>
+      <input type="range" id="markerSize" min="8" max="28" step="1" value="14"/></label>
+    <label class="row"><span class="name">Marker glow</span><span class="val" id="v_markerGlow"></span>
+      <input type="range" id="markerGlow" min="0" max="20" step="0.5" value="5"/></label>
+    <label class="check"><input type="checkbox" id="showMarker" checked/> Dual-triangle marker at µ</label>
+    <label class="check"><input type="checkbox" id="markerOnMedian" checked/> Marker tracks median (else mid panel)</label>
+
+    <h2>Density bars</h2>
+    <label class="row"><span class="name">Bar count (samples)</span><span class="val" id="v_barCount"></span>
+      <input type="range" id="barCount" min="5" max="40" step="1" value="18"/></label>
+    <label class="row"><span class="name">Bar height (px)</span><span class="val" id="v_barH"></span>
+      <input type="range" id="barH" min="1" max="8" step="0.5" value="2.5"/></label>
+    <label class="row"><span class="name">Bar max width (px)</span><span class="val" id="v_barMaxW"></span>
+      <input type="range" id="barMaxW" min="8" max="80" step="1" value="36"/></label>
+    <label class="row"><span class="name">Bar min width (px)</span><span class="val" id="v_barMinW"></span>
+      <input type="range" id="barMinW" min="0" max="20" step="0.5" value="2"/></label>
+    <label class="row"><span class="name">Bar glow blur</span><span class="val" id="v_barGlow"></span>
+      <input type="range" id="barGlow" min="0" max="16" step="0.5" value="4"/></label>
+    <label class="row"><span class="name">Bar glow strength</span><span class="val" id="v_barGlowA"></span>
+      <input type="range" id="barGlowA" min="0" max="1" step="0.01" value="0.55"/></label>
+    <label class="row"><span class="name">Bar base opacity</span><span class="val" id="v_barA"></span>
+      <input type="range" id="barA" min="0.15" max="1" step="0.01" value="0.85"/></label>
+    <label class="row"><span class="name">Width power (peak sharpness)</span><span class="val" id="v_widthPow"></span>
+      <input type="range" id="widthPow" min="0.4" max="3" step="0.05" value="1.1"/></label>
+    <label class="check"><input type="checkbox" id="barRound" checked/> Rounded bar ends</label>
+
+    <h2>Distribution (selected difficulty)</h2>
+    <p class="hint">Placeholder log-ish density until Sim Lab table is locked. µ / σ shape the bars.</p>
+    <label class="row"><span class="name">Median µ (rounds)</span><span class="val" id="v_mu"></span>
+      <input type="range" id="mu" min="20" max="150" step="1" value="48"/></label>
+    <label class="row"><span class="name">Spread σ (shape)</span><span class="val" id="v_sigma"></span>
+      <input type="range" id="sigma" min="4" max="50" step="0.5" value="14"/></label>
+    <label class="row"><span class="name">Skew (tail down = longer games)</span><span class="val" id="v_skew"></span>
+      <input type="range" id="skew" min="-1" max="2" step="0.05" value="0.65"/></label>
+    <label class="row"><span class="name">IQR half-width (info only)</span><span class="val" id="v_iqr"></span>
+      <input type="range" id="iqr" min="2" max="40" step="1" value="12"/></label>
+
+    <h2>Card context</h2>
+    <label class="row"><span class="name">AI card max width</span><span class="val" id="v_cardW"></span>
+      <input type="range" id="cardW" min="260" max="520" step="4" value="380"/></label>
+    <label class="row"><span class="name">Gap AI ↔ meter</span><span class="val" id="v_gap"></span>
+      <input type="range" id="gap" min="4" max="28" step="1" value="12"/></label>
+    <label class="check"><input type="checkbox" id="showAiCopy" checked/> Show AI radio copy</label>
+
+    <h2>Export</h2>
+    <p class="hint">Copy or download for agent. Save as <kbd>tools/board-previews/difficulty-duration-export.json</kbd> if you want it on disk.</p>
+    <div class="actions">
+      <button type="button" class="primary" id="btn-copy">Copy export</button>
+      <button type="button" id="btn-dl">Download JSON</button>
+      <button type="button" id="btn-reset">Reset defaults</button>
+    </div>
+    <textarea id="export" readonly spellcheck="false"></textarea>
+  </aside>
+  <main>
+    <div class="stage-label">New game setup · AI difficulty context</div>
+    <div class="setup-card" id="setupCard">
+      <div class="ai-block" id="aiBlock"></div>
+      <div class="meter" id="meter">
+        <div class="meter-title" id="meterTitle">Estimated round<br/>duration (µ R50)</div>
+        <div class="meter-body" id="meterBody">
+          <div class="meter-rail-col" id="railCol">
+            <div class="meter-rail" id="rail"></div>
+            <div class="meter-marker" id="marker">
+              <svg viewBox="0 0 14 18" aria-hidden="true">
+                <path fill="#7dd3fc" d="M7 0 L14 7 L8.2 7 L8.2 11 L14 11 L7 18 L0 11 L5.8 11 L5.8 7 L0 7 Z"/>
+              </svg>
+            </div>
+          </div>
+          <div class="meter-bars" id="bars"></div>
+          <div class="meter-ticks" id="ticks"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<script>
+/** Placeholder distros — replace with Sim Lab medians later (#94) */
+const DIFFS = {
+  easy: {
+    label: "Easy — no break; always prograde",
+    mu: 52, sigma: 18, skew: 0.85, iqr: 16,
+  },
+  normal: {
+    label: "Normal — small break only to afford leave",
+    mu: 48, sigma: 14, skew: 0.65, iqr: 12,
+  },
+  hard: {
+    label: "Hard — break for buys, hubs, Earth landings",
+    mu: 42, sigma: 12, skew: 0.45, iqr: 10,
+  },
+  expert: {
+    label: "Expert — deep break, monopoly & Earth focus",
+    mu: 38, sigma: 10, skew: 0.35, iqr: 8,
+  },
+};
+
+const DEFAULTS = {};
+const $ = (id) => document.getElementById(id);
+const num = (id) => +$(id).value;
+
+function bindVal(id, fmt = (v) => String(v)) {
+  const el = $(id);
+  const lab = $("v_" + id);
+  const sync = () => { if (lab) lab.textContent = fmt(el.type === "checkbox" ? el.checked : +el.value); };
+  el.addEventListener(el.type === "checkbox" ? "change" : "input", () => { sync(); render(); });
+  sync();
+  DEFAULTS[id] = el.type === "checkbox" ? el.checked : el.value;
+}
+
+let selected = "easy";
+
+function densityAt(round, mu, sigma, skew) {
+  // Skewed Gaussian-ish (not real PDF; good enough for bar shape)
+  const x = (round - mu) / Math.max(1, sigma);
+  const skewShift = skew * (x > 0 ? x * x * 0.15 : 0);
+  const z = x - skewShift;
+  return Math.exp(-0.5 * z * z);
+}
+
+function yForRound(round, scaleMin, scaleMax, h, padTop, padBot) {
+  const usable = h - padTop - padBot;
+  const t = (round - scaleMin) / Math.max(1, scaleMax - scaleMin);
+  return padTop + t * usable;
+}
+
+function collectSettings() {
+  const ids = [
+    "panelW","panelH","pad","radius","borderGlow","titleSize","titleA","showMu",
+    "scaleMin","scaleMax","tickFont","tickColW","tickMark","showPlus",
+    "railColW","railW","railGlow","markerSize","markerGlow","showMarker","markerOnMedian",
+    "barCount","barH","barMaxW","barMinW","barGlow","barGlowA","barA","widthPow","barRound",
+    "mu","sigma","skew","iqr","cardW","gap","showAiCopy",
+  ];
+  const s = { selected, tool: "difficulty-duration", issue: 94, generatedAt: new Date().toISOString() };
+  for (const id of ids) {
+    const el = $(id);
+    if (!el) continue;
+    s[id] = el.type === "checkbox" ? el.checked : +el.value;
+  }
+  s.diffs = structuredClone(DIFFS);
+  // bake current sliders into selected difficulty
+  s.diffs[selected].mu = num("mu");
+  s.diffs[selected].sigma = num("sigma");
+  s.diffs[selected].skew = num("skew");
+  s.diffs[selected].iqr = num("iqr");
+  return s;
+}
+
+function renderAi() {
+  const box = $("aiBlock");
+  box.innerHTML = "";
+  if (!$("showAiCopy").checked) {
+    box.style.display = "none";
+    return;
+  }
+  box.style.display = "";
+  const h = document.createElement("h3");
+  h.textContent = "AI difficulty";
+  box.appendChild(h);
+  for (const [key, d] of Object.entries(DIFFS)) {
+    const lab = document.createElement("label");
+    lab.className = "opt" + (key === selected ? " selected" : "");
+    lab.innerHTML = `<input type="radio" name="diff" value="${key}" ${key === selected ? "checked" : ""}/><span>${d.label}</span>`;
+    lab.querySelector("input").addEventListener("change", () => {
+      selected = key;
+      $("mu").value = DIFFS[key].mu;
+      $("sigma").value = DIFFS[key].sigma;
+      $("skew").value = DIFFS[key].skew;
+      $("iqr").value = DIFFS[key].iqr;
+      ["mu","sigma","skew","iqr"].forEach((id) => {
+        const lab = $("v_" + id);
+        if (lab) lab.textContent = String(+$(id).value);
+      });
+      render();
+    });
+    box.appendChild(lab);
+  }
+}
+
+function render() {
+  // persist selected difficulty params from sliders
+  DIFFS[selected].mu = num("mu");
+  DIFFS[selected].sigma = num("sigma");
+  DIFFS[selected].skew = num("skew");
+  DIFFS[selected].iqr = num("iqr");
+
+  renderAi();
+
+  const panelW = num("panelW");
+  const panelH = num("panelH");
+  const pad = num("pad");
+  const meter = $("meter");
+  meter.style.width = panelW + "px";
+  meter.style.height = panelH + "px";
+  meter.style.borderRadius = num("radius") + "px";
+  const bg = num("borderGlow");
+  meter.style.boxShadow = `inset 0 0 0 1px rgba(0,0,0,0.35), 0 0 ${12 + bg * 40}px rgba(110,200,255,${bg})`;
+
+  $("setupCard").style.maxWidth = num("cardW") + "px";
+  $("setupCard").style.gap = num("gap") + "px";
+
+  const title = $("meterTitle");
+  title.style.fontSize = num("titleSize") + "px";
+  title.style.opacity = String(num("titleA"));
+  title.innerHTML = $("showMu").checked
+    ? "Estimated round<br/>duration (µ R50)"
+    : "Estimated round<br/>duration";
+
+  const scaleMin = num("scaleMin");
+  const scaleMax = num("scaleMax");
+  const padTop = pad + 4;
+  const padBot = pad + 4;
+  const body = $("meterBody");
+  const bodyH = panelH - (title.offsetHeight || 28);
+  body.style.height = Math.max(40, bodyH) + "px";
+  body.style.setProperty("--pad-top", padTop + "px");
+  body.style.setProperty("--pad-bot", padBot + "px");
+
+  const railCol = $("railCol");
+  railCol.style.width = num("railColW") + "px";
+  const rail = $("rail");
+  rail.style.width = num("railW") + "px";
+  rail.style.boxShadow = `0 0 ${num("railGlow")}px rgba(125,211,252,0.55)`;
+  rail.style.top = padTop + "px";
+  rail.style.bottom = padBot + "px";
+
+  const mu = DIFFS[selected].mu;
+  const marker = $("marker");
+  if ($("showMarker").checked) {
+    marker.style.display = "";
+    const ms = num("markerSize");
+    marker.style.width = ms + "px";
+    marker.style.height = (ms * 18) / 14 + "px";
+    marker.style.filter = `drop-shadow(0 0 ${num("markerGlow")}px rgba(125,211,252,0.9))`;
+    const my = $("markerOnMedian").checked
+      ? yForRound(mu, scaleMin, scaleMax, body.clientHeight || bodyH, padTop, padBot)
+      : (body.clientHeight || bodyH) / 2;
+    marker.style.top = my + "px";
+  } else {
+    marker.style.display = "none";
+  }
+
+  // ticks
+  const ticks = $("ticks");
+  ticks.innerHTML = "";
+  ticks.style.width = num("tickColW") + "px";
+  ticks.style.fontSize = num("tickFont") + "px";
+  const tickVals = [];
+  const step = scaleMax <= 80 ? 10 : 20;
+  for (let r = scaleMin; r < scaleMax; r += step) tickVals.push(r);
+  tickVals.push(scaleMax);
+  const h = body.clientHeight || bodyH;
+  for (const r of tickVals) {
+    const div = document.createElement("div");
+    div.className = "meter-tick";
+    div.style.top = yForRound(r, scaleMin, scaleMax, h, padTop, padBot) + "px";
+    const label = r >= scaleMax && $("showPlus").checked ? r + "+" : String(r);
+    div.innerHTML = `<span class="line" style="width:${num("tickMark")}px"></span>${label}`;
+    ticks.appendChild(div);
+  }
+
+  // bars
+  const bars = $("bars");
+  bars.innerHTML = "";
+  const nBars = num("barCount");
+  const sigma = DIFFS[selected].sigma;
+  const skew = DIFFS[selected].skew;
+  let peak = 0;
+  const dens = [];
+  for (let i = 0; i < nBars; i++) {
+    const t = nBars === 1 ? 0.5 : i / (nBars - 1);
+    const round = scaleMin + t * (scaleMax - scaleMin);
+    const d = densityAt(round, mu, sigma, skew);
+    dens.push({ round, d });
+    peak = Math.max(peak, d);
+  }
+  const maxW = num("barMaxW");
+  const minW = num("barMinW");
+  const pow = num("widthPow");
+  const barH = num("barH");
+  const glow = num("barGlow");
+  const glowA = num("barGlowA");
+  const barA = num("barA");
+  for (const { round, d } of dens) {
+    const rel = peak > 0 ? d / peak : 0;
+    const w = minW + (maxW - minW) * Math.pow(rel, pow);
+    if (w < 0.5) continue;
+    const el = document.createElement("div");
+    el.className = "meter-bar";
+    el.style.top = yForRound(round, scaleMin, scaleMax, h, padTop, padBot) + "px";
+    el.style.height = barH + "px";
+    el.style.width = w + "px";
+    el.style.borderRadius = $("barRound").checked ? "2px" : "0";
+    el.style.background = `rgba(125, 211, 252, ${barA * (0.35 + 0.65 * rel)})`;
+    el.style.boxShadow = glow > 0
+      ? `0 0 ${glow}px rgba(125, 211, 252, ${glowA * rel})`
+      : "none";
+    bars.appendChild(el);
+  }
+
+  $("export").value = JSON.stringify(collectSettings(), null, 2);
+  try {
+    localStorage.setItem("heliopoly-difficulty-duration-preview", $("export").value);
+  } catch (_) {}
+}
+
+// bind all
+[
+  "panelW","panelH","pad","radius","borderGlow","titleSize","titleA","showMu",
+  "scaleMin","scaleMax","tickFont","tickColW","tickMark","showPlus",
+  "railColW","railW","railGlow","markerSize","markerGlow","showMarker","markerOnMedian",
+  "barCount","barH","barMaxW","barMinW","barGlow","barGlowA","barA","widthPow","barRound",
+  "mu","sigma","skew","iqr","cardW","gap","showAiCopy",
+].forEach((id) => bindVal(id, (v) => (typeof v === "number" && !Number.isInteger(v) ? v.toFixed(2) : String(v))));
+
+// seed sliders from easy
+$("mu").value = DIFFS.easy.mu;
+$("sigma").value = DIFFS.easy.sigma;
+$("skew").value = DIFFS.easy.skew;
+$("iqr").value = DIFFS.easy.iqr;
+
+$("btn-copy").onclick = async () => {
+  render();
+  try {
+    await navigator.clipboard.writeText($("export").value);
+    $("btn-copy").textContent = "Copied!";
+    setTimeout(() => { $("btn-copy").textContent = "Copy export"; }, 1200);
+  } catch {
+    $("export").select();
+    document.execCommand("copy");
+  }
+};
+$("btn-dl").onclick = () => {
+  render();
+  const blob = new Blob([$("export").value], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "difficulty-duration-export.json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+$("btn-reset").onclick = () => {
+  for (const [id, v] of Object.entries(DEFAULTS)) {
+    const el = $(id);
+    if (!el) continue;
+    if (el.type === "checkbox") el.checked = !!v;
+    else el.value = v;
+  }
+  selected = "easy";
+  $("mu").value = DIFFS.easy.mu;
+  $("sigma").value = DIFFS.easy.sigma;
+  $("skew").value = DIFFS.easy.skew;
+  $("iqr").value = DIFFS.easy.iqr;
+  render();
+};
+
+// restore
+try {
+  const raw = localStorage.getItem("heliopoly-difficulty-duration-preview");
+  if (raw) {
+    const s = JSON.parse(raw);
+    for (const [k, v] of Object.entries(s)) {
+      const el = $(k);
+      if (!el || k === "diffs" || k === "selected") continue;
+      if (el.type === "checkbox") el.checked = !!v;
+      else if (el.type === "range") el.value = v;
+    }
+    if (s.selected && DIFFS[s.selected]) selected = s.selected;
+    if (s.diffs) {
+      for (const k of Object.keys(DIFFS)) {
+        if (s.diffs[k]) Object.assign(DIFFS[k], s.diffs[k]);
+      }
+    }
+    if (DIFFS[selected]) {
+      $("mu").value = DIFFS[selected].mu;
+      $("sigma").value = DIFFS[selected].sigma;
+      $("skew").value = DIFFS[selected].skew;
+      $("iqr").value = DIFFS[selected].iqr;
+    }
+  }
+} catch (_) {}
+
+render();
+window.addEventListener("resize", render);
+</script>
+</body>
+</html>
