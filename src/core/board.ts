@@ -428,8 +428,9 @@ export function createV0Board(): Board {
       id: "t_se",
       name: "Homeward",
       kind: "space",
-      // Stay on Saturn ring after Tethys (not Jupiter) before the drop to Earth
-      ...onRing(6, 70, ringRadii),
+      // Saturn ring, near Earth's angle so the home hop is mostly radial and
+      // does not cut the Jupiter arc between Ganymede and Callisto (was @70°).
+      ...onRing(6, 12, ringRadii),
     }),
   ];
 
