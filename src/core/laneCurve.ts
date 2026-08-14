@@ -13,6 +13,8 @@
 export const LANE_CURVE_OUTWARD = 0.08;
 /** Mid-span radial bulge toward the sun (odd edges when alternating). */
 export const LANE_CURVE_INWARD = 0.09;
+/** Gold travel-lane stroke alpha (playtest #101 with ring bands). */
+export const LANE_STROKE_ALPHA = 0.74;
 
 export interface LanePoint {
   x: number;

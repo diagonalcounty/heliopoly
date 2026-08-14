@@ -1,7 +1,20 @@
 import { heuristicAI } from "./core/agents";
 import { createV0Board, getNode, isPurchasable, nodeList } from "./core/board";
 import { formatMoney } from "./core/currency";
-import { sampleLaneCurve, sampleLanePolyline } from "./core/laneCurve";
+import {
+  LANE_STROKE_ALPHA,
+  sampleLaneCurve,
+  sampleLanePolyline,
+} from "./core/laneCurve";
+import {
+  RING_BAND_INNER_ALPHA,
+  RING_BAND_OUTER_ALPHA,
+  RING_DASH_ALPHA,
+  RING_LEGACY_BLUE_ALPHA,
+  SYSTEM_RING_STYLES,
+  fillRingBand,
+  strokeDashedRing,
+} from "./core/ringBands";
 import { walkMovePath } from "./core/path";
 import { PROPELLANTS } from "./core/propellant";
 import {
@@ -2332,16 +2345,35 @@ function drawBoard(): void {
   const cx = sun.x;
   const cy = sun.y;
 
-  // orbital rings (same projector as nodes)
-  for (const rNorm of board.rings) {
-    const r = rNorm * scale;
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.strokeStyle = "rgba(110, 180, 255, 0.22)";
-    ctx.lineWidth = 1.5;
-    ctx.setLineDash([4, 8]);
-    ctx.stroke();
-    ctx.setLineDash([]);
+  // Orbital rings (#101): legacy blue underlay + system bands + tinted dashes
+  const ringPx = board.rings.map((rNorm) => rNorm * scale);
+  if (RING_LEGACY_BLUE_ALPHA > 0) {
+    for (const r of ringPx) {
+      strokeDashedRing(ctx, cx, cy, r, [110, 180, 255], RING_LEGACY_BLUE_ALPHA, 1.5);
+    }
+  }
+  // Bands outer→inner (Saturn…Mercury) so falloff meets next inner ring
+  for (let i = board.rings.length - 1; i >= 0; i--) {
+    const style = SYSTEM_RING_STYLES.find((s) => s.ringIndex === i);
+    if (!style) continue;
+    const rOuter = ringPx[i] ?? 0;
+    const rInner =
+      i === 0 ? (ringPx[0] ?? 0) * 0.35 : (ringPx[i - 1] ?? 0);
+    fillRingBand(
+      ctx,
+      cx,
+      cy,
+      rOuter,
+      rInner,
+      style.rgb,
+      RING_BAND_OUTER_ALPHA,
+      RING_BAND_INNER_ALPHA,
+    );
+  }
+  for (const style of SYSTEM_RING_STYLES) {
+    const r = ringPx[style.ringIndex];
+    if (r == null) continue;
+    strokeDashedRing(ctx, cx, cy, r, style.rgb, RING_DASH_ALPHA, 1.75);
   }
 
   // sun
@@ -2360,7 +2392,7 @@ function drawBoard(): void {
   const py = (n: { x: number; y: number }) => project(n.x, n.y).y;
 
   // Path edges — curved lanes (#99); edge index = stable draw order for alt in/out
-  ctx.strokeStyle = "rgba(255, 200, 120, 0.32)";
+  ctx.strokeStyle = `rgba(255, 200, 120, ${LANE_STROKE_ALPHA})`;
   ctx.lineWidth = 2;
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
