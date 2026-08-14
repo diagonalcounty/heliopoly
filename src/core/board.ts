@@ -146,49 +146,53 @@ export function createV0Board(): Board {
       gravityClass: 1,
       refuel: "station",
     }),
+    // Deimos @ 310°; pull t_mb + early belt toward Deimos so the curved
+    // homeward arc (Saturn → Earth, #99) does not overlap belt pips.
     n({
       id: "t_mb",
       name: "Transit",
       kind: "space",
-      ...onRing(3, 340, ringRadii),
+      ...onRing(3, 325, ringRadii),
     }),
 
     // —— Asteroid belt (blanks — combat) ——
+    // Angles shifted ~25–40° toward Deimos vs prior 10/50/90… fan.
     n({
       id: "belt1",
       name: "Belt",
       kind: "space",
-      ...onRing(4, 10, ringRadii),
+      ...onRing(4, 345, ringRadii),
     }),
     n({
       id: "belt2",
       name: "Belt",
       kind: "space",
-      ...onRing(4, 50, ringRadii),
+      // Deimos +3 on Mainline (deimos → t_mb → belt1 → belt2)
+      ...onRing(4, 15, ringRadii),
     }),
     n({
       id: "belt3",
       name: "Belt",
       kind: "space",
-      ...onRing(4, 90, ringRadii),
+      ...onRing(4, 50, ringRadii),
     }),
     n({
       id: "belt4",
       name: "Belt",
       kind: "space",
-      ...onRing(4, 130, ringRadii),
+      ...onRing(4, 95, ringRadii),
     }),
     n({
       id: "belt5",
       name: "Belt",
       kind: "space",
-      ...onRing(4, 170, ringRadii),
+      ...onRing(4, 140, ringRadii),
     }),
     n({
       id: "belt6",
       name: "Belt",
       kind: "space",
-      ...onRing(4, 210, ringRadii),
+      ...onRing(4, 185, ringRadii),
     }),
 
     // —— Jupiter: Holst + moons (orange) + blanks ——

@@ -1,6 +1,7 @@
 import { heuristicAI } from "./core/agents";
 import { createV0Board, getNode, isPurchasable, nodeList } from "./core/board";
 import { formatMoney } from "./core/currency";
+import { sampleLaneCurve, sampleLanePolyline } from "./core/laneCurve";
 import { walkMovePath } from "./core/path";
 import { PROPELLANTS } from "./core/propellant";
 import {
@@ -2358,32 +2359,54 @@ function drawBoard(): void {
   const px = (n: { x: number; y: number }) => project(n.x, n.y).x;
   const py = (n: { x: number; y: number }) => project(n.x, n.y).y;
 
-  // path chords
-  ctx.strokeStyle = "rgba(255, 200, 120, 0.28)";
+  // Path edges — curved lanes (#99); edge index = stable draw order for alt in/out
+  ctx.strokeStyle = "rgba(255, 200, 120, 0.32)";
   ctx.lineWidth = 2;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  let laneEdgeIndex = 0;
+  const edgeIndexByKey = new Map<string, number>();
   for (const node of nodes) {
     for (const nextId of node.next) {
       const to = board.nodes[nextId];
       if (!to) continue;
+      const key = `${node.id}->${nextId}`;
+      edgeIndexByKey.set(key, laneEdgeIndex);
+      const pts = sampleLaneCurve(
+        { x: px(node), y: py(node) },
+        { x: px(to), y: py(to) },
+        sun,
+        laneEdgeIndex,
+      );
+      laneEdgeIndex += 1;
       ctx.beginPath();
-      ctx.moveTo(px(node), py(node));
-      ctx.lineTo(px(to), py(to));
+      ctx.moveTo(pts[0]!.x, pts[0]!.y);
+      for (let i = 1; i < pts.length; i++) {
+        ctx.lineTo(pts[i]!.x, pts[i]!.y);
+      }
       ctx.stroke();
     }
   }
 
-  // Travel range preview (#15) — rocket-color line + clickable landings
+  // Travel range preview (#15) — rocket-color curved lane + clickable landings
   if (state && humanRoutePreviewReady()) {
     const p = currentPlayer(state);
     const total = state.lastRoll!.total;
     const path = walkMovePath(state.board, p.position, total, p.moveDirection);
     const startNode = board.nodes[p.position];
-    const poly: { x: number; y: number }[] = [];
-    if (startNode) poly.push({ x: px(startNode), y: py(startNode) });
+    const nodePoly: { x: number; y: number }[] = [];
+    if (startNode) nodePoly.push({ x: px(startNode), y: py(startNode) });
     for (const fr of path.frames) {
       const n = board.nodes[fr.nodeId];
-      if (n) poly.push({ x: px(n), y: py(n) });
+      if (n) nodePoly.push({ x: px(n), y: py(n) });
     }
+    // Match board lane curvature; start edge index from first hop if known
+    let startEdge = 0;
+    if (startNode && path.frames[0]) {
+      const k = `${startNode.id}->${path.frames[0].nodeId}`;
+      startEdge = edgeIndexByKey.get(k) ?? 0;
+    }
+    const poly = sampleLanePolyline(nodePoly, sun, startEdge);
     const stops: RouteStopHit[] = [];
     for (let i = 0; i < path.stops.length; i++) {
       const nodeId = path.stops[i]!;
