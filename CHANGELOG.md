@@ -7,7 +7,7 @@
 iOS **MARKETING_VERSION** / web badge / package all **1.0.0** (build number `CURRENT_PROJECT_VERSION` = 1).
 
 ### Play / UX
-- **Charter alerts (#106 / #107):** expanded chance-card pool — Monolith, M&Ms, King's Quest, Arcadia/Harlock, belt ice, AIL dividend, comet free leave, port holiday; plus **rogue Tesla** (claim+depot destroyed, Mars orbit immune), **Olbers station award**, **Karen skip** (late), **blockchain steal claim+depot**, rare **vibe-code kick** (50% once at round ≥60). Cadence midpoints only on real miss rolls.
+- **Charter alerts (#106 / #107):** expanded chance-card pool — Monolith, M&Ms, King's Quest, **Strong Bad Email → WARP**, Arcadia/Harlock, belt ice, AIL dividend, comet free leave, port holiday; plus **rogue Tesla** (claim+depot destroyed, Mars orbit immune), **Olbers station award**, **Karen skip** (late), **blockchain steal claim+depot**, rare **vibe-code kick** (50% once at round ≥60). Cadence midpoints only on real miss rolls.
 - **Duration meter polish (#94):** title **(µ)** only; type slightly smaller than AI difficulty legend; bars hard-clipped so they never cover tick labels (grid columns + opaque tick lane)
 - **Board map batch (on `main`, live with this promote):** curved Mainline lanes (#99), system ring bands + Rings slider (#101), polar remesh / Belt 1–6 / Homeward (#102)
 

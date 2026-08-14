@@ -49,7 +49,8 @@ export type TimedEventId =
   | "rogue_tesla"
   | "olbers_station"
   | "karen_skip"
-  | "blockchain_steal";
+  | "blockchain_steal"
+  | "strongbad_email";
 // vibe_kick is NOT in the regular pool — special one-shot at round ≥60
 
 /** Human rocket’s 3rd character code.
@@ -113,6 +114,7 @@ const POOL: TimedEventId[] = [
   "olbers_station",
   "karen_skip",
   "blockchain_steal",
+  "strongbad_email",
 ];
 
 function activeRockets(state: GameState): Player[] {
@@ -257,6 +259,25 @@ function fireKingsQuest(state: GameState): void {
   };
   state.log.push(
     "Charter alert: King's Quest — one board-wide warp charge per active rocket (click destination).",
+  );
+}
+
+/** Homestar Runner: Strong Bad answers your email → Warp. */
+function fireStrongBadEmail(state: GameState): void {
+  const list = activeRockets(state);
+  for (const p of list) p.warpCharges += 1;
+  state.pendingAnnouncement = {
+    kind: "info",
+    title: "Strong Bad answers your email",
+    body: [
+      "You emailed Strong Bad from a deep-space relay. He typed one word and hit send.",
+      "WARP.",
+      "Every active rocket: one board-wide warp (click any beacon instead of rolling). No en-route stops; landing rules still apply.",
+      `(${list.length} rocket(s) got the email.)`,
+    ].join("\n"),
+  };
+  state.log.push(
+    "Charter alert: Strong Bad Email — WARP — one board-wide warp charge per active rocket.",
   );
 }
 
@@ -494,6 +515,9 @@ function fireTimedEvent(state: GameState, id: TimedEventId): void {
       break;
     case "kings_quest":
       fireKingsQuest(state);
+      break;
+    case "strongbad_email":
+      fireStrongBadEmail(state);
       break;
     case "harlock_fuel":
       fireHarlockFuel(state);
