@@ -1,9 +1,16 @@
 # Changelog
 
-## Unreleased
+## [0.0.25] — 2026-08-14
 
 ### Play / UX
-- **AI duration meter (#94):** New game setup — estimated charter rounds vs Expert pilot for selected AI pack (density bars; Easy short → Expert ~µ60); visual lock from playtest export
+- **AI pack duration meter (#94):** New game setup — estimated charter rounds vs Expert pilot for selected AI pack (density bars; Easy short → Expert ~µ60). Polish: title shortened to **Est. rounds (µ)**, matches AI-difficulty legend type and fieldset height, meter bars kept clear of tick labels
+- **Travel lane color (#99):** Mainline lanes locked to cool cyan with thickness at **45% of prior** (0.9px, `LANE_STROKE_WIDTH`) so the cyan `#6ec8ff` roll/path highlight stays primary
+
+### Cleanup
+- **Remove dead code (#27):** unused PRNG file `rng.ts` (`createRng` / `roll2d6` — duplicate of rules engine PRNG), unused `canAffordLeave` export in `fuel.ts`, `void isPurchasable` stub in `main.ts`, unused `name` param in `drawStation`
+
+### Meta
+- Version **0.0.25** (badge, package, Ops Manual welcome, README)
 
 ## [0.0.24] — 2026-08-14
 
