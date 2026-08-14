@@ -217,9 +217,9 @@
 
     <h2>Scale (rounds axis)</h2>
     <label class="row"><span class="name">Scale top (round)</span><span class="val" id="v_scaleMin"></span>
-      <input type="range" id="scaleMin" min="10" max="80" step="5" value="40"/></label>
+      <input type="range" id="scaleMin" min="10" max="80" step="5" value="20"/></label>
     <label class="row"><span class="name">Scale bottom (round)</span><span class="val" id="v_scaleMax"></span>
-      <input type="range" id="scaleMax" min="60" max="200" step="5" value="120"/></label>
+      <input type="range" id="scaleMax" min="60" max="200" step="5" value="100"/></label>
     <label class="row"><span class="name">Tick font (px)</span><span class="val" id="v_tickFont"></span>
       <input type="range" id="tickFont" min="7" max="14" step="0.5" value="10"/></label>
     <label class="row"><span class="name">Tick column width</span><span class="val" id="v_tickColW"></span>
@@ -320,23 +320,23 @@
  * barCount: more horizontal bars when AI is stronger (more round-mass to show).
  */
 const DIFFS = {
+  // Human pilot always treated as Expert. Radios = AI pack only.
+  // Expert human × Expert AI → µ ≈ 60 (playtest). Weaker AI → shorter.
   easy: {
     label: "Easy — no break; always prograde",
-    // Expert human stomps soft pack → fewer, earlier rounds
-    mu: 34, sigma: 10, skew: 0.35, iqr: 8, barCount: 11,
+    mu: 32, sigma: 9, skew: 0.3, iqr: 7, barCount: 10,
   },
   normal: {
     label: "Normal — small break only to afford leave",
-    mu: 48, sigma: 13, skew: 0.5, iqr: 11, barCount: 15,
+    mu: 42, sigma: 11, skew: 0.45, iqr: 9, barCount: 14,
   },
   hard: {
     label: "Hard — break for buys, hubs, Earth landings",
-    mu: 64, sigma: 16, skew: 0.7, iqr: 14, barCount: 20,
+    mu: 52, sigma: 13, skew: 0.55, iqr: 11, barCount: 18,
   },
   expert: {
     label: "Expert — deep break, monopoly & Earth focus",
-    // Matched expert pack fights longest
-    mu: 82, sigma: 22, skew: 0.9, iqr: 18, barCount: 26,
+    mu: 60, sigma: 14, skew: 0.65, iqr: 12, barCount: 22,
   },
 };
 
@@ -353,7 +353,7 @@ function bindVal(id, fmt = (v) => String(v)) {
   DEFAULTS[id] = el.type === "checkbox" ? el.checked : el.value;
 }
 
-let selected = "easy";
+let selected = "expert";
 
 function densityAt(round, mu, sigma, skew) {
   // Skewed Gaussian-ish (not real PDF; good enough for bar shape)
@@ -558,7 +558,7 @@ function render() {
 
   $("export").value = JSON.stringify(collectSettings(), null, 2);
   try {
-    localStorage.setItem("heliopoly-difficulty-duration-preview", $("export").value);
+    localStorage.setItem("heliopoly-difficulty-duration-preview-v2", $("export").value);
   } catch (_) {}
 }
 
@@ -614,7 +614,7 @@ $("btn-reset").onclick = () => {
 
 // restore
 try {
-  const raw = localStorage.getItem("heliopoly-difficulty-duration-preview");
+  const raw = localStorage.getItem("heliopoly-difficulty-duration-preview-v2");
   if (raw) {
     const s = JSON.parse(raw);
     for (const [k, v] of Object.entries(s)) {
