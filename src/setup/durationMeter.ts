@@ -148,18 +148,21 @@ export function renderDurationMeter(
     dens.push({ round, d });
     peak = Math.max(peak, d);
   }
+  // Cap bar width to the bars column so they never cover tick text
+  const barsW = Math.max(0, bars.clientWidth || v.panelW - v.railColW - v.tickColW - 8);
+  const maxBarW = Math.max(v.barMinW, Math.min(v.barMaxW, barsW - 2));
   for (const { round, d } of dens) {
     const rel = peak > 0 ? d / peak : 0;
-    const w =
-      v.barMinW + (v.barMaxW - v.barMinW) * Math.pow(rel, v.widthPow);
+    const w = v.barMinW + (maxBarW - v.barMinW) * Math.pow(rel, v.widthPow);
     if (w < 0.5) continue;
     const el = document.createElement("div");
     el.className = "duration-meter-bar";
     el.style.top = `${yForRound(round, scaleMin, scaleMax, bodyH, padTop, padBot)}px`;
     el.style.height = `${v.barH}px`;
-    el.style.width = `${w}px`;
+    el.style.width = `${Math.min(w, maxBarW)}px`;
     el.style.borderRadius = v.barRound ? "2px" : "0";
     el.style.background = `rgba(125, 211, 252, ${v.barA * (0.35 + 0.65 * rel)})`;
+    // Glow clipped by overflow:hidden on .duration-meter-bars
     el.style.boxShadow =
       v.barGlow > 0
         ? `0 0 ${v.barGlow}px rgba(125, 211, 252, ${v.barGlowA * rel})`
