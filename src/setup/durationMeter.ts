@@ -94,8 +94,8 @@ export function renderDurationMeter(
 
   const title = document.createElement("div");
   title.className = "duration-meter-title";
-  title.style.fontSize = `${v.titleSize}px`;
   title.style.opacity = String(v.titleA);
+  // Title weight/size from CSS — match AI difficulty legend (not bold HUD caps)
   title.innerHTML = "Est. rounds vs<br/>Expert pilot (µ)";
   root.appendChild(title);
 
