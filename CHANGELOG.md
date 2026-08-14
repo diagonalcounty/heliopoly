@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.0.24] — 2026-08-14
+
+### Play / UX
+- **Curved Mainline lanes (#99):** polar alternate out/in (0.08 / 0.09); cyan lane color; path preview follows curves
+- **System ring bands (#101):** Saturn→Mercury tinted dashes + radial falloff; Pilot Controls **Rings** slider (default 50%, modest max); thin-rail dual-triangle chrome
+- **Board polar layout (#102):** mapper-driven geometry — Homeward on Saturn @57°, Belt **1–6** names, Earth cluster + `j_b4` retune
+
+### Tooling
+- **Board previews (#103):** `tools/board-previews/` — elliptical lanes, ring colors, interactive **board-mapper** (export / agent JSON)
+
+### Lab (on main; ship with live deploy)
+- Accordion Lab; multi-script Which is larger? packs (#76 / #81)
+
+### Meta
+- Version **0.0.24** (badge, package, Ops Manual welcome, README)
+
 ## [0.0.23] — 2026-08-13
 
 ### Play / UX
