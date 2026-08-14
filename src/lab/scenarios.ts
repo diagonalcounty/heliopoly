@@ -90,21 +90,13 @@ function tagLab(s: GameState, label: string): GameState {
 }
 
 export const LAB_SCENARIOS: LabScenario[] = [
-  // —— Which is larger? (#76 umbrella — all packs listed; EA ships under #81) ——
-  {
-    id: "western-arabic-compare",
-    title: "Western Arabic (0–9)",
-    blurb: "Home glyphs — same compare ladder in familiar digits. Coming soon.",
-    group: "which-is-larger",
-    kind: "standalone",
-    available: false,
-    standaloneId: "western-arabic-compare",
-  },
+  // —— Which is larger? (#76 — same ladder as #81; packs via numberScripts) ——
+  // Western Arabic omitted (player's home system — not a literacy target).
   {
     id: "eastern-arabic-compare",
     title: "Eastern Arabic (٠–٩)",
     blurb:
-      "Pick which of two numbers is larger. One-, two-, then three-digit ladder; hints don’t count toward progress. Up to 12 tries. Does not replace your charter.",
+      "Pick which of two numbers is larger. One-, two-, then three-digit ladder; hints don’t count toward progress. Up to 12 tries.",
     group: "which-is-larger",
     kind: "standalone",
     available: true,
@@ -112,38 +104,38 @@ export const LAB_SCENARIOS: LabScenario[] = [
   },
   {
     id: "chinese-compare",
-    title: "Chinese (零/〇, 一…九)",
-    blurb: "Han characters for digits (also Kanji / traditional Hanja context). Coming soon.",
+    title: "Chinese (〇–九)",
+    blurb: "Same ladder with Chinese digit characters per place (〇一二三四五六七八九).",
     group: "which-is-larger",
     kind: "standalone",
-    available: false,
+    available: true,
     standaloneId: "chinese-compare",
   },
   {
     id: "korean-compare",
-    title: "Korean (Sino / native)",
-    blurb: "Hangul (and words) — Sino-Korean and native systems by context. Coming soon.",
+    title: "Korean Sino (영–구)",
+    blurb: "Same ladder with Sino-Korean digit words per place (영 일 이 삼 사 오 육 칠 팔 구).",
     group: "which-is-larger",
     kind: "standalone",
-    available: false,
+    available: true,
     standaloneId: "korean-compare",
   },
   {
     id: "hebrew-compare",
-    title: "Hebrew letter-numerals",
-    blurb: "א=1 … ט=9 — letter values, not pure place-value; no traditional 0. Coming soon.",
+    title: "Hebrew (א–ט)",
+    blurb: "Same ladder with Hebrew letter-numerals (א=1 … ט=9; ○ for 0) per place.",
     group: "which-is-larger",
     kind: "standalone",
-    available: false,
+    available: true,
     standaloneId: "hebrew-compare",
   },
   {
     id: "binary-compare",
-    title: "Binary / other bases",
-    blurb: "Encoded forms in other bases (which bases TBD). Coming soon.",
+    title: "Binary",
+    blurb: "Same ladder; numbers shown as base-2 bit strings (e.g. 13 → 1101).",
     group: "which-is-larger",
     kind: "standalone",
-    available: false,
+    available: true,
     standaloneId: "binary-compare",
   },
 

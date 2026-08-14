@@ -48,11 +48,16 @@ import {
   playAgainCompareDrill,
   resetCompareDrill,
   startCompareDrill,
-  toEasternArabic,
   useCompareHint,
   type CompareDrillState,
   type CompareSide,
 } from "./lab/easternArabicCompare";
+import {
+  formatNumberScript,
+  NUMBER_SCRIPT_PACKS,
+  STANDALONE_TO_SCRIPT,
+  type NumberScriptId,
+} from "./lab/numberScripts";
 import type { Board } from "./core/types";
 import { submitGameTelemetry } from "./telemetry";
 
@@ -1338,17 +1343,20 @@ function closeLab(): void {
   }
 }
 
-/** —— Eastern Arabic compare drill (#81) —— */
+/** —— Which is larger? multi-script compare drill (#81 / #76) —— */
 let eacState: CompareDrillState | null = null;
+let eacScript: NumberScriptId = "eastern-arabic";
 
-const EAC_ROUND_LABEL: Record<1 | 2 | 3, string> = {
-  1: "Level 1 · one digit",
-  2: "Level 2 · two digits",
-  3: "Level 3 · three digits",
-};
+const eacHintEl = document.querySelector(".eac-hint") as HTMLElement | null;
+const eacTitleEl = document.getElementById("eac-title");
+const eacKickerEl = document.querySelector("#eac-root .handbook-kicker");
 
 function isEacOpen(): boolean {
   return !eacRoot.classList.contains("hidden");
+}
+
+function eacFormat(n: number): string {
+  return formatNumberScript(eacScript, n);
 }
 
 function eacSetWestern(el: HTMLElement, value: number | null): void {
@@ -1361,6 +1369,28 @@ function eacSetWestern(el: HTMLElement, value: number | null): void {
   el.classList.remove("hidden");
 }
 
+function eacSyncChrome(): void {
+  const pack = NUMBER_SCRIPT_PACKS[eacScript];
+  if (eacTitleEl) eacTitleEl.textContent = `Which is larger? · ${pack.shortName}`;
+  if (eacKickerEl) eacKickerEl.textContent = `Lab · ${pack.shortName}`;
+  if (eacHintEl) {
+    eacHintEl.innerHTML = `${pack.hintLead}
+      You win by finishing three levels in a row without help on those steps.
+      Need a hand? <strong>Hint</strong> reveals one number in familiar
+      Western digits, but that try won’t advance you; you’ll need to clear
+      the level again without a hint.
+      You have up to ${MAX_COMPARE_ROUNDS} tries. <strong>Reset</strong> starts over anytime.`;
+  }
+  // Binary / CJK / Hebrew may need slightly different glyph rendering
+  eacRoot.dataset.script = eacScript;
+  eacLeftGlyph.classList.toggle("eac-glyph-binary", eacScript === "binary");
+  eacRightGlyph.classList.toggle("eac-glyph-binary", eacScript === "binary");
+  eacLeftGlyph.classList.toggle("eac-glyph-cjk", eacScript === "chinese" || eacScript === "korean");
+  eacRightGlyph.classList.toggle("eac-glyph-cjk", eacScript === "chinese" || eacScript === "korean");
+  eacLeftGlyph.classList.toggle("eac-glyph-hebrew", eacScript === "hebrew");
+  eacRightGlyph.classList.toggle("eac-glyph-hebrew", eacScript === "hebrew");
+}
+
 function renderEacRecap(): void {
   if (!eacState || eacState.phase !== "won" || eacState.cleanClears.length === 0) {
     eacRecapEl.innerHTML = "";
@@ -1368,27 +1398,23 @@ function renderEacRecap(): void {
     return;
   }
   eacRecapEl.classList.remove("hidden");
-  const digitWord: Record<1 | 2 | 3, string> = {
-    1: "one digit",
-    2: "two digits",
-    3: "three digits",
-  };
+  const pack = NUMBER_SCRIPT_PACKS[eacScript];
   eacRecapEl.innerHTML = eacState.cleanClears
     .map((c) => {
-      const leftEast = toEasternArabic(c.left);
-      const rightEast = toEasternArabic(c.right);
+      const leftG = eacFormat(c.left);
+      const rightG = eacFormat(c.right);
       const leftLarger = c.larger === "left" ? " is-larger" : "";
       const rightLarger = c.larger === "right" ? " is-larger" : "";
       return `<div class="eac-recap-row">
-        <p class="eac-recap-label">Level ${c.round} · ${digitWord[c.round]}</p>
+        <p class="eac-recap-label">${pack.levelLabel(c.round)}</p>
         <div class="eac-recap-pair">
           <span class="eac-recap-side${leftLarger}">
-            <span class="eac-recap-east">${leftEast}</span>
+            <span class="eac-recap-east">${leftG}</span>
             <span class="eac-recap-west">${c.left}</span>
           </span>
           <span class="eac-recap-vs">vs</span>
           <span class="eac-recap-side${rightLarger}">
-            <span class="eac-recap-east">${rightEast}</span>
+            <span class="eac-recap-east">${rightG}</span>
             <span class="eac-recap-west">${c.right}</span>
           </span>
         </div>
@@ -1399,6 +1425,7 @@ function renderEacRecap(): void {
 
 function renderEac(): void {
   if (!eacState) return;
+  const pack = NUMBER_SCRIPT_PACKS[eacScript];
   const ended = eacState.phase === "won" || eacState.phase === "lost";
   eacPlayEl.classList.toggle("hidden", ended);
   eacEndEl.classList.toggle("hidden", !ended);
@@ -1423,9 +1450,9 @@ function renderEac(): void {
 
   eacRecapEl.innerHTML = "";
   eacRecapEl.classList.add("hidden");
-  eacRoundEl.textContent = EAC_ROUND_LABEL[eacState.round];
-  const leftGlyph = toEasternArabic(eacState.left);
-  const rightGlyph = toEasternArabic(eacState.right);
+  eacRoundEl.textContent = pack.levelLabel(eacState.round);
+  const leftGlyph = eacFormat(eacState.left);
+  const rightGlyph = eacFormat(eacState.right);
   eacLeftGlyph.textContent = leftGlyph;
   eacRightGlyph.textContent = rightGlyph;
   const showLeftWest = eacState.hintSide === "left";
@@ -1445,8 +1472,10 @@ function renderEac(): void {
   eacHintBtn.disabled = eacState.hintUsed;
 }
 
-function openEasternArabicCompare(): void {
+function openNumberCompare(script: NumberScriptId): void {
+  eacScript = script;
   eacState = startCompareDrill();
+  eacSyncChrome();
   renderEac();
   closeLab();
   eacRoot.classList.remove("hidden");
@@ -1576,9 +1605,8 @@ async function runLabScenario(id: string): Promise<void> {
   const sc = LAB_SCENARIOS.find((x) => x.id === id);
   if (!sc || !labScenarioAvailable(sc)) return;
   if (sc.kind === "standalone") {
-    if (sc.standaloneId === "eastern-arabic-compare") {
-      openEasternArabicCompare();
-    }
+    const script = STANDALONE_TO_SCRIPT[sc.standaloneId];
+    if (script) openNumberCompare(script);
     return;
   }
   closeLab();
