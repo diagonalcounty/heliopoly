@@ -750,6 +750,9 @@ html.native-shell #app {
   position: relative;
   flex: 1 1 auto;
   min-width: 0;
+  /* Never paint bars over tick labels */
+  overflow: hidden;
+  margin-right: 2px;
 }
 
 .duration-meter-bar {
@@ -757,14 +760,22 @@ html.native-shell #app {
   left: 0;
   transform: translateY(-50%);
   pointer-events: none;
+  max-width: 100%;
 }
 
 .duration-meter-ticks {
   position: relative;
   flex: 0 0 auto;
+  z-index: 2;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   color: #7dd3fc;
   text-shadow: 0 0 6px rgba(125, 211, 252, 0.3);
+  background: linear-gradient(
+    90deg,
+    rgba(12, 18, 32, 0) 0%,
+    rgba(12, 18, 32, 0.92) 28%,
+    rgba(12, 18, 32, 1) 100%
+  );
 }
 
 .duration-meter-tick {
