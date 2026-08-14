@@ -14,8 +14,8 @@
     <link rel="icon" type="image/png" href="./favicon-32.png" sizes="32x32" />
     <link rel="icon" type="image/png" href="./favicon-16.png" sizes="16x16" />
     <link rel="apple-touch-icon" href="./apple-touch-icon.png" sizes="180x180" />
-    <script type="module" src="./assets/index-CiJF12PN.js"></script>
-    <link rel="stylesheet" href="./assets/index-BUsBNiec.css">
+    <script type="module" src="./assets/index-BQDZpUyH.js"></script>
+    <link rel="stylesheet" href="./assets/index-DyJ8InbF.css">
   </head>
   <body>
     <div id="app">
@@ -171,7 +171,24 @@
           </section>
 
           <section class="card pilot-controls" id="pilot-controls">
-            <h2>Pilot Controls</h2>
+            <div class="pilot-controls-head">
+              <h2>Pilot Controls</h2>
+              <label
+                class="ring-opacity-field"
+                title="Dim system orbital rings and bands (default = full design strength)"
+              >
+                <span class="ring-opacity-label">Rings</span>
+                <input
+                  type="range"
+                  id="ring-opacity"
+                  min="0"
+                  max="100"
+                  step="1"
+                  value="100"
+                  aria-label="System ring opacity"
+                />
+              </label>
+            </div>
             <div id="telemetry" class="telemetry"></div>
             <div class="dir-row hidden-vis" id="dir-row">
               <span class="dir-label">Course</span>
