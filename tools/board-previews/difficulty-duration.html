@@ -188,7 +188,7 @@
   <p>
     Tweak the vertical µ / density meter next to AI difficulty. Bars encode distribution mass;
     dual triangles mark median (R50). Not shipped — export settings when it looks right.
-    Placeholder distros until real Sim Lab table is wired.
+    Placeholder distros: <strong>harder AI → longer µ</strong> (playtest). Replace with Sim Lab table later.
   </p>
 </header>
 <div class="layout">
@@ -312,22 +312,23 @@
 </div>
 <script>
 /** Placeholder distros — replace with Sim Lab medians later (#94) */
+/** Playtest premise: stronger AI → longer charters (not shorter). */
 const DIFFS = {
   easy: {
     label: "Easy — no break; always prograde",
-    mu: 52, sigma: 18, skew: 0.85, iqr: 16,
+    mu: 36, sigma: 12, skew: 0.4, iqr: 9,
   },
   normal: {
     label: "Normal — small break only to afford leave",
-    mu: 48, sigma: 14, skew: 0.65, iqr: 12,
+    mu: 48, sigma: 14, skew: 0.55, iqr: 12,
   },
   hard: {
     label: "Hard — break for buys, hubs, Earth landings",
-    mu: 42, sigma: 12, skew: 0.45, iqr: 10,
+    mu: 62, sigma: 16, skew: 0.7, iqr: 15,
   },
   expert: {
     label: "Expert — deep break, monopoly & Earth focus",
-    mu: 38, sigma: 10, skew: 0.35, iqr: 8,
+    mu: 78, sigma: 20, skew: 0.85, iqr: 18,
   },
 };
 
@@ -551,7 +552,7 @@ function render() {
 ].forEach((id) => bindVal(id, (v) => (typeof v === "number" && !Number.isInteger(v) ? v.toFixed(2) : String(v))));
 
 // seed sliders from easy
-$("mu").value = DIFFS.easy.mu;
+$("mu").value = DIFFS.easy.mu; // harder → longer
 $("sigma").value = DIFFS.easy.sigma;
 $("skew").value = DIFFS.easy.skew;
 $("iqr").value = DIFFS.easy.iqr;
@@ -584,7 +585,7 @@ $("btn-reset").onclick = () => {
     else el.value = v;
   }
   selected = "easy";
-  $("mu").value = DIFFS.easy.mu;
+  $("mu").value = DIFFS.easy.mu; // harder → longer
   $("sigma").value = DIFFS.easy.sigma;
   $("skew").value = DIFFS.easy.skew;
   $("iqr").value = DIFFS.easy.iqr;
