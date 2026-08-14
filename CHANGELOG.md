@@ -5,6 +5,7 @@
 ### Play / UX
 - **Travel lane color:** cool cyan `rgb(110,200,255)` so Mainline stays distinct from warm system-ring dashes
 - **System ring bands (#101):** stylized Saturn→Mercury dashed tints + radial falloff bands (outer α 0.17 → inner α 0.02); legacy blue underlay α 0.29; travel lanes α 0.74
+- **Rings slider:** on the Pilot Controls title row — dim all system rings/bands (0–100%, default full design strength; persists)
 
 ### Meta
 - Version **0.0.23**
