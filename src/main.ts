@@ -162,10 +162,10 @@ function saveAnimSpeed(id: AnimSpeedId): void {
 
 /**
  * Player preference: scale system ring band + dashed opacity (#101).
- * Peak constants = slider 100%. Default slider = 50% (preferred board look).
- * 0 = fully hidden; 100% = brighter than the old full lock.
+ * Peak constants = slider 100%. Default slider = 25% (playtest screenshot lock).
+ * 0 = fully hidden; up = stronger rings.
  */
-const RING_OPACITY_KEY = "heliopoly-ring-opacity";
+const RING_OPACITY_KEY = "heliopoly-ring-opacity-v2";
 
 function loadRingOpacityScale(): number {
   try {

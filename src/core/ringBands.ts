@@ -23,8 +23,11 @@ export const RING_DASH_ALPHA = 1.8;
 /** Underlay of the old cool-blue dashed rings (slider 100%). */
 export const RING_LEGACY_BLUE_ALPHA = 0.7;
 
-/** Default Pilot Controls Rings slider (0–1). Mid = preferred board look. */
-export const RING_OPACITY_DEFAULT = 0.5;
+/**
+ * Default Pilot Controls Rings slider (0–1).
+ * Playtest lock (screenshot): thumb ~¼ track — preferred board opacity.
+ */
+export const RING_OPACITY_DEFAULT = 0.25;
 
 export type Rgb = readonly [number, number, number];
 
