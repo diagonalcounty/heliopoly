@@ -86,7 +86,7 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     html: `
 <p><strong>Last rocket flying wins</strong> (others bankrupt or strand). There is <strong>no round limit</strong>.</p>
 <p>Eliminated rockets’ deeds return to the <strong>bank</strong> (available again); depots are lost.</p>
-<p>See <strong>Glossary</strong> for <em>turn</em>, <em>round</em>, and <em>rotation</em>. Charter alerts use <strong>rounds</strong>, not turns.</p>
+<p>See <strong>Glossary</strong> for <em>turn</em>, <em>round</em>, and <em>rotation</em>. Charter alerts use <strong>rounds</strong>, not turns — full list under <strong>Charter alerts</strong>.</p>
 `,
   },
   {
@@ -117,10 +117,124 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
       <td>A seat turn where that rocket does <em>not</em> move (camp, full break, failed leave, duel skip). Cumulative park count drives feral risk.</td>
       <td><code>parkCount</code></td>
     </tr>
+    <tr>
+      <td><strong>Charter alert</strong></td>
+      <td>Timed mid-game popup (“chance card”) that fires on <em>round</em> boundaries. See <strong>Charter alerts</strong> for the full pool and cadence.</td>
+      <td>Charter alert card · log lines</td>
+    </tr>
+    <tr>
+      <td><strong>Warp</strong></td>
+      <td>Board-wide teleport charge: instead of rolling, click any beacon. No en-route stops, rent, or duels; landing rules still apply at the destination.</td>
+      <td>Warp charges · King’s Quest / Strong Bad Email alerts</td>
+    </tr>
   </tbody>
 </table>
-<p><strong>Charter alerts</strong> (timed popups): after <strong>5 rounds</strong> since the last alert (or start), <strong>50%</strong> chance once per round; each <em>real</em> miss moves chance halfway toward 100% (50% → 75% → 87.5% …) until it fires; then wait 5 rounds again. Each alert type fires <strong>at most once</strong> per charter.</p>
-<p><strong>Pool (samples):</strong> Monolith stipend; M&amp;Ms free brake; King’s Quest warp; <strong>Strong Bad answers your email — WARP</strong>; Arcadia / Captain Harlock fuel; belt ice depot; AIL dividend; comet free leave; port rent holiday; <strong>rogue Tesla</strong> (destroys a claim + depot — <em>Mars orbit immune</em>); <strong>Olbers award</strong> (warp to a station hub + cash); <strong>Karen distraction</strong> (lose a turn, late game); <strong>blockchain reassignment</strong> (take an opponent claim + free depot). <strong>Vibe-code kick</strong> is rare: one 50% check when the charter first reaches round <strong>60</strong> — kick an AI rival from standings.</p>
+`,
+  },
+  {
+    id: "charter-alerts",
+    title: "Charter alerts",
+    html: `
+<p>Mid-charter <strong>chance cards</strong> — Oregon Trail–style popups that break up the Mainline grind. They fire on <strong>round</strong> boundaries (not every seat turn). Each listed type fires <strong>at most once</strong> per charter.</p>
+
+<h3>Cadence (standard pool)</h3>
+<ol>
+  <li>Wait <strong>5 rounds</strong> after game start or after the last alert fires.</li>
+  <li>Then each round rolls <strong>50%</strong> to fire; each <em>real</em> miss moves the chance halfway toward 100% (50% → 75% → 87.5% …).</li>
+  <li>On fire, wait 5 rounds again. Open popups do not burn midpoints without a roll.</li>
+</ol>
+<p>Unless noted, effects apply to <strong>every active (non-eliminated) rocket</strong> equally.</p>
+
+<h3>Standard pool</h3>
+<table class="glossary">
+  <thead><tr><th>Alert</th><th>Tone</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>Monolith on Earth’s Moon</strong></td>
+      <td>+</td>
+      <td>One-time <strong>⍼300</strong> on your <em>next</em> Earth land or pass (per rocket).</td>
+    </tr>
+    <tr>
+      <td><strong>Blue and brown M&amp;Ms are back</strong></td>
+      <td>+</td>
+      <td>One <strong>free brake</strong> on your next seat turn (break ≥1 space costs 0 fuel once; unused token expires end of that turn).</td>
+    </tr>
+    <tr>
+      <td><strong>King’s Quest speed-run record</strong></td>
+      <td>+</td>
+      <td><strong>+1 warp charge</strong> — instead of rolling, click any board node to teleport (no en-route stops). Landing rules still apply.</td>
+    </tr>
+    <tr>
+      <td><strong>Strong Bad answers your email</strong></td>
+      <td>+</td>
+      <td>He types one word: <strong>WARP.</strong> Same as King’s Quest: <strong>+1 warp charge</strong> for every active rocket. Separate from King’s Quest (both can fire in one charter).</td>
+    </tr>
+    <tr>
+      <td><strong>Arcadia on the Mainline</strong> (Captain Harlock)</td>
+      <td>+</td>
+      <td><strong>+4 fuel</strong> (capped at tank max) — free-enterprise hail from the Arcadia.</td>
+    </tr>
+    <tr>
+      <td><strong>Belt ice survey</strong></td>
+      <td>+</td>
+      <td><strong>+1 fuel depot</strong> in hand (no new board body).</td>
+    </tr>
+    <tr>
+      <td><strong>Quantum ledger dividend</strong></td>
+      <td>+</td>
+      <td><strong>+⍼250</strong> cash now (AIL universal dividend).</td>
+    </tr>
+    <tr>
+      <td><strong>Comet dust trail</strong></td>
+      <td>+</td>
+      <td>Next <strong>leave burn</strong> from a gravity well costs <strong>0 fuel</strong> once, then clears.</td>
+    </tr>
+    <tr>
+      <td><strong>Port authority holiday</strong></td>
+      <td>+</td>
+      <td>Next <strong>rent</strong> you would pay is waived once (any owner).</td>
+    </tr>
+    <tr>
+      <td><strong>Rogue Tesla Model 3 / Y / S / X / Roadster</strong></td>
+      <td>−</td>
+      <td>A derelict Tesla hits a random <strong>owned</strong> claim: deed returns to the bank and any fuel depot is destroyed. <strong>Mars orbit is immune</strong> (Elon, Mars, Phobos, Deimos — Elon’s car will not hit Elon).</td>
+    </tr>
+    <tr>
+      <td><strong>Olbers’ paradox, Netflix optional</strong></td>
+      <td>+</td>
+      <td>You prove Olbers’ paradox on a napkin. <strong>Click a station hub</strong> (Elon · Holst · Daktulios — <em>not</em> Earth) to warp there and collect <strong>⍼350</strong>. AI picks a hub automatically.</td>
+    </tr>
+    <tr>
+      <td><strong>Karen in the comments</strong></td>
+      <td>−</td>
+      <td>Only enters the pool from <strong>round 30</strong> onward. A random active rocket <strong>loses one full seat turn</strong> (skip).</td>
+    </tr>
+    <tr>
+      <td><strong>Invalid claim on the ledger</strong></td>
+      <td>+</td>
+      <td><strong>Click an opponent’s claim</strong> on the board: the AIL reassigns it to you with a <strong>free fuel depot</strong> already installed. AI auto-picks a deed.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Rare (outside the normal pool)</h3>
+<table class="glossary">
+  <thead><tr><th>Alert</th><th>When</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>You vibe-coded the rules</strong></td>
+      <td>The first time the charter reaches <strong>round 60</strong>, one <strong>50%</strong> roll (hit or miss — never retries that charter)</td>
+      <td>You write the patch notes: <strong>kick one AI rival</strong> out of the charter. Human: click that rocket in <strong>Charter standings</strong>. AI: auto-picks a rival.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Picks &amp; UI</h3>
+<ul>
+  <li>When an alert needs a choice (Olbers, blockchain, vibe-kick), a hint appears under standings. Normal Roll / Move buttons stay locked until you finish the pick.</li>
+  <li><strong>Warp charges</strong> (King’s Quest or Strong Bad) stack; each charge is one teleport. Telemetry shows remaining warps when you have them.</li>
+  <li>Resource strikes (gusher), H₂ leaks, and Gravity Duel are <em>not</em> charter alerts — different systems.</li>
+</ul>
 `,
   },
   {
@@ -137,7 +251,7 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
 <p><strong>Buy window:</strong> you may claim an <em>unowned</em> deed underfoot when you land <em>or</em> later while you are still on it (before you leave) — e.g. after rent income on a following turn makes the price affordable.</p>
 <p>Landing is free. Leaving a gravity well costs fuel. Failed leave on an enemy claim charges rent again.</p>
 <p><strong>Earth charter pay:</strong> <strong>⍼400</strong> when you <em>land</em> on Earth, <strong>⍼200</strong> when you <em>pass</em> Earth on a multi-space move (intermediate stop). Each completed board <strong>rotation</strong> adds <strong>⍼10</strong> to both amounts thereafter. Completing rotation <strong>10, 20, 30…</strong> also pays a one-time <strong>⍼1000</strong> decade bonus. Full circuit still resupplies fuel depots (+3 in hand).</p>
-<p><strong>King’s Quest warp</strong> (charter alert): when you have a warp charge, you may <strong>click any board node</strong> instead of rolling — teleport there (no en-route stops). Landing rules still apply at the destination.</p>
+<p><strong>Warp</strong> (from <strong>Charter alerts</strong> — King’s Quest or Strong Bad Email): when you have a warp charge, <strong>click any board node</strong> instead of rolling — teleport there (no en-route stops). Landing rules still apply at the destination.</p>
 `,
   },
   {
