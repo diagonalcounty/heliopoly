@@ -111,23 +111,29 @@
 		4CC6C560301AC20000288A41 /* Copy WebDist */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
 			inputPaths = (
 				"${SRCROOT}/WebDist",
 			);
 			name = "Copy WebDist";
-			outputFileListPaths = (
-			);
 			outputPaths = (
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/WebDist",
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -e\nWEB=\"${SRCROOT}/WebDist\"\nDEST=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/WebDist\"\nif [ ! -f \"${WEB}/index.html\" ]; then\n  echo \"error: WebDist/index.html missing. From repo root run: npm run ios:sync\" >&2\n  exit 1\nfi\nrm -rf \"${DEST}\"\nmkdir -p \"${DEST}\"\n# Preserve assets/ handbook/ hierarchy for Vite base './'\n/usr/bin/rsync -a \"${WEB}/\" \"${DEST}/\"\necho \"Copied WebDist → ${DEST}\"\n";
+			shellScript = (
+				"set -e",
+				"WEB=\"${SRCROOT}/WebDist\"",
+				"DEST=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/WebDist\"",
+				"if [ ! -f \"${WEB}/index.html\" ]; then",
+				"  echo \"error: WebDist/index.html missing. From repo root run: npm run ios:sync\" >&2",
+				"  exit 1",
+				"fi",
+				"rm -rf \"${DEST}\"",
+				"mkdir -p \"${DEST}\"",
+				"# Preserve assets/ handbook/ hierarchy for Vite base './'",
+				"/usr/bin/rsync -a \"${WEB}/\" \"${DEST}/\"",
+				"echo \"Copied WebDist → ${DEST}\"",
+				"",
+			);
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -262,7 +268,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 3RNW8JKN4S;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Heliopoly;
@@ -278,7 +284,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = heliopoly.live.Heliopoly;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -302,7 +308,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 3RNW8JKN4S;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Heliopoly;
@@ -318,7 +324,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = heliopoly.live.Heliopoly;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
