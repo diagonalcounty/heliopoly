@@ -3,7 +3,8 @@
 ## [0.0.24] — 2026-08-14
 
 ### Play / UX
-- **Curved Mainline lanes (#99):** polar alternate out/in (0.08 / 0.09); cyan lane color; path preview follows curves
+- **Curved Mainline lanes (#99):** polar alternate out/in (0.08 / 0.09); path preview follows curves
+- **Travel lane color:** soft champagne sand `rgb(210,188,140)` so Mainline ≠ cyan roll/path highlight (seat 0 is `#6ec8ff`)
 - **System ring bands (#101):** Saturn→Mercury tinted dashes + radial falloff; Pilot Controls **Rings** slider (default 50%, modest max); thin-rail dual-triangle chrome
 - **Board polar layout (#102):** mapper-driven geometry — Homeward on Saturn @57°, Belt **1–6** names, Earth cluster + `j_b4` retune
 
