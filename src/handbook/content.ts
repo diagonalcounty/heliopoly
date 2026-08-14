@@ -316,6 +316,20 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
 `,
   },
   {
+    id: "lab",
+    title: "The Lab",
+    html: `
+<p><strong>The Lab</strong> (header button) is a permanent playground on every build — including production. Use it to try roadmap minigames and drills <em>before</em> they show up mid-charter, and to jump into canned scenarios without starting a full free-play game.</p>
+<ul>
+  <li><strong>Which is larger?</strong> — literacy drills: two numbers in a target script; pick the larger. Each numbering system is its own menu line (Eastern Arabic ships first; more systems join as they are ready). Closing the drill returns you to the Lab; your charter is untouched.</li>
+  <li><strong>Minigames</strong> — other standalone modes (e.g. a single <strong>Gravity Duel</strong> setup so you can practice stance + roll).</li>
+  <li><strong>End screens / economy</strong> — canned charter states for UI and balance checks.</li>
+</ul>
+<p>Game scenarios that replace the board (duel, end screens, economy) do swap out the current charter. Pure drills (Which is larger?) do not.</p>
+<p>We keep Lab visible on <strong>heliopoly.live</strong> on purpose — it is part of the product, not a dev-only cheat panel.</p>
+`,
+  },
+  {
     id: "not-in-build",
     title: "Not yet",
     html: `

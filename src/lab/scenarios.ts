@@ -6,7 +6,12 @@ import { forceGravityDuel } from "../core/rules";
 import { createGame } from "../core/state";
 import type { GameState } from "../core/types";
 
-export type LabScenarioGroup = "minigame" | "end" | "economy";
+/**
+ * Lab menu sections (order of first appearance in LAB_SCENARIOS).
+ * `which-is-larger` = multi-script compare drills (#76 umbrella; EA = #81).
+ * `minigame` = other drills (e.g. single Gravity Duel entry).
+ */
+export type LabScenarioGroup = "which-is-larger" | "minigame" | "end" | "economy";
 
 /** Charter GameState drop-in (replaces current game). */
 export interface LabGameScenario {
@@ -52,19 +57,24 @@ function tagLab(s: GameState, label: string): GameState {
 }
 
 export const LAB_SCENARIOS: LabScenario[] = [
+  // —— Which is larger? (#76 section; packs ship as separate issues; EA = #81) ——
   {
     id: "eastern-arabic-compare",
-    title: "Eastern Arabic — which is larger?",
+    title: "Eastern Arabic",
     blurb:
-      "Practice reading Eastern Arabic digits: pick which of two numbers is larger. Climb one-, two-, then three-digit levels (hints don’t count toward progress). Up to 12 tries. Does not replace your charter.",
-    group: "minigame",
+      "Pick which of two numbers is larger (٠–٩). One-, two-, then three-digit ladder; hints don’t count toward progress. Up to 12 tries. Does not replace your charter.",
+    group: "which-is-larger",
     kind: "standalone",
     standaloneId: "eastern-arabic-compare",
   },
+  // Future packs (same drill shell): Chinese, Korean, Hebrew, binary, … — add here under which-is-larger.
+
+  // —— Other minigames (single Gravity Duel entry) ——
   {
     id: "duel-you-challenger",
-    title: "Gravity Duel — you challenge",
-    blurb: "Venture arrives on a belt blank occupied by an AI pilot. Stance, then roll.",
+    title: "Gravity Duel",
+    blurb:
+      "You arrive on a belt blank occupied by an AI pilot. Stance (Low/High), then roll. Replaces the current charter with this duel setup.",
     group: "minigame",
     kind: "game",
     build: () => {
@@ -73,53 +83,6 @@ export const LAB_SCENARIOS: LabScenario[] = [
       const ai = s.players[1];
       forceGravityDuel(s, you.id, ai.id, "belt2");
       return tagLab(s, `Duel ${you.name} (challenger) vs ${ai.name}`);
-    },
-  },
-  {
-    id: "duel-you-defender",
-    title: "Gravity Duel — you defend",
-    blurb: "AI arrives on your blank. You are defender (stance + roll when prompted).",
-    group: "minigame",
-    kind: "game",
-    build: () => {
-      const s = baseGame(2);
-      const you = s.players[0];
-      const ai = s.players[1];
-      // Challenger is AI; current seat becomes AI for the duel
-      forceGravityDuel(s, ai.id, you.id, "belt3");
-      return tagLab(s, `Duel ${ai.name} (challenger) vs ${you.name} (defender)`);
-    },
-  },
-  {
-    id: "duel-ai-vs-ai",
-    title: "Gravity Duel — AI vs AI",
-    blurb: "Two AI seats duel; shell auto-plays. Use to watch ceremony / splash.",
-    group: "minigame",
-    kind: "game",
-    build: () => {
-      const s = createGame({
-        playerCount: 2,
-        humanSeat: false,
-        seed: (Date.now() ^ 0x2cd) >>> 0,
-      });
-      forceGravityDuel(s, s.players[0].id, s.players[1].id, "belt1");
-      return tagLab(s, "Duel AI vs AI");
-    },
-  },
-  {
-    id: "duel-multi-audience",
-    title: "Gravity Duel — 4 pilots (you challenge)",
-    blurb: "Full pilot count; you vs AI 1 on a blank (others elsewhere).",
-    group: "minigame",
-    kind: "game",
-    build: () => {
-      const s = baseGame(4);
-      forceGravityDuel(s, s.players[0].id, s.players[1].id, "belt4");
-      // Park others on Earth so they are not in the lane
-      for (let i = 2; i < s.players.length; i++) {
-        s.players[i].position = "earth";
-      }
-      return tagLab(s, "Duel You vs AI · 4 pilots");
     },
   },
   {
