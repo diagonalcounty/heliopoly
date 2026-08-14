@@ -15,11 +15,12 @@ export const LANE_CURVE_OUTWARD = 0.08;
 export const LANE_CURVE_INWARD = 0.09;
 /**
  * Travel-lane stroke alpha.
- * Cool cyan (not gold) so lanes stay distinct from warm system-ring dashes (#101).
+ * Soft champagne sand — not player highlight blue (#6ec8ff seat 0) and not
+ * system-ring golds (#101). Path preview after roll still uses rocket color.
  */
 export const LANE_STROKE_ALPHA = 0.74;
-/** RGB for Mainline lanes — matches UI accent cyan, not Saturn/Jupiter golds. */
-export const LANE_STROKE_RGB = [110, 200, 255] as const;
+/** RGB for permanent Mainline structure (distinct from cyan roll highlight). */
+export const LANE_STROKE_RGB = [210, 188, 140] as const;
 
 export function laneStrokeStyle(alpha: number = LANE_STROKE_ALPHA): string {
   const [r, g, b] = LANE_STROKE_RGB;
