@@ -146,53 +146,59 @@ export function createV0Board(): Board {
       gravityClass: 1,
       refuel: "station",
     }),
-    // Deimos @ 310°; pull t_mb + early belt toward Deimos so the curved
-    // homeward arc (Saturn → Earth, #99) does not overlap belt pips.
+    // Deimos @ 310°; belt chain toward Deimos for home-arc clearance (#99),
+    // then each hop nudged +40% of the way to the *next* belt/Holst stop
+    // so pips sit farther from the Earth-return curve (still not on Holst).
     n({
       id: "t_mb",
       name: "Transit",
       kind: "space",
-      ...onRing(3, 325, ringRadii),
+      // was 325 → belt1@345; +40% of 20° → 333
+      ...onRing(3, 333, ringRadii),
     }),
 
     // —— Asteroid belt (blanks — combat) ——
-    // Angles shifted ~25–40° toward Deimos vs prior 10/50/90… fan.
     n({
       id: "belt1",
       name: "Belt",
       kind: "space",
-      ...onRing(4, 345, ringRadii),
+      // was 345 → belt2@15 (30° fwd); +40% → 357
+      ...onRing(4, 357, ringRadii),
     }),
     n({
       id: "belt2",
       name: "Belt",
       kind: "space",
-      // Deimos +3 on Mainline (deimos → t_mb → belt1 → belt2)
-      ...onRing(4, 15, ringRadii),
+      // Deimos +3; was 15 → belt3@50; +40% of 35° → 29
+      ...onRing(4, 29, ringRadii),
     }),
     n({
       id: "belt3",
       name: "Belt",
       kind: "space",
-      ...onRing(4, 50, ringRadii),
+      // was 50 → 95; +40% of 45° → 68
+      ...onRing(4, 68, ringRadii),
     }),
     n({
       id: "belt4",
       name: "Belt",
       kind: "space",
-      ...onRing(4, 95, ringRadii),
+      // was 95 → 140; +40% → 113
+      ...onRing(4, 113, ringRadii),
     }),
     n({
       id: "belt5",
       name: "Belt",
       kind: "space",
-      ...onRing(4, 140, ringRadii),
+      // was 140 → 185; +40% → 158
+      ...onRing(4, 158, ringRadii),
     }),
     n({
       id: "belt6",
       name: "Belt",
       kind: "space",
-      ...onRing(4, 185, ringRadii),
+      // was 185 → Holst@240; +40% of 55° → 207
+      ...onRing(4, 207, ringRadii),
     }),
 
     // —— Jupiter: Holst + moons (orange) + blanks ——
