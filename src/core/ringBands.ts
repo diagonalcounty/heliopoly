@@ -5,29 +5,26 @@
  * falls off toward the next *inner* ring. Colors are stylized planet
  * hues for dark-UI harmony, not scientific albedos.
  *
- * Alphas below are **slider = 100%** (peak). The Pilot Controls “Rings”
- * control defaults to **50%**, so effective paint is half of these.
- * Peak is raised so mid-slider is brighter than the old full lock
- * (outer 0.17 / inner 0.02 / dash 0.9 / legacy 0.29), which was too dim.
+ * ## Rings slider mapping
+ * Alphas below are **slider = 100% only** (true maximum paint).
+ * Default thumb is **50%** → half of these values = preferred board look.
+ * Max is intentionally modest — 100% is not “cranked”; it’s ~2× preferred.
  *
- * At default 50%: outer ~0.28 · inner ~0.05 · dash ~0.90 · legacy ~0.35
- * (dash/legacy use min(1, scale × peak) when drawing).
+ * At default 50%: outer ~0.14 · inner ~0.025 · dash ~0.45 · legacy ~0.175
+ * (playtest lock from preferred screenshot intensity).
  */
 
-/** Opacity of the band fill at the system’s dashed (outer) ring (slider 100%). */
-export const RING_BAND_OUTER_ALPHA = 0.55;
-/** Opacity of the band fill where it meets the next inner ring (slider 100%). */
-export const RING_BAND_INNER_ALPHA = 0.1;
-/** Opacity of the colored dashed ring stroke (slider 100%; often clamps to 1). */
-export const RING_DASH_ALPHA = 1.8;
-/** Underlay of the old cool-blue dashed rings (slider 100%). */
-export const RING_LEGACY_BLUE_ALPHA = 0.7;
+/** Band fill at the system’s dashed (outer) ring — slider 100%. */
+export const RING_BAND_OUTER_ALPHA = 0.28;
+/** Band fill at the next inner ring — slider 100%. */
+export const RING_BAND_INNER_ALPHA = 0.05;
+/** Colored dashed ring stroke — slider 100%. */
+export const RING_DASH_ALPHA = 0.9;
+/** Cool-blue dashed underlay — slider 100%. */
+export const RING_LEGACY_BLUE_ALPHA = 0.35;
 
-/**
- * Default Pilot Controls Rings slider (0–1).
- * Playtest lock (screenshot): thumb ~¼ track — preferred board opacity.
- */
-export const RING_OPACITY_DEFAULT = 0.25;
+/** Default Pilot Controls Rings slider (0–1). Mid = preferred board look. */
+export const RING_OPACITY_DEFAULT = 0.5;
 
 export type Rgb = readonly [number, number, number];
 
