@@ -89,6 +89,8 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
       monolithEarthPending: false,
       freeBreakPending: false,
       warpCharges: 0,
+      freeLeavePending: false,
+      nextRentWaived: false,
       depotsPlacedThisCircuit: 0,
       canBidirectional: isPalindromeRocketName(name),
       moveDirection: "forward",

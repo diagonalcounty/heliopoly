@@ -11,7 +11,7 @@
  */
 import { formatMoney } from "./currency";
 import { lunarRangeCmForDate } from "./lunarRangeTable";
-import type { GameState } from "./types";
+import type { GameState, Player } from "./types";
 
 /** Rounds after a fire (or start) before the first 50% roll. */
 export const TIMED_EVENT_GAP_ROUNDS = 5;
@@ -20,8 +20,22 @@ export const TIMED_EVENT_BASE_CHANCE = 0.5;
 
 /** Monolith: one-time cash on next Earth land or pass (per rocket). */
 export const MONOLITH_EARTH_BONUS = 300;
+/** Captain Harlock hail: fuel top-up per active rocket (capped at maxFuel). */
+export const HARLOCK_FUEL_BONUS = 4;
+/** Quantum ledger dividend: cash now per active rocket. */
+export const LEDGER_DIVIDEND_CASH = 250;
+/** Asteroid ice survey: fuel depots added to hand per rocket. */
+export const ASTEROID_DEPOTS = 1;
 
-export type TimedEventId = "monolith" | "mms_free_break" | "kings_quest";
+export type TimedEventId =
+  | "monolith"
+  | "mms_free_break"
+  | "kings_quest"
+  | "harlock_fuel"
+  | "asteroid_depot"
+  | "ledger_dividend"
+  | "comet_free_leave"
+  | "rent_holiday";
 
 /** Human rocket’s 3rd character code.
  * Short names fall back to first printable char or 67 ('C').
@@ -71,7 +85,20 @@ export function midpointTowardCertain(currentChance: number): number {
   return c + (1 - c) / 2;
 }
 
-const POOL: TimedEventId[] = ["monolith", "mms_free_break", "kings_quest"];
+const POOL: TimedEventId[] = [
+  "monolith",
+  "mms_free_break",
+  "kings_quest",
+  "harlock_fuel",
+  "asteroid_depot",
+  "ledger_dividend",
+  "comet_free_leave",
+  "rent_holiday",
+];
+
+function activeRockets(state: GameState): Player[] {
+  return state.players.filter((p) => !p.eliminated);
+}
 
 /** Remaining pool events not yet fired this charter (each fires at most once). */
 function remainingPool(state: GameState): TimedEventId[] {
@@ -88,19 +115,15 @@ function pickTimedEvent(state: GameState): TimedEventId | null {
 }
 
 function fireMonolith(state: GameState): void {
-  let n = 0;
-  for (const p of state.players) {
-    if (p.eliminated) continue;
-    p.monolithEarthPending = true;
-    n++;
-  }
+  const list = activeRockets(state);
+  for (const p of list) p.monolithEarthPending = true;
   state.pendingAnnouncement = {
     kind: "info",
     title: "Monolith on Earth's Moon",
     body: [
       "A black slab has been catalogued on the lunar farside.",
       `Every active rocket: one-time ${formatMoney(MONOLITH_EARTH_BONUS)} on your next Earth land or pass.`,
-      `(${n} charter(s) marked.)`,
+      `(${list.length} charter(s) marked.)`,
     ].join("\n"),
   };
   state.log.push(
@@ -109,12 +132,8 @@ function fireMonolith(state: GameState): void {
 }
 
 function fireMmsFreeBreak(state: GameState): void {
-  let n = 0;
-  for (const p of state.players) {
-    if (p.eliminated) continue;
-    p.freeBreakPending = true;
-    n++;
-  }
+  const list = activeRockets(state);
+  for (const p of list) p.freeBreakPending = true;
   state.pendingAnnouncement = {
     kind: "info",
     title: "Blue and brown M&Ms are back",
@@ -122,7 +141,7 @@ function fireMmsFreeBreak(state: GameState): void {
       "You brought back the blue and brown M&Ms.",
       "Every active rocket gets one free brake on their next turn — if they want it.",
       "Break ≥1 space costs 0 fuel once; unused token expires at end of that seat turn.",
-      `(${n} rocket(s) stocked.)`,
+      `(${list.length} rocket(s) stocked.)`,
     ].join("\n"),
   };
   state.log.push(
@@ -131,12 +150,8 @@ function fireMmsFreeBreak(state: GameState): void {
 }
 
 function fireKingsQuest(state: GameState): void {
-  let n = 0;
-  for (const p of state.players) {
-    if (p.eliminated) continue;
-    p.warpCharges += 1;
-    n++;
-  }
+  const list = activeRockets(state);
+  for (const p of list) p.warpCharges += 1;
   state.pendingAnnouncement = {
     kind: "info",
     title: "King's Quest speed-run record",
@@ -144,11 +159,106 @@ function fireKingsQuest(state: GameState): void {
       "A lonely spacer kills time on an old terminal and sets a new King's Quest record.",
       "Every active rocket: one warp — instead of rolling, click any beacon on the board.",
       "Teleport: no en-route stops, rent, or duels. Landing rules still apply at the destination.",
-      `(${n} rocket(s) charted.)`,
+      `(${list.length} rocket(s) charted.)`,
     ].join("\n"),
   };
   state.log.push(
     "Charter alert: King's Quest — one board-wide warp charge per active rocket (click destination).",
+  );
+}
+
+/** Space Pirate Captain Harlock — free-enterprise hail from the Arcadia. */
+function fireHarlockFuel(state: GameState): void {
+  const maxF = state.config.maxFuel;
+  const list = activeRockets(state);
+  for (const p of list) {
+    const before = p.fuel;
+    p.fuel = Math.min(maxF, p.fuel + HARLOCK_FUEL_BONUS);
+    const gained = p.fuel - before;
+    if (gained > 0) {
+      // per-rocket log kept light; announcement carries the story
+    }
+  }
+  state.pendingAnnouncement = {
+    kind: "info",
+    title: "Arcadia on the Mainline",
+    body: [
+      "Captain Harlock salutes free enterprise — the Arcadia dumps spare tanks for every charter.",
+      `Every active rocket: +${HARLOCK_FUEL_BONUS} fuel (capped at tank max ${maxF}).`,
+      `(${list.length} rocket(s) topped.)`,
+    ].join("\n"),
+  };
+  state.log.push(
+    `Charter alert: Captain Harlock / Arcadia — +${HARLOCK_FUEL_BONUS} fuel per active rocket.`,
+  );
+}
+
+/** #33 lite — ice survey without board topology change. */
+function fireAsteroidDepot(state: GameState): void {
+  const list = activeRockets(state);
+  for (const p of list) p.stationsInHand += ASTEROID_DEPOTS;
+  state.pendingAnnouncement = {
+    kind: "info",
+    title: "Belt ice survey",
+    body: [
+      "A survey drone marks a rich carbonaceous rock — freeze-dried tanks for anyone who can claim a pad later.",
+      `Every active rocket: +${ASTEROID_DEPOTS} fuel depot in hand.`,
+      `(${list.length} rocket(s) stocked.)`,
+    ].join("\n"),
+  };
+  state.log.push(
+    `Charter alert: belt ice survey — +${ASTEROID_DEPOTS} depot in hand per active rocket.`,
+  );
+}
+
+function fireLedgerDividend(state: GameState): void {
+  const list = activeRockets(state);
+  for (const p of list) p.cash += LEDGER_DIVIDEND_CASH;
+  state.pendingAnnouncement = {
+    kind: "info",
+    title: "Quantum ledger dividend",
+    body: [
+      "The Automated Interplanetary Asset Ledger pays a rare universal dividend.",
+      `Every active rocket: +${formatMoney(LEDGER_DIVIDEND_CASH)} now.`,
+      `(${list.length} wallet(s) credited.)`,
+    ].join("\n"),
+  };
+  state.log.push(
+    `Charter alert: AIL dividend — +${formatMoney(LEDGER_DIVIDEND_CASH)} per active rocket.`,
+  );
+}
+
+function fireCometFreeLeave(state: GameState): void {
+  const list = activeRockets(state);
+  for (const p of list) p.freeLeavePending = true;
+  state.pendingAnnouncement = {
+    kind: "info",
+    title: "Comet dust trail",
+    body: [
+      "A dirty snowball sheds a trail across the Mainline — outbound burns ride the stream for free once.",
+      "Every active rocket: next leave from a gravity well costs 0 fuel (then clears).",
+      `(${list.length} rocket(s) marked.)`,
+    ].join("\n"),
+  };
+  state.log.push(
+    "Charter alert: comet dust — one free leave burn per active rocket.",
+  );
+}
+
+function fireRentHoliday(state: GameState): void {
+  const list = activeRockets(state);
+  for (const p of list) p.nextRentWaived = true;
+  state.pendingAnnouncement = {
+    kind: "info",
+    title: "Port authority holiday",
+    body: [
+      "Station councils declare a one-claim rent holiday under the free-port compact.",
+      "Every active rocket: next rent you would pay is waived (once), then normal rates resume.",
+      `(${list.length} rocket(s) stamped.)`,
+    ].join("\n"),
+  };
+  state.log.push(
+    "Charter alert: port holiday — next rent payment waived once per active rocket.",
   );
 }
 
@@ -162,6 +272,21 @@ function fireTimedEvent(state: GameState, id: TimedEventId): void {
       break;
     case "kings_quest":
       fireKingsQuest(state);
+      break;
+    case "harlock_fuel":
+      fireHarlockFuel(state);
+      break;
+    case "asteroid_depot":
+      fireAsteroidDepot(state);
+      break;
+    case "ledger_dividend":
+      fireLedgerDividend(state);
+      break;
+    case "comet_free_leave":
+      fireCometFreeLeave(state);
+      break;
+    case "rent_holiday":
+      fireRentHoliday(state);
       break;
     default: {
       const _exhaustive: never = id;
@@ -178,6 +303,10 @@ function fireTimedEvent(state: GameState, id: TimedEventId): void {
 /**
  * Called after each seat tick. Only advances the alert cadence when
  * `state.round` has increased (once per full table pass).
+ *
+ * Cadence (#106): after GAP rounds, roll at 50%; only on a real miss does
+ * chance midpoint toward 100%. Open popups skip the roll without burning
+ * midpoints. After fire, wait GAP rounds again.
  */
 export function processTimedEvents(state: GameState): void {
   const te = state.timedEvent;
@@ -189,23 +318,21 @@ export function processTimedEvents(state: GameState): void {
   // Pool exhausted — no more charter alerts this game
   if (remainingPool(state).length === 0) return;
 
-  // Count the round even if another popup is open; don't stack alerts
-  if (state.pendingAnnouncement) return;
-
+  // Still in post-fire / start gap
   if (te.roundsSinceLast < TIMED_EVENT_GAP_ROUNDS) return;
 
-  if (te.roundsSinceLast === TIMED_EVENT_GAP_ROUNDS) {
+  // Don't stack alerts; gap still counted above. Do not midpoint without a roll.
+  if (state.pendingAnnouncement) return;
+
+  // Enter (or stay in) the roll window
+  if (te.rollChance <= 0) {
     te.rollChance = TIMED_EVENT_BASE_CHANCE;
-  } else {
-    // Missed earlier in this window — halfway from current % toward 100%
-    te.rollChance = midpointTowardCertain(
-      te.rollChance > 0 ? te.rollChance : TIMED_EVENT_BASE_CHANCE,
-    );
   }
 
   const roll = charterEventRoll01(state);
   if (roll >= te.rollChance) {
-    // Miss — stay in window; next round midpoints again
+    // Miss — only midpoints after an actual attempt
+    te.rollChance = midpointTowardCertain(te.rollChance);
     return;
   }
 

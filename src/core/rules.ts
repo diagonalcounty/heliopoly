@@ -546,7 +546,8 @@ export function getLegalActions(state: GameState): LegalActions {
     const br = Math.min(Math.max(0, state.breakSpaces), maxBreak);
     const steps = state.lastRoll.total - br;
     const bCost = effectiveBreakFuelCost(p.freeBreakPending, br);
-    const leavePreview = leaveBurnCost(node, Math.max(1, steps), p.propellant);
+    let leavePreview = leaveBurnCost(node, Math.max(1, steps), p.propellant);
+    if (p.freeLeavePending) leavePreview = 0;
     const canAffordBreak = p.fuel + 1e-9 >= bCost;
     return {
       ...empty,
@@ -571,7 +572,8 @@ export function getLegalActions(state: GameState): LegalActions {
   }
 
   const previewSteps = state.lastRoll?.total ?? 7;
-  const leaveBurnPreview = leaveBurnCost(node, previewSteps, p.propellant);
+  let leaveBurnPreview = leaveBurnCost(node, previewSteps, p.propellant);
+  if (p.freeLeavePending) leaveBurnPreview = 0;
 
   // Buy underfoot when unowned + affordable — on land *or* later before leave (#88)
   const unowned = isPurchasable(node) && !state.owners[node.id];
@@ -948,6 +950,15 @@ function applyKnockbackLanding(state: GameState, p: Player): void {
   if (ownerId && ownerId !== p.id && isPurchasable(node)) {
     const owner = state.players.find((x) => x.id === ownerId);
     if (!owner || owner.eliminated) return;
+    if (p.nextRentWaived) {
+      p.nextRentWaived = false;
+      pushLog(
+        state,
+        `${p.name} uses port holiday — no rent to ${owner.name} (knockback).`,
+      );
+      delta(state, `rent holiday vs ${owner.name}`);
+      return;
+    }
     const waiverIdx = p.rentWaiversAgainst.indexOf(owner.id);
     if (waiverIdx >= 0) {
       p.rentWaiversAgainst.splice(waiverIdx, 1);
@@ -984,7 +995,17 @@ function movePlayer(state: GameState, steps: number): void {
   let pos = p.position;
   const startNode = getNode(state.board, pos);
   const g = gravityClassOf(startNode);
-  const burn = leaveBurnCost(startNode, steps, p.propellant);
+  let burn = leaveBurnCost(startNode, steps, p.propellant);
+  // Timed charter: comet dust / free leave once
+  if (burn > 0 && p.freeLeavePending) {
+    p.freeLeavePending = false;
+    pushLog(
+      state,
+      `${p.name} rides free leave from ${startNode.name} (comet dust token · g${g}).`,
+    );
+    delta(state, `free leave ${startNode.name}`);
+    burn = 0;
+  }
 
   if (burn > 0) {
     if (p.fuel < burn) {
@@ -1089,34 +1110,43 @@ function resolveLanding(state: GameState, stayed: boolean): void {
   // Rent on landing OR on failed leave (stayed) — intentional second charge
   if (ownerId && ownerId !== p.id && isPurchasable(node)) {
     const owner = state.players.find((x) => x.id === ownerId)!;
-    const waiverIdx = p.rentWaiversAgainst.indexOf(owner.id);
-    if (waiverIdx >= 0) {
-      p.rentWaiversAgainst.splice(waiverIdx, 1);
+    if (p.nextRentWaived) {
+      p.nextRentWaived = false;
       pushLog(
         state,
-        `${p.name} uses Gravity Duel free pass — no rent to ${owner.name}.`,
+        `${p.name} uses port holiday — no rent to ${owner.name}.`,
       );
-      delta(state, `rent waived vs ${owner.name}`);
+      delta(state, `rent holiday vs ${owner.name}`);
     } else {
-      const rent = rentDue(state, node.id, ownerId);
-      if (p.cash >= rent) {
-        p.cash -= rent;
-        owner.cash += rent;
+      const waiverIdx = p.rentWaiversAgainst.indexOf(owner.id);
+      if (waiverIdx >= 0) {
+        p.rentWaiversAgainst.splice(waiverIdx, 1);
         pushLog(
           state,
-          `${p.name} pays ${formatMoney(rent)} rent to ${owner.name}.`,
+          `${p.name} uses Gravity Duel free pass — no rent to ${owner.name}.`,
         );
-        delta(state, `−${formatMoney(rent)} rent → ${owner.name}`);
+        delta(state, `rent waived vs ${owner.name}`);
       } else {
-        // Creditor gets remaining cash only; deeds go to bank on eliminate
-        owner.cash += p.cash;
-        pushLog(
-          state,
-          `${p.name} cannot pay ${formatMoney(rent)} rent.`,
-        );
-        delta(state, `bankrupt to ${owner.name}`);
-        eliminate(state, p, "bankruptcy");
-        return;
+        const rent = rentDue(state, node.id, ownerId);
+        if (p.cash >= rent) {
+          p.cash -= rent;
+          owner.cash += rent;
+          pushLog(
+            state,
+            `${p.name} pays ${formatMoney(rent)} rent to ${owner.name}.`,
+          );
+          delta(state, `−${formatMoney(rent)} rent → ${owner.name}`);
+        } else {
+          // Creditor gets remaining cash only; deeds go to bank on eliminate
+          owner.cash += p.cash;
+          pushLog(
+            state,
+            `${p.name} cannot pay ${formatMoney(rent)} rent.`,
+          );
+          delta(state, `bankrupt to ${owner.name}`);
+          eliminate(state, p, "bankruptcy");
+          return;
+        }
       }
     }
   }
