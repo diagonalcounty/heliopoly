@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Play
+- **Feral park curve (#92):** half-gap asymptotic after park 5 (50% → 75% → 87.5% …) instead of double-to-100% at park 6; Ops Manual + startup log copy match
+
 ## [0.0.20] — 2026-08-11
 
 ### Play

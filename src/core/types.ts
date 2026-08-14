@@ -113,7 +113,7 @@ export interface Player {
   movedThisTurn: boolean;
   /**
    * Cumulative parks (no-move seat turns, including duel skips).
-   * At 5+: each claim may go feral; chance doubles each park after.
+   * At 5+: each claim may go feral; chance closes half the gap to 100% each park after (#92).
    */
   parkCount: number;
   /**

@@ -39,14 +39,17 @@ import type {
 
 /** Parks before first feral check (inclusive). */
 export const PARK_FERAL_THRESHOLD = 5;
-/** Chance at parkCount === threshold; doubles each park after (capped at 1). */
+/** Chance at parkCount === threshold; each further park closes half the gap to 1 (#92). */
 export const PARK_FERAL_BASE_CHANCE = 0.5;
 
-/** Feral chance for a pilot who just parked `parkCount` times (0 if under threshold). */
+/**
+ * Feral chance for a pilot who just parked `parkCount` times (0 if under threshold).
+ * Half-gap asymptotic: park 5 → 50%, 6 → 75%, 7 → 87.5%, … never forced to 100% on the next park.
+ */
 export function parkFeralChance(parkCount: number): number {
   if (parkCount < PARK_FERAL_THRESHOLD) return 0;
-  const exp = parkCount - PARK_FERAL_THRESHOLD;
-  return Math.min(1, PARK_FERAL_BASE_CHANCE * 2 ** exp);
+  const steps = parkCount - PARK_FERAL_THRESHOLD; // 0 at park 5
+  return 1 - PARK_FERAL_BASE_CHANCE ** (steps + 1);
 }
 
 export { walkMovePath } from "./path";
@@ -245,7 +248,7 @@ function releaseClaimToBank(state: GameState, nodeId: string): void {
 
 /**
  * No-move seat turn: +1 park (cumulative). At 5+ parks, each claim may go feral
- * (50% at 5, doubles each park after, cap 100%).
+ * (50% at 5, then half remaining gap to 100% each park after — #92).
  */
 function applyParkingTick(state: GameState, pilot: Player): void {
   if (pilot.eliminated) return;
