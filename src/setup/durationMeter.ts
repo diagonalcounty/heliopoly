@@ -98,8 +98,8 @@ export function renderDurationMeter(
   const title = document.createElement("div");
   title.className = "duration-meter-title";
   title.style.opacity = String(v.titleA);
-  // Title weight/size from CSS — match AI difficulty legend (not bold HUD caps)
-  title.textContent = "Est. rounds (µ)";
+  // Title weight/size from CSS — compact; full meaning in aria-label
+  title.textContent = "(µ)";
   root.appendChild(title);
 
   const body = document.createElement("div");
