@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Play / UX
+- **AI duration meter (#94):** New game setup — estimated charter rounds vs Expert pilot for selected AI pack (density bars; Easy short → Expert ~µ60); visual lock from playtest export
+
 ## [0.0.24] — 2026-08-14
 
 ### Play / UX
