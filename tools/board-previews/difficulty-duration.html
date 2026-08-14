@@ -217,9 +217,9 @@
 
     <h2>Scale (rounds axis)</h2>
     <label class="row"><span class="name">Scale top (round)</span><span class="val" id="v_scaleMin"></span>
-      <input type="range" id="scaleMin" min="10" max="80" step="5" value="20"/></label>
+      <input type="range" id="scaleMin" min="10" max="80" step="5" value="15"/></label>
     <label class="row"><span class="name">Scale bottom (round)</span><span class="val" id="v_scaleMax"></span>
-      <input type="range" id="scaleMax" min="60" max="200" step="5" value="100"/></label>
+      <input type="range" id="scaleMax" min="60" max="200" step="5" value="120"/></label>
     <label class="row"><span class="name">Tick font (px)</span><span class="val" id="v_tickFont"></span>
       <input type="range" id="tickFont" min="7" max="14" step="0.5" value="10"/></label>
     <label class="row"><span class="name">Tick column width</span><span class="val" id="v_tickColW"></span>
@@ -320,23 +320,34 @@
  * barCount: more horizontal bars when AI is stronger (more round-mass to show).
  */
 const DIFFS = {
-  // Human pilot always treated as Expert. Radios = AI pack only.
-  // Expert human × Expert AI → µ ≈ 60 (playtest). Weaker AI → shorter.
+  /**
+   * From sim-results Aug 14 choice runs (200 games each).
+   * Human proxy = hard|expert merged; radios = AI **pack** difficulty.
+   * Metric: gameLengthRounds p50 (finished charters in humanLossTiming sample);
+   * Expert pack overall meanRounds is much higher due to unfinished marathons.
+   *
+   *   pack    | hum expert p50 | hum hard p50 | use µ | IQR-ish
+   *   easy    | 31             | 33           | 32    | ~22–43
+   *   normal  | 24             | 26.5         | 25    | ~18–32
+   *   hard    | 37             | 32–34        | 35    | ~22–55
+   *   expert  | 50             | 48           | 50    | ~27–90  (µ~60 matches mean)
+   */
   easy: {
     label: "Easy — no break; always prograde",
-    mu: 32, sigma: 9, skew: 0.3, iqr: 7, barCount: 10,
+    mu: 32, sigma: 10, skew: 0.4, iqr: 10, barCount: 12,
   },
   normal: {
     label: "Normal — small break only to afford leave",
-    mu: 42, sigma: 11, skew: 0.45, iqr: 9, barCount: 14,
+    mu: 25, sigma: 8, skew: 0.35, iqr: 7, barCount: 11,
   },
   hard: {
     label: "Hard — break for buys, hubs, Earth landings",
-    mu: 52, sigma: 13, skew: 0.55, iqr: 11, barCount: 18,
+    mu: 35, sigma: 14, skew: 0.7, iqr: 14, barCount: 18,
   },
   expert: {
     label: "Expert — deep break, monopoly & Earth focus",
-    mu: 60, sigma: 14, skew: 0.65, iqr: 12, barCount: 22,
+    // Expert×Expert: p50≈50, mean≈63 → show µ 60 as player-facing "typical long fight"
+    mu: 60, sigma: 22, skew: 0.9, iqr: 28, barCount: 24,
   },
 };
 
@@ -558,7 +569,7 @@ function render() {
 
   $("export").value = JSON.stringify(collectSettings(), null, 2);
   try {
-    localStorage.setItem("heliopoly-difficulty-duration-preview-v2", $("export").value);
+    localStorage.setItem("heliopoly-difficulty-duration-preview-v3", $("export").value);
   } catch (_) {}
 }
 
@@ -614,7 +625,7 @@ $("btn-reset").onclick = () => {
 
 // restore
 try {
-  const raw = localStorage.getItem("heliopoly-difficulty-duration-preview-v2");
+  const raw = localStorage.getItem("heliopoly-difficulty-duration-preview-v3");
   if (raw) {
     const s = JSON.parse(raw);
     for (const [k, v] of Object.entries(s)) {
