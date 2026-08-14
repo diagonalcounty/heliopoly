@@ -2392,6 +2392,8 @@ button:not(:disabled):active {
   margin: 0 0 6px;
   flex-shrink: 0;
   min-width: 0;
+  /* Shared row height so title + RINGS + track share one vertical center */
+  min-height: 28px;
 }
 
 .pilot-controls h2 {
@@ -2399,36 +2401,123 @@ button:not(:disabled):active {
   font-size: 0.85rem;
   font-weight: 600;
   letter-spacing: 0.04em;
+  line-height: 1;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  height: 28px;
+  color: var(--accent);
 }
 
 /* Dim system rings (#101) — same row as Pilot Controls title */
 .ring-opacity-field {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   min-width: 0;
   flex: 1 1 auto;
   justify-content: flex-end;
+  height: 28px;
+  margin: 0;
   color: var(--muted);
-  font-size: 0.7rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.68rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
+  line-height: 1;
   cursor: default;
 }
 
 .ring-opacity-label {
   flex-shrink: 0;
-  color: var(--accent);
+  display: flex;
+  align-items: center;
+  height: 100%;
+  color: #7dd3fc;
+  text-shadow: 0 0 8px rgba(125, 211, 252, 0.35);
 }
 
-.ring-opacity-field input[type="range"] {
-  width: min(120px, 40%);
-  min-width: 72px;
+/* Retro CRT-style range (matches telemetry chrome) */
+.ring-opacity-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: min(118px, 42%);
+  min-width: 80px;
   max-width: 140px;
-  height: 4px;
-  accent-color: var(--accent);
+  height: 10px;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.ring-opacity-slider:focus {
+  outline: none;
+}
+
+.ring-opacity-slider:focus-visible {
+  outline: 1px solid rgba(125, 211, 252, 0.55);
+  outline-offset: 3px;
+}
+
+/* Track — dark well, cyan border, subtle scan ticks */
+.ring-opacity-slider::-webkit-slider-runnable-track {
+  height: 8px;
+  border-radius: 2px;
+  border: 1px solid #1e3a5f;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 5px,
+      rgba(125, 211, 252, 0.06) 5px 6px
+    ),
+    linear-gradient(180deg, #060a12 0%, #0a1220 50%, #050810 100%);
+  box-shadow:
+    inset 0 1px 3px rgba(0, 0, 0, 0.75),
+    0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+
+.ring-opacity-slider::-moz-range-track {
+  height: 8px;
+  border-radius: 2px;
+  border: 1px solid #1e3a5f;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 5px,
+      rgba(125, 211, 252, 0.06) 5px 6px
+    ),
+    linear-gradient(180deg, #060a12 0%, #0a1220 50%, #050810 100%);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.75);
+}
+
+/* Thumb — chunky LED bead, not OS pill */
+.ring-opacity-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  margin-top: -4px; /* center on 8px track */
+  border-radius: 2px;
+  border: 1px solid #7dd3fc;
+  background: linear-gradient(180deg, #e0f7ff 0%, #38bdf8 45%, #0284c7 100%);
+  box-shadow:
+    0 0 0 1px #0a0f1a,
+    0 0 8px rgba(56, 189, 248, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+}
+
+.ring-opacity-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+  border: 1px solid #7dd3fc;
+  background: linear-gradient(180deg, #e0f7ff 0%, #38bdf8 45%, #0284c7 100%);
+  box-shadow:
+    0 0 0 1px #0a0f1a,
+    0 0 8px rgba(56, 189, 248, 0.65);
   cursor: pointer;
 }
 
