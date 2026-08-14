@@ -188,7 +188,7 @@
   <p>
     Tweak the vertical µ / density meter next to AI difficulty. Bars encode distribution mass;
     dual triangles mark median (R50). Not shipped — export settings when it looks right.
-    Placeholder distros: <strong>harder AI → longer µ</strong> (playtest). Replace with Sim Lab table later.
+    Framing: <strong>human pilot = Expert</strong>. Selected row is <strong>AI pack</strong> skill. Harder AI → longer charters (AI fights to stay in); weaker AI → shorter games (expert human ends them). Replace placeholder dens with Sim Lab later.
   </p>
 </header>
 <div class="layout">
@@ -213,7 +213,7 @@
       <input type="range" id="titleSize" min="6" max="14" step="0.5" value="9"/></label>
     <label class="row"><span class="name">Title opacity</span><span class="val" id="v_titleA"></span>
       <input type="range" id="titleA" min="0.2" max="1" step="0.01" value="0.95"/></label>
-    <label class="check"><input type="checkbox" id="showMu" checked/> Show (µ R50) in title</label>
+    <label class="check"><input type="checkbox" id="showMu" checked/> Show µ in title (vs Expert pilot)</label>
 
     <h2>Scale (rounds axis)</h2>
     <label class="row"><span class="name">Scale top (round)</span><span class="val" id="v_scaleMin"></span>
@@ -243,8 +243,9 @@
     <label class="check"><input type="checkbox" id="markerOnMedian" checked/> Marker tracks median (else mid panel)</label>
 
     <h2>Density bars</h2>
+    <label class="check"><input type="checkbox" id="useDiffBars" checked/> Bar count follows AI difficulty (Expert = more bars)</label>
     <label class="row"><span class="name">Bar count (samples)</span><span class="val" id="v_barCount"></span>
-      <input type="range" id="barCount" min="5" max="40" step="1" value="18"/></label>
+      <input type="range" id="barCount" min="5" max="40" step="1" value="11"/></label>
     <label class="row"><span class="name">Bar height (px)</span><span class="val" id="v_barH"></span>
       <input type="range" id="barH" min="1" max="8" step="0.5" value="2.5"/></label>
     <label class="row"><span class="name">Bar max width (px)</span><span class="val" id="v_barMaxW"></span>
@@ -312,23 +313,30 @@
 </div>
 <script>
 /** Placeholder distros — replace with Sim Lab medians later (#94) */
-/** Playtest premise: stronger AI → longer charters (not shorter). */
+/**
+ * Distributions assume **human = Expert**. Selected difficulty is the **AI pack**.
+ * Expert human vs Easy AI → short charters (human ends them).
+ * Expert human vs Expert AI → long charters (AI fights to stay in).
+ * barCount: more horizontal bars when AI is stronger (more round-mass to show).
+ */
 const DIFFS = {
   easy: {
     label: "Easy — no break; always prograde",
-    mu: 36, sigma: 12, skew: 0.4, iqr: 9,
+    // Expert human stomps soft pack → fewer, earlier rounds
+    mu: 34, sigma: 10, skew: 0.35, iqr: 8, barCount: 11,
   },
   normal: {
     label: "Normal — small break only to afford leave",
-    mu: 48, sigma: 14, skew: 0.55, iqr: 12,
+    mu: 48, sigma: 13, skew: 0.5, iqr: 11, barCount: 15,
   },
   hard: {
     label: "Hard — break for buys, hubs, Earth landings",
-    mu: 62, sigma: 16, skew: 0.7, iqr: 15,
+    mu: 64, sigma: 16, skew: 0.7, iqr: 14, barCount: 20,
   },
   expert: {
     label: "Expert — deep break, monopoly & Earth focus",
-    mu: 78, sigma: 20, skew: 0.85, iqr: 18,
+    // Matched expert pack fights longest
+    mu: 82, sigma: 22, skew: 0.9, iqr: 18, barCount: 26,
   },
 };
 
@@ -366,7 +374,7 @@ function collectSettings() {
     "panelW","panelH","pad","radius","borderGlow","titleSize","titleA","showMu",
     "scaleMin","scaleMax","tickFont","tickColW","tickMark","showPlus",
     "railColW","railW","railGlow","markerSize","markerGlow","showMarker","markerOnMedian",
-    "barCount","barH","barMaxW","barMinW","barGlow","barGlowA","barA","widthPow","barRound",
+    "useDiffBars","barCount","barH","barMaxW","barMinW","barGlow","barGlowA","barA","widthPow","barRound",
     "mu","sigma","skew","iqr","cardW","gap","showAiCopy",
   ];
   const s = { selected, tool: "difficulty-duration", issue: 94, generatedAt: new Date().toISOString() };
@@ -394,6 +402,11 @@ function renderAi() {
   box.style.display = "";
   const h = document.createElement("h3");
   h.textContent = "AI difficulty";
+  const sub = document.createElement("p");
+  sub.className = "hint";
+  sub.style.margin = "0 0 8px";
+  sub.textContent = "Duration assumes you fly Expert. Weak AI → short games; Expert AI → long fights.";
+  box.appendChild(sub);
   box.appendChild(h);
   for (const [key, d] of Object.entries(DIFFS)) {
     const lab = document.createElement("label");
@@ -405,7 +418,8 @@ function renderAi() {
       $("sigma").value = DIFFS[key].sigma;
       $("skew").value = DIFFS[key].skew;
       $("iqr").value = DIFFS[key].iqr;
-      ["mu","sigma","skew","iqr"].forEach((id) => {
+      if (DIFFS[key].barCount != null) $("barCount").value = DIFFS[key].barCount;
+      ["mu","sigma","skew","iqr","barCount"].forEach((id) => {
         const lab = $("v_" + id);
         if (lab) lab.textContent = String(+$(id).value);
       });
@@ -441,8 +455,8 @@ function render() {
   title.style.fontSize = num("titleSize") + "px";
   title.style.opacity = String(num("titleA"));
   title.innerHTML = $("showMu").checked
-    ? "Estimated round<br/>duration (µ R50)"
-    : "Estimated round<br/>duration";
+    ? "Est. rounds vs<br/>Expert pilot (µ)"
+    : "Est. rounds vs<br/>Expert pilot";
 
   const scaleMin = num("scaleMin");
   const scaleMax = num("scaleMax");
@@ -500,7 +514,13 @@ function render() {
   // bars
   const bars = $("bars");
   bars.innerHTML = "";
-  const nBars = num("barCount");
+  const nBars = $("useDiffBars") && $("useDiffBars").checked
+    ? (DIFFS[selected].barCount ?? num("barCount"))
+    : num("barCount");
+  if ($("useDiffBars") && $("useDiffBars").checked) {
+    $("barCount").value = nBars;
+    const bl = $("v_barCount"); if (bl) bl.textContent = String(nBars);
+  }
   const sigma = DIFFS[selected].sigma;
   const skew = DIFFS[selected].skew;
   let peak = 0;
@@ -547,7 +567,7 @@ function render() {
   "panelW","panelH","pad","radius","borderGlow","titleSize","titleA","showMu",
   "scaleMin","scaleMax","tickFont","tickColW","tickMark","showPlus",
   "railColW","railW","railGlow","markerSize","markerGlow","showMarker","markerOnMedian",
-  "barCount","barH","barMaxW","barMinW","barGlow","barGlowA","barA","widthPow","barRound",
+  "useDiffBars","barCount","barH","barMaxW","barMinW","barGlow","barGlowA","barA","widthPow","barRound",
   "mu","sigma","skew","iqr","cardW","gap","showAiCopy",
 ].forEach((id) => bindVal(id, (v) => (typeof v === "number" && !Number.isInteger(v) ? v.toFixed(2) : String(v))));
 
