@@ -428,7 +428,8 @@ export function createV0Board(): Board {
       id: "t_se",
       name: "Homeward",
       kind: "space",
-      ...onRing(5, 70, ringRadii),
+      // Stay on Saturn ring after Tethys (not Jupiter) before the drop to Earth
+      ...onRing(6, 70, ringRadii),
     }),
   ];
 
