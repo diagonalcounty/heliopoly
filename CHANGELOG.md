@@ -3,6 +3,7 @@
 ## [0.0.23] — 2026-08-13
 
 ### Play / UX
+- **Travel lane color:** cool cyan `rgb(110,200,255)` so Mainline stays distinct from warm system-ring dashes
 - **System ring bands (#101):** stylized Saturn→Mercury dashed tints + radial falloff bands (outer α 0.17 → inner α 0.02); legacy blue underlay α 0.29; travel lanes α 0.74
 
 ### Meta

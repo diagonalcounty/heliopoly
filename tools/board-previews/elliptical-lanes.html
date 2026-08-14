@@ -29,7 +29,7 @@
   canvas { display: block; width: 100%; aspect-ratio: 1; background: #050814; }
   .note { padding: 4px 16px 16px; color: #9aa8c7; font-size: 0.8rem; }
   .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: middle; }
-  .swatch.out { background: rgb(255, 200, 120); }
+  .swatch.out { background: rgb(110, 200, 255); }
   .swatch.in { background: rgb(140, 200, 255); }
   kbd { background: #1e2a48; border: 1px solid #2a3555; border-radius: 4px; padding: 1px 5px; font-size: 0.78rem; }
   a { color: #6ec8ff; }
@@ -137,14 +137,14 @@ function drawScene(canvas, straightOnly, outCurve, inCurve, alternate, laneA, la
     ctx.beginPath();
     ctx.moveTo(A.x, A.y);
     if (isStraight) {
-      ctx.strokeStyle = `rgba(255, 200, 120, ${laneA})`;
+      ctx.strokeStyle = `rgba(110, 200, 255, ${laneA})`;
       ctx.lineTo(B.x, B.y);
       ctx.stroke();
       continue;
     }
     ctx.strokeStyle =
       dir > 0
-        ? `rgba(255, 200, 120, ${laneA})`
+        ? `rgba(110, 200, 255, ${laneA})`
         : `rgba(140, 200, 255, ${Math.min(1, laneA + 0.05)})`;
 
     const angA = Math.atan2(A.y - P.sun.y, A.x - P.sun.x);

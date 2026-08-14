@@ -10,7 +10,7 @@ Open either file in a browser (double-click or `open path.html`).
 
 Defaults in the sliders match **production constants** in:
 
-- `src/core/laneCurve.ts` — `LANE_CURVE_OUTWARD`, `LANE_CURVE_INWARD`, `LANE_STROKE_ALPHA`
+- `src/core/laneCurve.ts` — `LANE_CURVE_OUTWARD`, `LANE_CURVE_INWARD`, `LANE_STROKE_ALPHA`, `LANE_STROKE_RGB` (cool cyan)
 - `src/core/ringBands.ts` — band/dash/legacy alphas + `SYSTEM_RING_STYLES`
 
 ## Regenerate after board geometry changes
