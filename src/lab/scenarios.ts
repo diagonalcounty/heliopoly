@@ -1,17 +1,42 @@
 /**
  * Lab scenarios — isolated setups for minigame / UX testing.
  * Not used in normal Launch flow.
+ *
+ * Menu UX: top-level **categories** expand to show items under them
+ * (Which is larger? → numbering packs; Minigames → Gravity Duel; …).
  */
 import { forceGravityDuel } from "../core/rules";
 import { createGame } from "../core/state";
 import type { GameState } from "../core/types";
 
 /**
- * Lab menu sections (order of first appearance in LAB_SCENARIOS).
- * `which-is-larger` = multi-script compare drills (#76 umbrella; EA = #81).
+ * Lab accordion categories (stable order for the menu).
+ * `which-is-larger` = multi-script compare drills (#76; EA pack = #81).
  * `minigame` = other drills (e.g. single Gravity Duel entry).
  */
 export type LabScenarioGroup = "which-is-larger" | "minigame" | "end" | "economy";
+
+export const LAB_GROUP_ORDER: readonly LabScenarioGroup[] = [
+  "which-is-larger",
+  "minigame",
+  "end",
+  "economy",
+] as const;
+
+export const LAB_GROUP_LABELS: Record<LabScenarioGroup, string> = {
+  "which-is-larger": "Which is larger?",
+  minigame: "Minigames",
+  end: "End screens",
+  economy: "Economy",
+};
+
+export const LAB_GROUP_BLURBS: Record<LabScenarioGroup, string> = {
+  "which-is-larger":
+    "Literacy drills: pick the larger of two numbers in a target numbering system.",
+  minigame: "Standalone practice modes (e.g. Gravity Duel).",
+  end: "Canned charter end screens for UI / copy checks.",
+  economy: "Economy and risk edge cases.",
+};
 
 /** Charter GameState drop-in (replaces current game). */
 export interface LabGameScenario {
@@ -20,6 +45,8 @@ export interface LabGameScenario {
   blurb: string;
   group: LabScenarioGroup;
   kind: "game";
+  /** When false, listed in the menu but not runnable yet. Default true. */
+  available?: boolean;
   /** Build a fresh GameState ready to drop into the shell. */
   build: () => GameState;
 }
@@ -34,11 +61,17 @@ export interface LabStandaloneScenario {
   blurb: string;
   group: LabScenarioGroup;
   kind: "standalone";
+  /** When false, listed in the menu but not runnable yet. Default true. */
+  available?: boolean;
   /** Stable id for shell handlers (e.g. eastern-arabic-compare). */
   standaloneId: string;
 }
 
 export type LabScenario = LabGameScenario | LabStandaloneScenario;
+
+export function labScenarioAvailable(sc: LabScenario): boolean {
+  return sc.available !== false;
+}
 
 function baseGame(playerCount = 2): GameState {
   return createGame({
@@ -57,17 +90,62 @@ function tagLab(s: GameState, label: string): GameState {
 }
 
 export const LAB_SCENARIOS: LabScenario[] = [
-  // —— Which is larger? (#76 section; packs ship as separate issues; EA = #81) ——
+  // —— Which is larger? (#76 umbrella — all packs listed; EA ships under #81) ——
   {
-    id: "eastern-arabic-compare",
-    title: "Eastern Arabic",
-    blurb:
-      "Pick which of two numbers is larger (٠–٩). One-, two-, then three-digit ladder; hints don’t count toward progress. Up to 12 tries. Does not replace your charter.",
+    id: "western-arabic-compare",
+    title: "Western Arabic (0–9)",
+    blurb: "Home glyphs — same compare ladder in familiar digits. Coming soon.",
     group: "which-is-larger",
     kind: "standalone",
+    available: false,
+    standaloneId: "western-arabic-compare",
+  },
+  {
+    id: "eastern-arabic-compare",
+    title: "Eastern Arabic (٠–٩)",
+    blurb:
+      "Pick which of two numbers is larger. One-, two-, then three-digit ladder; hints don’t count toward progress. Up to 12 tries. Does not replace your charter.",
+    group: "which-is-larger",
+    kind: "standalone",
+    available: true,
     standaloneId: "eastern-arabic-compare",
   },
-  // Future packs (same drill shell): Chinese, Korean, Hebrew, binary, … — add here under which-is-larger.
+  {
+    id: "chinese-compare",
+    title: "Chinese (零/〇, 一…九)",
+    blurb: "Han characters for digits (also Kanji / traditional Hanja context). Coming soon.",
+    group: "which-is-larger",
+    kind: "standalone",
+    available: false,
+    standaloneId: "chinese-compare",
+  },
+  {
+    id: "korean-compare",
+    title: "Korean (Sino / native)",
+    blurb: "Hangul (and words) — Sino-Korean and native systems by context. Coming soon.",
+    group: "which-is-larger",
+    kind: "standalone",
+    available: false,
+    standaloneId: "korean-compare",
+  },
+  {
+    id: "hebrew-compare",
+    title: "Hebrew letter-numerals",
+    blurb: "א=1 … ט=9 — letter values, not pure place-value; no traditional 0. Coming soon.",
+    group: "which-is-larger",
+    kind: "standalone",
+    available: false,
+    standaloneId: "hebrew-compare",
+  },
+  {
+    id: "binary-compare",
+    title: "Binary / other bases",
+    blurb: "Encoded forms in other bases (which bases TBD). Coming soon.",
+    group: "which-is-larger",
+    kind: "standalone",
+    available: false,
+    standaloneId: "binary-compare",
+  },
 
   // —— Other minigames (single Gravity Duel entry) ——
   {
@@ -77,6 +155,7 @@ export const LAB_SCENARIOS: LabScenario[] = [
       "You arrive on a belt blank occupied by an AI pilot. Stance (Low/High), then roll. Replaces the current charter with this duel setup.",
     group: "minigame",
     kind: "game",
+    available: true,
     build: () => {
       const s = baseGame(2);
       const you = s.players[0];
