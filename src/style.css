@@ -729,14 +729,17 @@ html.native-shell #app {
 .duration-meter-body {
   position: relative;
   flex: 1 1 auto;
-  display: flex;
-  flex-direction: row;
+  /* Fixed columns: rail | bars (clip) | ticks — bars cannot share tick space */
+  display: grid;
+  grid-template-columns: var(--dm-rail-col, 18px) minmax(0, 1fr) var(--dm-tick-col, 30px);
   min-height: 0;
+  overflow: hidden;
 }
 
 .duration-meter-rail-col {
   position: relative;
-  flex: 0 0 auto;
+  grid-column: 1;
+  min-width: 0;
 }
 
 .duration-meter-rail {
@@ -748,11 +751,11 @@ html.native-shell #app {
 
 .duration-meter-bars {
   position: relative;
-  flex: 1 1 auto;
+  grid-column: 2;
   min-width: 0;
-  /* Never paint bars over tick labels */
+  /* Hard clip: bars + glow never leave this cell */
   overflow: hidden;
-  margin-right: 2px;
+  contain: paint;
 }
 
 .duration-meter-bar {
@@ -760,30 +763,35 @@ html.native-shell #app {
   left: 0;
   transform: translateY(-50%);
   pointer-events: none;
+  /* Never wider than the bars column (guards bad inline widths) */
   max-width: 100%;
+  box-sizing: border-box;
 }
 
 .duration-meter-ticks {
   position: relative;
-  flex: 0 0 auto;
+  grid-column: 3;
   z-index: 2;
+  min-width: 0;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   color: #7dd3fc;
   text-shadow: 0 0 6px rgba(125, 211, 252, 0.3);
-  background: linear-gradient(
-    90deg,
-    rgba(12, 18, 32, 0) 0%,
-    rgba(12, 18, 32, 0.92) 28%,
-    rgba(12, 18, 32, 1) 100%
-  );
+  /* Opaque column so no bar can show through under labels */
+  background: #0c1220;
+  box-shadow: -4px 0 6px 2px #0c1220;
 }
 
 .duration-meter-tick {
   position: absolute;
   right: 4px;
+  left: 2px;
   transform: translateY(-50%);
   white-space: nowrap;
   line-height: 1;
+  text-align: right;
+  /* Per-label shield if anything still bleeds */
+  background: #0c1220;
+  padding: 1px 0 1px 2px;
 }
 
 .duration-meter-tick-line {
@@ -792,6 +800,7 @@ html.native-shell #app {
   height: 1px;
   background: rgba(125, 211, 252, 0.45);
   margin-right: 4px;
+  max-width: 40%;
 }
 
 @media (max-width: 420px) {

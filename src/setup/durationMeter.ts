@@ -42,10 +42,11 @@ export const DURATION_METER_VIS = {
   railGlow: 6,
   showMarker: false,
   barH: 2.5,
-  barMaxW: 36,
+  /** Hard max; also clamped to bars-column width so labels stay clear */
+  barMaxW: 22,
   barMinW: 2,
-  barGlow: 4,
-  barGlowA: 0.55,
+  barGlow: 3,
+  barGlowA: 0.45,
   barA: 0.85,
   widthPow: 1.1,
   barRound: true,
@@ -86,6 +87,8 @@ export function renderDurationMeter(
   root.style.height = `${v.panelH}px`;
   root.style.borderRadius = `${v.radius}px`;
   root.style.setProperty("--dm-border-glow", String(v.borderGlow));
+  root.style.setProperty("--dm-rail-col", `${v.railColW}px`);
+  root.style.setProperty("--dm-tick-col", `${v.tickColW}px`);
   root.setAttribute("role", "img");
   root.setAttribute(
     "aria-label",
@@ -110,7 +113,6 @@ export function renderDurationMeter(
 
   const railCol = document.createElement("div");
   railCol.className = "duration-meter-rail-col";
-  railCol.style.width = `${v.railColW}px`;
   const rail = document.createElement("div");
   rail.className = "duration-meter-rail";
   rail.style.width = `${v.railW}px`;
@@ -126,7 +128,6 @@ export function renderDurationMeter(
 
   const ticks = document.createElement("div");
   ticks.className = "duration-meter-ticks";
-  ticks.style.width = `${v.tickColW}px`;
   ticks.style.fontSize = `${v.tickFont}px`;
   body.appendChild(ticks);
 
@@ -148,21 +149,34 @@ export function renderDurationMeter(
     dens.push({ round, d });
     peak = Math.max(peak, d);
   }
-  // Cap bar width to the bars column so they never cover tick text
-  const barsW = Math.max(0, bars.clientWidth || v.panelW - v.railColW - v.tickColW - 8);
-  const maxBarW = Math.max(v.barMinW, Math.min(v.barMaxW, barsW - 2));
+  // Bars column only: never allow width into the tick column (border-box panel)
+  const borderPad = 2; // 1px border each side via box-sizing
+  const barsColW = Math.max(
+    v.barMinW,
+    v.panelW - borderPad - v.railColW - v.tickColW,
+  );
+  const measured = bars.clientWidth;
+  const barsW = measured > 0 ? measured : barsColW;
+  const maxBarW = Math.max(
+    v.barMinW,
+    Math.min(v.barMaxW, barsW - 1, barsColW - 1),
+  );
   for (const { round, d } of dens) {
     const rel = peak > 0 ? d / peak : 0;
-    const w = v.barMinW + (maxBarW - v.barMinW) * Math.pow(rel, v.widthPow);
+    const w = Math.min(
+      maxBarW,
+      v.barMinW + (maxBarW - v.barMinW) * Math.pow(rel, v.widthPow),
+    );
     if (w < 0.5) continue;
     const el = document.createElement("div");
     el.className = "duration-meter-bar";
     el.style.top = `${yForRound(round, scaleMin, scaleMax, bodyH, padTop, padBot)}px`;
     el.style.height = `${v.barH}px`;
-    el.style.width = `${Math.min(w, maxBarW)}px`;
+    el.style.width = `${w}px`;
+    el.style.maxWidth = "100%";
     el.style.borderRadius = v.barRound ? "2px" : "0";
     el.style.background = `rgba(125, 211, 252, ${v.barA * (0.35 + 0.65 * rel)})`;
-    // Glow clipped by overflow:hidden on .duration-meter-bars
+    // Glow clipped by overflow:hidden + contain:paint on .duration-meter-bars
     el.style.boxShadow =
       v.barGlow > 0
         ? `0 0 ${v.barGlow}px rgba(125, 211, 252, ${v.barGlowA * rel})`
