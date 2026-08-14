@@ -2384,12 +2384,52 @@ button:not(:disabled):active {
   flex-shrink: 0;
 }
 
-.pilot-controls h2 {
+.pilot-controls-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
   margin: 0 0 6px;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.pilot-controls h2 {
+  margin: 0;
   font-size: 0.85rem;
   font-weight: 600;
   letter-spacing: 0.04em;
   flex-shrink: 0;
+}
+
+/* Dim system rings (#101) — same row as Pilot Controls title */
+.ring-opacity-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1 1 auto;
+  justify-content: flex-end;
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: default;
+}
+
+.ring-opacity-label {
+  flex-shrink: 0;
+  color: var(--accent);
+}
+
+.ring-opacity-field input[type="range"] {
+  width: min(120px, 40%);
+  min-width: 72px;
+  max-width: 140px;
+  height: 4px;
+  accent-color: var(--accent);
+  cursor: pointer;
 }
 
 /* Telemetry screen — never collapses */

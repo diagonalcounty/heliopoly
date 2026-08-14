@@ -170,7 +170,24 @@
           </section>
 
           <section class="card pilot-controls" id="pilot-controls">
-            <h2>Pilot Controls</h2>
+            <div class="pilot-controls-head">
+              <h2>Pilot Controls</h2>
+              <label
+                class="ring-opacity-field"
+                title="Dim system orbital rings and bands (default = full design strength)"
+              >
+                <span class="ring-opacity-label">Rings</span>
+                <input
+                  type="range"
+                  id="ring-opacity"
+                  min="0"
+                  max="100"
+                  step="1"
+                  value="100"
+                  aria-label="System ring opacity"
+                />
+              </label>
+            </div>
             <div id="telemetry" class="telemetry"></div>
             <div class="dir-row hidden-vis" id="dir-row">
               <span class="dir-label">Course</span>
