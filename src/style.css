@@ -173,9 +173,12 @@ html.native-shell #app {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: min(60vh, 520px);
+  max-height: min(70vh, 640px);
+  overflow-x: hidden;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   padding-right: 4px;
+  overscroll-behavior: contain;
 }
 
 /* Top-level Lab categories: click to expand children */
@@ -186,7 +189,9 @@ html.native-shell #app {
   border-radius: 12px;
   border: 1px solid var(--border);
   background: #0f1628;
-  overflow: hidden;
+  /* visible so expanded item list can scroll inside .lab-group-items */
+  overflow: visible;
+  flex-shrink: 0;
 }
 
 .lab-group.is-open {
@@ -266,6 +271,11 @@ html.native-shell #app {
   gap: 6px;
   padding: 8px;
   background: #0c1220;
+  max-height: min(48vh, 360px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 .lab-scenario {
@@ -417,6 +427,41 @@ html.native-shell #app {
     "Arial Unicode MS",
     Tahoma,
     sans-serif;
+}
+
+.eac-glyph.eac-glyph-binary {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: clamp(1.35rem, 5.5vw, 2rem);
+  letter-spacing: 0.06em;
+  word-break: break-all;
+}
+
+.eac-glyph.eac-glyph-cjk {
+  font-family:
+    "PingFang SC",
+    "Hiragino Sans GB",
+    "Noto Sans SC",
+    "Noto Sans KR",
+    "Apple SD Gothic Neo",
+    "Malgun Gothic",
+    "Segoe UI",
+    sans-serif;
+  font-size: clamp(1.5rem, 6vw, 2.35rem);
+  letter-spacing: 0.04em;
+}
+
+.eac-glyph.eac-glyph-hebrew {
+  font-family:
+    "Times New Roman",
+    "Noto Sans Hebrew",
+    "Arial Hebrew",
+    "Segoe UI",
+    serif;
+  font-size: clamp(1.75rem, 7vw, 2.5rem);
+  letter-spacing: 0.08em;
+  /* Hebrew is RTL; keep digit-string LTR so place value reads left→right like Western */
+  direction: ltr;
+  unicode-bidi: isolate;
 }
 
 .eac-western {

@@ -3,7 +3,8 @@
 ## Unreleased
 
 ### Lab / docs
-- **Lab menu (#76 structure):** “Which is larger?” section (Eastern Arabic first); Gravity Duel consolidated to **one** entry; Ops Manual **The Lab** topic (Lab stays on production — #12 won’t-do)
+- **Lab menu (#76 structure):** accordion categories; **Which is larger?** lists Eastern Arabic, Chinese, Korean, Hebrew, Binary (all playable); Western omitted; Gravity Duel single entry; scrollable expanded lists
+- **Multi-script compare (#76 / #81):** shared ladder; digit packs + binary bit-strings; Ops Manual **The Lab** topic
 - Handbook icon for Lab topic
 
 ### iPad / tablet

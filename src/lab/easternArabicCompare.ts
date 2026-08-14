@@ -1,16 +1,16 @@
 /**
- * Lab drill: Eastern Arabic digit literacy via "which number is larger?" (#81).
- * Pure logic — no DOM.
+ * Lab drill: "which number is larger?" ladder (#81 core; #76 multi-script).
+ * Pure logic — no DOM. Display glyphs live in `numberScripts.ts`.
  *
  * Win: clear R1 → R2 → R3 with **clean** (no-hint) correct answers in a row.
  * Hint: reveal one side in Western digits; a correct answer after a hint does
  * **not** advance the ladder — player must clear that digit level again clean.
  * Fail R1: stay R1; fail R2/R3: back to R1 (wipes clean-clear recap).
  * Cap: MAX_COMPARE_ROUNDS answers total; then lost if not won.
- * On win: `cleanClears` holds the three pairs for a recap (Eastern + Western).
+ * On win: `cleanClears` holds the three pairs for a recap (script + Western).
  */
 
-const EASTERN_DIGITS = ["٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩"] as const;
+export { toEasternArabic } from "./numberScripts";
 
 /** Total answers allowed per run (then win or lose). */
 export const MAX_COMPARE_ROUNDS = 12;
@@ -50,14 +50,6 @@ export interface CompareDrillState {
 }
 
 export type Rng = () => number;
-
-/** Western integer → Eastern Arabic digit string (no leading-zero padding). */
-export function toEasternArabic(n: number): string {
-  if (!Number.isFinite(n) || n < 0 || !Number.isInteger(n)) {
-    throw new RangeError(`toEasternArabic expects non-negative integer, got ${n}`);
-  }
-  return String(n).replace(/\d/g, (d) => EASTERN_DIGITS[Number(d)]!);
-}
 
 export function largerSide(left: number, right: number): CompareSide {
   if (left === right) {
