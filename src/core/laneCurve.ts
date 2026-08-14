@@ -14,13 +14,14 @@ export const LANE_CURVE_OUTWARD = 0.08;
 /** Mid-span radial bulge toward the sun (odd edges when alternating). */
 export const LANE_CURVE_INWARD = 0.09;
 /**
- * Travel-lane stroke alpha.
- * Soft champagne sand — not player highlight blue (#6ec8ff seat 0) and not
- * system-ring golds (#101). Path preview after roll still uses rocket color.
+ * Travel-lane stroke: cool cyan (same family as UI accent / seat 0).
+ * Drawn thinner than the roll path highlight so the two stay legible together.
  */
 export const LANE_STROKE_ALPHA = 0.74;
-/** RGB for permanent Mainline structure (distinct from cyan roll highlight). */
-export const LANE_STROKE_RGB = [210, 188, 140] as const;
+/** RGB for permanent Mainline — cyan; thickness keeps it under the highlight. */
+export const LANE_STROKE_RGB = [110, 200, 255] as const;
+/** Canvas lineWidth for structure lanes (highlight path is thicker). */
+export const LANE_STROKE_WIDTH = 0.9; // 45% of prior 2px
 
 export function laneStrokeStyle(alpha: number = LANE_STROKE_ALPHA): string {
   const [r, g, b] = LANE_STROKE_RGB;
