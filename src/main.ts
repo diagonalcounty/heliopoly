@@ -2735,8 +2735,6 @@ function drawBoard(): void {
       });
     }
   }
-
-  void isPurchasable;
 }
 
 // —— Board pick (hover inspect + path land #15 + King's Quest warp) ——

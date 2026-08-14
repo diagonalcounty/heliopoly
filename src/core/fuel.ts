@@ -1,5 +1,5 @@
 import { PROPELLANTS } from "./propellant";
-import type { BoardNode, GravityClass, Player, PropellantId } from "./types";
+import type { BoardNode, GravityClass, PropellantId } from "./types";
 
 /** Leave-burn multiplier by gravity class (0 = free leave / no well). */
 export const GRAVITY_LEAVE_MULT: Record<GravityClass, number> = {
@@ -30,13 +30,4 @@ export function leaveBurnCost(
   if (gMult <= 0 || steps <= 0) return 0;
   const pMult = PROPELLANTS[propellant].leaveMult;
   return Math.max(1, Math.ceil(steps * gMult * pMult));
-}
-
-export function canAffordLeave(
-  player: Player,
-  node: BoardNode,
-  steps: number,
-): boolean {
-  const cost = leaveBurnCost(node, steps, player.propellant);
-  return player.fuel >= cost;
 }

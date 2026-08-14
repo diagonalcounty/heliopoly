@@ -72,7 +72,6 @@ function drawStation(
   y: number,
   r: number,
   accent: string,
-  name: string,
 ): void {
   // soft glow
   const glow = ctx.createRadialGradient(x, y, 2, x, y, r * 1.8);
@@ -145,8 +144,6 @@ function drawStation(
   ctx.beginPath();
   ctx.arc(x, y + r * 0.95, 2, 0, Math.PI * 2);
   ctx.fill();
-
-  void name;
 }
 
 function drawEarth(ctx: CanvasRenderingContext2D, x: number, y: number, r: number): void {
@@ -300,7 +297,7 @@ export function drawBodyIcon(
     if (node.id === "elon") accent = "#ff8c5a";
     if (node.id === "holst") accent = "#ffb347";
     if (node.id === "daktulios") accent = "#ffe566";
-    drawStation(ctx, x, y, r, accent, node.name);
+    drawStation(ctx, x, y, r, accent);
     return r * 1.15;
   }
 
