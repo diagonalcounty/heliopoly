@@ -1,8 +1,10 @@
 # Changelog
 
-## [0.0.26] — 2026-08-16
+## [1.0.0] — 2026-08-16
 
-Weekly production promote to **https://heliopoly.live/** at **Sunday 00:01 UTC** (`2026-08-16T00:01:00.000Z`). Human QA passed on local + iPad (In review batch).
+**First public 1.x** — App Store paperwork / TestFlight prep + weekly **https://heliopoly.live/** promote at **Sunday 00:01 UTC** (`2026-08-16T00:01:00.000Z`). Human QA passed on local + iPad.
+
+iOS **MARKETING_VERSION** / web badge / package all **1.0.0** (build number `CURRENT_PROJECT_VERSION` = 1).
 
 ### Play / UX
 - **Duration meter polish (#94):** title **(µ)** only; type slightly smaller than AI difficulty legend; bars hard-clipped so they never cover tick labels (grid columns + opaque tick lane)
@@ -13,16 +15,18 @@ Weekly production promote to **https://heliopoly.live/** at **Sunday 00:01 UTC**
 
 ### iPad / tablet
 - Viewport zoom lock (#95); iPad mini layout polish (#96)
+- Native shell WebDist + marketing version aligned for App Store listing prep (#66)
 
-### Tooling
+### Tooling / ops
 - Board-previews design tools (#103)
+- Droplet **Mode B** stage + Sunday 00:01 UTC promote (#98)
 
 ### Cleanup
-- Dead code removal (#27) — already on `main` from 0.0.25
+- Dead code removal (#27)
 
 ### Meta
-- Version **0.0.26** (badge, package, Ops Manual welcome, README)
-- **Live window:** Sunday **00:01 UTC** (not Saturday midnight) per product law / #98 cadence
+- Version **1.0.0** (package, badge, Ops Manual welcome, README, Xcode `MARKETING_VERSION`)
+- **Live window:** Sunday **00:01 UTC** — staged as `heliopoly-releases/1.0.0` on the droplet
 
 ## [0.0.25] — 2026-08-14
 
