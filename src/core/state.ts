@@ -142,12 +142,14 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
     endReason: null,
     gusherPaid: {},
     pendingAnnouncement: null,
+    pendingCharterChoice: null,
     timedEvent: {
       roundsSinceLast: 0,
       lastProcessedRound: 0,
       rollChance: 0,
       lastEventId: null,
       firedIds: [],
+      vibeKickChecked: false,
     },
     config: {
       ...config,
@@ -225,6 +227,9 @@ export function cloneState(state: GameState): GameState {
     gusherPaid: { ...state.gusherPaid },
     pendingAnnouncement: state.pendingAnnouncement
       ? { ...state.pendingAnnouncement }
+      : null,
+    pendingCharterChoice: state.pendingCharterChoice
+      ? { ...state.pendingCharterChoice }
       : null,
     timedEvent: {
       ...state.timedEvent,
