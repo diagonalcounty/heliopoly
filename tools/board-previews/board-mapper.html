@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Heliopoly — board layout mapper (drag points)</title>
+<style>
+  :root { color-scheme: dark; font-family: system-ui, sans-serif; }
+  body { margin: 0; background: #0b1020; color: #e8eefc; }
+  header { padding: 10px 14px; border-bottom: 1px solid #2a3555; }
+  header h1 { margin: 0 0 4px; font-size: 1.1rem; }
+  header p { margin: 0; color: #9aa8c7; font-size: 0.85rem; max-width: 90ch; line-height: 1.4; }
+  .layout { display: grid; grid-template-columns: 300px 1fr; min-height: calc(100vh - 72px); }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+  aside {
+    padding: 10px 12px 16px; border-right: 1px solid #2a3555; overflow-y: auto;
+    font-size: 0.8rem; color: #9aa8c7;
+  }
+  aside h2 {
+    margin: 12px 0 6px; font-size: 0.7rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: #ffc857;
+  }
+  aside h2:first-child { margin-top: 0; }
+  label.row { display: block; margin-bottom: 8px; }
+  label.row span { display: block; margin-bottom: 2px; color: #e8eefc; }
+  input[type="range"] { width: 100%; }
+  .val { color: #ffc857; font-variant-numeric: tabular-nums; }
+  .check { display: flex; gap: 8px; align-items: center; margin: 6px 0; color: #e8eefc; }
+  main { display: flex; align-items: center; justify-content: center; padding: 8px; background: #080c18; }
+  canvas {
+    width: min(96vw, 96vh, 920px); height: auto; aspect-ratio: 1;
+    border-radius: 12px; border: 1px solid #2a3555; background: #050814;
+    touch-action: none; cursor: grab;
+  }
+  canvas.dragging { cursor: grabbing; }
+  button, select {
+    font: inherit; color: #e8eefc; background: #1e2a48; border: 1px solid #2a3555;
+    border-radius: 8px; padding: 6px 10px; cursor: pointer; margin: 2px 4px 2px 0;
+  }
+  button.primary { background: #0e7490; border-color: #22d3ee; }
+  button:hover { border-color: #6ec8ff; }
+  #export {
+    width: 100%; min-height: 140px; max-height: 220px; resize: vertical;
+    font-family: ui-monospace, Menlo, monospace; font-size: 0.7rem;
+    background: #0a0f1a; color: #7dd3fc; border: 1px solid #1e3a5f;
+    border-radius: 8px; padding: 8px; box-sizing: border-box;
+  }
+  #selected { color: #ffc857; font-weight: 600; min-height: 1.2em; }
+  .hint { font-size: 0.75rem; line-height: 1.35; margin: 0 0 8px; }
+  kbd { background: #1e2a48; border: 1px solid #2a3555; border-radius: 4px; padding: 0 4px; font-size: 0.72rem; }
+  a { color: #6ec8ff; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Board layout mapper <span style="color:#9aa8c7;font-weight:500">— drag points, copy export</span></h1>
+  <p>
+    Drag bodies/transits to reshape the Mainline. Curves use the same polar math as the game (#99).
+    When it looks right, <strong>Copy export</strong> and paste into chat (or keep the dump).
+    Related: <a href="./elliptical-lanes.html">lanes</a> · <a href="./ring-colors.html">rings</a>
+  </p>
+</header>
+<div class="layout">
+  <aside>
+    <h2>Selected</h2>
+    <p id="selected">Click or drag a node</p>
+    <label class="row">
+      <span>Angle ° <span class="val" id="angV">—</span></span>
+      <input type="range" id="ang" min="0" max="359.9" step="0.5" disabled/>
+    </label>
+    <label class="row">
+      <span>Snap to ring</span>
+      <select id="ring" disabled>
+        <option value="0">0: Mercury (r=0.1)</option><option value="1">1: Venus (r=0.16)</option><option value="2">2: Earth (r=0.22)</option><option value="3">3: Mars (r=0.28)</option><option value="4">4: Belt (r=0.34)</option><option value="5">5: Jupiter (r=0.4)</option><option value="6">6: Saturn (r=0.46)</option>
+      </select>
+    </label>
+    <label class="row">
+      <span>Or free radius (board units) <span class="val" id="radV">—</span></span>
+      <input type="range" id="rad" min="0.05" max="0.55" step="0.005" disabled/>
+    </label>
+    <label class="check"><input type="checkbox" id="snapRing" checked/> Snap drag to current ring radius</label>
+
+    <h2>Lanes</h2>
+    <label class="row"><span>Outward <span class="val" id="outV">0.08</span></span>
+      <input type="range" id="out" min="0" max="1" step="0.01" value="0.08"/></label>
+    <label class="row"><span>Inward <span class="val" id="inV">0.09</span></span>
+      <input type="range" id="in" min="0" max="1" step="0.01" value="0.09"/></label>
+    <label class="row"><span>Lane α <span class="val" id="laneAV">0.74</span></span>
+      <input type="range" id="laneA" min="0" max="1" step="0.01" value="0.74"/></label>
+    <label class="check"><input type="checkbox" id="alternate" checked/> Alternate in/out</label>
+    <label class="check"><input type="checkbox" id="showRings" checked/> System ring bands</label>
+    <label class="check"><input type="checkbox" id="labels" checked/> Labels</label>
+
+    <h2>Actions</h2>
+    <button type="button" id="btn-reset">Reset to createV0Board</button>
+    <button type="button" id="btn-copy" class="primary">Copy export</button>
+    <button type="button" id="btn-download">Download JSON</button>
+    <p class="hint" style="margin-top:8px">Export is <kbd>onRing(ring, angleDeg)</kbd>-ready for <kbd>board.ts</kbd>.</p>
+    <textarea id="export" readonly spellcheck="false"></textarea>
+  </aside>
+  <main>
+    <canvas id="c" width="1000" height="1000"></canvas>
+  </main>
+</div>
+<script>
+const INITIAL = {"rings":[0.1,0.16,0.22,0.28,0.34,0.4,0.46],"ringNames":["Mercury","Venus","Earth","Mars","Belt","Jupiter","Saturn"],"nodes":{"earth":{"id":"earth","name":"Earth","kind":"planet","x":0.5,"y":0.28,"ring":2,"next":["t_ev"],"angleDeg":0,"rNorm":0.22},"t_ev":{"id":"t_ev","name":"Transit","kind":"space","x":0.6414132741310387,"y":0.33147022251382485,"ring":2,"next":["venus"],"angleDeg":40,"rNorm":0.22},"venus":{"id":"venus","name":"Venus","kind":"planet","x":0.6575692404819533,"y":0.47221629157329115,"ring":1,"next":["t_vm"],"angleDeg":80,"rNorm":0.16},"t_vm":{"id":"t_vm","name":"Transit","kind":"space","x":0.6385640646055102,"y":0.58,"ring":1,"next":["mercury"],"angleDeg":120,"rNorm":0.16},"mercury":{"id":"mercury","name":"Mercury","kind":"planet","x":0.5342020143325669,"y":0.5939692620785908,"ring":0,"next":["t_mm"],"angleDeg":160,"rNorm":0.1},"t_mm":{"id":"t_mm","name":"Transit","kind":"space","x":0.46579798566743313,"y":0.5939692620785908,"ring":0,"next":["elon"],"angleDeg":200,"rNorm":0.1},"elon":{"id":"elon","name":"Elon","kind":"federation","x":0.3200194692877689,"y":0.7144924440733138,"ring":3,"next":["mars"],"angleDeg":220,"rNorm":0.28},"mars":{"id":"mars","name":"Mars","kind":"planet","x":0.23688606617994562,"y":0.5957656401311873,"ring":3,"next":["phobos"],"angleDeg":250,"rNorm":0.28},"phobos":{"id":"phobos","name":"Phobos","kind":"moon","x":0.2242538291565817,"y":0.4513785102532595,"ring":3,"next":["deimos"],"angleDeg":280,"rNorm":0.28},"deimos":{"id":"deimos","name":"Deimos","kind":"moon","x":0.2855075559266861,"y":0.32001946928776903,"ring":3,"next":["t_mb"],"angleDeg":310,"rNorm":0.28},"t_mb":{"id":"t_mb","name":"Transit","kind":"space","x":0.37288266007292686,"y":0.250518173227257,"ring":3,"next":["belt1"],"angleDeg":333,"rNorm":0.28},"belt1":{"id":"belt1","name":"Belt","kind":"space","x":0.4822057748773989,"y":0.1604659581834449,"ring":4,"next":["belt2"],"angleDeg":357,"rNorm":0.34},"belt2":{"id":"belt2","name":"Belt","kind":"space","x":0.6648352708837546,"y":0.20262929957260545,"ring":4,"next":["belt3"],"angleDeg":29,"rNorm":0.34},"belt3":{"id":"belt3","name":"Belt","kind":"space","x":0.8152425105527077,"y":0.3726337582385899,"ring":4,"next":["belt4"],"angleDeg":68,"rNorm":0.34},"belt4":{"id":"belt4","name":"Belt","kind":"space","x":0.8129716501738298,"y":0.6328485836863531,"ring":4,"next":["belt5"],"angleDeg":113,"rNorm":0.34},"belt5":{"id":"belt5","name":"Belt","kind":"space","x":0.6273662417614101,"y":0.8152425105527077,"ring":4,"next":["belt6"],"angleDeg":158,"rNorm":0.34},"belt6":{"id":"belt6","name":"Belt","kind":"space","x":0.34564323008855413,"y":0.8029422182240451,"ring":4,"next":["holst"],"angleDeg":207,"rNorm":0.34},"holst":{"id":"holst","name":"Holst Space Station","kind":"federation","x":0.15358983848622448,"y":0.7,"ring":5,"next":["j_b1"],"angleDeg":240,"rNorm":0.4},"j_b1":{"id":"j_b1","name":"J Transit","kind":"space","x":0.10152212076330175,"y":0.5348622970990634,"ring":5,"next":["io"],"angleDeg":265,"rNorm":0.4},"io":{"id":"io","name":"Io","kind":"moon","x":0.12412295168563658,"y":0.36319194266973254,"ring":5,"next":["j_b2"],"angleDeg":290,"rNorm":0.4},"j_b2":{"id":"j_b2","name":"J Transit","kind":"space","x":0.21715728752538094,"y":0.217157287525381,"ring":5,"next":["europa"],"angleDeg":315,"rNorm":0.4},"europa":{"id":"europa","name":"Europa","kind":"moon","x":0.3631919426697322,"y":0.1241229516856367,"ring":5,"next":["j_b3"],"angleDeg":340,"rNorm":0.4},"j_b3":{"id":"j_b3","name":"J Transit","kind":"space","x":0.5348622970990633,"y":0.10152212076330175,"ring":5,"next":["ganymede"],"angleDeg":5,"rNorm":0.4},"ganymede":{"id":"ganymede","name":"Ganymede","kind":"moon","x":0.7000000000000001,"y":0.15358983848622454,"ring":5,"next":["j_b4"],"angleDeg":30,"rNorm":0.4},"j_b4":{"id":"j_b4","name":"J Transit","kind":"space","x":0.8276608177155967,"y":0.27056942545958157,"ring":5,"next":["callisto"],"angleDeg":55,"rNorm":0.4},"callisto":{"id":"callisto","name":"Callisto","kind":"moon","x":0.8939231012048832,"y":0.43054072893322787,"ring":5,"next":["j_b5"],"angleDeg":80,"rNorm":0.4},"j_b5":{"id":"j_b5","name":"J Transit","kind":"space","x":0.8863703305156274,"y":0.6035276180410083,"ring":5,"next":["daktulios"],"angleDeg":105,"rNorm":0.4},"daktulios":{"id":"daktulios","name":"Daktulios","kind":"federation","x":0.8523804438347299,"y":0.795682300455808,"ring":6,"next":["titan"],"angleDeg":130,"rNorm":0.46},"titan":{"id":"titan","name":"Titan","kind":"moon","x":0.6944044004007217,"y":0.916901582036859,"ring":6,"next":["s_b1"],"angleDeg":155,"rNorm":0.46},"s_b1":{"id":"s_b1","name":"S Transit","kind":"space","x":0.5400916416639228,"y":0.958249561122203,"ring":6,"next":["enceladus"],"angleDeg":175,"rNorm":0.46},"enceladus":{"id":"enceladus","name":"Enceladus","kind":"moon","x":0.3809432392528404,"y":0.9443258800929715,"ring":6,"next":["s_b2"],"angleDeg":195,"rNorm":0.46},"s_b2":{"id":"s_b2","name":"S Transit","kind":"space","x":0.23615483927851894,"y":0.8768099403729364,"ring":6,"next":["iapetus"],"angleDeg":215,"rNorm":0.46},"iapetus":{"id":"iapetus","name":"Iapetus","kind":"moon","x":0.12319005962706386,"y":0.7638451607214813,"ring":6,"next":["s_b3"],"angleDeg":235,"rNorm":0.46},"s_b3":{"id":"s_b3","name":"S Transit","kind":"space","x":0.055674119907028585,"y":0.6190567607471597,"ring":6,"next":["mimas"],"angleDeg":255,"rNorm":0.46},"mimas":{"id":"mimas","name":"Mimas","kind":"moon","x":0.041750438877797,"y":0.45990835833607735,"ring":6,"next":["s_b4"],"angleDeg":275,"rNorm":0.46},"s_b4":{"id":"s_b4","name":"S Transit","kind":"space","x":0.08309841796314094,"y":0.3055955995992783,"ring":6,"next":["rhea"],"angleDeg":295,"rNorm":0.46},"rhea":{"id":"rhea","name":"Rhea","kind":"moon","x":0.17473088065418807,"y":0.17473088065418818,"ring":6,"next":["s_b5"],"angleDeg":315,"rNorm":0.46},"s_b5":{"id":"s_b5","name":"S Transit","kind":"space","x":0.305595599599278,"y":0.0830984179631411,"ring":6,"next":["dione"],"angleDeg":335,"rNorm":0.46},"dione":{"id":"dione","name":"Dione","kind":"moon","x":0.4599083583360772,"y":0.041750438877797,"ring":6,"next":["s_b6"],"angleDeg":355,"rNorm":0.46},"s_b6":{"id":"s_b6","name":"S Transit","kind":"space","x":0.6573292659298077,"y":0.06774139443848215,"ring":6,"next":["tethys"],"angleDeg":20,"rNorm":0.46},"tethys":{"id":"tethys","name":"Tethys","kind":"moon","x":0.7956823004558081,"y":0.14761955616527012,"ring":6,"next":["t_se"],"angleDeg":40,"rNorm":0.46},"t_se":{"id":"t_se","name":"Homeward","kind":"space","x":0.5956393777761694,"y":0.05005210366244939,"ring":6,"next":["earth"],"angleDeg":12,"rNorm":0.46}},"edges":[["earth","t_ev"],["t_ev","venus"],["venus","t_vm"],["t_vm","mercury"],["mercury","t_mm"],["t_mm","elon"],["elon","mars"],["mars","phobos"],["phobos","deimos"],["deimos","t_mb"],["t_mb","belt1"],["belt1","belt2"],["belt2","belt3"],["belt3","belt4"],["belt4","belt5"],["belt5","belt6"],["belt6","holst"],["holst","j_b1"],["j_b1","io"],["io","j_b2"],["j_b2","europa"],["europa","j_b3"],["j_b3","ganymede"],["ganymede","j_b4"],["j_b4","callisto"],["callisto","j_b5"],["j_b5","daktulios"],["daktulios","titan"],["titan","s_b1"],["s_b1","enceladus"],["enceladus","s_b2"],["s_b2","iapetus"],["iapetus","s_b3"],["s_b3","mimas"],["mimas","s_b4"],["s_b4","rhea"],["rhea","s_b5"],["s_b5","dione"],["dione","s_b6"],["s_b6","tethys"],["tethys","t_se"],["t_se","earth"]],"lane":{"outward":0.08,"inward":0.09,"strokeAlpha":0.74,"rgb":[110,200,255]},"ringsPaint":{"bandOuter":0.28,"bandInner":0.05,"dash":0.9,"legacy":0.35,"defaultSlider":0.5,"styles":[{"ringIndex":6,"name":"Saturn","rgb":[212,185,95]},{"ringIndex":5,"name":"Jupiter","rgb":[210,140,75]},{"ringIndex":4,"name":"Belt","rgb":[150,115,75]},{"ringIndex":3,"name":"Mars","rgb":[190,95,75]},{"ringIndex":2,"name":"Earth","rgb":[90,145,175]},{"ringIndex":1,"name":"Venus","rgb":[175,150,100]},{"ringIndex":0,"name":"Mercury","rgb":[140,140,145]}]}};
+let DATA = structuredClone(INITIAL);
+let selectedId = null;
+let dragId = null;
+
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+const $ = (id) => document.getElementById(id);
+
+function setup() {
+  const w = canvas.width, h = canvas.height;
+  const scale = Math.min(w, h) * 0.92;
+  const sun = { x: w / 2, y: h / 2 };
+  return {
+    w, h, sun, scale,
+    project(x, y) {
+      return { x: sun.x + (x - 0.5) * scale, y: sun.y + (y - 0.5) * scale };
+    },
+    unproject(px, py) {
+      return {
+        x: 0.5 + (px - sun.x) / scale,
+        y: 0.5 + (py - sun.y) / scale,
+      };
+    },
+    rPx(rNorm) { return rNorm * scale; },
+  };
+}
+
+function angleDegFromXY(x, y) {
+  let a = (Math.atan2(y - 0.5, x - 0.5) * 180) / Math.PI + 90;
+  while (a < 0) a += 360;
+  while (a >= 360) a -= 360;
+  return a;
+}
+
+function onRing(ringIndex, angleDeg, rings) {
+  const r = rings[Math.min(ringIndex, rings.length - 1)] ?? 0.2;
+  const a = ((angleDeg - 90) * Math.PI) / 180;
+  return { x: 0.5 + r * Math.cos(a), y: 0.5 + r * Math.sin(a), ring: ringIndex, rNorm: r, angleDeg };
+}
+
+function setNodePolar(id, ringIndex, angleDeg, freeR) {
+  const n = DATA.nodes[id];
+  if (!n) return;
+  const rings = DATA.rings;
+  if (freeR != null) {
+    const a = ((angleDeg - 90) * Math.PI) / 180;
+    n.x = 0.5 + freeR * Math.cos(a);
+    n.y = 0.5 + freeR * Math.sin(a);
+    n.rNorm = freeR;
+    n.ring = ringIndex;
+    n.angleDeg = angleDeg;
+  } else {
+    const p = onRing(ringIndex, angleDeg, rings);
+    Object.assign(n, p);
+  }
+}
+
+function sampleLane(from, to, sun, edgeIndex, outC, inC, alternate) {
+  const dir = alternate ? (edgeIndex % 2 === 0 ? 1 : -1) : 1;
+  const curve = dir > 0 ? outC : inC;
+  if (curve <= 1e-6) return [from, to];
+  const angA = Math.atan2(from.y - sun.y, from.x - sun.x);
+  const angB = Math.atan2(to.y - sun.y, to.x - sun.x);
+  let dAng = angB - angA;
+  while (dAng > Math.PI) dAng -= Math.PI * 2;
+  while (dAng < -Math.PI) dAng += Math.PI * 2;
+  const ra = Math.hypot(from.x - sun.x, from.y - sun.y);
+  const rb = Math.hypot(to.x - sun.x, to.y - sun.y);
+  const rBase = (ra + rb) / 2 || 1;
+  const chord = Math.hypot(to.x - from.x, to.y - from.y);
+  const maxDev = curve * Math.min(rBase * 0.55, chord * 0.85 + rBase * 0.12);
+  const steps = Math.max(16, Math.ceil(Math.abs(dAng) * 28));
+  const pts = [from];
+  for (let i = 1; i <= steps; i++) {
+    const t = i / steps;
+    const ang = angA + dAng * t;
+    let r = ra + (rb - ra) * t + dir * maxDev * Math.sin(t * Math.PI);
+    r = Math.max(r, rBase * 0.08);
+    pts.push({ x: sun.x + Math.cos(ang) * r, y: sun.y + Math.sin(ang) * r });
+  }
+  pts[pts.length - 1] = to;
+  return pts;
+}
+
+function rgba(rgb, a) {
+  return `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${a})`;
+}
+
+function render() {
+  const P = setup();
+  const outC = +$("out").value, inC = +$("in").value, laneA = +$("laneA").value;
+  $("outV").textContent = outC.toFixed(2);
+  $("inV").textContent = inC.toFixed(2);
+  $("laneAV").textContent = laneA.toFixed(2);
+  const alternate = $("alternate").checked;
+  const labels = $("labels").checked;
+  const showRings = $("showRings").checked;
+  const ringMul = INITIAL.ringsPaint.defaultSlider;
+
+  ctx.clearRect(0, 0, P.w, P.h);
+  ctx.fillStyle = "#050814";
+  ctx.fillRect(0, 0, P.w, P.h);
+  ctx.fillStyle = "rgba(255,255,255,0.25)";
+  for (let i = 0; i < 100; i++) ctx.fillRect((i * 97) % P.w, (i * 53) % P.h, 1, 1);
+
+  // rings
+  if (showRings) {
+    const styles = INITIAL.ringsPaint.styles;
+    const rings = DATA.rings;
+    for (let i = rings.length - 1; i >= 0; i--) {
+      const st = styles.find((s) => s.ringIndex === i);
+      if (!st) continue;
+      const rOuter = P.rPx(rings[i]);
+      const rInner = i === 0 ? P.rPx(rings[0] * 0.35) : P.rPx(rings[i - 1]);
+      const g = ctx.createRadialGradient(P.sun.x, P.sun.y, rInner, P.sun.x, P.sun.y, rOuter);
+      g.addColorStop(0, rgba(st.rgb, INITIAL.ringsPaint.bandInner * ringMul));
+      g.addColorStop(1, rgba(st.rgb, INITIAL.ringsPaint.bandOuter * ringMul));
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(P.sun.x, P.sun.y, rOuter, 0, Math.PI * 2);
+      ctx.arc(P.sun.x, P.sun.y, rInner, 0, Math.PI * 2, true);
+      ctx.fill("evenodd");
+    }
+    for (const st of styles) {
+      const r = P.rPx(DATA.rings[st.ringIndex]);
+      ctx.beginPath();
+      ctx.arc(P.sun.x, P.sun.y, r, 0, Math.PI * 2);
+      ctx.strokeStyle = rgba(st.rgb, Math.min(1, INITIAL.ringsPaint.dash * ringMul));
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 8]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  } else {
+    for (const rNorm of DATA.rings) {
+      ctx.beginPath();
+      ctx.arc(P.sun.x, P.sun.y, P.rPx(rNorm), 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(110,180,255,0.25)";
+      ctx.lineWidth = 1.2;
+      ctx.setLineDash([4, 8]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
+
+  // sun
+  const sunR = 22;
+  const sg = ctx.createRadialGradient(P.sun.x, P.sun.y, 2, P.sun.x, P.sun.y, sunR * 1.5);
+  sg.addColorStop(0, "#fff8d0");
+  sg.addColorStop(0.4, "#ffc857");
+  sg.addColorStop(1, "rgba(255,140,40,0)");
+  ctx.fillStyle = sg;
+  ctx.beginPath();
+  ctx.arc(P.sun.x, P.sun.y, sunR * 1.5, 0, Math.PI * 2);
+  ctx.fill();
+
+  // lanes
+  let ei = 0;
+  ctx.lineWidth = 2.4;
+  ctx.lineCap = "round";
+  for (const [from, to] of DATA.edges) {
+    const a = DATA.nodes[from], b = DATA.nodes[to];
+    if (!a || !b) continue;
+    const A = P.project(a.x, a.y), B = P.project(b.x, b.y);
+    const pts = sampleLane(A, B, P.sun, ei, outC, inC, alternate);
+    ctx.strokeStyle = rgba(INITIAL.lane.rgb, laneA);
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+    ctx.stroke();
+    ei++;
+  }
+
+  // nodes
+  for (const id of Object.keys(DATA.nodes)) {
+    const n = DATA.nodes[id];
+    const p = P.project(n.x, n.y);
+    let r = 5, fill = "#6ec8ff";
+    if (n.kind === "planet") { r = 10; fill = "#ffc857"; }
+    else if (n.kind === "moon") { r = 7; fill = "#c9a06a"; }
+    else if (n.kind === "federation") { r = 8; fill = "#9b8cff"; }
+    else if (n.kind === "space") { r = 6; fill = "#ff6b7a"; }
+    if (id === selectedId || id === dragId) {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r + 5, 0, Math.PI * 2);
+      ctx.strokeStyle = "#fff";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+    ctx.fillStyle = fill;
+    ctx.fill();
+    if (labels) {
+      ctx.fillStyle = "rgba(232,238,252,0.9)";
+      ctx.font = id === selectedId ? "bold 12px system-ui" : "11px system-ui";
+      ctx.textAlign = "center";
+      ctx.fillText(n.name === "Transit" || n.name.includes("Transit") ? id : n.name, p.x, p.y - r - 5);
+    }
+  }
+
+  refreshExport();
+  refreshSelectedUi();
+}
+
+function refreshSelectedUi() {
+  const n = selectedId ? DATA.nodes[selectedId] : null;
+  if (!n) {
+    $("selected").textContent = "Click or drag a node";
+    $("ang").disabled = true;
+    $("ring").disabled = true;
+    $("rad").disabled = true;
+    return;
+  }
+  $("selected").textContent = `${n.id} · ${n.name} · ring ${n.ring}`;
+  $("ang").disabled = false;
+  $("ring").disabled = false;
+  $("rad").disabled = false;
+  const ang = angleDegFromXY(n.x, n.y);
+  const rad = Math.hypot(n.x - 0.5, n.y - 0.5);
+  $("ang").value = String(ang);
+  $("angV").textContent = ang.toFixed(1);
+  $("ring").value = String(n.ring);
+  $("rad").value = String(rad);
+  $("radV").textContent = rad.toFixed(3);
+}
+
+function buildExport() {
+  const lines = [];
+  lines.push("// Paste helpers for board.ts — polar from mapper");
+  lines.push(`// Generated ${new Date().toISOString()}`);
+  const order = Object.keys(DATA.nodes);
+  for (const id of order) {
+    const n = DATA.nodes[id];
+    const ang = angleDegFromXY(n.x, n.y);
+    const rad = Math.hypot(n.x - 0.5, n.y - 0.5);
+    // nearest ring by radius
+    let best = 0, bestD = 1e9;
+    DATA.rings.forEach((r, i) => {
+      const d = Math.abs(r - rad);
+      if (d < bestD) { bestD = d; best = i; }
+    });
+    lines.push(
+      `// ${id} (${n.name})  ...onRing(${n.ring}, ${ang.toFixed(1)}, ringRadii)  // r=${rad.toFixed(3)} nearestRing=${best}`,
+    );
+  }
+  lines.push("");
+  lines.push(JSON.stringify({
+    nodes: Object.fromEntries(
+      Object.entries(DATA.nodes).map(([id, n]) => [
+        id,
+        {
+          ring: n.ring,
+          angleDeg: Math.round(angleDegFromXY(n.x, n.y) * 10) / 10,
+          x: Math.round(n.x * 10000) / 10000,
+          y: Math.round(n.y * 10000) / 10000,
+          name: n.name,
+        },
+      ]),
+    ),
+  }, null, 2));
+  return lines.join("\n");
+}
+
+function refreshExport() {
+  $("export").value = buildExport();
+}
+
+function hitTest(px, py) {
+  const P = setup();
+  let best = null, bestD = 18;
+  for (const id of Object.keys(DATA.nodes)) {
+    const n = DATA.nodes[id];
+    const p = P.project(n.x, n.y);
+    const d = Math.hypot(p.x - px, p.y - py);
+    if (d < bestD) { bestD = d; best = id; }
+  }
+  return best;
+}
+
+function canvasPos(e) {
+  const rect = canvas.getBoundingClientRect();
+  const sx = canvas.width / rect.width;
+  const sy = canvas.height / rect.height;
+  return {
+    x: (e.clientX - rect.left) * sx,
+    y: (e.clientY - rect.top) * sy,
+  };
+}
+
+canvas.addEventListener("pointerdown", (e) => {
+  const { x, y } = canvasPos(e);
+  const id = hitTest(x, y);
+  if (!id) return;
+  selectedId = id;
+  dragId = id;
+  canvas.classList.add("dragging");
+  canvas.setPointerCapture(e.pointerId);
+  render();
+});
+
+canvas.addEventListener("pointermove", (e) => {
+  if (!dragId) return;
+  const { x, y } = canvasPos(e);
+  const P = setup();
+  const u = P.unproject(x, y);
+  const n = DATA.nodes[dragId];
+  let ang = angleDegFromXY(u.x, u.y);
+  if ($("snapRing").checked) {
+    setNodePolar(dragId, n.ring, ang, null);
+  } else {
+    const rad = Math.hypot(u.x - 0.5, u.y - 0.5);
+    setNodePolar(dragId, n.ring, ang, Math.min(0.55, Math.max(0.05, rad)));
+  }
+  render();
+});
+
+function endDrag(e) {
+  if (!dragId) return;
+  dragId = null;
+  canvas.classList.remove("dragging");
+  try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
+  render();
+}
+canvas.addEventListener("pointerup", endDrag);
+canvas.addEventListener("pointercancel", endDrag);
+
+$("ang").addEventListener("input", () => {
+  if (!selectedId) return;
+  const n = DATA.nodes[selectedId];
+  setNodePolar(selectedId, n.ring, +$("ang").value, $("snapRing").checked ? null : +$("rad").value);
+  render();
+});
+$("ring").addEventListener("change", () => {
+  if (!selectedId) return;
+  const ring = +$("ring").value;
+  const n = DATA.nodes[selectedId];
+  const ang = angleDegFromXY(n.x, n.y);
+  n.ring = ring;
+  setNodePolar(selectedId, ring, ang, null);
+  render();
+});
+$("rad").addEventListener("input", () => {
+  if (!selectedId) return;
+  const n = DATA.nodes[selectedId];
+  setNodePolar(selectedId, n.ring, angleDegFromXY(n.x, n.y), +$("rad").value);
+  render();
+});
+
+for (const id of ["out", "in", "laneA", "alternate", "showRings", "labels", "snapRing"]) {
+  const el = $(id);
+  el.addEventListener(el.type === "checkbox" ? "change" : "input", render);
+}
+
+$("btn-reset").onclick = () => {
+  DATA = structuredClone(INITIAL);
+  selectedId = null;
+  render();
+};
+$("btn-copy").onclick = async () => {
+  refreshExport();
+  try {
+    await navigator.clipboard.writeText($("export").value);
+    $("btn-copy").textContent = "Copied!";
+    setTimeout(() => { $("btn-copy").textContent = "Copy export"; }, 1200);
+  } catch {
+    $("export").select();
+    document.execCommand("copy");
+  }
+};
+$("btn-download").onclick = () => {
+  const blob = new Blob([$("export").value], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "heliopoly-board-layout-export.txt";
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+
+render();
+</script>
+</body>
+</html>

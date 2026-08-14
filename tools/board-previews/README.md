@@ -7,6 +7,7 @@ Open either file in a browser (double-click or `open path.html`).
 |------|---------|-------------|
 | [elliptical-lanes.html](./elliptical-lanes.html) | Curved Mainline lanes: outward/inward strength, alternate, lane opacity | #99 |
 | [ring-colors.html](./ring-colors.html) | System ring bands, dashed tints, legacy blue, lane opacity | #101 |
+| [board-mapper.html](./board-mapper.html) | **Drag nodes**, tune curves, copy `onRing` export for board.ts | layout / #99 |
 
 Defaults in the sliders match **production constants** in:
 
