@@ -13,8 +13,18 @@
 export const LANE_CURVE_OUTWARD = 0.08;
 /** Mid-span radial bulge toward the sun (odd edges when alternating). */
 export const LANE_CURVE_INWARD = 0.09;
-/** Gold travel-lane stroke alpha (playtest #101 with ring bands). */
+/**
+ * Travel-lane stroke alpha.
+ * Cool cyan (not gold) so lanes stay distinct from warm system-ring dashes (#101).
+ */
 export const LANE_STROKE_ALPHA = 0.74;
+/** RGB for Mainline lanes — matches UI accent cyan, not Saturn/Jupiter golds. */
+export const LANE_STROKE_RGB = [110, 200, 255] as const;
+
+export function laneStrokeStyle(alpha: number = LANE_STROKE_ALPHA): string {
+  const [r, g, b] = LANE_STROKE_RGB;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
 
 export interface LanePoint {
   x: number;
