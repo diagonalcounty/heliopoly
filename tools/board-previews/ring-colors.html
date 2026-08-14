@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Heliopoly — system ring bands preview</title>
+<style>
+  :root { color-scheme: dark; font-family: system-ui, sans-serif; }
+  body { margin: 0; background: #0b1020; color: #e8eefc; }
+  header { padding: 12px 16px; border-bottom: 1px solid #2a3555; }
+  header h1 { margin: 0 0 6px; font-size: 1.15rem; }
+  header p { margin: 0; color: #9aa8c7; font-size: 0.88rem; max-width: 78ch; line-height: 1.45; }
+  .layout { display: grid; grid-template-columns: minmax(260px, 320px) 1fr; min-height: calc(100vh - 90px); }
+  @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } }
+  aside {
+    padding: 12px 14px 20px; border-right: 1px solid #2a3555;
+    overflow-y: auto; font-size: 0.82rem; color: #9aa8c7;
+  }
+  aside h2 { margin: 14px 0 8px; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: #ffc857; }
+  aside h2:first-child { margin-top: 0; }
+  label.row { display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; align-items: center; margin-bottom: 10px; }
+  label.row span.name { grid-column: 1 / -1; color: #e8eefc; font-size: 0.8rem; }
+  label.row input[type="range"] { width: 100%; }
+  label.row .val { font-variant-numeric: tabular-nums; color: #ffc857; min-width: 2.4rem; text-align: right; }
+  .swatch { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: middle; margin-right: 6px; border: 1px solid #2a3555; }
+  .check { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; color: #e8eefc; }
+  main { display: flex; align-items: center; justify-content: center; padding: 12px; }
+  canvas { width: min(92vw, 92vh, 900px); height: auto; aspect-ratio: 1; border-radius: 12px; border: 1px solid #2a3555; background: #050814; max-width: 100%; }
+  .legend { margin-top: 8px; line-height: 1.5; }
+  .legend div { margin: 4px 0; }
+  kbd { background: #1e2a48; border: 1px solid #2a3555; border-radius: 4px; padding: 1px 5px; font-size: 0.75rem; }
+  a { color: #6ec8ff; }
+</style>
+</head>
+<body>
+<header>
+  <h1>System ring bands — color preview <span style="color:#9aa8c7;font-weight:500">(board preview tool)</span></h1>
+  <p>
+    Ship lock (#101): band outer <strong>0.17</strong>, inner <strong>0.02</strong>,
+    dash <strong>0.9</strong>, legacy blue <strong>0.29</strong>,
+    lanes <strong>0.74</strong>, all seven rings.
+    Related: <a href="./elliptical-lanes.html">elliptical-lanes.html</a>
+  </p>
+</header>
+<div class="layout">
+  <aside>
+    <h2>Band opacity</h2>
+    <label class="row">
+      <span class="name">At dashed ring (outer edge of band)</span>
+      <input type="range" id="outerA" min="0" max="1" step="0.01" value="0.17"/>
+      <span class="val" id="outerAV">0.17</span>
+    </label>
+    <label class="row">
+      <span class="name">At next inner ring (falloff target)</span>
+      <input type="range" id="innerA" min="0" max="1" step="0.01" value="0.02"/>
+      <span class="val" id="innerAV">0.02</span>
+    </label>
+
+    <h2>Dashed ring line</h2>
+    <label class="row">
+      <span class="name">Dashed stroke opacity</span>
+      <input type="range" id="dashA" min="0" max="1" step="0.01" value="0.9"/>
+      <span class="val" id="dashAV">0.90</span>
+    </label>
+    <label class="row">
+      <span class="name">Legacy blue rings (underlay)</span>
+      <input type="range" id="legacyA" min="0" max="1" step="0.01" value="0.29"/>
+      <span class="val" id="legacyAV">0.29</span>
+    </label>
+
+    <h2>Which bands</h2>
+    <label class="check"><input type="checkbox" id="bandSat" checked/> <span class="swatch" style="background:rgb(212,185,95)"></span>Saturn (gold)</label>
+    <label class="check"><input type="checkbox" id="bandJup" checked/> <span class="swatch" style="background:rgb(210,140,75)"></span>Jupiter (orange)</label>
+    <label class="check"><input type="checkbox" id="bandBelt" checked/> <span class="swatch" style="background:rgb(150,115,75)"></span>Belt (dust brown)</label>
+    <label class="check"><input type="checkbox" id="bandMars" checked/> <span class="swatch" style="background:rgb(190,95,75)"></span>Mars (rust)</label>
+    <label class="check"><input type="checkbox" id="bandInner" checked/> <span class="swatch" style="background:rgb(90,145,175)"></span>Earth / Venus / Mercury</label>
+
+    <h2>Context</h2>
+    <label class="check"><input type="checkbox" id="showLanes" checked/> Travel lanes</label>
+    <label class="row">
+      <span class="name">Travel lane opacity</span>
+      <input type="range" id="laneA" min="0" max="1" step="0.01" value="0.74"/>
+      <span class="val" id="laneAV">0.74</span>
+    </label>
+    <label class="check"><input type="checkbox" id="showNodes" checked/> Bodies</label>
+    <label class="check"><input type="checkbox" id="showLabels" checked/> Labels</label>
+
+    <h2>Draft palette</h2>
+    <div class="legend" id="legend"></div>
+    <p style="margin-top:12px;font-size:0.75rem">Repo: <kbd>tools/board-previews/ring-colors.html</kbd></p>
+  </aside>
+  <main>
+    <canvas id="c" width="1000" height="1000"></canvas>
+  </main>
+</div>
+<script>
+const DATA = {"rings":[0.1,0.16,0.22,0.28,0.34,0.4,0.46],"ringNames":["Mercury","Venus","Earth","Mars","Belt","Jupiter","Saturn"],"nodes":{"earth":{"id":"earth","name":"Earth","kind":"planet","x":0.5,"y":0.28,"ring":2,"next":["t_ev"]},"t_ev":{"id":"t_ev","name":"Transit","kind":"space","x":0.6414132741310387,"y":0.33147022251382485,"ring":2,"next":["venus"]},"venus":{"id":"venus","name":"Venus","kind":"planet","x":0.6575692404819533,"y":0.47221629157329115,"ring":1,"next":["t_vm"]},"t_vm":{"id":"t_vm","name":"Transit","kind":"space","x":0.6385640646055102,"y":0.58,"ring":1,"next":["mercury"]},"mercury":{"id":"mercury","name":"Mercury","kind":"planet","x":0.5342020143325669,"y":0.5939692620785908,"ring":0,"next":["t_mm"]},"t_mm":{"id":"t_mm","name":"Transit","kind":"space","x":0.46579798566743313,"y":0.5939692620785908,"ring":0,"next":["elon"]},"elon":{"id":"elon","name":"Elon","kind":"federation","x":0.3200194692877689,"y":0.7144924440733138,"ring":3,"next":["mars"]},"mars":{"id":"mars","name":"Mars","kind":"planet","x":0.23688606617994562,"y":0.5957656401311873,"ring":3,"next":["phobos"]},"phobos":{"id":"phobos","name":"Phobos","kind":"moon","x":0.2242538291565817,"y":0.4513785102532595,"ring":3,"next":["deimos"]},"deimos":{"id":"deimos","name":"Deimos","kind":"moon","x":0.2855075559266861,"y":0.32001946928776903,"ring":3,"next":["t_mb"]},"t_mb":{"id":"t_mb","name":"Transit","kind":"space","x":0.37288266007292686,"y":0.250518173227257,"ring":3,"next":["belt1"]},"belt1":{"id":"belt1","name":"Belt","kind":"space","x":0.4822057748773989,"y":0.1604659581834449,"ring":4,"next":["belt2"]},"belt2":{"id":"belt2","name":"Belt","kind":"space","x":0.6648352708837546,"y":0.20262929957260545,"ring":4,"next":["belt3"]},"belt3":{"id":"belt3","name":"Belt","kind":"space","x":0.8152425105527077,"y":0.3726337582385899,"ring":4,"next":["belt4"]},"belt4":{"id":"belt4","name":"Belt","kind":"space","x":0.8129716501738298,"y":0.6328485836863531,"ring":4,"next":["belt5"]},"belt5":{"id":"belt5","name":"Belt","kind":"space","x":0.6273662417614101,"y":0.8152425105527077,"ring":4,"next":["belt6"]},"belt6":{"id":"belt6","name":"Belt","kind":"space","x":0.34564323008855413,"y":0.8029422182240451,"ring":4,"next":["holst"]},"holst":{"id":"holst","name":"Holst Space Station","kind":"federation","x":0.15358983848622448,"y":0.7,"ring":5,"next":["j_b1"]},"j_b1":{"id":"j_b1","name":"J Transit","kind":"space","x":0.10152212076330175,"y":0.5348622970990634,"ring":5,"next":["io"]},"io":{"id":"io","name":"Io","kind":"moon","x":0.12412295168563658,"y":0.36319194266973254,"ring":5,"next":["j_b2"]},"j_b2":{"id":"j_b2","name":"J Transit","kind":"space","x":0.21715728752538094,"y":0.217157287525381,"ring":5,"next":["europa"]},"europa":{"id":"europa","name":"Europa","kind":"moon","x":0.3631919426697322,"y":0.1241229516856367,"ring":5,"next":["j_b3"]},"j_b3":{"id":"j_b3","name":"J Transit","kind":"space","x":0.5348622970990633,"y":0.10152212076330175,"ring":5,"next":["ganymede"]},"ganymede":{"id":"ganymede","name":"Ganymede","kind":"moon","x":0.7000000000000001,"y":0.15358983848622454,"ring":5,"next":["j_b4"]},"j_b4":{"id":"j_b4","name":"J Transit","kind":"space","x":0.8276608177155967,"y":0.27056942545958157,"ring":5,"next":["callisto"]},"callisto":{"id":"callisto","name":"Callisto","kind":"moon","x":0.8939231012048832,"y":0.43054072893322787,"ring":5,"next":["j_b5"]},"j_b5":{"id":"j_b5","name":"J Transit","kind":"space","x":0.8863703305156274,"y":0.6035276180410083,"ring":5,"next":["daktulios"]},"daktulios":{"id":"daktulios","name":"Daktulios","kind":"federation","x":0.8523804438347299,"y":0.795682300455808,"ring":6,"next":["titan"]},"titan":{"id":"titan","name":"Titan","kind":"moon","x":0.6944044004007217,"y":0.916901582036859,"ring":6,"next":["s_b1"]},"s_b1":{"id":"s_b1","name":"S Transit","kind":"space","x":0.5400916416639228,"y":0.958249561122203,"ring":6,"next":["enceladus"]},"enceladus":{"id":"enceladus","name":"Enceladus","kind":"moon","x":0.3809432392528404,"y":0.9443258800929715,"ring":6,"next":["s_b2"]},"s_b2":{"id":"s_b2","name":"S Transit","kind":"space","x":0.23615483927851894,"y":0.8768099403729364,"ring":6,"next":["iapetus"]},"iapetus":{"id":"iapetus","name":"Iapetus","kind":"moon","x":0.12319005962706386,"y":0.7638451607214813,"ring":6,"next":["s_b3"]},"s_b3":{"id":"s_b3","name":"S Transit","kind":"space","x":0.055674119907028585,"y":0.6190567607471597,"ring":6,"next":["mimas"]},"mimas":{"id":"mimas","name":"Mimas","kind":"moon","x":0.041750438877797,"y":0.45990835833607735,"ring":6,"next":["s_b4"]},"s_b4":{"id":"s_b4","name":"S Transit","kind":"space","x":0.08309841796314094,"y":0.3055955995992783,"ring":6,"next":["rhea"]},"rhea":{"id":"rhea","name":"Rhea","kind":"moon","x":0.17473088065418807,"y":0.17473088065418818,"ring":6,"next":["s_b5"]},"s_b5":{"id":"s_b5","name":"S Transit","kind":"space","x":0.305595599599278,"y":0.0830984179631411,"ring":6,"next":["dione"]},"dione":{"id":"dione","name":"Dione","kind":"moon","x":0.4599083583360772,"y":0.041750438877797,"ring":6,"next":["s_b6"]},"s_b6":{"id":"s_b6","name":"S Transit","kind":"space","x":0.6573292659298077,"y":0.06774139443848215,"ring":6,"next":["tethys"]},"tethys":{"id":"tethys","name":"Tethys","kind":"moon","x":0.7956823004558081,"y":0.14761955616527012,"ring":6,"next":["t_se"]},"t_se":{"id":"t_se","name":"Homeward","kind":"space","x":0.8758770483143634,"y":0.36319194266973254,"ring":5,"next":["earth"]}},"edges":[["earth","t_ev"],["t_ev","venus"],["venus","t_vm"],["t_vm","mercury"],["mercury","t_mm"],["t_mm","elon"],["elon","mars"],["mars","phobos"],["phobos","deimos"],["deimos","t_mb"],["t_mb","belt1"],["belt1","belt2"],["belt2","belt3"],["belt3","belt4"],["belt4","belt5"],["belt5","belt6"],["belt6","holst"],["holst","j_b1"],["j_b1","io"],["io","j_b2"],["j_b2","europa"],["europa","j_b3"],["j_b3","ganymede"],["ganymede","j_b4"],["j_b4","callisto"],["callisto","j_b5"],["j_b5","daktulios"],["daktulios","titan"],["titan","s_b1"],["s_b1","enceladus"],["enceladus","s_b2"],["s_b2","iapetus"],["iapetus","s_b3"],["s_b3","mimas"],["mimas","s_b4"],["s_b4","rhea"],["rhea","s_b5"],["s_b5","dione"],["dione","s_b6"],["s_b6","tethys"],["tethys","t_se"],["t_se","earth"]]};
+const SYSTEMS = [{"ringIndex":6,"name":"Saturn","rgb":[212,185,95],"note":"pale gold / icy yellow"},{"ringIndex":5,"name":"Jupiter","rgb":[210,140,75],"note":"soft gas-giant orange"},{"ringIndex":4,"name":"Belt","rgb":[150,115,75],"note":"dusty brown / rocky amber"},{"ringIndex":3,"name":"Mars","rgb":[190,95,75],"note":"rust orange-red"},{"ringIndex":2,"name":"Earth","rgb":[90,145,175],"note":"muted blue-green"},{"ringIndex":1,"name":"Venus","rgb":[175,150,100],"note":"pale sulfur cream"},{"ringIndex":0,"name":"Mercury","rgb":[140,140,145],"note":"cool gray rock"}];
+const META = {"generatedFrom":"createV0Board()","lane":{"outward":0.08,"inward":0.09,"strokeAlpha":0.74},"rings":{"bandOuter":0.17,"bandInner":0.02,"dash":0.9,"legacyBlue":0.29,"styles":[{"ringIndex":6,"name":"Saturn","rgb":[212,185,95]},{"ringIndex":5,"name":"Jupiter","rgb":[210,140,75]},{"ringIndex":4,"name":"Belt","rgb":[150,115,75]},{"ringIndex":3,"name":"Mars","rgb":[190,95,75]},{"ringIndex":2,"name":"Earth","rgb":[90,145,175]},{"ringIndex":1,"name":"Venus","rgb":[175,150,100]},{"ringIndex":0,"name":"Mercury","rgb":[140,140,145]}]}};
+
+function setup(w, h) {
+  const scale = Math.min(w, h) * 0.92;
+  const sun = { x: w / 2, y: h / 2 };
+  return {
+    sun, scale,
+    project(x, y) {
+      return { x: sun.x + (x - 0.5) * scale, y: sun.y + (y - 0.5) * scale };
+    },
+    rPx(rNorm) { return rNorm * scale; },
+  };
+}
+
+function rgba(rgb, a) {
+  return `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${a})`;
+}
+
+function drawAnnulusBand(ctx, sun, rOuter, rInner, rgb, aOuter, aInner) {
+  if (rOuter <= rInner + 0.5) return;
+  const g = ctx.createRadialGradient(sun.x, sun.y, rInner, sun.x, sun.y, rOuter);
+  g.addColorStop(0, rgba(rgb, aInner));
+  g.addColorStop(1, rgba(rgb, aOuter));
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.arc(sun.x, sun.y, rOuter, 0, Math.PI * 2);
+  ctx.arc(sun.x, sun.y, rInner, 0, Math.PI * 2, true);
+  ctx.fill("evenodd");
+}
+
+function drawDashedRing(ctx, sun, r, rgb, alpha, lineWidth) {
+  ctx.beginPath();
+  ctx.arc(sun.x, sun.y, r, 0, Math.PI * 2);
+  ctx.strokeStyle = rgba(rgb, alpha);
+  ctx.lineWidth = lineWidth;
+  ctx.setLineDash([5, 9]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+function render() {
+  const outerA = +outerAEl.value, innerA = +innerAEl.value, dashA = +dashAEl.value, legacyA = +legacyAEl.value;
+  const laneA = +laneAEl.value;
+  outerAV.textContent = outerA.toFixed(2);
+  innerAV.textContent = innerA.toFixed(2);
+  dashAV.textContent = dashA.toFixed(2);
+  legacyAV.textContent = legacyA.toFixed(2);
+  laneAV.textContent = laneA.toFixed(2);
+
+  const canvas = document.getElementById("c");
+  const ctx = canvas.getContext("2d");
+  const w = canvas.width, h = canvas.height;
+  const P = setup(w, h);
+
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = "#050814";
+  ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = "rgba(255,255,255,0.28)";
+  for (let i = 0; i < 110; i++) ctx.fillRect((i * 97) % w, (i * 53) % h, i % 7 === 0 ? 2 : 1, 1);
+
+  if (legacyA > 0.001) {
+    for (const rNorm of DATA.rings) {
+      drawDashedRing(ctx, P.sun, P.rPx(rNorm), [110, 180, 255], legacyA, 1.4);
+    }
+  }
+
+  const rings = DATA.rings;
+  const enabled = {
+    6: bandSat.checked,
+    5: bandJup.checked,
+    4: bandBelt.checked,
+    3: bandMars.checked,
+    2: bandInner.checked,
+    1: bandInner.checked,
+    0: bandInner.checked,
+  };
+
+  for (let i = rings.length - 1; i >= 0; i--) {
+    if (!enabled[i]) continue;
+    const sys = SYSTEMS.find((s) => s.ringIndex === i);
+    if (!sys) continue;
+    const rOuter = P.rPx(rings[i]);
+    const rInner = i === 0 ? P.rPx(rings[0] * 0.35) : P.rPx(rings[i - 1]);
+    drawAnnulusBand(ctx, P.sun, rOuter, rInner, sys.rgb, outerA, innerA);
+  }
+
+  for (let i = 0; i < rings.length; i++) {
+    if (!enabled[i]) continue;
+    const sys = SYSTEMS.find((s) => s.ringIndex === i);
+    if (!sys) continue;
+    drawDashedRing(ctx, P.sun, P.rPx(rings[i]), sys.rgb, dashA, 1.75);
+  }
+
+  const sunR = 24;
+  const sg = ctx.createRadialGradient(P.sun.x, P.sun.y, 2, P.sun.x, P.sun.y, sunR * 1.6);
+  sg.addColorStop(0, "#fff8d0");
+  sg.addColorStop(0.35, "#ffc857");
+  sg.addColorStop(1, "rgba(255,140,40,0)");
+  ctx.fillStyle = sg;
+  ctx.beginPath();
+  ctx.arc(P.sun.x, P.sun.y, sunR * 1.6, 0, Math.PI * 2);
+  ctx.fill();
+
+  if (showLanes.checked && laneA > 0.001) {
+    ctx.strokeStyle = `rgba(255, 200, 120, ${laneA})`;
+    ctx.lineWidth = 1.6;
+    ctx.lineCap = "round";
+    let ei = 0;
+    for (const [from, to] of DATA.edges) {
+      const a = DATA.nodes[from], b = DATA.nodes[to];
+      const A = P.project(a.x, a.y), B = P.project(b.x, b.y);
+      const angA = Math.atan2(A.y - P.sun.y, A.x - P.sun.x);
+      const angB = Math.atan2(B.y - P.sun.y, B.x - P.sun.x);
+      let dAng = angB - angA;
+      while (dAng > Math.PI) dAng -= Math.PI * 2;
+      while (dAng < -Math.PI) dAng += Math.PI * 2;
+      const ra = Math.hypot(A.x - P.sun.x, A.y - P.sun.y);
+      const rb = Math.hypot(B.x - P.sun.x, B.y - P.sun.y);
+      const dir = ei % 2 === 0 ? 1 : -1;
+      const curve = dir > 0 ? META.lane.outward : META.lane.inward;
+      const rBase = (ra + rb) / 2 || 1;
+      const chord = Math.hypot(B.x - A.x, B.y - A.y);
+      const maxDev = curve * Math.min(rBase * 0.55, chord * 0.85 + rBase * 0.12);
+      const steps = Math.max(10, Math.ceil(Math.abs(dAng) * 20));
+      ctx.beginPath();
+      ctx.moveTo(A.x, A.y);
+      for (let s = 1; s <= steps; s++) {
+        const t = s / steps;
+        const ang = angA + dAng * t;
+        let r = ra + (rb - ra) * t + dir * maxDev * Math.sin(t * Math.PI);
+        r = Math.max(r, rBase * 0.08);
+        ctx.lineTo(P.sun.x + Math.cos(ang) * r, P.sun.y + Math.sin(ang) * r);
+      }
+      ctx.stroke();
+      ei++;
+    }
+  }
+
+  if (showNodes.checked) {
+    for (const id of Object.keys(DATA.nodes)) {
+      const n = DATA.nodes[id];
+      const p = P.project(n.x, n.y);
+      let r = 4, fill = "#6ec8ff";
+      if (n.kind === "planet") { r = 9; fill = "#ffc857"; }
+      else if (n.kind === "moon") { r = 6; fill = "#c9a06a"; }
+      else if (n.kind === "federation") { r = 7; fill = "#9b8cff"; }
+      else if (n.kind === "space") { r = 4; fill = "#ff6b7a"; }
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+      ctx.fillStyle = fill;
+      ctx.fill();
+      if (showLabels.checked && (n.kind === "planet" || n.kind === "federation" || n.id === "earth")) {
+        ctx.fillStyle = "rgba(232,238,252,0.88)";
+        ctx.font = "11px system-ui";
+        ctx.textAlign = "center";
+        ctx.fillText(n.name, p.x, p.y - r - 4);
+      }
+    }
+  }
+}
+
+const outerAEl = document.getElementById("outerA");
+const innerAEl = document.getElementById("innerA");
+const dashAEl = document.getElementById("dashA");
+const legacyAEl = document.getElementById("legacyA");
+const outerAV = document.getElementById("outerAV");
+const innerAV = document.getElementById("innerAV");
+const dashAV = document.getElementById("dashAV");
+const legacyAV = document.getElementById("legacyAV");
+const bandSat = document.getElementById("bandSat");
+const bandJup = document.getElementById("bandJup");
+const bandBelt = document.getElementById("bandBelt");
+const bandMars = document.getElementById("bandMars");
+const bandInner = document.getElementById("bandInner");
+const showLanes = document.getElementById("showLanes");
+const laneAEl = document.getElementById("laneA");
+const laneAV = document.getElementById("laneAV");
+const showNodes = document.getElementById("showNodes");
+const showLabels = document.getElementById("showLabels");
+
+document.getElementById("legend").innerHTML = SYSTEMS.map((s) =>
+  `<div><span class="swatch" style="background:rgb(${s.rgb.join(",")})"></span><strong>${s.name}</strong> — ${s.note}</div>`
+).join("");
+
+for (const el of [outerAEl, innerAEl, dashAEl, legacyAEl, laneAEl, bandSat, bandJup, bandBelt, bandMars, bandInner, showLanes, showNodes, showLabels]) {
+  el.addEventListener(el.type === "range" ? "input" : "change", render);
+}
+render();
+</script>
+</body>
+</html>

@@ -69,3 +69,18 @@ python3 scripts/sim_report.py sim-results/<run-folder>
 **Design note:** When every seat uses the **same** AI skill, win rates stay near fair share (~25% in a 4-player game). That evenness is **good** — clone AIs don’t invent a fake first-player monopoly; dice and economy still matter. Use **Human level ≠ AI pack level** when you want “does a novice have a chance against experts?”
 
 Full guide: **[scripts/README-sim.md](scripts/README-sim.md)** · issues [#89](https://github.com/diagonalcounty/heliopoly/issues/89) · [#91](https://github.com/diagonalcounty/heliopoly/issues/91).
+
+### Board look previews (static HTML)
+
+Design sandboxes for map paint (not served by the game or .live). Open in a browser:
+
+- [tools/board-previews/elliptical-lanes.html](tools/board-previews/elliptical-lanes.html) — curved Mainline (#99)
+- [tools/board-previews/ring-colors.html](tools/board-previews/ring-colors.html) — system ring bands (#101)
+
+```bash
+open tools/board-previews/ring-colors.html
+# after board geometry / constant changes:
+node --import tsx tools/board-previews/generate.ts
+```
+
+See [tools/board-previews/README.md](tools/board-previews/README.md).
