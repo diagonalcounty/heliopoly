@@ -158,6 +158,40 @@ function saveAnimSpeed(id: AnimSpeedId): void {
   }
 }
 
+/**
+ * Player preference: scale system ring band + dashed opacity (#101).
+ * 1 = design defaults; 0 = fully hidden. Can only go down from full.
+ */
+const RING_OPACITY_KEY = "heliopoly-ring-opacity";
+
+function loadRingOpacityScale(): number {
+  try {
+    const raw = localStorage.getItem(RING_OPACITY_KEY);
+    if (raw == null) return 1;
+    const n = Number(raw);
+    if (Number.isFinite(n)) return Math.min(1, Math.max(0, n));
+  } catch {
+    /* private mode */
+  }
+  return 1;
+}
+
+let ringOpacityScale = loadRingOpacityScale();
+
+function saveRingOpacityScale(scale: number): void {
+  ringOpacityScale = Math.min(1, Math.max(0, scale));
+  try {
+    localStorage.setItem(RING_OPACITY_KEY, String(ringOpacityScale));
+  } catch {
+    /* ignore */
+  }
+}
+
+function syncRingOpacityUi(): void {
+  const el = document.getElementById("ring-opacity") as HTMLInputElement | null;
+  if (el) el.value = String(Math.round(ringOpacityScale * 100));
+}
+
 /** Scale a base duration by the current speed preference. */
 function animMs(baseMs: number): number {
   const m = ANIM_SPEED_MULT[animSpeed];
@@ -217,6 +251,19 @@ if (animSpeedSelect) {
     if (isAnimSpeedId(v)) saveAnimSpeed(v);
   });
 }
+
+// System ring opacity (Pilot Controls “Rings” slider) — scales #101 band/dash paint
+syncRingOpacityUi();
+const ringOpacityInput = document.getElementById(
+  "ring-opacity",
+) as HTMLInputElement | null;
+ringOpacityInput?.addEventListener("input", () => {
+  const pct = Number(ringOpacityInput.value);
+  saveRingOpacityScale(
+    Number.isFinite(pct) ? Math.min(100, Math.max(0, pct)) / 100 : 1,
+  );
+  drawBoard();
+});
 
 // AI difficulty: setup only (locked once a game starts — #87)
 (() => {
@@ -2346,10 +2393,20 @@ function drawBoard(): void {
   const cy = sun.y;
 
   // Orbital rings (#101): legacy blue underlay + system bands + tinted dashes
+  // Player can dim via Pilot Controls “Rings” slider (ringOpacityScale ≤ 1).
   const ringPx = board.rings.map((rNorm) => rNorm * scale);
-  if (RING_LEGACY_BLUE_ALPHA > 0) {
+  const ringMul = ringOpacityScale;
+  if (RING_LEGACY_BLUE_ALPHA * ringMul > 0) {
     for (const r of ringPx) {
-      strokeDashedRing(ctx, cx, cy, r, [110, 180, 255], RING_LEGACY_BLUE_ALPHA, 1.5);
+      strokeDashedRing(
+        ctx,
+        cx,
+        cy,
+        r,
+        [110, 180, 255],
+        RING_LEGACY_BLUE_ALPHA * ringMul,
+        1.5,
+      );
     }
   }
   // Bands outer→inner (Saturn…Mercury) so falloff meets next inner ring
@@ -2366,14 +2423,22 @@ function drawBoard(): void {
       rOuter,
       rInner,
       style.rgb,
-      RING_BAND_OUTER_ALPHA,
-      RING_BAND_INNER_ALPHA,
+      RING_BAND_OUTER_ALPHA * ringMul,
+      RING_BAND_INNER_ALPHA * ringMul,
     );
   }
   for (const style of SYSTEM_RING_STYLES) {
     const r = ringPx[style.ringIndex];
     if (r == null) continue;
-    strokeDashedRing(ctx, cx, cy, r, style.rgb, RING_DASH_ALPHA, 1.75);
+    strokeDashedRing(
+      ctx,
+      cx,
+      cy,
+      r,
+      style.rgb,
+      RING_DASH_ALPHA * ringMul,
+      1.75,
+    );
   }
 
   // sun
