@@ -2136,7 +2136,11 @@ function renderSide(): void {
     teleLines.push(
       `DICE ${roll.d1}+${roll.d2}=${roll.total} · break ${legal.breakSpaces} · move ${m}`,
     );
-    teleLines.push(`leave burn ~${legal.leaveBurnPreview}`);
+    teleLines.push(
+      p.freeLeavePending && legal.leaveBurnPreview === 0
+        ? "leave burn FREE (comet dust)"
+        : `leave burn ~${legal.leaveBurnPreview}`,
+    );
   } else if (state.phase === "await_post_land") {
     const ctx = isPurchasable(node) && !state.owners[node.id]
       ? `claim available ${formatMoney(node.price ?? 0)}`

@@ -136,6 +136,16 @@ export interface Player {
    */
   warpCharges: number;
   /**
+   * Timed charter: free leave burn once (e.g. comet dust / undock hail).
+   * Next departure from a gravity well costs 0 fuel, then clears.
+   */
+  freeLeavePending: boolean;
+  /**
+   * Timed charter: next rent due is waived once (any owner), then clears.
+   * Checked before Gravity Duel free-pass list.
+   */
+  nextRentWaived: boolean;
+  /**
    * Fuel depots placed since last Earth circuit complete (or game start).
    * First depot this circuit is free; further ones cost cash (#45 Option C).
    */
