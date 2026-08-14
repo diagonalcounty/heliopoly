@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.23] — 2026-08-13
+
+### Play / UX
+- **System ring bands (#101):** stylized Saturn→Mercury dashed tints + radial falloff bands (outer α 0.17 → inner α 0.02); legacy blue underlay α 0.29; travel lanes α 0.74
+
+### Meta
+- Version **0.0.23**
+
 ## [0.0.22] — 2026-08-13
 
 ### Play / UX
