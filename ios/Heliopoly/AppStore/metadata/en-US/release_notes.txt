@@ -1,0 +1,6 @@
+First public release of Heliopoly on iPad.
+
+• Full offline solar-system strategy game (no account, no online multiplayer)
+• Name your rocket, choose methane or hydrogen, race AI rivals
+• Claims, fuel depots, Gravity Duels, and charter alerts
+• Built-in Helios Ops Manual
