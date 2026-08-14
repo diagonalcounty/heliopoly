@@ -14,8 +14,8 @@
     <link rel="icon" type="image/png" href="./favicon-32.png" sizes="32x32" />
     <link rel="icon" type="image/png" href="./favicon-16.png" sizes="16x16" />
     <link rel="apple-touch-icon" href="./apple-touch-icon.png" sizes="180x180" />
-    <script type="module" src="./assets/index-oAWFs9z4.js"></script>
-    <link rel="stylesheet" href="./assets/index-DrOd01Qg.css">
+    <script type="module" src="./assets/index-BG0mMNeW.js"></script>
+    <link rel="stylesheet" href="./assets/index-Dzqg9adg.css">
   </head>
   <body>
     <div id="app">
@@ -138,31 +138,40 @@
                   Hydrogen (H₂) — cheaper leave; leak risk; more ice-strike sites
                 </label>
               </fieldset>
-              <fieldset class="propellant-field">
-                <legend>AI difficulty</legend>
-                <label class="check">
-                  <input type="radio" name="ai-difficulty" value="easy" />
-                  Easy — no break; always prograde
-                </label>
-                <label class="check">
-                  <input
-                    type="radio"
-                    name="ai-difficulty"
-                    value="normal"
-                    checked
-                  />
-                  Normal — small break only to afford leave
-                </label>
-                <label class="check">
-                  <input type="radio" name="ai-difficulty" value="hard" />
-                  Hard — break for buys, hubs, Earth landings
-                </label>
-                <label class="check">
-                  <input type="radio" name="ai-difficulty" value="expert" />
-                  Expert — deep break (even 1-space grabs), monopoly &amp; Earth focus
-                </label>
-              </fieldset>
+              <div class="ai-difficulty-row">
+                <fieldset class="propellant-field ai-difficulty-field">
+                  <legend>AI difficulty</legend>
+                  <label class="check">
+                    <input type="radio" name="ai-difficulty" value="easy" />
+                    Easy — no break; always prograde
+                  </label>
+                  <label class="check">
+                    <input
+                      type="radio"
+                      name="ai-difficulty"
+                      value="normal"
+                      checked
+                    />
+                    Normal — small break only to afford leave
+                  </label>
+                  <label class="check">
+                    <input type="radio" name="ai-difficulty" value="hard" />
+                    Hard — break for buys, hubs, Earth landings
+                  </label>
+                  <label class="check">
+                    <input type="radio" name="ai-difficulty" value="expert" />
+                    Expert — deep break (even 1-space grabs), monopoly &amp; Earth
+                    focus
+                  </label>
+                </fieldset>
+                <div
+                  id="duration-meter"
+                  class="duration-meter"
+                  aria-live="polite"
+                ></div>
+              </div>
               <p class="hint" style="margin-top:4px">
+                Meter: estimated charter rounds vs a strong (hard/expert) pilot.
                 Locked after Launch. Details: Ops Manual → AI difficulty.
               </p>
               <button id="btn-new" type="button" class="primary">Launch</button>
