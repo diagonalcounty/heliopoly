@@ -1,9 +1,15 @@
 # Changelog
 
-## Unreleased
+## [0.0.21] — 2026-08-13
 
 ### Play
 - **Feral park curve (#92):** half-gap asymptotic after park 5 (50% → 75% → 87.5% …) instead of double-to-100% at park 6; Ops Manual + startup log copy match
+
+### Tooling
+- **Sim Lab polish:** elimination density chart (round axis), seat curves in board rocket colors, max games to 1e6, launch-order win chances, human-vs-pack outcome summary, stale-server detection, win-rate share-of-finished fixes
+
+### Meta
+- Version **0.0.21** (badge, package, Ops Manual welcome, README)
 
 ## [0.0.20] — 2026-08-11
 
