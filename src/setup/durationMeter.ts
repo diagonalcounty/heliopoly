@@ -89,14 +89,14 @@ export function renderDurationMeter(
   root.setAttribute("role", "img");
   root.setAttribute(
     "aria-label",
-    `Estimated charter length versus a strong pilot: about ${dist.mu} rounds median for ${difficulty} AI pack`,
+    `Estimated rounds (median µ): about ${dist.mu} for ${difficulty} AI pack versus a strong pilot`,
   );
 
   const title = document.createElement("div");
   title.className = "duration-meter-title";
   title.style.opacity = String(v.titleA);
   // Title weight/size from CSS — match AI difficulty legend (not bold HUD caps)
-  title.innerHTML = "Est. rounds vs<br/>Expert pilot (µ)";
+  title.textContent = "Est. rounds (µ)";
   root.appendChild(title);
 
   const body = document.createElement("div");
