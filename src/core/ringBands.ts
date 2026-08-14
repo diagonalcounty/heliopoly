@@ -5,19 +5,26 @@
  * falls off toward the next *inner* ring. Colors are stylized planet
  * hues for dark-UI harmony, not scientific albedos.
  *
- * Playtest lock (2026-08 preview):
- *   band outer α 0.17 · band inner α 0.02 · dashed α 0.90 · legacy blue α 0.29
- *   all seven rings on (Saturn…Mercury)
+ * Alphas below are **slider = 100%** (peak). The Pilot Controls “Rings”
+ * control defaults to **50%**, so effective paint is half of these.
+ * Peak is raised so mid-slider is brighter than the old full lock
+ * (outer 0.17 / inner 0.02 / dash 0.9 / legacy 0.29), which was too dim.
+ *
+ * At default 50%: outer ~0.28 · inner ~0.05 · dash ~0.90 · legacy ~0.35
+ * (dash/legacy use min(1, scale × peak) when drawing).
  */
 
-/** Opacity of the band fill at the system’s dashed (outer) ring. */
-export const RING_BAND_OUTER_ALPHA = 0.17;
-/** Opacity of the band fill where it meets the next inner ring. */
-export const RING_BAND_INNER_ALPHA = 0.02;
-/** Opacity of the colored dashed ring stroke. */
-export const RING_DASH_ALPHA = 0.9;
-/** Underlay of the old cool-blue dashed rings. */
-export const RING_LEGACY_BLUE_ALPHA = 0.29;
+/** Opacity of the band fill at the system’s dashed (outer) ring (slider 100%). */
+export const RING_BAND_OUTER_ALPHA = 0.55;
+/** Opacity of the band fill where it meets the next inner ring (slider 100%). */
+export const RING_BAND_INNER_ALPHA = 0.1;
+/** Opacity of the colored dashed ring stroke (slider 100%; often clamps to 1). */
+export const RING_DASH_ALPHA = 1.8;
+/** Underlay of the old cool-blue dashed rings (slider 100%). */
+export const RING_LEGACY_BLUE_ALPHA = 0.7;
+
+/** Default Pilot Controls Rings slider (0–1). Mid = preferred board look. */
+export const RING_OPACITY_DEFAULT = 0.5;
 
 export type Rgb = readonly [number, number, number];
 
@@ -51,6 +58,11 @@ export function rgba(rgb: Rgb, a: number): string {
  * Fill the annulus between outer and inner ring radii (canvas pixels)
  * with a radial gradient (stronger at outer edge).
  */
+/** Clamp paint alpha after slider multiply (strokes/fills above 1 are useless). */
+export function ringPaintAlpha(peak: number, scale: number): number {
+  return Math.min(1, Math.max(0, peak * scale));
+}
+
 export function fillRingBand(
   ctx: CanvasRenderingContext2D,
   cx: number,
@@ -61,10 +73,12 @@ export function fillRingBand(
   aOuter: number = RING_BAND_OUTER_ALPHA,
   aInner: number = RING_BAND_INNER_ALPHA,
 ): void {
-  if (rOuter <= rInner + 0.5 || aOuter <= 0 && aInner <= 0) return;
+  const ao = Math.min(1, Math.max(0, aOuter));
+  const ai = Math.min(1, Math.max(0, aInner));
+  if (rOuter <= rInner + 0.5 || (ao <= 0 && ai <= 0)) return;
   const g = ctx.createRadialGradient(cx, cy, Math.max(0, rInner), cx, cy, rOuter);
-  g.addColorStop(0, rgba(rgb, aInner));
-  g.addColorStop(1, rgba(rgb, aOuter));
+  g.addColorStop(0, rgba(rgb, ai));
+  g.addColorStop(1, rgba(rgb, ao));
   ctx.fillStyle = g;
   ctx.beginPath();
   ctx.arc(cx, cy, rOuter, 0, Math.PI * 2);
@@ -81,10 +95,11 @@ export function strokeDashedRing(
   alpha: number,
   lineWidth = 1.75,
 ): void {
-  if (alpha <= 0 || r <= 0) return;
+  const a = Math.min(1, Math.max(0, alpha));
+  if (a <= 0 || r <= 0) return;
   ctx.beginPath();
   ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.strokeStyle = rgba(rgb, alpha);
+  ctx.strokeStyle = rgba(rgb, a);
   ctx.lineWidth = lineWidth;
   ctx.setLineDash([4, 8]);
   ctx.stroke();

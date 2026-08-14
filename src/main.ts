@@ -11,8 +11,10 @@ import {
   RING_BAND_OUTER_ALPHA,
   RING_DASH_ALPHA,
   RING_LEGACY_BLUE_ALPHA,
+  RING_OPACITY_DEFAULT,
   SYSTEM_RING_STYLES,
   fillRingBand,
+  ringPaintAlpha,
   strokeDashedRing,
 } from "./core/ringBands";
 import { walkMovePath } from "./core/path";
@@ -160,20 +162,21 @@ function saveAnimSpeed(id: AnimSpeedId): void {
 
 /**
  * Player preference: scale system ring band + dashed opacity (#101).
- * 1 = design defaults; 0 = fully hidden. Can only go down from full.
+ * Peak constants = slider 100%. Default slider = 50% (preferred board look).
+ * 0 = fully hidden; 100% = brighter than the old full lock.
  */
 const RING_OPACITY_KEY = "heliopoly-ring-opacity";
 
 function loadRingOpacityScale(): number {
   try {
     const raw = localStorage.getItem(RING_OPACITY_KEY);
-    if (raw == null) return 1;
+    if (raw == null) return RING_OPACITY_DEFAULT;
     const n = Number(raw);
     if (Number.isFinite(n)) return Math.min(1, Math.max(0, n));
   } catch {
     /* private mode */
   }
-  return 1;
+  return RING_OPACITY_DEFAULT;
 }
 
 let ringOpacityScale = loadRingOpacityScale();
@@ -2396,17 +2399,10 @@ function drawBoard(): void {
   // Player can dim via Pilot Controls “Rings” slider (ringOpacityScale ≤ 1).
   const ringPx = board.rings.map((rNorm) => rNorm * scale);
   const ringMul = ringOpacityScale;
-  if (RING_LEGACY_BLUE_ALPHA * ringMul > 0) {
+  const legacyA = ringPaintAlpha(RING_LEGACY_BLUE_ALPHA, ringMul);
+  if (legacyA > 0) {
     for (const r of ringPx) {
-      strokeDashedRing(
-        ctx,
-        cx,
-        cy,
-        r,
-        [110, 180, 255],
-        RING_LEGACY_BLUE_ALPHA * ringMul,
-        1.5,
-      );
+      strokeDashedRing(ctx, cx, cy, r, [110, 180, 255], legacyA, 1.5);
     }
   }
   // Bands outer→inner (Saturn…Mercury) so falloff meets next inner ring
@@ -2423,8 +2419,8 @@ function drawBoard(): void {
       rOuter,
       rInner,
       style.rgb,
-      RING_BAND_OUTER_ALPHA * ringMul,
-      RING_BAND_INNER_ALPHA * ringMul,
+      ringPaintAlpha(RING_BAND_OUTER_ALPHA, ringMul),
+      ringPaintAlpha(RING_BAND_INNER_ALPHA, ringMul),
     );
   }
   for (const style of SYSTEM_RING_STYLES) {
@@ -2436,7 +2432,7 @@ function drawBoard(): void {
       cy,
       r,
       style.rgb,
-      RING_DASH_ALPHA * ringMul,
+      ringPaintAlpha(RING_DASH_ALPHA, ringMul),
       1.75,
     );
   }
