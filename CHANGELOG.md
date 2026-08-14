@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.0.26] — 2026-08-16
+
+Weekly production promote to **https://heliopoly.live/** at **Sunday 00:01 UTC** (`2026-08-16T00:01:00.000Z`). Human QA passed on local + iPad (In review batch).
+
+### Play / UX
+- **Duration meter polish (#94):** title **(µ)** only; type slightly smaller than AI difficulty legend; bars hard-clipped so they never cover tick labels (grid columns + opaque tick lane)
+- **Board map batch (on `main`, live with this promote):** curved Mainline lanes (#99), system ring bands + Rings slider (#101), polar remesh / Belt 1–6 / Homeward (#102)
+
+### Lab
+- Eastern Arabic + multi-script **Which is larger?** packs (#81 / #76)
+
+### iPad / tablet
+- Viewport zoom lock (#95); iPad mini layout polish (#96)
+
+### Tooling
+- Board-previews design tools (#103)
+
+### Cleanup
+- Dead code removal (#27) — already on `main` from 0.0.25
+
+### Meta
+- Version **0.0.26** (badge, package, Ops Manual welcome, README)
+- **Live window:** Sunday **00:01 UTC** (not Saturday midnight) per product law / #98 cadence
+
 ## [0.0.25] — 2026-08-14
 
 ### Play / UX
