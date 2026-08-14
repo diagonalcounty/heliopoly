@@ -34,7 +34,14 @@ import {
 import { bodyRadius, drawBodyIcon, drawFuelDepotIcon } from "./bodyIcons";
 import { inspectBody } from "./core/inspect";
 import { mountHandbook } from "./handbook/handbook";
-import { LAB_SCENARIOS } from "./lab/scenarios";
+import {
+  LAB_GROUP_BLURBS,
+  LAB_GROUP_LABELS,
+  LAB_GROUP_ORDER,
+  LAB_SCENARIOS,
+  labScenarioAvailable,
+  type LabScenarioGroup,
+} from "./lab/scenarios";
 import {
   applyCompareChoice,
   MAX_COMPARE_ROUNDS,
@@ -1489,44 +1496,77 @@ function eacPlayAgain(): void {
   eacLeftBtn.focus();
 }
 
+/** Which Lab accordion category is open (null = all collapsed). */
+let labOpenGroup: LabScenarioGroup | null = null;
+
 function mountLabScenarios(): void {
-  const groups: Record<string, typeof LAB_SCENARIOS> = {};
+  const groups = new Map<LabScenarioGroup, typeof LAB_SCENARIOS>();
   for (const sc of LAB_SCENARIOS) {
-    (groups[sc.group] ??= []).push(sc);
+    const list = groups.get(sc.group) ?? [];
+    list.push(sc);
+    groups.set(sc.group, list);
   }
-  const labels: Record<string, string> = {
-    "which-is-larger": "Which is larger?",
-    minigame: "Minigames",
-    end: "End screens",
-    economy: "Economy",
-  };
-  /** Stable section order (Object.entries alone follows first-seen group). */
-  const groupOrder = ["which-is-larger", "minigame", "end", "economy"] as const;
   labScenariosEl.innerHTML = "";
-  const orderedGroups = [
-    ...groupOrder.filter((g) => groups[g]?.length),
-    ...Object.keys(groups).filter((g) => !(groupOrder as readonly string[]).includes(g)),
-  ];
-  for (const group of orderedGroups) {
-    const list = groups[group];
+  for (const group of LAB_GROUP_ORDER) {
+    const list = groups.get(group);
     if (!list?.length) continue;
+    const expanded = labOpenGroup === group;
     const wrap = document.createElement("div");
-    wrap.className = "lab-group";
-    const h = document.createElement("p");
-    h.className = "lab-group-title";
-    h.textContent = labels[group] ?? group;
-    wrap.appendChild(h);
-    for (const sc of list) {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "lab-scenario";
-      btn.dataset.scenario = sc.id;
-      btn.innerHTML = `<span class="lab-scenario-title">${sc.title}</span><span class="lab-scenario-blurb">${sc.blurb}</span>`;
-      btn.addEventListener("click", () => {
-        void runLabScenario(sc.id);
-      });
-      wrap.appendChild(btn);
+    wrap.className = "lab-group" + (expanded ? " is-open" : "");
+    wrap.dataset.group = group;
+
+    const toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.className = "lab-group-toggle";
+    toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+    toggle.setAttribute("aria-controls", `lab-group-items-${group}`);
+    const readyCount = list.filter((s) => labScenarioAvailable(s)).length;
+    const countLabel =
+      readyCount === list.length
+        ? `${list.length}`
+        : `${readyCount}/${list.length} ready`;
+    toggle.innerHTML = `
+      <span class="lab-group-toggle-main">
+        <span class="lab-group-toggle-title">${LAB_GROUP_LABELS[group]}</span>
+        <span class="lab-group-toggle-blurb">${LAB_GROUP_BLURBS[group]}</span>
+      </span>
+      <span class="lab-group-toggle-meta">
+        <span class="lab-group-count">${countLabel}</span>
+        <span class="lab-group-chevron" aria-hidden="true">${expanded ? "▾" : "▸"}</span>
+      </span>`;
+    toggle.addEventListener("click", () => {
+      labOpenGroup = labOpenGroup === group ? null : group;
+      mountLabScenarios();
+    });
+    wrap.appendChild(toggle);
+
+    const items = document.createElement("div");
+    items.id = `lab-group-items-${group}`;
+    items.className = "lab-group-items";
+    items.hidden = !expanded;
+    if (expanded) {
+      for (const sc of list) {
+        const ready = labScenarioAvailable(sc);
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "lab-scenario" + (ready ? "" : " is-coming-soon");
+        btn.dataset.scenario = sc.id;
+        btn.disabled = !ready;
+        btn.innerHTML = `
+          <span class="lab-scenario-title-row">
+            <span class="lab-scenario-title">${sc.title}</span>
+            ${ready ? "" : '<span class="lab-scenario-badge">Soon</span>'}
+          </span>
+          <span class="lab-scenario-blurb">${sc.blurb}</span>`;
+        if (ready) {
+          btn.addEventListener("click", () => {
+            void runLabScenario(sc.id);
+          });
+        }
+        items.appendChild(btn);
+      }
     }
+    wrap.appendChild(items);
     labScenariosEl.appendChild(wrap);
   }
 }
@@ -1534,7 +1574,7 @@ function mountLabScenarios(): void {
 async function runLabScenario(id: string): Promise<void> {
   if (animating) return;
   const sc = LAB_SCENARIOS.find((x) => x.id === id);
-  if (!sc) return;
+  if (!sc || !labScenarioAvailable(sc)) return;
   if (sc.kind === "standalone") {
     if (sc.standaloneId === "eastern-arabic-compare") {
       openEasternArabicCompare();
