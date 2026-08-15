@@ -6,7 +6,7 @@ This is **not** a remote wrapper of heliopoly.live — the game loads from the a
 
 ## Requirements
 
-- **Xcode 16+** (this tree was last built with Xcode 27 beta tools on macOS 27)
+- **Xcode 16 GM** (project format is Xcode 16–compatible — not beta-only objectVersion 110)
 - Node 20+ (to refresh the web bundle)
 - Apple ID in Xcode for device runs (Simulator needs no paid account)
 
