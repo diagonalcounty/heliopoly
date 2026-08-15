@@ -1,0 +1,14 @@
+{
+  "v": 1,
+  "received_at": "2026-08-09T17:35:34Z",
+  "player_id": "0dae4655a31814f8aaa6e27c9f1e9574",
+  "meta": {
+    "playerCount": 2,
+    "round": 1,
+    "endReason": "smoke",
+    "client": "ops-smoke"
+  },
+  "log": [
+    "smoke test line"
+  ]
+}

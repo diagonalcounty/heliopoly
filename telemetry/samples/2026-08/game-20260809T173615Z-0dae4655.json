@@ -1,0 +1,12 @@
+{
+  "v": 1,
+  "received_at": "2026-08-09T17:36:15Z",
+  "player_id": "0dae4655a31814f8aaa6e27c9f1e9574",
+  "meta": {
+    "endReason": "smoke",
+    "client": "mode"
+  },
+  "log": [
+    "mode check"
+  ]
+}
