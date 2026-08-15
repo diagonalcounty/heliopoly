@@ -1,0 +1,13 @@
+{
+  "v": 1,
+  "received_at": "2026-08-09T17:36:02Z",
+  "player_id": "5d397bf4f918d4557695230f31f7ed03",
+  "meta": {
+    "playerCount": 2,
+    "endReason": "smoke",
+    "client": "ops-smoke-public"
+  },
+  "log": [
+    "public path smoke"
+  ]
+}
