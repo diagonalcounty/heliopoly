@@ -18,41 +18,48 @@ export interface HandbookSection {
 }
 
 /**
- * Placement rules for this draft:
- * - **Lore** — setting, charter fiction, map as world (not button-by-button rules)
+ * Placement:
+ * - **Lore** — the ledger, the Mainline, the stations (not button-by-button rules)
  * - **Gameplay** — how to play, win, economy, combat, UI symbols
- * - **Rival pilots** — callsign civilopedia
- * Topics only land in a section if they clearly fit; leftover = Gameplay “Reference”
- * only when still player-facing rules.
+ * Voice: #112 / #114 — smart 10–12 year old, pre-1997 game-manual shape.
  */
 
 const LORE_TOPICS: HandbookTopic[] = [
   {
     id: "welcome",
-    title: "Welcome, Venture",
+    title: "Read this first",
     html: `
 <p><strong>Heliopoly</strong> — <em>Free Enterprise In Space</em> (1.0.0).</p>
-<p>Open source: <a href="https://github.com/diagonalcounty/heliopoly" target="_blank" rel="noopener">github.com/diagonalcounty/heliopoly</a> — issues and PRs welcome.</p>
-<p>This is a <strong>preparatory simulator</strong> for near-future space enterprise: close-quarters economics like chess or Monopoly, abstracting fuel, orbits, and frontier capitalism so you can practice the mental model before the real Mainline opens.</p>
-<p>Earth’s old regulations stop at the edge of the system. Independent operators fly a rigid one-way orbital circuit — <strong>the Mainline</strong> — to build fortunes while propellant, claims, and the ledger stay honest.</p>
-<p>There is <strong>no round clock</strong> — last rocket flying wins.</p>
-<p>Close this manual with <kbd>Esc</kbd>, <strong>✕</strong>, or the dimmed backdrop.</p>
+<p>You fly a rocket. You buy claims. You try not to go broke.</p>
+<p>Every buy, every rent, every duel is written to the <strong>ledger</strong>. The ledger is the official book of the Mainline. It is a contract book. It is also a history book.</p>
+<p>When you are the last rocket flying, the ledger writes your name as one of the <strong>greatest of all kind</strong>.</p>
+<p>There is no timer. Last rocket flying wins.</p>
+<p>Source: <a href="https://github.com/diagonalcounty/heliopoly" target="_blank" rel="noopener">github.com/diagonalcounty/heliopoly</a>.</p>
+<p>Close this manual with <kbd>Esc</kbd>, <strong>✕</strong>, or the dim backdrop.</p>
 `,
   },
   {
     id: "ledger",
-    title: "AIL & the Angzarr (⍼)",
+    title: "The ledger & Angzarr (⍼)",
     html: `
-<p>Legacy public ledgers (Bitcoin, Ethereum, and their kin) did not survive the leap to practical quantum attack. Settlement now runs on a quantum-resilient decentralized database: the <strong>AIL</strong> — <em>Automated Interplanetary Asset Ledger</em>.</p>
-<p>Deeds, rent, fuel transfers, and strikes settle in <strong>Angzarr</strong>, written <strong>⍼</strong> before the amount (e.g. ⍼150). The glyph is the UI face of the ledger; the value is AIL state.</p>
-<p><strong>Genesis injection:</strong> a huge smart-contract payout or venture seed at launch (e.g. the Heliopolis callsign) is not a glitch — it is a funded charter dropped onto the Mainline.</p>
+<p>On old Earth, people kept public <strong>ledgers</strong> — books of who paid whom. <strong>Ethereum</strong> was one of those books. It stored transactions.</p>
+<p>Then quantum computers learned to break those books.</p>
+<p>Money on the Mainline is <strong>Angzarr</strong>. You see it as <strong>⍼</strong> in front of the number (like ⍼150). Angzarr is <em>post-quantum</em> crypto: new math those machines cannot crack. It still keeps a <strong>ledger</strong>.</p>
+<p>The book itself is the <strong>AIL</strong> — Automated Interplanetary Asset Ledger. The AIL writes down two kinds of truth:</p>
+<ol>
+  <li><strong>Contracts</strong> — who owns which world, who is owed rent, who paid for fuel.</li>
+  <li><strong>History</strong> — every expedition, every crash, every name that lasted.</li>
+</ol>
+<p>Nothing on the board counts until the ledger says so. If the ledger drops your deed, the claim goes back to the bank.</p>
+<p>Start cash is not a glitch. It is your first line in the book — a funded launch.</p>
 `,
   },
   {
     id: "path",
     title: "The Mainline",
     html: `
-<p>Traffic follows one fixed circuit (one direction) — the <strong>Mainline</strong>:</p>
+<p>Rockets fly one path. That path is the <strong>Mainline</strong>. You do not pick a shortcut.</p>
+<p>The circuit:</p>
 <ol>
   <li><strong>Earth</strong> → Venus → Mercury</li>
   <li><strong>Mars system</strong> — Elon → Mars → Phobos → Deimos</li>
@@ -61,20 +68,22 @@ const LORE_TOPICS: HandbookTopic[] = [
   <li><strong>Saturn</strong> — Daktulios + Titan, Enceladus, Iapetus, Mimas, Rhea, Dione, Tethys + blanks</li>
   <li>Homeward → <strong>Earth</strong></li>
 </ol>
-<p>Completing this full loop is <strong>one board rotation</strong>. Blank lanes cost <em>no leave fuel</em> but are not free of conflict if another ship is already there.</p>
+<p>One full loop home is a <strong>rotation</strong>.</p>
+<p>Blank lanes cost no leave fuel. They are not safe. Another rocket already there means a <strong>Gravity Duel</strong>.</p>
 `,
   },
   {
     id: "stations-lore",
     title: "Hub stations",
     html: `
-<p><strong>Elon</strong>, <strong>Holst</strong>, and <strong>Daktulios</strong> are not ordinary deeds. Free of planetary wells and heavy red tape, they are refining choke points and trade ports — ice and mass from the outer system process here. Own the hubs and you own tollbooths on the pipeline.</p>
+<p><strong>Elon</strong>, <strong>Holst</strong>, and <strong>Daktulios</strong> are stations, not worlds. They sit off the heavy wells. Ice and ore go through them. Own the hubs and you own the tollbooths.</p>
+<p>Stations can move. That is why a rogue Tesla never hits them. A fuel pod on a moon cannot move.</p>
 <ul>
   <li><strong>Elon (Mars)</strong> — named for the era that crashed per-kilogram launch cost and made commercial solar access imaginable.</li>
   <li><strong>Holst (Jupiter)</strong> — after Gustav Holst; <em>The Planets</em> gave Jupiter a cultural boom long before a station hung in its sky.</li>
   <li><strong>Daktulios (Saturn)</strong> — from the Greek for “ring”: the ring-station transit hub anchored in Saturn’s system.</li>
 </ul>
-<p>Gameplay: own <strong>2</strong> hubs → rent <strong>×2</strong> on hubs; own <strong>3</strong> → rent <strong>×4</strong>. Station network stacks with system monopoly.</p>
+<p>Own <strong>2</strong> hubs → hub rent <strong>×2</strong>. Own all <strong>3</strong> → hub rent <strong>×4</strong>. That stacks with a system monopoly.</p>
 `,
   },
 ];
@@ -84,16 +93,18 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     id: "how-to-win",
     title: "How to win",
     html: `
-<p><strong>Last rocket flying wins</strong> (others bankrupt or strand). There is <strong>no round limit</strong>.</p>
-<p>Eliminated rockets’ deeds return to the <strong>bank</strong> (available again); depots are lost.</p>
-<p>See <strong>Glossary</strong> for <em>turn</em>, <em>round</em>, and <em>rotation</em>. Charter alerts use <strong>rounds</strong>, not turns — full list under <strong>Charter alerts</strong>.</p>
+<p><strong>Last rocket flying wins.</strong> The others go bankrupt, get stranded, or quit.</p>
+<p>The ledger then writes your name into its history as one of the <strong>greatest of all kind</strong>.</p>
+<p>There is no round limit. There is no “enough money.” Last one standing is the record.</p>
+<p>When a rocket leaves, its deeds go back to the <strong>bank</strong>. Fuel depots on those deeds are gone.</p>
+<p>See <strong>Glossary</strong> for <em>turn</em>, <em>round</em>, and <em>rotation</em>. Ledger events use <strong>rounds</strong>. Full list: <strong>Ledger events</strong>.</p>
 `,
   },
   {
     id: "glossary",
     title: "Glossary",
     html: `
-<p>Locked vocabulary so design talk stays consistent:</p>
+<p>Words we use the same way every time:</p>
 <table class="glossary">
   <thead><tr><th>Term</th><th>Meaning</th><th>In code / UI</th></tr></thead>
   <tbody>
@@ -118,9 +129,9 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
       <td><code>parkCount</code></td>
     </tr>
     <tr>
-      <td><strong>Charter alert</strong></td>
-      <td>Timed mid-game popup (“chance card”) that fires on <em>round</em> boundaries. See <strong>Charter alerts</strong> for the full pool and cadence.</td>
-      <td>Charter alert card · log lines</td>
+      <td><strong>Ledger event</strong></td>
+      <td>A timed popup that the ledger writes mid-game. Fires on <em>round</em> boundaries. See <strong>Ledger events</strong>.</td>
+      <td>Ledger event card · log lines</td>
     </tr>
     <tr>
       <td><strong>Warp</strong></td>
@@ -132,10 +143,10 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
 `,
   },
   {
-    id: "charter-alerts",
-    title: "Charter alerts",
+    id: "ledger-alerts",
+    title: "Ledger events",
     html: `
-<p>Mid-charter <strong>chance cards</strong> — Oregon Trail–style popups that break up the Mainline grind. They fire on <strong>round</strong> boundaries (not every seat turn). Each listed type fires <strong>at most once</strong> per charter.</p>
+<p>The ledger sometimes writes a surprise. These are <strong>ledger events</strong> — popups that break up the grind. They fire on <strong>round</strong> boundaries, not every seat turn. Each type fires <strong>at most once</strong> per expedition.</p>
 
 <h3>Cadence (standard pool)</h3>
 <ol>
@@ -167,7 +178,7 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     <tr>
       <td><strong>Strong Bad answers your email</strong></td>
       <td>+</td>
-      <td>He types one word: <strong>WARP.</strong> Same as King’s Quest: <strong>+1 warp charge</strong> for every active rocket. Separate from King’s Quest (both can fire in one charter).</td>
+      <td>He types one word: <strong>WARP.</strong> Same as King’s Quest: <strong>+1 warp charge</strong> for every active rocket. Separate from King’s Quest (both can fire in one expedition).</td>
     </tr>
     <tr>
       <td><strong>Arcadia on the Mainline</strong> (Captain Harlock)</td>
@@ -195,9 +206,9 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
       <td>Next <strong>rent</strong> you would pay is waived once (any owner).</td>
     </tr>
     <tr>
-      <td><strong>Rogue Tesla Model 3 / Y / S / X / Roadster</strong></td>
+      <td><strong>Rogue Tesla Roadster</strong></td>
       <td>−</td>
-      <td>A derelict Tesla hits a random <strong>owned</strong> claim: deed returns to the bank and any fuel depot is destroyed. <strong>Mars orbit is immune</strong> (Elon, Mars, Phobos, Deimos — Elon’s car will not hit Elon).</td>
+      <td>Musk’s Roadster hits a random <strong>owned planetoid beyond Mars</strong> (Jupiter or Saturn moons). Deed returns to the bank; any fuel depot is destroyed (pods cannot dodge). <strong>Stations move out of the way</strong> — Holst, Daktulios, and Elon are never hit. Also misses Mercury, Venus, Earth, the belt, and the Mars system (Mars, Phobos, Deimos).</td>
     </tr>
     <tr>
       <td><strong>Olbers’ paradox, Netflix optional</strong></td>
@@ -223,8 +234,8 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
   <tbody>
     <tr>
       <td><strong>You vibe-coded the rules</strong></td>
-      <td>The first time the charter reaches <strong>round 60</strong>, one <strong>50%</strong> roll (hit or miss — never retries that charter)</td>
-      <td>You write the patch notes: <strong>kick one AI rival</strong> out of the charter. Human: click that rocket in <strong>Charter standings</strong>. AI: auto-picks a rival.</td>
+      <td>The first time the expedition reaches <strong>round 60</strong>, one <strong>50%</strong> roll (hit or miss — never retries)</td>
+      <td>You write the patch notes: <strong>kick one AI rival</strong> off the ledger. Human: click that rocket in <strong>standings</strong>. AI: auto-picks a rival.</td>
     </tr>
   </tbody>
 </table>
@@ -233,7 +244,7 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
 <ul>
   <li>When an alert needs a choice (Olbers, blockchain, vibe-kick), a hint appears under standings. Normal Roll / Move buttons stay locked until you finish the pick.</li>
   <li><strong>Warp charges</strong> (King’s Quest or Strong Bad) stack; each charge is one teleport. Telemetry shows remaining warps when you have them.</li>
-  <li>Resource strikes (gusher), H₂ leaks, and Gravity Duel are <em>not</em> charter alerts — different systems.</li>
+  <li>Resource strikes (gusher), H₂ leaks, and Gravity Duel are <em>not</em> ledger events — different systems.</li>
 </ul>
 `,
   },
@@ -250,8 +261,8 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
 </ol>
 <p><strong>Buy window:</strong> you may claim an <em>unowned</em> deed underfoot when you land <em>or</em> later while you are still on it (before you leave) — e.g. after rent income on a following turn makes the price affordable.</p>
 <p>Landing is free. Leaving a gravity well costs fuel. Failed leave on an enemy claim charges rent again.</p>
-<p><strong>Earth charter pay:</strong> <strong>⍼400</strong> when you <em>land</em> on Earth, <strong>⍼200</strong> when you <em>pass</em> Earth on a multi-space move (intermediate stop). Each completed board <strong>rotation</strong> adds <strong>⍼10</strong> to both amounts thereafter. Completing rotation <strong>10, 20, 30…</strong> also pays a one-time <strong>⍼1000</strong> decade bonus. Full circuit still resupplies fuel depots (+3 in hand).</p>
-<p><strong>Warp</strong> (from <strong>Charter alerts</strong> — King’s Quest or Strong Bad Email): when you have a warp charge, <strong>click any board node</strong> instead of rolling — teleport there (no en-route stops). Landing rules still apply at the destination.</p>
+<p><strong>Earth pay</strong> is written to the ledger: <strong>⍼400</strong> when you <em>land</em> on Earth, <strong>⍼200</strong> when you <em>pass</em> Earth on a multi-space move (intermediate stop). Each completed board <strong>rotation</strong> adds <strong>⍼10</strong> to both amounts thereafter. Completing rotation <strong>10, 20, 30…</strong> also pays a one-time <strong>⍼1000</strong> decade bonus. Full circuit still resupplies fuel depots (+3 in hand).</p>
+<p><strong>Warp</strong> (from <strong>Ledger events</strong> — King’s Quest or Strong Bad Email): when you have a warp charge, <strong>click any board node</strong> instead of rolling. You teleport. No stops on the way. Landing rules still apply where you arrive.</p>
 `,
   },
   {
@@ -266,7 +277,7 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
   <div class="legend-item"><img src="/handbook/legend-blank.svg" alt="" width="48" height="48"/><div><strong>Diamond pips</strong><br/>Blank belt/transit (red-tint = Gravity Duel lanes)</div></div>
   <div class="legend-item"><img src="/handbook/legend-claim.svg" alt="" width="48" height="48"/><div><strong>Colored halo</strong><br/>Your claim (rocket color)</div></div>
   <div class="legend-item"><img src="/handbook/fuel-depot.png" alt="" width="48" height="48"/><div><strong>Fuel depot</strong><br/>Player-built tank badge on a body you own</div></div>
-  <div class="legend-item"><img src="/handbook/legend-ship.svg" alt="" width="48" height="48"/><div><strong>Triangle ship</strong><br/>Rocket marker (gold outline while hopping)</div></div>
+  <div class="legend-item"><img src="/handbook/legend-ship.svg" alt="" width="48" height="48"/><div><strong>Rocket</strong><br/>Your ship (gold outline while hopping)</div></div>
   <div class="legend-item"><img src="/handbook/legend-rings.svg" alt="" width="48" height="48"/><div><strong>Dashed circles</strong><br/>Orbital rings from the Sun</div></div>
 </div>
 `,
@@ -308,7 +319,7 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     html: `
 <p><strong>Methane (CH₄)</strong> — stable tanks, no leaks: the conservative operator’s choice. Claim + fuel depot on <strong>Titan</strong> or <strong>Enceladus</strong> can fire a one-time <strong>resource strike</strong> (½ starting cash) — e.g. “You've struck liquid methane!”</p>
 <p><strong>Hydrogen (H₂)</strong> — cheaper leave burns, higher risk. <strong>Landing</strong> on a real body can rupture tanks: <strong>half your fuel</strong> and <strong>lose next turn</strong> to repair. Balanced by ice-strike potential on <strong>Enceladus, Mars, Europa, Ganymede</strong> (claim + depot).</p>
-<p>Strike pop-ups are sudden and terse — good fortune on a hard charter.</p>
+<p>Strike pop-ups are sudden and short. The ledger records the strike the same as a deed.</p>
 `,
   },
   {
@@ -373,7 +384,7 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     id: "ai-difficulty",
     title: "AI difficulty",
     html: `
-<p>Rival seats use a heuristic pilot. Choose difficulty at <strong>New game</strong> only — it is <strong>locked for the rest of the charter</strong> (change it before Launch, not mid-flight).</p>
+<p>Rival seats use a heuristic pilot. Choose difficulty at <strong>New game</strong> only — it is <strong>locked for the rest of the expedition</strong> (change it before Launch, not mid-flight).</p>
 <p>The first skill scale we tune is <strong>travel</strong>: how well the AI uses <strong>break</strong> (and, for palindrome callsigns like Ada, <strong>prograde vs retrograde</strong>). Higher levels break more deliberately — including long breaks to land on a single key deed. Buy / depot scales can be layered later the same way.</p>
 <table class="glossary">
   <thead>
@@ -419,8 +430,8 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     id: "feral",
     title: "Parking & feral claims",
     html: `
-<p><strong>Why claims go feral:</strong> not political betrayal or human “neglect,” but <strong>software bitrot</strong>. AI-managed extraction units, rigs, and pods throw unhandled exceptions. Without a pilot looping the Mainline to push maintenance patches, local automation degrades beyond salvage. The <strong>AIL</strong> scrubs the asset, marks the hardware derelict, and drops the deed back onto the open network.</p>
-<p><strong>Live mechanic (parking):</strong> if your rocket <strong>does not move</strong> on a seat turn — camp, full break, failed leave, or duel skip — that is a <strong>park</strong>. Parks are <strong>cumulative</strong> for the whole charter (moving later does <em>not</em> clear the count).</p>
+<p>Claims go <strong>feral</strong> because the software rots. The pods throw errors. If you sit still, nobody pushes a patch. The <strong>ledger</strong> then drops the deed and marks the hardware junk.</p>
+<p>If your rocket <strong>does not move</strong> on a seat turn — camp, full break, failed leave, or duel skip — that is a <strong>park</strong>. Parks add up for the whole expedition. Moving later does <em>not</em> clear the count.</p>
 <ul>
   <li>Parks <strong>1–4</strong> — no feral check yet.</li>
   <li>Park <strong>5</strong> — <strong>each</strong> of your claims rolls: <strong>50%</strong> chance to go <strong>feral</strong>.</li>
@@ -434,14 +445,14 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     id: "lab",
     title: "The Lab",
     html: `
-<p><strong>The Lab</strong> (header button) is a permanent playground on every build — including production. Use it to try roadmap minigames and drills <em>before</em> they show up mid-charter, and to jump into canned scenarios without starting a full free-play game.</p>
+<p><strong>The Lab</strong> (header button) is a playground on every build, including the live site. Use it to try drills and canned setups without flying a full expedition.</p>
 <ul>
   <li>Tap a <strong>category</strong> (Which is larger?, Minigames, End screens, Economy) to expand it; tap again to collapse.</li>
-  <li><strong>Which is larger?</strong> — one line per numbering system (Western, Eastern Arabic, Chinese, Korean, Hebrew, binary…). Only shipped packs run; others show <em>Soon</em>. Closing a drill returns you to the Lab; your charter is untouched.</li>
+  <li><strong>Which is larger?</strong> — one line per numbering system (Western, Eastern Arabic, Chinese, Korean, Hebrew, binary…). Only shipped packs run; others show <em>Soon</em>. Closing a drill returns you to the Lab. Your expedition is untouched.</li>
   <li><strong>Minigames</strong> — e.g. a single <strong>Gravity Duel</strong> practice setup.</li>
-  <li><strong>End screens / economy</strong> — canned charter states for UI and balance checks.</li>
+  <li><strong>End screens / economy</strong> — canned board states for UI and balance checks.</li>
 </ul>
-<p>Game scenarios that replace the board (duel, end screens, economy) do swap out the current charter. Pure drills (Which is larger?) do not.</p>
+<p>Game scenarios that replace the board (duel, end screens, economy) swap out the current expedition. Pure drills (Which is larger?) do not.</p>
 <p>We keep Lab visible on <strong>heliopoly.live</strong> on purpose — it is part of the product, not a dev-only cheat panel.</p>
 `,
   },

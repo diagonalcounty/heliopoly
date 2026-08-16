@@ -289,6 +289,7 @@ export function mountHandbook(root: HTMLElement): HandbookController {
 
 function migrateTopicId(id: string): string {
   if (id === "rival-pilots") return "rival-pilots-overview";
+  if (id === "charter-alerts") return "ledger-alerts";
   return id;
 }
 

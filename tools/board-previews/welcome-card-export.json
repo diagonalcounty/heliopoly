@@ -1,0 +1,18 @@
+{
+  "issue": 118,
+  "source": "ledger-cards",
+  "saved": "2026-08-16T19:55:00.000Z",
+  "note": "Approved iPad composition: nearly square, two-line title, board visible around the card. Live uses min(620px, 74%) × min(600px, 76%).",
+  "preset": "welcome",
+  "pinTop": 6,
+  "pinRight": 4.5,
+  "cardWPct": 74,
+  "cardHPct": 76,
+  "titleSize": 2.45,
+  "bodySize": 0.82,
+  "kickSize": 0.68,
+  "padX": 26,
+  "padY": 18,
+  "artFocus": 22,
+  "artSlot": "left"
+}

@@ -71,8 +71,8 @@ const BODY_DATA: Record<string, BodyData> = {
     insolation: "~1 361",
     insolationEarth: "1.00×",
     body: `
-<p>Earth is the charter's anchor. No deed changes hands here — the homeworld is the starting gate and the only resupply point for every rocket on the Mainline. Its gravity well (class 3) demands expensive leave burns, but every full circuit home pays charter credit and fresh depots.</p>
-<p>The <strong>solar constant</strong> at Earth's orbit defines the unit: ~1 361 W/m² at 1 AU. All other insolation figures on this page are ratios against this baseline. Earth's atmosphere and magnetic field make it the most habitable body in the system — which is why the charter starts here and ends nowhere.</p>`,
+<p>Earth is the ledger's home dock. No deed changes hands here — the homeworld is the starting gate and the only resupply point for every rocket on the Mainline. Its gravity well (class 3) demands expensive leave burns, but every full circuit home pays ledger cash and fresh depots.</p>
+<p>The <strong>solar constant</strong> at Earth's orbit defines the unit: ~1 361 W/m² at 1 AU. All other insolation figures on this page are ratios against this baseline. Earth's atmosphere and magnetic field make it the most habitable body in the system — which is why expeditions start here and never buy the planet.</p>`,
   },
   venus: {
     hook: "Twin of Earth — identical size, lethal atmosphere.",
@@ -82,7 +82,7 @@ const BODY_DATA: Record<string, BodyData> = {
     insolation: "~2 605",
     insolationEarth: "1.91×",
     body: `
-<p><strong>Venus</strong> is the hottest planet in the system despite being farther from the Sun than Mercury. A runaway greenhouse atmosphere of CO₂ at 92 bar surface pressure cooks the surface to 462 °C. In the charter era, Venus is valuable real estate for <strong>orbital refineries</strong> — close to the Sun, short transit time to Earth, and enough solar flux to power industrial batch processing.</p>
+<p><strong>Venus</strong> is the hottest planet in the system despite being farther from the Sun than Mercury. A runaway greenhouse atmosphere of CO₂ at 92 bar surface pressure cooks the surface to 462 °C. Venus is valuable real estate for <strong>orbital refineries</strong> — close to the Sun, short transit time to Earth, and enough solar flux to power industrial batch processing.</p>
 <p><strong>Insolation:</strong> ~2 605 W/m² (1.91× Earth). Solar panels here produce almost twice the power per square meter as Earth orbit, making Venus stations attractive for energy-intensive propellant cracking.</p>`,
   },
   mercury: {
@@ -94,7 +94,7 @@ const BODY_DATA: Record<string, BodyData> = {
     insolationEarth: "6.67×",
     body: `
 <p><strong>Mercury</strong> orbits the Sun every 88 days at 0.387 AU — the innermost deed on the board. Without atmosphere, its surface swings from −180 °C at night to 430 °C in daytime. The <strong>Caloris Basin</strong>, a 1 550 km impact crater, marks the hottest longitude.</p>
-<p><strong>Insolation:</strong> ~9 086 W/m² (6.67× Earth). Any charter pilot who lands here bathes in nearly seven times Earth's sunlight. The solar flux makes Mercury an ideal location for <strong>power-beaming</strong> and orbital smelters, but the gravity well (class 2) and extreme thermal cycling mean only well-funded operations survive.</p>`,
+<p><strong>Insolation:</strong> ~9 086 W/m² (6.67× Earth). Any pilot who lands here bathes in nearly seven times Earth's sunlight. The solar flux makes Mercury an ideal location for <strong>power-beaming</strong> and orbital smelters, but the gravity well (class 2) and extreme thermal cycling mean only well-funded operations survive.</p>`,
   },
   elon: {
     hook: "Mars-orbit hub — gateway to the outer system.",
@@ -127,7 +127,7 @@ const BODY_DATA: Record<string, BodyData> = {
     insolationEarth: "0.43×",
     body: `
 <p><strong>Phobos</strong> is the larger of Mars's two moons (27 × 22 × 18 km), an irregular lump that orbits just 6 000 km above the Martian surface — the closest moon to its planet in the system. It completes an orbit in 7.7 hours, rising and setting twice per Martian day. Its low gravity (class 1) makes it an easy departure point.</p>
-<p><strong>Insolation:</strong> ~586 W/m² (0.43× Earth — same as Mars). Phobos shares Mars's distance from the Sun. Its value to a charter pilot is low purchase price and minimal leave fuel, not solar harvest.</p>`,
+<p><strong>Insolation:</strong> ~586 W/m² (0.43× Earth — same as Mars). Phobos shares Mars's distance from the Sun. Its value to a pilot is low purchase price and minimal leave fuel, not solar harvest.</p>`,
   },
   deimos: {
     hook: "Mars's outer moon — a quieter, more distant rock.",
@@ -160,7 +160,7 @@ const BODY_DATA: Record<string, BodyData> = {
     insolationEarth: "0.037×",
     body: `
 <p><strong>Io</strong> is the innermost of Jupiter's four Galilean moons, slightly larger than Earth's Moon. Tidal flexing from Jupiter's immense gravity keeps its interior molten — over <strong>400 active volcanoes</strong> constantly resurface the moon with sulfur and silicate lava. The surface is colored in patchwork yellows, reds, and greens from allotropes of sulfur.</p>
-<p><strong>Insolation:</strong> ~50 W/m² (0.037× Earth). The same dim light as all Jupiter bodies. But Io's volcanic heat makes it geologically rich — <strong>hydrogen strikes</strong> are possible here per charter rules.</p>`,
+<p><strong>Insolation:</strong> ~50 W/m² (0.037× Earth). The same dim light as all Jupiter bodies. But Io's volcanic heat makes it geologically rich — <strong>hydrogen strikes</strong> are possible here.</p>`,
   },
   europa: {
     hook: "Ice moon with a subsurface ocean — the best hope for life.",
@@ -226,7 +226,7 @@ const BODY_DATA: Record<string, BodyData> = {
     insolationEarth: "0.011×",
     body: `
 <p><strong>Enceladus</strong> (504 km diameter) is one of the brightest objects in the system — its fresh ice surface reflects nearly 100% of incoming sunlight. The Cassini probe discovered <strong>cryovolcanic plumes</strong> erupting from the south polar region, fed by a subsurface liquid water ocean under 30–40 km of ice.</p>
-<p><strong>Insolation:</strong> ~15 W/m² (0.011× Earth). Despite its tiny size and remoteness, Enceladus is one of the most valuable resource nodes on the board: it qualifies for <strong>both methane and hydrogen strikes</strong>, the only body in the charter with dual gusher eligibility.</p>`,
+<p><strong>Insolation:</strong> ~15 W/m² (0.011× Earth). Despite its tiny size and remoteness, Enceladus is one of the most valuable resource nodes on the board: it qualifies for <strong>both methane and hydrogen strikes</strong>, the only body on the board with dual gusher eligibility.</p>`,
   },
   iapetus: {
     hook: "Saturn's two-toned moon — a walnut in the sky.",
@@ -312,13 +312,13 @@ export function planetoidsIndexTopic(): HandbookTopic {
     id: "planetoids-overview",
     title: "Overview",
     html: `
-<p>Every <strong>body on the Mainline</strong> appears here with its discovery history and solar-energy profile — a Civ-style civilopedia for the board beneath the rockets.</p>
-<p>Bodies are listed in <strong>board order</strong> (the direction traffic flows). Each entry notes:</p>
+<p>Every <strong>body on the Mainline</strong> has a page. First, why you care. Then, if you want it, the numbers (distance, sunlight).</p>
+<p>Bodies are listed in <strong>board order</strong>. Each entry notes:</p>
 <ul>
   <li>Discovery date and discoverer</li>
   <li>Distance from the Sun (AU)</li>
-  <li>Solar insolation (W/m² and × Earth)</li>
-  <li>Charter relevance</li>
+  <li>Sunlight (W/m² and × Earth)</li>
+  <li>Why it matters on the ledger</li>
 </ul>
 <p class="hint">Open a body entry below to read its full article.</p>
 <ul class="pilot-index">${items}</ul>

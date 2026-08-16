@@ -478,6 +478,21 @@ const announceTitle = document.getElementById("announce-title")!;
 const announceBody = document.getElementById("announce-body")!;
 let announceWaiters: Array<() => void> = [];
 
+/** Chance-card clerk pose (#113). 2:1 banners — heads and props in frame. */
+function announceArtFor(a: { kind: string; title: string }): string {
+  const t = a.title.toLowerCase();
+  if (a.kind === "gusher" || t.includes("struck") || t.includes("ice"))
+    return "/handbook/cards/banners/clerk-gusher.jpg";
+  if (a.kind === "leak" || t.includes("leak"))
+    return "/handbook/cards/banners/clerk-leak.jpg";
+  if (a.kind === "out") return "/handbook/cards/banners/clerk-out.jpg";
+  if (t.includes("tesla") || t.includes("roadster"))
+    return "/handbook/cards/banners/clerk-tesla.jpg";
+  if (t.includes("monolith")) return "/handbook/cards/banners/clerk-monolith.jpg";
+  if (t.includes("dividend")) return "/handbook/cards/banners/clerk-dividend.jpg";
+  return "/handbook/cards/banners/clerk-canonical.jpg";
+}
+
 function showAnnouncement(s: GameState): boolean {
   const a = s.pendingAnnouncement;
   if (!a) return false;
@@ -496,9 +511,14 @@ function showAnnouncement(s: GameState): boolean {
         ? "Propellant failure"
         : a.kind === "out"
           ? "Elimination"
-          : "Charter alert";
+          : "Ledger event";
   announceTitle.textContent = a.title;
   announceBody.textContent = a.body;
+  const art = document.getElementById("announce-art");
+  if (art) {
+    art.hidden = false;
+    art.style.backgroundImage = `url("${announceArtFor(a)}")`;
+  }
   return true;
 }
 
@@ -552,8 +572,8 @@ function setSetupCollapsed(showStandings: boolean): void {
     // Mid-game setup: allow return to standings without launching
     setupToggle.classList.remove("hidden");
     setupToggle.textContent = "Standings";
-    setupToggle.title = "Back to charter standings";
-    setupToggle.setAttribute("aria-label", "Back to charter standings");
+    setupToggle.title = "Back to the ledger";
+    setupToggle.setAttribute("aria-label", "Back to the ledger");
     setupToggle.setAttribute("aria-expanded", "true");
   } else {
     // Pre-launch: setup is the only content; hide header control
@@ -1005,16 +1025,17 @@ function endScreenStory(s: GameState, winner: Player | undefined): string {
   const reason =
     s.endReason ??
     "Among the orbital lanes, one enterprise outlasted the rest.";
-  const lengthBit = ` Charter lasted ${s.round} round${s.round === 1 ? "" : "s"}.`;
+  const lengthBit = ` The ledger ran ${s.round} round${s.round === 1 ? "" : "s"}.`;
   if (!winner) return reason + lengthBit;
   const nw = formatMoney(netWorth(s, winner));
   const deeds = winner.properties.length;
   const depots = winner.properties.filter((id) => s.stations[id]).length;
+  const history = ` The ledger writes ${winner.name} as one of the greatest of all kind.`;
   const empire =
     deeds > 0 || depots > 0
       ? ` Closing books: ${nw} net worth · ${deeds} claim${deeds === 1 ? "" : "s"} · ${depots} depot${depots === 1 ? "" : "s"}.`
       : ` Closing books: ${nw} net worth.`;
-  return reason + lengthBit + empire;
+  return reason + history + lengthBit + empire;
 }
 
 function showEndScreen(s: GameState): void {
@@ -1023,10 +1044,10 @@ function showEndScreen(s: GameState): void {
   const kicker = document.querySelector(".end-kicker") as HTMLElement | null;
   if (kicker) {
     kicker.textContent = winner
-      ? "Free enterprise decides"
-      : "The charter is sealed";
+      ? "Greatest of all kind"
+      : "The ledger records";
   }
-  endTitle.textContent = winner ? prevailsHeadline(winner) : "The Charter Closes";
+  endTitle.textContent = winner ? prevailsHeadline(winner) : "The ledger closes";
   endStory.textContent = endScreenStory(s, winner);
   // Full field: flying first (by NW), then eliminated by exit round (earliest first)
   const flying = s.players
@@ -1182,6 +1203,7 @@ async function runAiUntilHumanOrEnd(s: GameState): Promise<GameState> {
 }
 
 async function commitState(next: GameState): Promise<void> {
+  hideWelcomeCard();
   state = next;
   setSetupCollapsed(true);
   btnQuit.classList.remove("hidden");
@@ -1324,8 +1346,13 @@ async function act(action: PlayerAction): Promise<void> {
   }
 }
 
+function hideWelcomeCard(): void {
+  document.getElementById("welcome-card")?.classList.add("hidden");
+}
+
 function startGame(human: boolean): void {
   if (animating) return;
+  hideWelcomeCard();
   visualNode = {};
   void commitState(
     createGame({
@@ -1763,6 +1790,7 @@ setupToggle.addEventListener("click", () => {
 btnNew.addEventListener("click", () => startGame(includeHuman.checked));
 btnSelf.addEventListener("click", () => {
   if (animating) return;
+  hideWelcomeCard();
   includeHuman.checked = false;
   visualNode = {};
   let s = createGame({
@@ -1788,7 +1816,7 @@ btnSelf.addEventListener("click", () => {
 
 btnQuit.addEventListener("click", () => {
   if (!state || animating) return;
-  if (!confirm("Abandon the charter and quit this game?")) return;
+  if (!confirm("Quit this expedition? The ledger will not write a winner.")) return;
   const human = state.players.find((p) => p.agent === "human");
   state = resignGame(state, human?.id ?? state.players[0].id);
   render();
@@ -1858,13 +1886,6 @@ function requestCourse(
   const legal = getLegalActions(state);
   if (!legal.setDirection || !p.canBidirectional || p.directionLocked) return;
   if (p.moveDirection === direction) return;
-  if (direction === "backward") {
-    const ok = confirm(
-      "Set retrograde course for this charter?\n\n" +
-        "You will fly the Mainline in reverse. This locks after your next Move.",
-    );
-    if (!ok) return;
-  }
   void act({ type: "set_direction", direction });
 }
 
@@ -1935,6 +1956,7 @@ function fitBoardToViewport(): void {
   const top = document.querySelector(".top") as HTMLElement | null;
   const layout = document.querySelector(".layout") as HTMLElement | null;
   const boardPanel = document.querySelector(".board-panel") as HTMLElement | null;
+  const boardStage = document.querySelector(".board-stage") as HTMLElement | null;
   if (!canvas || !top) return;
 
   const vv = window.visualViewport;
@@ -1958,6 +1980,8 @@ function fitBoardToViewport(): void {
     canvas.style.removeProperty("height");
     canvas.style.removeProperty("max-width");
     canvas.style.removeProperty("max-height");
+    boardStage?.style.removeProperty("width");
+    boardStage?.style.removeProperty("height");
     boardPanel?.style.removeProperty("max-height");
     boardPanel?.style.removeProperty("height");
     layout?.style.removeProperty("height");
@@ -1991,20 +2015,24 @@ function fitBoardToViewport(): void {
   let availW = Math.floor(vw * 0.65);
   if (boardPanel) {
     const r = boardPanel.getBoundingClientRect();
-    if (r.width > 48) availW = Math.floor(r.width - 10);
+    if (r.width > 48) availW = Math.floor(r.width);
   }
   const panelH =
     boardPanel && boardPanel.clientHeight > 40
-      ? boardPanel.clientHeight - 8
-      : layoutH - 8;
+      ? boardPanel.clientHeight
+      : layoutH;
 
   // Square must fit BOTH axes of the play strip (this is the squish)
-  const side = Math.max(140, Math.min(availW, panelH, layoutH - 8));
+  const side = Math.max(140, Math.min(availW, panelH, layoutH));
 
-  canvas.style.setProperty("width", `${side}px`, "important");
-  canvas.style.setProperty("height", `${side}px`, "important");
-  canvas.style.setProperty("max-width", `${side}px`, "important");
-  canvas.style.setProperty("max-height", `${side}px`, "important");
+  if (boardStage) {
+    boardStage.style.width = `${side}px`;
+    boardStage.style.height = `${side}px`;
+  }
+  canvas.style.setProperty("width", "100%", "important");
+  canvas.style.setProperty("height", "100%", "important");
+  canvas.style.setProperty("max-width", "100%", "important");
+  canvas.style.setProperty("max-height", "100%", "important");
   document.documentElement.style.setProperty("--board-fit", `${side}px`);
 }
 
@@ -2118,7 +2146,7 @@ function renderSide(): void {
           : "";
       const kickAttr =
         kickable !== ""
-          ? ` data-kick-id="${pl.id}" role="button" tabindex="0" title="Kick ${pl.name} out of the charter"`
+          ? ` data-kick-id="${pl.id}" role="button" tabindex="0" title="Kick ${pl.name} off the ledger"`
           : "";
       // Single-line markup: avoids anonymous whitespace grid items if pre-wrap sneaks back
       return `<div class="rank-row${lead}${active ? " active" : ""}${pl.eliminated ? " out" : ""}${atRisk.atRisk ? " at-risk" : ""}${kickable}"${kickAttr}><div class="swatch" style="background:${pl.color}" aria-hidden="true"></div><div class="rank-body"><div class="rank-top"><span class="rank-id">${rankLabel} ${rocketNameButton(pl.name)}${skip} · <span class="rank-prop">${plProp}</span>${riskBadge}</span><span class="rank-money"><span class="cash">${formatMoney(pl.cash)} cash</span> · NW ${formatMoney(worth)}</span></div><div class="rank-detail"><span class="fuel-bar${barTone}" title="Fuel ${pl.fuel} / ${maxFuel}" aria-label="Fuel ${pl.fuel} of ${maxFuel}">${bar}</span> <span class="fuel-n">${pl.fuel}</span> fuel · ${pl.properties.length} claims · ${at}</div></div></div>`;
@@ -2442,6 +2470,37 @@ function hitRouteStopAt(sx: number, sy: number): RouteStopHit | null {
     }
   }
   return bestSeg;
+}
+
+/** Board token (#110): classic teardrop hull + three swept fins. */
+function drawRocketToken(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  color: string,
+  moving: boolean,
+): void {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.beginPath();
+  ctx.moveTo(0, -11);
+  ctx.bezierCurveTo(2.8, -11, 4.2, -6, 4.0, 1.2);
+  ctx.bezierCurveTo(5.8, 2.4, 7.4, 5.0, 7.4, 8.0);
+  ctx.bezierCurveTo(5.6, 6.8, 4.0, 6.0, 2.6, 5.6);
+  ctx.bezierCurveTo(2.4, 7.2, 1.4, 8.8, 0, 9.6);
+  ctx.bezierCurveTo(-1.4, 8.8, -2.4, 7.2, -2.6, 5.6);
+  ctx.bezierCurveTo(-4.0, 6.0, -5.6, 6.8, -7.4, 8.0);
+  ctx.bezierCurveTo(-7.4, 5.0, -5.8, 2.4, -4.0, 1.2);
+  ctx.bezierCurveTo(-4.2, -6, -2.8, -11, 0, -11);
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.strokeStyle = moving ? "#ffc857" : "#fff";
+  ctx.lineWidth = moving ? 2 : 1.15;
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+  ctx.stroke();
+  ctx.restore();
 }
 
 function drawBoard(): void {
@@ -2782,16 +2841,7 @@ function drawBoard(): void {
         const x = px(node) + Math.cos(ang) * 18;
         const y = py(node) + Math.sin(ang) * 18;
         const moving = visualNode[pl.id] !== undefined;
-        ctx.beginPath();
-        ctx.moveTo(x, y - 9);
-        ctx.lineTo(x + 7, y + 7);
-        ctx.lineTo(x - 7, y + 7);
-        ctx.closePath();
-        ctx.fillStyle = pl.color;
-        ctx.fill();
-        ctx.strokeStyle = moving ? "#ffc857" : "#fff";
-        ctx.lineWidth = moving ? 2 : 1;
-        ctx.stroke();
+        drawRocketToken(ctx, x, y, pl.color, moving);
       });
     }
   }
