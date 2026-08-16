@@ -1371,21 +1371,20 @@ body.handbook-open {
   min-height: 0;
 }
 
-/* #118 — from tools/board-previews/ledger-cards.html#welcome JSON.
-   pinTop/pinRight/cardW/type map 1:1. Height follows copy. Tweak there, not here. */
+/* #118 — locked from ledger-cards.html#welcome JSON 2026-08-16T19:22:15Z */
 .welcome-card {
   position: absolute;
   z-index: 5;
-  top: 45px;
-  right: 45px;
+  top: 46px;
+  right: 42px;
   left: auto;
   bottom: auto;
   display: grid;
   grid-template-columns: 42% 1fr;
   align-items: stretch;
-  width: min(360px, calc(100% - 45px));
-  height: auto;
-  max-height: calc(100% - 45px);
+  width: min(412px, calc(100% - 42px));
+  height: 396px;
+  max-height: calc(100% - 46px);
   overflow: hidden;
   padding: 0;
   pointer-events: none;
@@ -1393,6 +1392,8 @@ body.handbook-open {
   transform-origin: top right;
   border-radius: 14px;
   border-width: 6px;
+  border-color: #aa7942;
+  background: #0c101c;
 }
 
 .welcome-card.hidden {
@@ -1420,7 +1421,7 @@ body.handbook-open {
 
 .welcome-card h2 {
   margin: 10px 0 12px;
-  font-size: 1.55rem;
+  font-size: 1.65rem;
 }
 
 .welcome-card .announce-body {
