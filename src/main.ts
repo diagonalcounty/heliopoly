@@ -496,7 +496,7 @@ function showAnnouncement(s: GameState): boolean {
         ? "Propellant failure"
         : a.kind === "out"
           ? "Elimination"
-          : "Charter alert";
+          : "Ledger event";
   announceTitle.textContent = a.title;
   announceBody.textContent = a.body;
   return true;
@@ -552,8 +552,8 @@ function setSetupCollapsed(showStandings: boolean): void {
     // Mid-game setup: allow return to standings without launching
     setupToggle.classList.remove("hidden");
     setupToggle.textContent = "Standings";
-    setupToggle.title = "Back to charter standings";
-    setupToggle.setAttribute("aria-label", "Back to charter standings");
+    setupToggle.title = "Back to the ledger";
+    setupToggle.setAttribute("aria-label", "Back to the ledger");
     setupToggle.setAttribute("aria-expanded", "true");
   } else {
     // Pre-launch: setup is the only content; hide header control
@@ -1005,16 +1005,17 @@ function endScreenStory(s: GameState, winner: Player | undefined): string {
   const reason =
     s.endReason ??
     "Among the orbital lanes, one enterprise outlasted the rest.";
-  const lengthBit = ` Charter lasted ${s.round} round${s.round === 1 ? "" : "s"}.`;
+  const lengthBit = ` The ledger ran ${s.round} round${s.round === 1 ? "" : "s"}.`;
   if (!winner) return reason + lengthBit;
   const nw = formatMoney(netWorth(s, winner));
   const deeds = winner.properties.length;
   const depots = winner.properties.filter((id) => s.stations[id]).length;
+  const history = ` The ledger writes ${winner.name} as one of the greatest of all kind.`;
   const empire =
     deeds > 0 || depots > 0
       ? ` Closing books: ${nw} net worth · ${deeds} claim${deeds === 1 ? "" : "s"} · ${depots} depot${depots === 1 ? "" : "s"}.`
       : ` Closing books: ${nw} net worth.`;
-  return reason + lengthBit + empire;
+  return reason + history + lengthBit + empire;
 }
 
 function showEndScreen(s: GameState): void {
@@ -1023,10 +1024,10 @@ function showEndScreen(s: GameState): void {
   const kicker = document.querySelector(".end-kicker") as HTMLElement | null;
   if (kicker) {
     kicker.textContent = winner
-      ? "Free enterprise decides"
-      : "The charter is sealed";
+      ? "Greatest of all kind"
+      : "The ledger records";
   }
-  endTitle.textContent = winner ? prevailsHeadline(winner) : "The Charter Closes";
+  endTitle.textContent = winner ? prevailsHeadline(winner) : "The ledger closes";
   endStory.textContent = endScreenStory(s, winner);
   // Full field: flying first (by NW), then eliminated by exit round (earliest first)
   const flying = s.players
@@ -1788,7 +1789,7 @@ btnSelf.addEventListener("click", () => {
 
 btnQuit.addEventListener("click", () => {
   if (!state || animating) return;
-  if (!confirm("Abandon the charter and quit this game?")) return;
+  if (!confirm("Quit this expedition? The ledger will not write a winner.")) return;
   const human = state.players.find((p) => p.agent === "human");
   state = resignGame(state, human?.id ?? state.players[0].id);
   render();
@@ -2111,7 +2112,7 @@ function renderSide(): void {
           : "";
       const kickAttr =
         kickable !== ""
-          ? ` data-kick-id="${pl.id}" role="button" tabindex="0" title="Kick ${pl.name} out of the charter"`
+          ? ` data-kick-id="${pl.id}" role="button" tabindex="0" title="Kick ${pl.name} off the ledger"`
           : "";
       // Single-line markup: avoids anonymous whitespace grid items if pre-wrap sneaks back
       return `<div class="rank-row${lead}${active ? " active" : ""}${pl.eliminated ? " out" : ""}${atRisk.atRisk ? " at-risk" : ""}${kickable}"${kickAttr}><div class="swatch" style="background:${pl.color}" aria-hidden="true"></div><div class="rank-body"><div class="rank-top"><span class="rank-id">${rankLabel} ${rocketNameButton(pl.name)}${skip} · <span class="rank-prop">${plProp}</span>${riskBadge}</span><span class="rank-money"><span class="cash">${formatMoney(pl.cash)} cash</span> · NW ${formatMoney(worth)}</span></div><div class="rank-detail"><span class="fuel-bar${barTone}" title="Fuel ${pl.fuel} / ${maxFuel}" aria-label="Fuel ${pl.fuel} of ${maxFuel}">${bar}</span> <span class="fuel-n">${pl.fuel}</span> fuel · ${pl.properties.length} claims · ${at}</div></div></div>`;

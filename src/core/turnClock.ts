@@ -231,11 +231,11 @@ function fireMonolith(state: GameState): void {
     body: [
       "A black slab has been catalogued on the lunar farside.",
       `Every active rocket: one-time ${formatMoney(MONOLITH_EARTH_BONUS)} on your next Earth land or pass.`,
-      `(${list.length} charter(s) marked.)`,
+      `(${list.length} rocket(s) marked.)`,
     ].join("\n"),
   };
   state.log.push(
-    `Charter alert: Monolith — next Earth visit pays +${formatMoney(MONOLITH_EARTH_BONUS)} once per rocket.`,
+    `Ledger event: Monolith — next Earth visit pays +${formatMoney(MONOLITH_EARTH_BONUS)} once per rocket.`,
   );
 }
 
@@ -253,7 +253,7 @@ function fireMmsFreeBreak(state: GameState): void {
     ].join("\n"),
   };
   state.log.push(
-    "Charter alert: blue & brown M&Ms — one free brake on each rocket's next seat turn.",
+    "Ledger event: blue & brown M&Ms — one free brake on each rocket's next seat turn.",
   );
 }
 
@@ -271,7 +271,7 @@ function fireKingsQuest(state: GameState): void {
     ].join("\n"),
   };
   state.log.push(
-    "Charter alert: King's Quest — one board-wide warp charge per active rocket (click destination).",
+    "Ledger event: King's Quest — one board-wide warp charge per active rocket (click destination).",
   );
 }
 
@@ -290,7 +290,7 @@ function fireStrongBadEmail(state: GameState): void {
     ].join("\n"),
   };
   state.log.push(
-    "Charter alert: Strong Bad Email — WARP — one board-wide warp charge per active rocket.",
+    "Ledger event: Strong Bad Email — WARP — one board-wide warp charge per active rocket.",
   );
 }
 
@@ -310,13 +310,13 @@ function fireHarlockFuel(state: GameState): void {
     kind: "info",
     title: "Arcadia on the Mainline",
     body: [
-      "Captain Harlock salutes free enterprise — the Arcadia dumps spare tanks for every charter.",
+      "Captain Harlock salutes free enterprise — the Arcadia dumps spare tanks for every rocket.",
       `Every active rocket: +${HARLOCK_FUEL_BONUS} fuel (capped at tank max ${maxF}).`,
       `(${list.length} rocket(s) topped.)`,
     ].join("\n"),
   };
   state.log.push(
-    `Charter alert: Captain Harlock / Arcadia — +${HARLOCK_FUEL_BONUS} fuel per active rocket.`,
+    `Ledger event: Captain Harlock / Arcadia — +${HARLOCK_FUEL_BONUS} fuel per active rocket.`,
   );
 }
 
@@ -334,7 +334,7 @@ function fireAsteroidDepot(state: GameState): void {
     ].join("\n"),
   };
   state.log.push(
-    `Charter alert: belt ice survey — +${ASTEROID_DEPOTS} depot in hand per active rocket.`,
+    `Ledger event: belt ice survey — +${ASTEROID_DEPOTS} depot in hand per active rocket.`,
   );
 }
 
@@ -351,7 +351,7 @@ function fireLedgerDividend(state: GameState): void {
     ].join("\n"),
   };
   state.log.push(
-    `Charter alert: AIL dividend — +${formatMoney(LEDGER_DIVIDEND_CASH)} per active rocket.`,
+    `Ledger event: AIL dividend — +${formatMoney(LEDGER_DIVIDEND_CASH)} per active rocket.`,
   );
 }
 
@@ -368,7 +368,7 @@ function fireCometFreeLeave(state: GameState): void {
     ].join("\n"),
   };
   state.log.push(
-    "Charter alert: comet dust — one free leave burn per active rocket.",
+    "Ledger event: comet dust — one free leave burn per active rocket.",
   );
 }
 
@@ -385,7 +385,7 @@ function fireRentHoliday(state: GameState): void {
     ].join("\n"),
   };
   state.log.push(
-    "Charter alert: port holiday — next rent payment waived once per active rocket.",
+    "Ledger event: port holiday — next rent payment waived once per active rocket.",
   );
 }
 
@@ -410,7 +410,7 @@ function fireRogueTesla(state: GameState): void {
     ].join("\n"),
   };
   state.log.push(
-    `Charter alert: rogue Tesla Roadster destroyed ${owner.name}'s claim on ${node.name}${hadDepot ? " (depot lost)" : ""}.`,
+    `Ledger event: rogue Tesla Roadster destroyed ${owner.name}'s claim on ${node.name}${hadDepot ? " (depot lost)" : ""}.`,
   );
 }
 
@@ -433,7 +433,7 @@ function fireOlbersStation(state: GameState): void {
     ].join("\n"),
   };
   state.log.push(
-    `Charter alert: Olbers award — ${chooser.name} may warp to a station hub for ${formatMoney(OLBERS_AWARD_CASH)}.`,
+    `Ledger event: Olbers award — ${chooser.name} may warp to a station hub for ${formatMoney(OLBERS_AWARD_CASH)}.`,
   );
 }
 
@@ -451,7 +451,7 @@ function fireKarenSkip(state: GameState): void {
     ].join("\n"),
   };
   state.log.push(
-    `Charter alert: Karen distraction — ${victim.name} will skip a turn.`,
+    `Ledger event: Karen distraction — ${victim.name} will skip a turn.`,
   );
 }
 
@@ -475,7 +475,7 @@ function fireBlockchainSteal(state: GameState): void {
     ].join("\n"),
   };
   state.log.push(
-    `Charter alert: blockchain reassignment — ${chooser.name} steals one opponent claim + depot.`,
+    `Ledger event: blockchain reassignment — ${chooser.name} steals one opponent claim + depot.`,
   );
 }
 
@@ -502,14 +502,14 @@ function fireVibeKick(state: GameState): void {
     title: "You vibe-coded the rules",
     body: [
       "You shipped a video game about monopoly in space. Congrats — you write the patch notes now.",
-      "Kick one rival rocket out of this charter.",
+      "Kick one rival rocket off the ledger.",
       chooser.agent === "human"
-        ? "Dismiss this, then click an AI rocket in Charter standings."
+        ? "Dismiss this, then click an AI rocket in standings."
         : `${chooser.name} will uninvite a rival.`,
     ].join("\n"),
   };
   state.log.push(
-    `Charter alert: vibe-code authority — ${chooser.name} may eliminate one rival.`,
+    `Ledger event: vibe-code authority — ${chooser.name} may eliminate one rival.`,
   );
   // Mark as fired via special id in firedIds
   if (!state.timedEvent.firedIds.includes("vibe_kick")) {
@@ -605,7 +605,7 @@ export function processTimedEvents(state: GameState): void {
       return;
     }
     state.log.push(
-      `Charter note: vibe-code authority did not unlock (round ${state.round}, 50% miss).`,
+      `Ledger note: vibe-code authority did not unlock (round ${state.round}, 50% miss).`,
     );
   }
 
