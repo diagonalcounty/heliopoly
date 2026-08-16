@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Heliopoly — ledger cards (#113)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700&family=Courier+Prime:wght@400;700&family=Limelight&family=Playfair+Display:wght@600&family=Special+Elite&family=Yesteryear&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    color-scheme: dark;
+    font-family: system-ui, sans-serif;
+    --bg: #0b1020;
+    --panel: #141b2f;
+    --border: #2a3555;
+    --text: #e8eefc;
+    --muted: #9aa8c7;
+    --accent: #6ec8ff;
+    --accent-2: #ffc857;
+    --ok: #5ddea0;
+    --danger: #ff6b7a;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); }
+  .nav {
+    display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center;
+    padding: 8px 14px; border-bottom: 1px solid var(--border);
+    font-size: 0.78rem; background: #0a0f1a;
+  }
+  .nav a { color: var(--accent); text-decoration: none; }
+  .nav a:hover { text-decoration: underline; }
+  .nav .here { color: var(--accent-2); font-weight: 600; }
+  .nav span.sep { color: var(--border); }
+  header { padding: 12px 16px; border-bottom: 1px solid var(--border); }
+  header h1 { margin: 0 0 6px; font-size: 1.1rem; }
+  header p { margin: 0; color: var(--muted); font-size: 0.86rem; max-width: 90ch; line-height: 1.45; }
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(280px, 380px) 1fr;
+    min-height: calc(100vh - 128px);
+  }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+  aside {
+    padding: 10px 12px 24px; border-right: 1px solid var(--border);
+    overflow-y: auto; font-size: 0.8rem; color: var(--muted);
+  }
+  aside h2 {
+    margin: 14px 0 8px; font-size: 0.7rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--accent-2);
+  }
+  aside h2:first-child { margin-top: 4px; }
+  label.row {
+    display: grid; grid-template-columns: 1fr auto; gap: 2px 8px;
+    align-items: center; margin-bottom: 8px;
+  }
+  label.row span.name { grid-column: 1 / -1; color: var(--text); font-size: 0.78rem; }
+  label.row input[type="range"] { width: 100%; grid-column: 1 / -1; }
+  label.row input[type="color"] { width: 100%; height: 28px; grid-column: 1 / -1; border: 0; background: none; padding: 0; }
+  label.row .val {
+    grid-column: 2; grid-row: 1; font-variant-numeric: tabular-nums;
+    color: var(--accent-2); min-width: 2.6rem; text-align: right;
+  }
+  .check { display: flex; align-items: center; gap: 8px; margin: 6px 0; color: var(--text); }
+  .hint { font-size: 0.74rem; line-height: 1.35; margin: 0 0 8px; }
+  select, .actions button, input[type="file"] {
+    font: inherit; color: var(--text); background: #1e2a48;
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 10px; width: 100%;
+  }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .actions button { width: auto; cursor: pointer; }
+  button.primary { background: #0e7490; border-color: #22d3ee; }
+  button:hover { border-color: var(--accent); }
+  #export, #cssExport {
+    width: 100%; min-height: 140px; max-height: 240px; resize: vertical;
+    font-family: ui-monospace, Menlo, monospace; font-size: 0.68rem;
+    background: #0a0f1a; color: #7dd3fc; border: 1px solid #1e3a5f;
+    border-radius: 8px; padding: 8px;
+  }
+  #cssExport { min-height: 110px; color: #c4b5fd; }
+  kbd { background: #1e2a48; border: 1px solid var(--border); border-radius: 4px; padding: 0 5px; font-size: 0.72rem; }
+  .font-preview {
+    margin: 6px 0 10px; padding: 8px 10px; border: 1px dashed var(--border);
+    color: var(--accent-2); line-height: 1.2;
+  }
+
+  main {
+    position: relative;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 28px 16px 40px; gap: 18px;
+    min-height: 70vh;
+  }
+  main[data-stage="overlay"] { background: rgba(4, 8, 18, 0.88); }
+  main[data-stage="stars"] {
+    background: radial-gradient(ellipse at top, #152044 0%, var(--bg) 55%);
+  }
+  main[data-stage="board"] {
+    background:
+      repeating-linear-gradient(0deg, rgba(255,200,87,0.03) 0 2px, transparent 2px 8px),
+      repeating-linear-gradient(90deg, rgba(110,200,255,0.03) 0 2px, transparent 2px 10px),
+      linear-gradient(180deg, #1a140c 0%, #0e0c08 100%);
+  }
+  main[data-stage="welcome"] {
+    display: block;
+    padding: 0;
+    min-height: 0;
+    background: #070b16;
+  }
+  .table {
+    display: none;
+    position: relative;
+    width: 100%;
+    max-height: calc(100vh - 128px);
+    overflow: hidden;
+  }
+  main[data-stage="welcome"] .table { display: block; }
+  main[data-stage="welcome"] .stage-label { display: none; }
+  .table-bg {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: calc(100vh - 128px);
+    object-fit: contain;
+    object-position: top center;
+  }
+  .board-hole {
+    position: absolute;
+    left: 2.5%;
+    top: 11%;
+    width: 61.6%;
+    height: 82%;
+    pointer-events: none;
+  }
+  .board-hole.debug {
+    outline: 1px dashed #6ec8ff;
+  }
+  main[data-stage="welcome"] .card-wrap {
+    position: absolute;
+    top: var(--pin-top, 6%);
+    right: var(--pin-right, 4.5%);
+    left: auto;
+    width: var(--card-w, 74%);
+    height: var(--card-h, 76%);
+    max-width: none;
+    max-height: none;
+    transform: rotate(var(--tilt, -2.5deg));
+    transform-origin: top right;
+    pointer-events: auto;
+    cursor: grab;
+    touch-action: none;
+  }
+  main[data-stage="welcome"] .card-wrap:active { cursor: grabbing; }
+  main[data-stage="welcome"] .announce-card {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    min-height: 0;
+  }
+  main[data-stage="welcome"] .announce-card .copy {
+    overflow: hidden;
+  }
+  main[data-stage="welcome"] .announce-card.slot-chance .art,
+  main[data-stage="welcome"] .announce-card.slot-left .art {
+    background-position: center var(--art-focus, 8%);
+    background-size: cover;
+  }
+  main[data-stage="welcome"] .announce-card button.continue { display: none; }
+  .welcome-resize {
+    display: none;
+    position: absolute;
+    left: -7px;
+    top: 22%;
+    bottom: 22%;
+    width: 14px;
+    z-index: 4;
+    cursor: ew-resize;
+    background: linear-gradient(90deg, transparent 5px, #ffc857 5px, #ffc857 9px, transparent 9px);
+  }
+  .welcome-resize-h {
+    display: none;
+    position: absolute;
+    left: 18%;
+    right: 18%;
+    bottom: -7px;
+    height: 14px;
+    z-index: 4;
+    cursor: ns-resize;
+    background: linear-gradient(180deg, transparent 5px, #ffc857 5px, #ffc857 9px, transparent 9px);
+  }
+  main[data-stage="welcome"] .welcome-resize,
+  main[data-stage="welcome"] .welcome-resize-h { display: block; }
+  .stage-label {
+    font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .card-wrap {
+    position: relative;
+    transform: rotate(var(--tilt, 0deg));
+    filter: drop-shadow(0 18px 40px rgba(0,0,0,0.55));
+  }
+  .pin {
+    display: none;
+    position: absolute;
+    top: -10px; left: 50%;
+    width: 16px; height: 16px;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #fff6, #c94c4c 45%, #4a1515);
+    box-shadow: 0 2px 0 #0008, 0 6px 10px #0006;
+    z-index: 3;
+  }
+  .card-wrap.show-pin .pin { display: block; }
+
+  .announce-card {
+    width: var(--card-w, 400px);
+    max-width: min(92vw, 560px);
+    text-align: var(--align, center);
+    padding: var(--pad-y, 24px) var(--pad-x, 20px) 20px;
+    border-radius: var(--radius, 4px);
+    border: var(--border-w, 3px) solid var(--ink-border, #c9a227);
+    background: var(--paper, #0c101c);
+    color: var(--ink-body, #d8d0b8);
+    box-shadow:
+      0 0 0 1px var(--inner-col, #3d2a10),
+      0 20px 60px rgba(0, 0, 0, 0.6);
+    font-family: var(--body-font, "Courier Prime", Courier, monospace);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .announce-card.slot-left,
+  .announce-card.slot-right {
+    display: grid;
+    grid-template-columns: var(--art-col, 42%) 1fr;
+    align-items: stretch;
+    padding: 0;
+  }
+  .announce-card.slot-right { grid-template-columns: 1fr var(--art-col, 42%); }
+  .announce-card.slot-left .copy,
+  .announce-card.slot-right .copy { padding: var(--pad-y, 20px) var(--pad-x, 18px); }
+
+  .announce-card.ruled::before {
+    content: "";
+    pointer-events: none;
+    position: absolute; inset: 0; z-index: 0;
+    background: repeating-linear-gradient(
+      180deg,
+      transparent 0 27px,
+      color-mix(in srgb, var(--ink-body) 12%, transparent) 27px 28px
+    );
+    opacity: 0.35;
+  }
+  .announce-card.perf { border-left-style: dashed; border-right-style: dashed; }
+  .announce-card.clip::after {
+    content: "";
+    position: absolute; top: -2px; right: -2px;
+    width: 22px; height: 22px;
+    background: linear-gradient(135deg, transparent 50%, #0b1020 51%);
+    z-index: 2;
+  }
+
+  .art {
+    display: none;
+    background: #080c16 center / cover no-repeat;
+    cursor: grab;
+    user-select: none;
+    z-index: 1;
+  }
+  .card-wrap.show-art .art { display: block; }
+  .art:active { cursor: grabbing; }
+  .announce-card.slot-chance .art {
+    height: var(--art-h, 168px);
+    width: 100%;
+    margin-bottom: 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--ink-border) 50%, transparent);
+  }
+  .announce-card.slot-chance .copy {
+    padding-top: 14px;
+  }
+  .announce-card.slot-left .art,
+  .announce-card.slot-right .art { height: auto; min-height: 220px; }
+  .announce-card.slot-right .art { order: 2; }
+  .announce-card.slot-watermark .art,
+  .announce-card.slot-custom .art,
+  .announce-card.slot-corner .art {
+    position: absolute;
+    width: var(--art-w, 140px);
+    height: var(--art-h, 140px);
+    left: var(--art-x, 50%);
+    top: var(--art-y, 18%);
+    transform: translate(-50%, -50%);
+    background-size: contain;
+    pointer-events: auto;
+  }
+  .announce-card.slot-watermark .art { opacity: var(--art-a, 0.22); }
+  .announce-card.slot-chance .art,
+  .announce-card.slot-left .art,
+  .announce-card.slot-right .art { opacity: var(--art-a, 1); }
+  .announce-card.slot-custom .art,
+  .announce-card.slot-corner .art { opacity: var(--art-a, 1); }
+
+  .copy { position: relative; z-index: 1; }
+  .stamp {
+    display: none;
+    position: absolute;
+    top: 10px; right: 12px;
+    width: 44px; height: 44px;
+    border: 2px solid var(--ink-kicker, #c9a227);
+    border-radius: 50%;
+    color: var(--ink-kicker, #c9a227);
+    font: 700 0.55rem/1.1 ui-monospace, Menlo, monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    align-items: center; justify-content: center;
+    text-align: center;
+    transform: rotate(12deg);
+    opacity: 0.85;
+    z-index: 2;
+  }
+  .card-wrap.show-stamp .stamp { display: flex; }
+
+  .announce-kicker {
+    margin: 0;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-size: var(--kick-size, 0.68rem);
+    color: var(--ink-kicker, #c9a227);
+    font-family: var(--kick-font, inherit);
+  }
+  .tone {
+    display: none;
+    margin: 8px 0 0;
+    font-size: 0.62rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--tone, #c9a227);
+  }
+  .card-wrap.show-tone .tone { display: block; }
+
+  .announce-card h2 {
+    margin: 10px 0 12px;
+    font-size: var(--title-size, 1.75rem);
+    letter-spacing: var(--title-track, 0.04em);
+    color: var(--ink-title, #f0e6c8);
+    font-family: var(--title-font, Georgia, "Times New Roman", serif);
+    font-weight: 600;
+    line-height: 1.15;
+  }
+  .announce-body {
+    margin: 0 0 18px;
+    color: var(--ink-body, #d8d0b8);
+    line-height: 1.5;
+    white-space: pre-line;
+    font-size: var(--body-size, 0.95rem);
+  }
+  .announce-card button.continue {
+    font: 600 0.85rem var(--body-font, inherit);
+    color: var(--bg);
+    background: var(--ink-kicker, #c9a227);
+    border: 0;
+    border-radius: 4px;
+    padding: 8px 16px;
+    cursor: default;
+  }
+  .announce-card.kind-gusher { --ink-border: var(--ok); --ink-kicker: var(--ok); --tone: var(--ok); }
+  .announce-card.kind-gusher h2 { color: var(--ok); }
+  .announce-card.kind-leak,
+  .announce-card.kind-out { --ink-border: var(--danger); --ink-kicker: var(--danger); --tone: var(--danger); }
+  .announce-card.kind-out h2 { color: var(--danger); }
+</style>
+</head>
+<body>
+<nav class="nav" aria-label="Board previews">
+  <a href="./difficulty-duration.html">Duration</a>
+  <span class="sep">·</span>
+  <a href="./elliptical-lanes.html">Lanes</a>
+  <span class="sep">·</span>
+  <a href="./ring-colors.html">Rings</a>
+  <span class="sep">·</span>
+  <a href="./board-mapper.html">Mapper</a>
+  <span class="sep">·</span>
+  <span class="here">Ledger cards</span>
+  <span class="sep">·</span>
+  <a href="./README.md">README</a>
+</nav>
+<header>
+  <h1>Ledger cards <span style="color:var(--muted);font-weight:500">(#113 playground)</span></h1>
+  <p>
+    Design ledger event cards, or open <a href="#welcome" style="color:var(--accent-2)">Welcome on the board</a>
+    to place the clerk briefing against a New game screenshot. Width and location live on that stage — drag the card, or use the sliders. Copy JSON when it looks right; the live game applies that JSON as CSS.
+  </p>
+</header>
+<div class="layout">
+  <aside>
+    <h2>Sample event</h2>
+    <select id="sample"></select>
+
+    <h2>Silhouette</h2>
+    <p class="hint">Presets reset knobs. Then tune.</p>
+    <select id="preset">
+      <option value="chance">Chance card (art on top)</option>
+      <option value="current">Current overlay (no art)</option>
+      <option value="slip">Ledger slip + stamp</option>
+      <option value="notice">Message-board notice</option>
+      <option value="index">Index card</option>
+      <option value="form">Printout form</option>
+      <option value="welcome">Welcome on the board (#118)</option>
+    </select>
+
+    <h2>Type</h2>
+    <p class="hint">Yesteryear ≈ Studebaker script. Limelight is deco chrome. Special Elite is a worn manual.</p>
+    <label class="row"><span class="name">Title face</span>
+      <select id="titleFace">
+        <option value="yesteryear">Yesteryear (Studebaker-like)</option>
+        <option value="limelight">Limelight (deco)</option>
+        <option value="shoulders">Big Shoulders (industrial)</option>
+        <option value="playfair">Playfair (manual serif)</option>
+        <option value="georgia">Georgia</option>
+        <option value="courier">Courier Prime</option>
+      </select>
+    </label>
+    <div class="font-preview" id="fontPreview" style="font-family:Yesteryear,cursive;font-size:1.6rem">Heliopoly</div>
+    <label class="row"><span class="name">Body face</span>
+      <select id="bodyFace">
+        <option value="courier">Courier Prime</option>
+        <option value="elite">Special Elite (worn typewriter)</option>
+        <option value="system">System UI</option>
+        <option value="georgia">Georgia</option>
+      </select>
+    </label>
+    <label class="row"><span class="name">Title size (rem)</span><span class="val" id="v_titleSize"></span>
+      <input type="range" id="titleSize" min="1.1" max="2.6" step="0.05" value="1.85"/></label>
+    <label class="row"><span class="name">Body size (rem)</span><span class="val" id="v_bodySize"></span>
+      <input type="range" id="bodySize" min="0.5" max="1.2" step="0.01" value="0.62"/></label>
+    <label class="row"><span class="name">Kicker size (rem)</span><span class="val" id="v_kickSize"></span>
+      <input type="range" id="kickSize" min="0.55" max="0.9" step="0.01" value="0.66"/></label>
+    <label class="check"><input type="checkbox" id="alignLeft"/> Left-align text</label>
+
+    <h2>Clerk graphic</h2>
+    <p class="hint">Like the Monopoly man on Chance. Each event has a pose. Drag the picture, or pick a slot then nudge X/Y.</p>
+    <label class="check"><input type="checkbox" id="showArt" checked/> Show graphic</label>
+    <label class="row"><span class="name">Slot</span>
+      <select id="artSlot">
+        <option value="chance">Top banner (classic Chance)</option>
+        <option value="left">Left column</option>
+        <option value="right">Right column</option>
+        <option value="corner">Corner (nudgeable)</option>
+        <option value="watermark">Watermark (nudgeable)</option>
+        <option value="custom">Free (drag / X-Y)</option>
+      </select>
+    </label>
+    <label class="row"><span class="name">Art width (px)</span><span class="val" id="v_artW"></span>
+      <input type="range" id="artW" min="72" max="280" step="2" value="168"/></label>
+    <label class="row"><span class="name">Art height (px)</span><span class="val" id="v_artH"></span>
+      <input type="range" id="artH" min="72" max="280" step="2" value="168"/></label>
+    <label class="row"><span class="name">Art X (%)</span><span class="val" id="v_artX"></span>
+      <input type="range" id="artX" min="0" max="100" step="1" value="50"/></label>
+    <label class="row"><span class="name">Art Y (%)</span><span class="val" id="v_artY"></span>
+      <input type="range" id="artY" min="0" max="100" step="1" value="22"/></label>
+    <label class="row"><span class="name">Art opacity</span><span class="val" id="v_artA"></span>
+      <input type="range" id="artA" min="0.1" max="1" step="0.02" value="1"/></label>
+    <label class="row"><span class="name">Replace this pose</span>
+      <input type="file" id="artFile" accept="image/*"/>
+    </label>
+
+    <h2>Stage / chrome</h2>
+    <select id="stage">
+      <option value="overlay">Game overlay (dim)</option>
+      <option value="stars">Star field</option>
+      <option value="board">Message board</option>
+      <option value="welcome">Welcome on New game board</option>
+    </select>
+    <div id="welcomeKnobs">
+      <p class="hint">
+        Percents of the board — same units as live <kbd>.welcome-card</kbd>.
+        Drag the card to move. Left gold bar = width. Bottom gold bar = height.
+      </p>
+      <label class="row"><span class="name">Top (% of board)</span><span class="val" id="v_pinTop"></span>
+        <input type="range" id="pinTop" min="0" max="20" step="0.5" value="5"/></label>
+      <label class="row"><span class="name">Right (% of board)</span><span class="val" id="v_pinRight"></span>
+        <input type="range" id="pinRight" min="0" max="20" step="0.5" value="4"/></label>
+      <label class="row"><span class="name">Width (% of board)</span><span class="val" id="v_cardWPct"></span>
+        <input type="range" id="cardWPct" min="40" max="96" step="1" value="88"/></label>
+      <label class="row"><span class="name">Height (% of board)</span><span class="val" id="v_cardHPct"></span>
+        <input type="range" id="cardHPct" min="40" max="96" step="1" value="84"/></label>
+      <label class="row"><span class="name">Art crop (0=face, 100=feet)</span><span class="val" id="v_artFocus"></span>
+        <input type="range" id="artFocus" min="0" max="50" step="1" value="8"/></label>
+      <label class="check"><input type="checkbox" id="showHole"/> Show board-hole outline</label>
+    </div>
+    <label class="row"><span class="name">Tilt (deg)</span><span class="val" id="v_tilt"></span>
+      <input type="range" id="tilt" min="-8" max="8" step="0.5" value="0"/></label>
+    <label class="check"><input type="checkbox" id="showPin"/> Pin</label>
+    <label class="check"><input type="checkbox" id="showStamp"/> AIL stamp</label>
+    <label class="check"><input type="checkbox" id="showTone"/> + / − tone mark</label>
+    <label class="check"><input type="checkbox" id="ruled"/> Ruled lines</label>
+    <label class="check"><input type="checkbox" id="perf"/> Perforated sides</label>
+    <label class="check"><input type="checkbox" id="clip"/> Clipped corner</label>
+
+    <h2>Size</h2>
+    <label class="row"><span class="name">Card width (px)</span><span class="val" id="v_cardW"></span>
+      <input type="range" id="cardW" min="240" max="720" step="4" value="360"/></label>
+    <label class="row"><span class="name">Card height (px, 0=auto)</span><span class="val" id="v_cardH"></span>
+      <input type="range" id="cardH" min="0" max="800" step="4" value="0"/></label>
+    <label class="row"><span class="name">Pad X</span><span class="val" id="v_padX"></span>
+      <input type="range" id="padX" min="10" max="40" step="1" value="20"/></label>
+    <label class="row"><span class="name">Pad Y</span><span class="val" id="v_padY"></span>
+      <input type="range" id="padY" min="10" max="40" step="1" value="18"/></label>
+    <label class="row"><span class="name">Corner radius</span><span class="val" id="v_radius"></span>
+      <input type="range" id="radius" min="0" max="20" step="1" value="4"/></label>
+    <label class="row"><span class="name">Border width</span><span class="val" id="v_borderW"></span>
+      <input type="range" id="borderW" min="1" max="8" step="1" value="3"/></label>
+
+    <h2>Ink / paper</h2>
+    <label class="row"><span class="name">Paper</span><span class="val"></span>
+      <input type="color" id="paper" value="#0c101c"/></label>
+    <label class="row"><span class="name">Border / foil</span><span class="val"></span>
+      <input type="color" id="inkBorder" value="#c9a227"/></label>
+    <label class="row"><span class="name">Kicker</span><span class="val"></span>
+      <input type="color" id="inkKicker" value="#c9a227"/></label>
+    <label class="row"><span class="name">Title</span><span class="val"></span>
+      <input type="color" id="inkTitle" value="#f0e6c8"/></label>
+    <label class="row"><span class="name">Body</span><span class="val"></span>
+      <input type="color" id="inkBody" value="#d8d0b8"/></label>
+
+    <h2>Export</h2>
+    <div class="actions">
+      <button type="button" class="primary" id="btnCopy">Copy JSON</button>
+      <button type="button" id="btnCss">Copy CSS</button>
+      <button type="button" id="btnDl">Download</button>
+    </div>
+    <textarea id="export" readonly></textarea>
+    <textarea id="cssExport" readonly style="margin-top:8px;min-height:110px"></textarea>
+    <p class="hint" style="margin-top:8px">Repo: <kbd>tools/board-previews/ledger-cards.html</kbd> · art in <kbd>cards/</kbd> · #113 · welcome #118</p>
+  </aside>
+  <main id="stageBox" data-stage="overlay">
+    <div class="table" id="table">
+      <img class="table-bg" src="./welcome-board-bg.jpg" alt="New game board"/>
+      <div class="board-hole" id="boardHole"></div>
+    </div>
+    <div class="stage-label" id="stageLabel">Game overlay · drag the clerk</div>
+    <div class="card-wrap show-art" id="wrap">
+      <span class="pin" aria-hidden="true"></span>
+      <div class="welcome-resize" id="welcomeResize" title="Drag to change width"></div>
+      <div class="welcome-resize-h" id="welcomeResizeH" title="Drag to change height"></div>
+      <div class="announce-card kind-info slot-chance" id="card">
+        <div class="art" id="art" title="Drag to place"></div>
+        <div class="copy">
+          <div class="stamp">AIL<br/>OK</div>
+          <p class="announce-kicker" id="kicker">Ledger event</p>
+          <p class="tone" id="tone">+</p>
+          <h2 id="title">Title</h2>
+          <p class="announce-body" id="body">Body</p>
+          <button type="button" class="continue">Continue</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<script>
+const TITLE_FONTS = {
+  yesteryear: '"Yesteryear", cursive',
+  limelight: '"Limelight", "Times New Roman", serif',
+  shoulders: '"Big Shoulders Display", Impact, sans-serif',
+  playfair: '"Playfair Display", Georgia, serif',
+  georgia: 'Georgia, "Times New Roman", serif',
+  courier: '"Courier Prime", Courier, monospace',
+};
+const BODY_FONTS = {
+  courier: '"Courier Prime", Courier, monospace',
+  elite: '"Special Elite", Courier, monospace',
+  system: "system-ui, sans-serif",
+  georgia: 'Georgia, "Times New Roman", serif',
+};
+
+const SAMPLES = {
+  tesla: {
+    kind: "info",
+    kicker: "Ledger event",
+    tone: "−",
+    title: "Rogue Tesla Roadster",
+    body: "A derelict Tesla Roadster dropped out of a long-transfer orbit and hit Ganymede.\nVenture's claim is gone — fuel depot destroyed.\n(Beyond Mars only. Stations dodge. Mars orbit is immune.)",
+    art: "./cards/banners/clerk-tesla.jpg",
+  },
+  monolith: {
+    kind: "info",
+    kicker: "Ledger event",
+    tone: "+",
+    title: "Monolith on Earth's Moon",
+    body: "A black slab has been catalogued on the lunar farside.\nEvery active rocket: one-time ⍼300 on your next Earth land or pass.",
+    art: "./cards/banners/clerk-monolith.jpg",
+  },
+  dividend: {
+    kind: "info",
+    kicker: "Ledger event",
+    tone: "+",
+    title: "Quantum ledger dividend",
+    body: "The AIL posts a universal dividend.\nEvery active rocket: +⍼250 now.",
+    art: "./cards/banners/clerk-dividend.jpg",
+  },
+  gusher: {
+    kind: "gusher",
+    kicker: "Resource strike",
+    tone: "+",
+    title: "You've struck ice!",
+    body: "Venture on Enceladus.\n⍼750 written to the ledger.\nYour depot tapped a natural fuel reservoir.",
+    art: "./cards/banners/clerk-gusher.jpg",
+  },
+  leak: {
+    kind: "leak",
+    kicker: "Propellant failure",
+    tone: "−",
+    title: "Hydrogen leak",
+    body: "Tanks ruptured on landing.\nHalf fuel gone. Skip next turn to repair.",
+    art: "./cards/banners/clerk-leak.jpg",
+  },
+  out: {
+    kind: "out",
+    kicker: "Elimination",
+    tone: "−",
+    title: "OUT!",
+    body: "Ada is off the ledger.\nBankrupt.\nRound 22.",
+    art: "./cards/banners/clerk-out.jpg",
+  },
+  welcome: {
+    kind: "info",
+    kicker: "Welcome",
+    tone: "+",
+    title: "The ledger is open",
+    body: "This book keeps two truths.\nContracts — who owns which world, who is owed.\nHistory — every rocket that lasted.\n\nOld Earth used public ledgers. Ethereum was one. Quantum machines broke those books.\n\nMoney here is Angzarr (\u237c). It is post-quantum. It still keeps a ledger.\n\nLast rocket flying is written as one of the greatest of all kind.\n\nName your rocket. Then Launch.",
+    art: "./cards/clerk-canonical.jpg",
+  },
+};
+
+const PRESETS = {
+  chance: {
+    stage: "overlay", tilt: 0, showPin: false, showStamp: false, showTone: false,
+    ruled: false, perf: false, clip: false, showArt: true, artSlot: "chance",
+    artW: 400, artH: 176, artX: 50, artY: 18, artA: 1,
+    cardW: 400, padX: 20, padY: 16, radius: 4, borderW: 3,
+    titleSize: 1.9, bodySize: 0.9, kickSize: 0.64,
+    titleFace: "yesteryear", bodyFace: "courier", alignLeft: false,
+    paper: "#0c101c", inkBorder: "#c9a227", inkKicker: "#c9a227",
+    inkTitle: "#f0e6c8", inkBody: "#d8d0b8",
+  },
+  current: {
+    stage: "overlay", tilt: 0, showPin: false, showStamp: false, showTone: false,
+    ruled: false, perf: false, clip: false, showArt: false, artSlot: "chance",
+    artW: 160, artH: 160, artX: 50, artY: 22, artA: 1,
+    cardW: 400, padX: 20, padY: 24, radius: 4, borderW: 3,
+    titleSize: 1.75, bodySize: 0.95, kickSize: 0.68,
+    titleFace: "georgia", bodyFace: "courier", alignLeft: false,
+    paper: "#0c101c", inkBorder: "#c9a227", inkKicker: "#c9a227",
+    inkTitle: "#f0e6c8", inkBody: "#d8d0b8",
+  },
+  slip: {
+    stage: "overlay", tilt: -1, showPin: false, showStamp: true, showTone: true,
+    ruled: false, perf: true, clip: false, showArt: true, artSlot: "right",
+    artW: 160, artH: 220, artX: 78, artY: 48, artA: 1,
+    cardW: 460, padX: 22, padY: 20, radius: 2, borderW: 2,
+    titleSize: 1.7, bodySize: 0.88, kickSize: 0.62,
+    titleFace: "yesteryear", bodyFace: "elite", alignLeft: true,
+    paper: "#14110c", inkBorder: "#c9a227", inkKicker: "#ffc857",
+    inkTitle: "#f0e6c8", inkBody: "#d8d0b8",
+  },
+  notice: {
+    stage: "board", tilt: -2.5, showPin: true, showStamp: false, showTone: true,
+    ruled: false, perf: false, clip: false, showArt: true, artSlot: "left",
+    artW: 150, artH: 220, artX: 22, artY: 48, artA: 1,
+    cardW: 440, padX: 18, padY: 18, radius: 1, borderW: 1,
+    titleSize: 1.65, bodySize: 0.9, kickSize: 0.64,
+    titleFace: "limelight", bodyFace: "system", alignLeft: true,
+    paper: "#1a2238", inkBorder: "#ffc857", inkKicker: "#ffc857",
+    inkTitle: "#e8eefc", inkBody: "#c5d0e8",
+  },
+  index: {
+    stage: "stars", tilt: 1, showPin: false, showStamp: false, showTone: true,
+    ruled: true, perf: false, clip: true, showArt: true, artSlot: "corner",
+    artW: 110, artH: 110, artX: 84, artY: 18, artA: 0.95,
+    cardW: 380, padX: 22, padY: 20, radius: 2, borderW: 1,
+    titleSize: 1.55, bodySize: 0.88, kickSize: 0.62,
+    titleFace: "shoulders", bodyFace: "elite", alignLeft: true,
+    paper: "#12182a", inkBorder: "#6ec8ff", inkKicker: "#6ec8ff",
+    inkTitle: "#e8eefc", inkBody: "#9aa8c7",
+  },
+  form: {
+    stage: "overlay", tilt: 0, showPin: false, showStamp: true, showTone: false,
+    ruled: false, perf: false, clip: false, showArt: true, artSlot: "watermark",
+    artW: 220, artH: 220, artX: 78, artY: 62, artA: 0.22,
+    cardW: 440, padX: 18, padY: 16, radius: 0, borderW: 2,
+    titleSize: 1.35, bodySize: 0.86, kickSize: 0.6,
+    titleFace: "courier", bodyFace: "courier", alignLeft: true,
+    paper: "#0a1020", inkBorder: "#6ec8ff", inkKicker: "#6ec8ff",
+    inkTitle: "#6ec8ff", inkBody: "#c5d0e8",
+  },
+  welcome: {
+    stage: "welcome", tilt: -2.5, showPin: false, showStamp: false, showTone: true,
+    ruled: false, perf: false, clip: true, showArt: true, artSlot: "left",
+    artW: 280, artH: 150, artX: 54, artY: 8, artA: 1,
+    cardW: 400, padX: 26, padY: 18, radius: 14, borderW: 6,
+    titleSize: 2.45, bodySize: 0.82, kickSize: 0.68, cardH: 0,
+    cardWPct: 74, cardHPct: 76,
+    titleFace: "limelight", bodyFace: "elite", alignLeft: false,
+    paper: "#0c101c", inkBorder: "#aa7942", inkKicker: "#c9a227",
+    inkTitle: "#f0e6c8", inkBody: "#d8d0b8",
+    pinTop: 6, pinRight: 4.5, artFocus: 22, showHole: false,
+  },
+};
+
+const $ = (id) => document.getElementById(id);
+const NUM = ["tilt","cardW","cardH","cardWPct","cardHPct","padX","padY","radius","borderW","titleSize","bodySize","kickSize","artW","artH","artX","artY","artA","pinTop","pinRight","artFocus"];
+const CHK = ["showPin","showStamp","showTone","ruled","perf","clip","alignLeft","showArt","showHole"];
+const COL = ["paper","inkBorder","inkKicker","inkTitle","inkBody"];
+const SEL = ["stage","artSlot","titleFace","bodyFace"];
+
+const overrides = {};
+const GLYPH = "\u237c";
+
+function applySample() {
+  const id = $("sample").value;
+  const s = SAMPLES[id] || SAMPLES.tesla;
+  const card = $("card");
+  card.classList.remove("kind-info","kind-gusher","kind-leak","kind-out");
+  card.classList.add("kind-" + s.kind);
+  $("kicker").textContent = s.kicker;
+  $("tone").textContent = s.tone;
+  $("title").textContent = s.title;
+  $("body").textContent = s.body;
+  const src = overrides[id] || s.art;
+  $("art").style.backgroundImage = src ? `url("${src}")` : "none";
+}
+
+function readState() {
+  const st = { preset: $("preset").value, sample: $("sample").value };
+  for (const k of SEL) st[k] = $(k).value;
+  for (const k of NUM) st[k] = Number($(k).value);
+  for (const k of CHK) st[k] = $(k).checked;
+  for (const k of COL) st[k] = $(k).value;
+  return st;
+}
+
+function writeState(st) {
+  for (const k of SEL) if (st[k] != null) $(k).value = st[k];
+  for (const k of NUM) if (st[k] != null) $(k).value = st[k];
+  for (const k of CHK) if (st[k] != null) $(k).checked = st[k];
+  for (const k of COL) if (st[k] != null) $(k).value = st[k];
+}
+
+function welcomeCss(st) {
+  const top = st.pinTop;
+  const right = st.pinRight;
+  const w = st.cardWPct ?? 88;
+  const h = st.cardHPct ?? 84;
+  return [
+    `/* from ledger-cards.html#welcome — percents of .board-panel */`,
+    `.welcome-card {`,
+    `  top: ${top}%;`,
+    `  right: ${right}%;`,
+    `  width: ${w}%;`,
+    `  height: ${h}%;`,
+    `  transform: rotate(${st.tilt}deg);`,
+    `  border-radius: ${st.radius}px;`,
+    `  border-width: ${st.borderW}px;`,
+    `  border-color: ${st.inkBorder};`,
+    `  background: ${st.paper};`,
+    `}`,
+    `.welcome-card .announce-copy { padding: ${st.padY}px ${st.padX}px; }`,
+    `.welcome-card .announce-kicker { font-size: ${st.kickSize}rem; }`,
+    `.welcome-card h2 { font-size: ${st.titleSize}rem; }`,
+    `.welcome-card .announce-body { font-size: ${st.bodySize}rem; line-height: 1.4; }`,
+    `.welcome-card .announce-art { background-position: center ${st.artFocus}%; }`,
+  ].join("\n");
+}
+
+function paint() {
+  const st = readState();
+  const wrap = $("wrap");
+  const card = $("card");
+  wrap.style.setProperty("--tilt", st.tilt + "deg");
+  wrap.classList.toggle("show-pin", st.showPin);
+  wrap.classList.toggle("show-stamp", st.showStamp);
+  wrap.classList.toggle("show-tone", st.showTone);
+  wrap.classList.toggle("show-art", st.showArt);
+  card.classList.toggle("ruled", st.ruled);
+  card.classList.toggle("perf", st.perf);
+  card.classList.toggle("clip", st.clip);
+  card.classList.remove("slot-chance","slot-left","slot-right","slot-corner","slot-watermark","slot-custom");
+  card.classList.add("slot-" + st.artSlot);
+  card.style.setProperty("--card-w", st.cardW + "px");
+  if (st.stage === "welcome") {
+    wrap.style.setProperty("--card-w", (st.cardWPct ?? 88) + "%");
+    wrap.style.setProperty("--card-h", (st.cardHPct ?? 84) + "%");
+    wrap.style.setProperty("--pin-top", (st.pinTop ?? 5) + "%");
+    wrap.style.setProperty("--pin-right", (st.pinRight ?? 4) + "%");
+  } else {
+    wrap.style.setProperty("--card-w", st.cardW + "px");
+    wrap.style.setProperty("--card-h", st.cardH ? st.cardH + "px" : "auto");
+  }
+  card.style.setProperty("--pad-x", st.padX + "px");
+  card.style.setProperty("--pad-y", st.padY + "px");
+  card.style.setProperty("--radius", st.radius + "px");
+  card.style.setProperty("--border-w", st.borderW + "px");
+  card.style.setProperty("--title-size", st.titleSize + "rem");
+  card.style.setProperty("--body-size", st.bodySize + "rem");
+  card.style.setProperty("--kick-size", st.kickSize + "rem");
+  card.style.setProperty("--paper", st.paper);
+  card.style.setProperty("--ink-border", st.inkBorder);
+  card.style.setProperty("--ink-kicker", st.inkKicker);
+  card.style.setProperty("--ink-title", st.inkTitle);
+  card.style.setProperty("--ink-body", st.inkBody);
+  card.style.setProperty("--align", st.alignLeft ? "left" : "center");
+  card.style.setProperty("--title-font", TITLE_FONTS[st.titleFace] || TITLE_FONTS.yesteryear);
+  card.style.setProperty("--body-font", BODY_FONTS[st.bodyFace] || BODY_FONTS.courier);
+  card.style.setProperty("--title-track", st.titleFace === "yesteryear" ? "0.02em" : "0.04em");
+  card.style.setProperty("--art-w", st.artW + "px");
+  card.style.setProperty("--art-h", st.artH + "px");
+  card.style.setProperty("--art-x", st.artX + "%");
+  card.style.setProperty("--art-y", st.artY + "%");
+  card.style.setProperty("--art-a", String(st.artA));
+  card.style.setProperty("--art-focus", (st.artFocus ?? 8) + "%");
+  if (st.stage !== "welcome") {
+    wrap.style.setProperty("--pin-top", (st.pinTop ?? 12) + "px");
+    wrap.style.setProperty("--pin-right", (st.pinRight ?? 16) + "px");
+  }
+  wrap.style.setProperty("--tilt", st.tilt + "deg");
+  $("stageBox").dataset.stage = st.stage;
+  const hole = $("boardHole");
+  const table = $("table");
+  if (st.stage === "welcome") {
+    if (wrap.parentElement !== hole) hole.appendChild(wrap);
+    hole.classList.toggle("debug", !!st.showHole);
+    $("welcomeKnobs").style.display = "";
+  } else {
+    if (wrap.parentElement !== $("stageBox")) $("stageBox").appendChild(wrap);
+    $("welcomeKnobs").style.display = "none";
+  }
+  $("stageLabel").textContent =
+    st.stage === "welcome"
+      ? "Welcome on New game — drag to move; left = width, bottom = height; sliders match live CSS"
+      : (st.stage === "board" ? "Message board" : st.stage === "stars" ? "Star field" : "Game overlay")
+        + " · drag the clerk";
+  $("fontPreview").style.fontFamily = TITLE_FONTS[st.titleFace];
+  $("fontPreview").textContent = $("title").textContent || "Heliopoly";
+  for (const k of NUM) {
+    const el = $("v_" + k);
+    if (!el) continue;
+    el.textContent = k === "cardH" && !st.cardH ? "auto" : String(st[k]);
+  }
+  $("export").value = JSON.stringify({
+    issue: st.stage === "welcome" ? 118 : 113,
+    source: "ledger-cards",
+    saved: new Date().toISOString(),
+    ...st,
+    liveCss: welcomeCss(st),
+  }, null, 2);
+  $("cssExport").value = welcomeCss(st);
+}
+
+function applyPreset() {
+  const p = PRESETS[$("preset").value];
+  if (!p) return;
+  writeState(p);
+  if ($("preset").value === "welcome") {
+    $("sample").value = "welcome";
+    applySample();
+  }
+  paint();
+}
+
+const sel = $("sample");
+for (const [id, s] of Object.entries(SAMPLES)) {
+  const o = document.createElement("option");
+  o.value = id;
+  o.textContent = s.title;
+  sel.appendChild(o);
+}
+sel.value = "tesla";
+
+$("preset").addEventListener("change", applyPreset);
+$("sample").addEventListener("change", () => { applySample(); paint(); });
+for (const k of [...NUM, ...CHK, ...COL, ...SEL]) {
+  $(k).addEventListener("input", paint);
+  $(k).addEventListener("change", paint);
+}
+
+$("artFile").addEventListener("change", (ev) => {
+  const f = ev.target.files && ev.target.files[0];
+  if (!f) return;
+  const url = URL.createObjectURL(f);
+  overrides[$("sample").value] = url;
+  applySample();
+  paint();
+});
+
+const artEl = $("art");
+let drag = null;
+artEl.addEventListener("pointerdown", (e) => {
+  e.preventDefault();
+  if ($("stage").value === "welcome") return;
+  $("artSlot").value = "custom";
+  const rect = $("card").getBoundingClientRect();
+  drag = { dx: e.clientX, dy: e.clientY, x: Number($("artX").value), y: Number($("artY").value), w: rect.width, h: rect.height };
+  artEl.setPointerCapture(e.pointerId);
+  paint();
+});
+artEl.addEventListener("pointermove", (e) => {
+  if (!drag) return;
+  $("artX").value = Math.max(0, Math.min(100, drag.x + ((e.clientX - drag.dx) / drag.w) * 100));
+  $("artY").value = Math.max(0, Math.min(100, drag.y + ((e.clientY - drag.dy) / drag.h) * 100));
+  paint();
+});
+artEl.addEventListener("pointerup", () => { drag = null; });
+
+const wrapEl = $("wrap");
+let pinDrag = null;
+wrapEl.addEventListener("pointerdown", (e) => {
+  if ($("stage").value !== "welcome") return;
+  if (e.target.closest("#welcomeResize") || e.target.closest("#welcomeResizeH")) return;
+  e.preventDefault();
+  const hole = $("boardHole").getBoundingClientRect();
+  pinDrag = {
+    x: e.clientX,
+    y: e.clientY,
+    top: Number($("pinTop").value),
+    right: Number($("pinRight").value),
+    hw: hole.width,
+    hh: hole.height,
+  };
+  wrapEl.setPointerCapture(e.pointerId);
+});
+wrapEl.addEventListener("pointermove", (e) => {
+  if (!pinDrag) return;
+  const top = Math.max(0, Math.min(20, pinDrag.top + ((e.clientY - pinDrag.y) / pinDrag.hh) * 100));
+  const right = Math.max(0, Math.min(20, pinDrag.right - ((e.clientX - pinDrag.x) / pinDrag.hw) * 100));
+  $("pinTop").value = String(Math.round(top * 2) / 2);
+  $("pinRight").value = String(Math.round(right * 2) / 2);
+  paint();
+});
+wrapEl.addEventListener("pointerup", () => { pinDrag = null; });
+wrapEl.addEventListener("pointercancel", () => { pinDrag = null; });
+
+const resizeEl = $("welcomeResize");
+let widthDrag = null;
+resizeEl.addEventListener("pointerdown", (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  const hole = $("boardHole").getBoundingClientRect();
+  widthDrag = { x: e.clientX, w: Number($("cardWPct").value), hw: hole.width };
+  resizeEl.setPointerCapture(e.pointerId);
+});
+resizeEl.addEventListener("pointermove", (e) => {
+  if (!widthDrag) return;
+  const next = Math.max(40, Math.min(96, widthDrag.w - ((e.clientX - widthDrag.x) / widthDrag.hw) * 100));
+  $("cardWPct").value = String(Math.round(next));
+  paint();
+});
+resizeEl.addEventListener("pointerup", () => { widthDrag = null; });
+resizeEl.addEventListener("pointercancel", () => { widthDrag = null; });
+
+const resizeHEl = $("welcomeResizeH");
+let heightDrag = null;
+resizeHEl.addEventListener("pointerdown", (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  const hole = $("boardHole").getBoundingClientRect();
+  heightDrag = { y: e.clientY, h: Number($("cardHPct").value), hh: hole.height };
+  resizeHEl.setPointerCapture(e.pointerId);
+});
+resizeHEl.addEventListener("pointermove", (e) => {
+  if (!heightDrag) return;
+  const next = Math.max(40, Math.min(96, heightDrag.h + ((e.clientY - heightDrag.y) / heightDrag.hh) * 100));
+  $("cardHPct").value = String(Math.round(next));
+  paint();
+});
+resizeHEl.addEventListener("pointerup", () => { heightDrag = null; });
+resizeHEl.addEventListener("pointercancel", () => { heightDrag = null; });
+
+$("btnCopy").addEventListener("click", async () => {
+  await navigator.clipboard.writeText($("export").value);
+  $("btnCopy").textContent = "Copied";
+  setTimeout(() => { $("btnCopy").textContent = "Copy JSON"; }, 1200);
+});
+$("btnCss").addEventListener("click", async () => {
+  await navigator.clipboard.writeText($("cssExport").value);
+  $("btnCss").textContent = "Copied";
+  setTimeout(() => { $("btnCss").textContent = "Copy CSS"; }, 1200);
+});
+$("btnDl").addEventListener("click", () => {
+  const blob = new Blob([$("export").value], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = $("stage").value === "welcome"
+    ? "welcome-card-export.json"
+    : "ledger-cards-export.json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+$("preset").value =
+  location.hash === "#welcome" || location.search.includes("welcome")
+    ? "welcome"
+    : "chance";
+applyPreset();
+applySample();
+paint();
+window.addEventListener("hashchange", () => {
+  if (location.hash === "#welcome") {
+    $("preset").value = "welcome";
+    applyPreset();
+  }
+});
+</script>
+</body>
+</html>

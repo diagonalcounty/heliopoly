@@ -196,7 +196,7 @@ function onCircuitComplete(state: GameState, pilot: Player): void {
     pilot.cash += EARTH_DECADE_BONUS;
     pushLog(
       state,
-      `${pilot.name} decade charter bonus (rotation ${pilot.circuitsCompleted}): +${formatMoney(EARTH_DECADE_BONUS)}.`,
+      `${pilot.name} decade ledger bonus (rotation ${pilot.circuitsCompleted}): +${formatMoney(EARTH_DECADE_BONUS)}.`,
     );
     delta(state, `+${formatMoney(EARTH_DECADE_BONUS)} decade rotation`);
   }
@@ -314,7 +314,7 @@ function eliminate(
   state.pendingAnnouncement = {
     kind: "out",
     title: "OUT!",
-    body: `${player.name} is out of the charter.\n${reason}\nRound ${state.round}.`,
+    body: `${player.name} is off the ledger.\n${reason}\nRound ${state.round}.`,
   };
   // Deeds return to bank; fuel depots destroyed
   for (const prop of [...player.properties]) {
@@ -360,7 +360,7 @@ function forceEndByRounds(state: GameState): boolean {
     alive[0],
     formatMoney(netWorth(state, alive[0])),
   );
-  state.endReason = `Charter term ended (round ${state.config.maxRounds}). ${lead}`;
+  state.endReason = `The ledger closed (round ${state.config.maxRounds}). ${lead}`;
   pushLog(
     state,
     `Round limit: ${alive[0].name} wins on net worth (${formatMoney(netWorth(state, alive[0]))}).`,
@@ -1584,7 +1584,7 @@ export function applyCharterKick(
   );
   pushLog(
     state,
-    `${chooser.name} patches the build: ${target.name} is out of the charter.`,
+    `${chooser.name} patches the build: ${target.name} is off the ledger.`,
   );
 }
 
@@ -1928,12 +1928,12 @@ export function resignGame(state: GameState, playerId: string): GameState {
   p.eliminated = true;
   p.eliminatedOnTurn = next.gameTurn;
   p.eliminatedOnRound = next.round;
-  p.eliminatedReason = "abandoned the charter";
+  p.eliminatedReason = "left the expedition";
   next.endReason = abandonedCharter(p);
   next.pendingAnnouncement = {
     kind: "out",
     title: "OUT!",
-    body: `${p.name} abandoned the charter.\nRound ${next.round}.`,
+    body: `${p.name} left the expedition.\nRound ${next.round}.`,
   };
   const others = livingPlayers(next).filter((x) => x.id !== playerId);
   if (others.length === 1) next.winnerId = others[0].id;

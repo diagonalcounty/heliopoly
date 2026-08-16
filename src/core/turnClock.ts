@@ -35,7 +35,7 @@ export const VIBE_KICK_CHANCE = 0.5;
 /** Karen distraction: only after this round (#107). */
 export const KAREN_MIN_ROUND = 30;
 
-const TESLA_MODELS = ["3", "Y", "S", "X", "Roadster"] as const;
+/** Falcon Heavy payload was a Tesla Roadster (Starman). Not a Model 3/Y/S/X. (#109) */
 
 export type TimedEventId =
   | "monolith"
@@ -121,9 +121,10 @@ function activeRockets(state: GameState): Player[] {
   return state.players.filter((p) => !p.eliminated);
 }
 
-function pickIndex(state: GameState, n: number): number {
+function pickIndex(state: GameState, n: number, salt = 0): number {
   if (n <= 0) return 0;
-  return Math.min(n - 1, Math.floor(charterEventRoll01(state) * n));
+  const u = (charterEventRoll01(state) + salt * 0.6180339887) % 1;
+  return Math.min(n - 1, Math.floor(u * n));
 }
 
 /** Mars orbit (Elon hub + Mars + moons) — immune to rogue Tesla (#107). */
@@ -132,18 +133,30 @@ export function isMarsOrbitNode(state: GameState, nodeId: string): boolean {
   return node?.group === "mars";
 }
 
-/** Owned deeds Tesla may hit: not Mars orbit. */
+/**
+ * Tesla hits only **beyond Mars** planetoids (#115).
+ * Stations (Holst / Daktulios / Elon) move out of the way.
+ * Fuel depots on moons/planets cannot.
+ */
+export const TESLA_TARGET_GROUPS = ["jupiter", "saturn"] as const;
+
+export function isTeslaTargetNode(state: GameState, nodeId: string): boolean {
+  if (isStationHub(nodeId)) return false;
+  const group = state.board.nodes[nodeId]?.group;
+  return group === "jupiter" || group === "saturn";
+}
+
+/** Owned Jupiter/Saturn deeds Tesla may hit. */
 export function teslaTargetClaims(state: GameState): string[] {
   const out: string[] = [];
   for (const [nodeId, ownerId] of Object.entries(state.owners)) {
     if (!ownerId) continue;
-    if (isMarsOrbitNode(state, nodeId)) continue;
+    if (!isTeslaTargetNode(state, nodeId)) continue;
     const node = state.board.nodes[nodeId];
-    if (!node || (node.kind !== "planet" && node.kind !== "moon" && node.kind !== "federation")) {
+    if (!node || (node.kind !== "planet" && node.kind !== "moon")) {
       continue;
     }
-    // Only real claims (price / purchasable-ish): hubs + planetoids with owners
-    if (node.price == null && node.kind !== "federation") continue;
+    if (node.price == null) continue;
     const owner = state.players.find((p) => p.id === ownerId && !p.eliminated);
     if (!owner) continue;
     out.push(nodeId);
@@ -189,7 +202,7 @@ function remainingPool(state: GameState): TimedEventId[] {
     if (fired.has(id)) return false;
     // Late-game only: Karen
     if (id === "karen_skip" && state.round < KAREN_MIN_ROUND) return false;
-    // Tesla needs a non-Mars owned claim
+    // Tesla needs an owned Jupiter/Saturn claim (#115)
     if (id === "rogue_tesla" && teslaTargetClaims(state).length === 0) return false;
     // Blockchain needs an opponent claim
     if (id === "blockchain_steal") {
@@ -218,11 +231,11 @@ function fireMonolith(state: GameState): void {
     body: [
       "A black slab has been catalogued on the lunar farside.",
       `Every active rocket: one-time ${formatMoney(MONOLITH_EARTH_BONUS)} on your next Earth land or pass.`,
-      `(${list.length} charter(s) marked.)`,
+      `(${list.length} rocket(s) marked.)`,
     ].join("\n"),
   };
   state.log.push(
-    `Charter alert: Monolith — next Earth visit pays +${formatMoney(MONOLITH_EARTH_BONUS)} once per rocket.`,
+    `Ledger event: Monolith — next Earth visit pays +${formatMoney(MONOLITH_EARTH_BONUS)} once per rocket.`,
   );
 }
 
@@ -240,7 +253,7 @@ function fireMmsFreeBreak(state: GameState): void {
     ].join("\n"),
   };
   state.log.push(
-    "Charter alert: blue & brown M&Ms — one free brake on each rocket's next seat turn.",
+    "Ledger event: blue & brown M&Ms — one free brake on each rocket's next seat turn.",
   );
 }
 
@@ -258,7 +271,7 @@ function fireKingsQuest(state: GameState): void {
     ].join("\n"),
   };
   state.log.push(
-    "Charter alert: King's Quest — one board-wide warp charge per active rocket (click destination).",
+    "Ledger event: King's Quest — one board-wide warp charge per active rocket (click destination).",
   );
 }
 
@@ -277,7 +290,7 @@ function fireStrongBadEmail(state: GameState): void {
     ].join("\n"),
   };
   state.log.push(
-    "Charter alert: Strong Bad Email — WARP — one board-wide warp charge per active rocket.",
+    "Ledger event: Strong Bad Email — WARP — one board-wide warp charge per active rocket.",
   );
 }
 
@@ -297,13 +310,13 @@ function fireHarlockFuel(state: GameState): void {
     kind: "info",
     title: "Arcadia on the Mainline",
     body: [
-      "Captain Harlock salutes free enterprise — the Arcadia dumps spare tanks for every charter.",
+      "Captain Harlock salutes free enterprise — the Arcadia dumps spare tanks for every rocket.",
       `Every active rocket: +${HARLOCK_FUEL_BONUS} fuel (capped at tank max ${maxF}).`,
       `(${list.length} rocket(s) topped.)`,
     ].join("\n"),
   };
   state.log.push(
-    `Charter alert: Captain Harlock / Arcadia — +${HARLOCK_FUEL_BONUS} fuel per active rocket.`,
+    `Ledger event: Captain Harlock / Arcadia — +${HARLOCK_FUEL_BONUS} fuel per active rocket.`,
   );
 }
 
@@ -321,7 +334,7 @@ function fireAsteroidDepot(state: GameState): void {
     ].join("\n"),
   };
   state.log.push(
-    `Charter alert: belt ice survey — +${ASTEROID_DEPOTS} depot in hand per active rocket.`,
+    `Ledger event: belt ice survey — +${ASTEROID_DEPOTS} depot in hand per active rocket.`,
   );
 }
 
@@ -338,7 +351,7 @@ function fireLedgerDividend(state: GameState): void {
     ].join("\n"),
   };
   state.log.push(
-    `Charter alert: AIL dividend — +${formatMoney(LEDGER_DIVIDEND_CASH)} per active rocket.`,
+    `Ledger event: AIL dividend — +${formatMoney(LEDGER_DIVIDEND_CASH)} per active rocket.`,
   );
 }
 
@@ -355,7 +368,7 @@ function fireCometFreeLeave(state: GameState): void {
     ].join("\n"),
   };
   state.log.push(
-    "Charter alert: comet dust — one free leave burn per active rocket.",
+    "Ledger event: comet dust — one free leave burn per active rocket.",
   );
 }
 
@@ -372,32 +385,32 @@ function fireRentHoliday(state: GameState): void {
     ].join("\n"),
   };
   state.log.push(
-    "Charter alert: port holiday — next rent payment waived once per active rocket.",
+    "Ledger event: port holiday — next rent payment waived once per active rocket.",
   );
 }
 
-/** #107 — Musk's roadster inspiration; Mars orbit immune. */
+/** #107 / #109 / #115 — Roadster; Jupiter+Saturn only (not Mars, not inner). */
 function fireRogueTesla(state: GameState): void {
   const targets = teslaTargetClaims(state);
   if (targets.length === 0) return;
-  const nodeId = targets[pickIndex(state, targets.length)]!;
+  // Separate mixer from the event-pick roll so the same 01 is not reused.
+  const nodeId = targets[pickIndex(state, targets.length, 1)]!;
   const node = state.board.nodes[nodeId]!;
   const ownerId = state.owners[nodeId]!;
   const owner = state.players.find((p) => p.id === ownerId)!;
   const hadDepot = !!state.stations[nodeId];
   stripClaimInline(state, nodeId);
-  const model = TESLA_MODELS[pickIndex(state, TESLA_MODELS.length)]!;
   state.pendingAnnouncement = {
     kind: "info",
-    title: `Rogue Tesla Model ${model}`,
+    title: "Rogue Tesla Roadster",
     body: [
-      `A derelict Tesla Model ${model} dropped out of a long-transfer orbit and hit ${node.name}.`,
+      `A derelict Tesla Roadster dropped out of a long-transfer orbit and hit ${node.name}.`,
       `${owner.name}'s claim is gone${hadDepot ? " — fuel depot destroyed" : ""}.`,
-      "(Mars orbit is hard-coded immune. Elon's car will not hit Elon.)",
+      "(Beyond Mars only. Stations dodge. Mars orbit is immune.)",
     ].join("\n"),
   };
   state.log.push(
-    `Charter alert: rogue Tesla Model ${model} destroyed ${owner.name}'s claim on ${node.name}${hadDepot ? " (depot lost)" : ""}.`,
+    `Ledger event: rogue Tesla Roadster destroyed ${owner.name}'s claim on ${node.name}${hadDepot ? " (depot lost)" : ""}.`,
   );
 }
 
@@ -420,7 +433,7 @@ function fireOlbersStation(state: GameState): void {
     ].join("\n"),
   };
   state.log.push(
-    `Charter alert: Olbers award — ${chooser.name} may warp to a station hub for ${formatMoney(OLBERS_AWARD_CASH)}.`,
+    `Ledger event: Olbers award — ${chooser.name} may warp to a station hub for ${formatMoney(OLBERS_AWARD_CASH)}.`,
   );
 }
 
@@ -438,7 +451,7 @@ function fireKarenSkip(state: GameState): void {
     ].join("\n"),
   };
   state.log.push(
-    `Charter alert: Karen distraction — ${victim.name} will skip a turn.`,
+    `Ledger event: Karen distraction — ${victim.name} will skip a turn.`,
   );
 }
 
@@ -462,7 +475,7 @@ function fireBlockchainSteal(state: GameState): void {
     ].join("\n"),
   };
   state.log.push(
-    `Charter alert: blockchain reassignment — ${chooser.name} steals one opponent claim + depot.`,
+    `Ledger event: blockchain reassignment — ${chooser.name} steals one opponent claim + depot.`,
   );
 }
 
@@ -489,14 +502,14 @@ function fireVibeKick(state: GameState): void {
     title: "You vibe-coded the rules",
     body: [
       "You shipped a video game about monopoly in space. Congrats — you write the patch notes now.",
-      "Kick one rival rocket out of this charter.",
+      "Kick one rival rocket off the ledger.",
       chooser.agent === "human"
-        ? "Dismiss this, then click an AI rocket in Charter standings."
+        ? "Dismiss this, then click an AI rocket in standings."
         : `${chooser.name} will uninvite a rival.`,
     ].join("\n"),
   };
   state.log.push(
-    `Charter alert: vibe-code authority — ${chooser.name} may eliminate one rival.`,
+    `Ledger event: vibe-code authority — ${chooser.name} may eliminate one rival.`,
   );
   // Mark as fired via special id in firedIds
   if (!state.timedEvent.firedIds.includes("vibe_kick")) {
@@ -592,7 +605,7 @@ export function processTimedEvents(state: GameState): void {
       return;
     }
     state.log.push(
-      `Charter note: vibe-code authority did not unlock (round ${state.round}, 50% miss).`,
+      `Ledger note: vibe-code authority did not unlock (round ${state.round}, 50% miss).`,
     );
   }
 

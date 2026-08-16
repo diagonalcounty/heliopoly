@@ -80,19 +80,47 @@
 
       <div class="layout">
         <section class="board-panel">
+          <div class="board-stage">
           <canvas
             id="board"
             width="900"
             height="900"
             aria-label="Solar system board"
           ></canvas>
+          <div
+            id="welcome-card"
+            class="announce-card welcome-card clip"
+            role="note"
+          >
+            <div
+              class="announce-art"
+              style="background-image: url('/handbook/cards/clerk-canonical.jpg')"
+            ></div>
+            <div class="announce-copy">
+              <p class="announce-kicker">Welcome</p>
+              <p class="tone">+</p>
+              <h2>The ledger is open</h2>
+              <p class="announce-body">This book keeps two truths.
+Contracts — who owns which world, who is owed.
+History — every rocket that lasted.
+
+Old Earth used public ledgers. Ethereum was one. Quantum machines broke those books.
+
+Money here is Angzarr (⍼). It is post-quantum. It still keeps a ledger.
+
+Last rocket flying is written as one of the greatest of all kind.
+
+Name your rocket. Then Launch.</p>
+            </div>
+          </div>
+          </div>
         </section>
 
         <aside class="side">
           <!-- Shared slot: standings XOR setup (same card real estate) -->
           <section class="card fleet-card mode-setup" id="fleet-card">
             <div id="standings-panel" class="fleet-panel" hidden>
-              <h2>Charter standings</h2>
+              <h2>On the ledger</h2>
               <p id="charter-choice-hint" class="charter-choice-hint hidden" role="status"></p>
               <div id="rankings" class="rankings">—</div>
             </div>
@@ -171,7 +199,7 @@
                 ></div>
               </div>
               <p class="hint" style="margin-top:4px">
-                Meter: estimated charter rounds vs a strong (hard/expert) pilot.
+                Meter: estimated rounds vs a strong (hard/expert) pilot.
                 Locked after Launch. Details: Ops Manual → AI difficulty.
               </p>
               <button id="btn-new" type="button" class="primary">Launch</button>
@@ -283,7 +311,7 @@
         <div class="lab-body">
           <p class="hint lab-intro">
             Tap a category to expand it, then pick an item. Drills under
-            <strong>Which is larger?</strong> leave your charter alone;
+            <strong>Which is larger?</strong> leave your expedition alone;
             scenarios under Minigames / End / Economy replace the current game.
           </p>
           <div id="lab-scenarios" class="lab-scenarios"></div>
@@ -485,20 +513,23 @@
     <!-- Legacy host for dismiss waiters (hidden; result is in-panel footer) -->
     <div id="duel-result" class="duel-result hidden" aria-hidden="true"></div>
 
-    <!-- Oregon Trail–style charter announcement (gusher, leak, …) -->
+    <!-- Ledger event announcement (gusher, leak, timed events) -->
     <div id="announce-root" class="announce-screen hidden" aria-live="assertive">
       <div class="announce-card" id="announce-card">
-        <p class="announce-kicker" id="announce-kicker">Charter alert</p>
-        <h2 id="announce-title">Alert</h2>
-        <p id="announce-body" class="announce-body"></p>
-        <button type="button" id="announce-ok" class="primary">Continue</button>
+        <div class="announce-art" id="announce-art" hidden></div>
+        <div class="announce-copy">
+          <p class="announce-kicker" id="announce-kicker">Ledger event</p>
+          <h2 id="announce-title">Alert</h2>
+          <p id="announce-body" class="announce-body"></p>
+          <button type="button" id="announce-ok" class="primary">Continue</button>
+        </div>
       </div>
     </div>
 
     <!-- End game (KQ-inspired) -->
     <div id="end-root" class="end-screen hidden" aria-hidden="true">
       <div class="end-inner">
-        <p class="end-kicker">The charter is sealed</p>
+        <p class="end-kicker">Written into the ledger</p>
         <h2 id="end-title">Heliopoly</h2>
         <p id="end-story" class="end-story"></p>
         <div id="end-ranks" class="end-ranks mono"></div>

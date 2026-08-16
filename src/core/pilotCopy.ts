@@ -45,8 +45,8 @@ export function lastPilotFlying(p: Pick<Player, "name" | "agent">): string {
 
 export function abandonedCharter(p: Pick<Player, "name" | "agent">): string {
   return isSecondPerson(p)
-    ? "You abandoned the charter."
-    : `${p.name} abandoned the charter.`;
+    ? "You left the expedition."
+    : `${p.name} left the expedition.`;
 }
 
 /** Round-limit / NW lead line with correct person. */
