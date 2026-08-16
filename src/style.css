@@ -1371,19 +1371,25 @@ body.handbook-open {
   min-height: 0;
 }
 
-/* #118 — clerk briefing on the upper-right of the board; Launch stays free */
+/* #118 — playground lock at 75% scale; left art, upper-right of board */
 .welcome-card {
   position: absolute;
   z-index: 5;
-  top: 12px;
-  right: 16px;
+  top: 9px;
+  right: 12px;
   left: auto;
+  display: grid;
+  grid-template-columns: 42% 1fr;
+  align-items: stretch;
+  width: min(270px, 42%);
+  max-height: calc(100% - 20px);
+  overflow: hidden;
+  padding: 0 0 0;
+  pointer-events: none;
   transform: rotate(-2.5deg);
   transform-origin: top right;
-  width: min(300px, 44%);
-  max-height: calc(100% - 24px);
-  overflow: auto;
-  pointer-events: none;
+  border-radius: 11px;
+  border-width: 5px;
 }
 
 .welcome-card.hidden {
@@ -1391,9 +1397,49 @@ body.handbook-open {
 }
 
 .welcome-card .announce-art {
-  height: 150px;
+  height: auto;
+  min-height: 100%;
   background-position: center 8%;
   background-size: cover;
+}
+
+.welcome-card .announce-copy {
+  padding: 8px 11px 10px;
+  text-align: center;
+}
+
+.welcome-card .announce-kicker {
+  font-size: 0.51rem;
+}
+
+.welcome-card h2 {
+  margin: 6px 0 8px;
+  font-size: 1.16rem;
+}
+
+.welcome-card .announce-body {
+  margin: 0;
+  font-size: 0.56rem;
+  line-height: 1.4;
+}
+
+.welcome-card .tone {
+  display: block;
+  margin: 4px 0 0;
+  font-size: 0.5rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #c9a227;
+}
+
+.welcome-card.clip::after {
+  content: "";
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 18px;
+  height: 18px;
+  background: linear-gradient(135deg, transparent 50%, #070b16 51%);
 }
 
 #board {
