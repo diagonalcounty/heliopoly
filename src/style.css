@@ -1371,25 +1371,25 @@ body.handbook-open {
   min-height: 0;
 }
 
-/* #118 — playground lock at 75% scale; left art, upper-right of board */
+/* #118 — playground lock at 100%. Stay off the sidebar (~90px) and ~45px from top. */
 .welcome-card {
   position: absolute;
   z-index: 5;
-  top: 9px;
-  right: 12px;
+  top: 45px;
+  right: 90px;
   left: auto;
   display: grid;
   grid-template-columns: 42% 1fr;
   align-items: stretch;
-  width: min(270px, 42%);
-  max-height: calc(100% - 20px);
+  width: min(360px, calc(100% - 90px - 36px));
+  max-height: calc(100% - 56px);
   overflow: hidden;
-  padding: 0 0 0;
+  padding: 0;
   pointer-events: none;
   transform: rotate(-2.5deg);
   transform-origin: top right;
-  border-radius: 11px;
-  border-width: 5px;
+  border-radius: 14px;
+  border-width: 6px;
 }
 
 .welcome-card.hidden {
@@ -1404,29 +1404,29 @@ body.handbook-open {
 }
 
 .welcome-card .announce-copy {
-  padding: 8px 11px 10px;
+  padding: 11px 20px 12px;
   text-align: center;
 }
 
 .welcome-card .announce-kicker {
-  font-size: 0.51rem;
+  font-size: 0.68rem;
 }
 
 .welcome-card h2 {
-  margin: 6px 0 8px;
-  font-size: 1.16rem;
+  margin: 8px 0 10px;
+  font-size: 1.55rem;
 }
 
 .welcome-card .announce-body {
   margin: 0;
-  font-size: 0.56rem;
-  line-height: 1.4;
+  font-size: 0.75rem;
+  line-height: 1.45;
 }
 
 .welcome-card .tone {
   display: block;
   margin: 4px 0 0;
-  font-size: 0.5rem;
+  font-size: 0.62rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: #c9a227;
@@ -1437,8 +1437,8 @@ body.handbook-open {
   position: absolute;
   top: -2px;
   right: -2px;
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
   background: linear-gradient(135deg, transparent 50%, #070b16 51%);
 }
 
