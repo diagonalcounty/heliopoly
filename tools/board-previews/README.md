@@ -9,7 +9,7 @@ Open any file in a browser (double-click or `open path.html`). Each page has a *
 | [elliptical-lanes.html](./elliptical-lanes.html) | Curved Mainline lanes: outward/inward strength, alternate, lane opacity | #99 |
 | [ring-colors.html](./ring-colors.html) | System ring bands, dashed tints, legacy blue, lane opacity | #101 |
 | [board-mapper.html](./board-mapper.html) | **Drag nodes**, tune curves, copy `onRing` export for board.ts | #102 |
-| [ledger-cards.html](./ledger-cards.html) | **Ledger event cards** — silhouette, paper/ink, pin/stamp, sample events, export | #113 |
+| [ledger-cards.html](./ledger-cards.html) | **Ledger event cards** — Chance-style clerk art (drag / slot / X-Y), Yesteryear title face, paper/ink, export | #113 |
 
 Production constants (lanes / rings) live in:
 
