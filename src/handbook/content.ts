@@ -197,7 +197,7 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     <tr>
       <td><strong>Rogue Tesla Roadster</strong></td>
       <td>−</td>
-      <td>Musk’s Roadster (the Falcon Heavy payload) hits a random <strong>owned</strong> claim: deed returns to the bank and any fuel depot is destroyed. <strong>Mars orbit is immune</strong> (Elon, Mars, Phobos, Deimos — Elon’s car will not hit Elon).</td>
+      <td>Musk’s Roadster hits a random <strong>owned claim beyond Mars</strong> (Jupiter or Saturn system, including Holst and Daktulios). Deed returns to the bank; any fuel depot is destroyed. <strong>Does not hit</strong> Mercury, Venus, Earth, the belt, or the Mars system (Elon, Mars, Phobos, Deimos — Elon’s car will not hit Elon).</td>
     </tr>
     <tr>
       <td><strong>Olbers’ paradox, Netflix optional</strong></td>
