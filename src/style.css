@@ -1363,12 +1363,24 @@ body.handbook-open {
 
 .board-panel {
   position: relative;
-  background: var(--panel);
+  display: flex;
+  justify-content: flex-end;
+  align-items: stretch;
+  background: #070b16;
   border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 8px;
+  border-right: 0;
+  border-radius: 16px 0 0 16px;
+  padding: 0;
   overflow: hidden;
   min-height: 0;
+}
+
+.board-stage {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  aspect-ratio: 1 / 1;
+  background: #070b16;
 }
 
 #board {
@@ -1377,7 +1389,7 @@ body.handbook-open {
   height: auto;
   aspect-ratio: 1 / 1;
   touch-action: manipulation;
-  border-radius: 12px;
+  border-radius: 0;
   background: #070b16;
   /* Prefer crisp ship hops on high-DPI iPads */
   max-width: 100%;
@@ -1438,7 +1450,10 @@ body.handbook-open {
     max-width: min(100%, 52dvh, 560px);
     margin: 0 auto;
     width: 100%;
-    padding: 6px;
+    padding: 0;
+    border-right: 1px solid var(--border);
+    border-radius: 16px;
+    justify-content: center;
   }
 
   #board {
@@ -1638,20 +1653,28 @@ body.handbook-open {
   .board-panel {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-end;
     min-height: 0;
     min-width: 0;
-    padding: 4px;
+    padding: 0;
     box-sizing: border-box;
     overflow: hidden;
   }
 
+  .board-stage {
+    width: var(--board-fit, min(100%, calc(100dvh - 140px)));
+    height: var(--board-fit, min(100%, calc(100dvh - 140px)));
+    max-width: 100%;
+    max-height: 100%;
+    flex: 0 0 auto;
+  }
+
   /* Default before JS: subtract ~ menu row (~56) + title (~28) + pads (~24) + buffer */
   #board {
-    width: var(--board-fit, min(100%, calc(100dvh - 140px))) !important;
-    height: var(--board-fit, min(100%, calc(100dvh - 140px))) !important;
-    max-width: min(100%, var(--board-fit, calc(100dvh - 140px))) !important;
-    max-height: min(100%, var(--board-fit, calc(100dvh - 140px))) !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
     aspect-ratio: 1 / 1;
   }
 

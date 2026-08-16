@@ -1956,6 +1956,7 @@ function fitBoardToViewport(): void {
   const top = document.querySelector(".top") as HTMLElement | null;
   const layout = document.querySelector(".layout") as HTMLElement | null;
   const boardPanel = document.querySelector(".board-panel") as HTMLElement | null;
+  const boardStage = document.querySelector(".board-stage") as HTMLElement | null;
   if (!canvas || !top) return;
 
   const vv = window.visualViewport;
@@ -1979,6 +1980,8 @@ function fitBoardToViewport(): void {
     canvas.style.removeProperty("height");
     canvas.style.removeProperty("max-width");
     canvas.style.removeProperty("max-height");
+    boardStage?.style.removeProperty("width");
+    boardStage?.style.removeProperty("height");
     boardPanel?.style.removeProperty("max-height");
     boardPanel?.style.removeProperty("height");
     layout?.style.removeProperty("height");
@@ -2012,20 +2015,24 @@ function fitBoardToViewport(): void {
   let availW = Math.floor(vw * 0.65);
   if (boardPanel) {
     const r = boardPanel.getBoundingClientRect();
-    if (r.width > 48) availW = Math.floor(r.width - 10);
+    if (r.width > 48) availW = Math.floor(r.width);
   }
   const panelH =
     boardPanel && boardPanel.clientHeight > 40
-      ? boardPanel.clientHeight - 8
-      : layoutH - 8;
+      ? boardPanel.clientHeight
+      : layoutH;
 
   // Square must fit BOTH axes of the play strip (this is the squish)
-  const side = Math.max(140, Math.min(availW, panelH, layoutH - 8));
+  const side = Math.max(140, Math.min(availW, panelH, layoutH));
 
-  canvas.style.setProperty("width", `${side}px`, "important");
-  canvas.style.setProperty("height", `${side}px`, "important");
-  canvas.style.setProperty("max-width", `${side}px`, "important");
-  canvas.style.setProperty("max-height", `${side}px`, "important");
+  if (boardStage) {
+    boardStage.style.width = `${side}px`;
+    boardStage.style.height = `${side}px`;
+  }
+  canvas.style.setProperty("width", "100%", "important");
+  canvas.style.setProperty("height", "100%", "important");
+  canvas.style.setProperty("max-width", "100%", "important");
+  canvas.style.setProperty("max-height", "100%", "important");
   document.documentElement.style.setProperty("--board-fit", `${side}px`);
 }
 
