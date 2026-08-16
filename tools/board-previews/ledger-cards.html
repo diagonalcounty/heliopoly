@@ -72,12 +72,13 @@
   .actions button { width: auto; cursor: pointer; }
   button.primary { background: #0e7490; border-color: #22d3ee; }
   button:hover { border-color: var(--accent); }
-  #export {
+  #export, #cssExport {
     width: 100%; min-height: 140px; max-height: 240px; resize: vertical;
     font-family: ui-monospace, Menlo, monospace; font-size: 0.68rem;
     background: #0a0f1a; color: #7dd3fc; border: 1px solid #1e3a5f;
     border-radius: 8px; padding: 8px;
   }
+  #cssExport { min-height: 110px; color: #c4b5fd; }
   kbd { background: #1e2a48; border: 1px solid var(--border); border-radius: 4px; padding: 0 5px; font-size: 0.72rem; }
   .font-preview {
     margin: 6px 0 10px; padding: 8px 10px; border: 1px dashed var(--border);
@@ -136,19 +137,40 @@
   }
   main[data-stage="welcome"] .card-wrap {
     position: absolute;
-    top: var(--pin-top, 12px);
-    right: var(--pin-right, 16px);
+    top: var(--pin-top, 45px);
+    right: var(--pin-right, 45px);
     left: auto;
-    width: var(--card-w, 300px);
-    max-width: 90%;
+    width: var(--card-w, 360px);
+    max-width: calc(100% - var(--pin-right, 45px));
     transform: rotate(var(--tilt, -2.5deg));
     transform-origin: top right;
     pointer-events: auto;
+    cursor: grab;
+    touch-action: none;
   }
-  main[data-stage="welcome"] .announce-card.slot-chance .art {
+  main[data-stage="welcome"] .card-wrap:active { cursor: grabbing; }
+  main[data-stage="welcome"] .announce-card {
+    width: 100%;
+    max-width: none;
+  }
+  main[data-stage="welcome"] .announce-card.slot-chance .art,
+  main[data-stage="welcome"] .announce-card.slot-left .art {
     background-position: center var(--art-focus, 8%);
     background-size: cover;
   }
+  main[data-stage="welcome"] .announce-card button.continue { display: none; }
+  .welcome-resize {
+    display: none;
+    position: absolute;
+    left: -7px;
+    top: 22%;
+    bottom: 22%;
+    width: 14px;
+    z-index: 4;
+    cursor: ew-resize;
+    background: linear-gradient(90deg, transparent 5px, #ffc857 5px, #ffc857 9px, transparent 9px);
+  }
+  main[data-stage="welcome"] .welcome-resize { display: block; }
   .stage-label {
     font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;
     color: var(--muted);
@@ -350,7 +372,7 @@
   <h1>Ledger cards <span style="color:var(--muted);font-weight:500">(#113 playground)</span></h1>
   <p>
     Design ledger event cards, or open <a href="#welcome" style="color:var(--accent-2)">Welcome on the board</a>
-    to place the clerk briefing against a real New game screenshot. Export JSON when it looks right.
+    to place the clerk briefing against a New game screenshot. Width and location live on that stage — drag the card, or use the sliders. Copy JSON when it looks right; the live game applies that JSON as CSS.
   </p>
 </header>
 <div class="layout">
@@ -434,11 +456,15 @@
       <option value="welcome">Welcome on New game board</option>
     </select>
     <div id="welcomeKnobs">
-      <p class="hint">These map to live CSS on <kbd>.welcome-card</kbd>.</p>
-      <label class="row"><span class="name">Pin from top (px)</span><span class="val" id="v_pinTop"></span>
-        <input type="range" id="pinTop" min="0" max="80" step="1" value="12"/></label>
-      <label class="row"><span class="name">Pin from right (px)</span><span class="val" id="v_pinRight"></span>
-        <input type="range" id="pinRight" min="0" max="80" step="1" value="16"/></label>
+      <p class="hint">
+        These map 1:1 to live <kbd>.welcome-card</kbd> CSS
+        (<kbd>top</kbd> / <kbd>right</kbd> / <kbd>width</kbd>).
+        Drag the card on the board to move it. Drag the gold bar on the left edge to change width.
+      </p>
+      <label class="row"><span class="name">Pin from top (px) → CSS top</span><span class="val" id="v_pinTop"></span>
+        <input type="range" id="pinTop" min="0" max="200" step="1" value="45"/></label>
+      <label class="row"><span class="name">Pin from right (px) → CSS right</span><span class="val" id="v_pinRight"></span>
+        <input type="range" id="pinRight" min="0" max="200" step="1" value="45"/></label>
       <label class="row"><span class="name">Art crop (0=face, 100=feet)</span><span class="val" id="v_artFocus"></span>
         <input type="range" id="artFocus" min="0" max="50" step="1" value="8"/></label>
       <label class="check"><input type="checkbox" id="showHole"/> Show board-hole outline</label>
@@ -454,7 +480,7 @@
 
     <h2>Size</h2>
     <label class="row"><span class="name">Card width (px)</span><span class="val" id="v_cardW"></span>
-      <input type="range" id="cardW" min="280" max="560" step="4" value="400"/></label>
+      <input type="range" id="cardW" min="240" max="720" step="4" value="360"/></label>
     <label class="row"><span class="name">Pad X</span><span class="val" id="v_padX"></span>
       <input type="range" id="padX" min="10" max="40" step="1" value="20"/></label>
     <label class="row"><span class="name">Pad Y</span><span class="val" id="v_padY"></span>
@@ -479,10 +505,12 @@
     <h2>Export</h2>
     <div class="actions">
       <button type="button" class="primary" id="btnCopy">Copy JSON</button>
+      <button type="button" id="btnCss">Copy CSS</button>
       <button type="button" id="btnDl">Download</button>
     </div>
     <textarea id="export" readonly></textarea>
-    <p class="hint" style="margin-top:8px">Repo: <kbd>tools/board-previews/ledger-cards.html</kbd> · art in <kbd>cards/</kbd> · #113</p>
+    <textarea id="cssExport" readonly style="margin-top:8px;min-height:110px"></textarea>
+    <p class="hint" style="margin-top:8px">Repo: <kbd>tools/board-previews/ledger-cards.html</kbd> · art in <kbd>cards/</kbd> · #113 · welcome #118</p>
   </aside>
   <main id="stageBox" data-stage="overlay">
     <div class="table" id="table">
@@ -492,6 +520,7 @@
     <div class="stage-label" id="stageLabel">Game overlay · drag the clerk</div>
     <div class="card-wrap show-art" id="wrap">
       <span class="pin" aria-hidden="true"></span>
+      <div class="welcome-resize" id="welcomeResize" title="Drag to change width"></div>
       <div class="announce-card kind-info slot-chance" id="card">
         <div class="art" id="art" title="Drag to place"></div>
         <div class="copy">
@@ -643,15 +672,15 @@ const PRESETS = {
     inkTitle: "#6ec8ff", inkBody: "#c5d0e8",
   },
   welcome: {
-    stage: "welcome", tilt: -2.5, showPin: false, showStamp: false, showTone: false,
-    ruled: false, perf: false, clip: false, showArt: true, artSlot: "chance",
-    artW: 280, artH: 150, artX: 50, artY: 8, artA: 1,
-    cardW: 300, padX: 20, padY: 11, radius: 14, borderW: 6,
-    titleSize: 1.9, bodySize: 0.9, kickSize: 0.64,
+    stage: "welcome", tilt: -2.5, showPin: false, showStamp: false, showTone: true,
+    ruled: false, perf: false, clip: true, showArt: true, artSlot: "left",
+    artW: 280, artH: 150, artX: 54, artY: 8, artA: 1,
+    cardW: 360, padX: 20, padY: 11, radius: 14, borderW: 6,
+    titleSize: 1.55, bodySize: 0.75, kickSize: 0.68,
     titleFace: "limelight", bodyFace: "elite", alignLeft: false,
     paper: "#0c101c", inkBorder: "#aa7942", inkKicker: "#c9a227",
     inkTitle: "#f0e6c8", inkBody: "#d8d0b8",
-    pinTop: 12, pinRight: 16, artFocus: 8, showHole: false,
+    pinTop: 45, pinRight: 45, artFocus: 8, showHole: false,
   },
 };
 
@@ -694,6 +723,27 @@ function writeState(st) {
   for (const k of COL) if (st[k] != null) $(k).value = st[k];
 }
 
+function welcomeCss(st) {
+  return [
+    `/* from ledger-cards.html#welcome — apply to src/style.css .welcome-card */`,
+    `.welcome-card {`,
+    `  top: ${st.pinTop}px;`,
+    `  right: ${st.pinRight}px;`,
+    `  width: min(${st.cardW}px, calc(100% - ${st.pinRight}px));`,
+    `  max-height: calc(100% - ${st.pinTop}px);`,
+    `  transform: rotate(${st.tilt}deg);`,
+    `  border-radius: ${st.radius}px;`,
+    `  border-width: ${st.borderW}px;`,
+    `  border-color: ${st.inkBorder};`,
+    `  background: ${st.paper};`,
+    `}`,
+    `.welcome-card .announce-copy { padding: ${st.padY}px ${st.padX}px; }`,
+    `.welcome-card .announce-kicker { font-size: ${st.kickSize}rem; }`,
+    `.welcome-card h2 { font-size: ${st.titleSize}rem; }`,
+    `.welcome-card .announce-body { font-size: ${st.bodySize}rem; }`,
+  ].join("\n");
+}
+
 function paint() {
   const st = readState();
   const wrap = $("wrap");
@@ -709,6 +759,7 @@ function paint() {
   card.classList.remove("slot-chance","slot-left","slot-right","slot-corner","slot-watermark","slot-custom");
   card.classList.add("slot-" + st.artSlot);
   card.style.setProperty("--card-w", st.cardW + "px");
+  wrap.style.setProperty("--card-w", st.cardW + "px");
   card.style.setProperty("--pad-x", st.padX + "px");
   card.style.setProperty("--pad-y", st.padY + "px");
   card.style.setProperty("--radius", st.radius + "px");
@@ -747,7 +798,7 @@ function paint() {
   }
   $("stageLabel").textContent =
     st.stage === "welcome"
-      ? "Welcome on New game — sliders match live CSS"
+      ? "Welcome on New game — drag to move, left bar to resize, sliders match live CSS"
       : (st.stage === "board" ? "Message board" : st.stage === "stars" ? "Star field" : "Game overlay")
         + " · drag the clerk";
   $("fontPreview").style.fontFamily = TITLE_FONTS[st.titleFace];
@@ -757,11 +808,13 @@ function paint() {
     if (el) el.textContent = String(st[k]);
   }
   $("export").value = JSON.stringify({
-    issue: 113,
+    issue: st.stage === "welcome" ? 118 : 113,
     source: "ledger-cards",
     saved: new Date().toISOString(),
     ...st,
+    liveCss: welcomeCss(st),
   }, null, 2);
+  $("cssExport").value = welcomeCss(st);
 }
 
 function applyPreset() {
@@ -819,16 +872,65 @@ artEl.addEventListener("pointermove", (e) => {
 });
 artEl.addEventListener("pointerup", () => { drag = null; });
 
+const wrapEl = $("wrap");
+let pinDrag = null;
+wrapEl.addEventListener("pointerdown", (e) => {
+  if ($("stage").value !== "welcome") return;
+  if (e.target.closest("#welcomeResize")) return;
+  e.preventDefault();
+  pinDrag = {
+    x: e.clientX,
+    y: e.clientY,
+    top: Number($("pinTop").value),
+    right: Number($("pinRight").value),
+  };
+  wrapEl.setPointerCapture(e.pointerId);
+});
+wrapEl.addEventListener("pointermove", (e) => {
+  if (!pinDrag) return;
+  const top = Math.max(0, Math.min(200, pinDrag.top + (e.clientY - pinDrag.y)));
+  const right = Math.max(0, Math.min(200, pinDrag.right - (e.clientX - pinDrag.x)));
+  $("pinTop").value = String(Math.round(top));
+  $("pinRight").value = String(Math.round(right));
+  paint();
+});
+wrapEl.addEventListener("pointerup", () => { pinDrag = null; });
+wrapEl.addEventListener("pointercancel", () => { pinDrag = null; });
+
+const resizeEl = $("welcomeResize");
+let widthDrag = null;
+resizeEl.addEventListener("pointerdown", (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  widthDrag = { x: e.clientX, w: Number($("cardW").value) };
+  resizeEl.setPointerCapture(e.pointerId);
+});
+resizeEl.addEventListener("pointermove", (e) => {
+  if (!widthDrag) return;
+  const next = Math.max(240, Math.min(720, widthDrag.w - (e.clientX - widthDrag.x)));
+  $("cardW").value = String(Math.round(next / 4) * 4);
+  paint();
+});
+resizeEl.addEventListener("pointerup", () => { widthDrag = null; });
+resizeEl.addEventListener("pointercancel", () => { widthDrag = null; });
+
 $("btnCopy").addEventListener("click", async () => {
   await navigator.clipboard.writeText($("export").value);
   $("btnCopy").textContent = "Copied";
   setTimeout(() => { $("btnCopy").textContent = "Copy JSON"; }, 1200);
 });
+$("btnCss").addEventListener("click", async () => {
+  await navigator.clipboard.writeText($("cssExport").value);
+  $("btnCss").textContent = "Copied";
+  setTimeout(() => { $("btnCss").textContent = "Copy CSS"; }, 1200);
+});
 $("btnDl").addEventListener("click", () => {
   const blob = new Blob([$("export").value], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = "ledger-cards-export.json";
+  a.download = $("stage").value === "welcome"
+    ? "welcome-card-export.json"
+    : "ledger-cards-export.json";
   a.click();
   URL.revokeObjectURL(a.href);
 });

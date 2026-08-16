@@ -1371,104 +1371,32 @@ body.handbook-open {
   min-height: 0;
 }
 
-/* #118 — shell is what you drag/resize; the card only paints and tilts */
-.welcome-shell {
-  position: absolute;
-  z-index: 6;
-  top: 48px;
-  right: 48px;
-  width: 480px;
-  height: 400px;
-  pointer-events: auto;
-  touch-action: none;
-}
-
-.welcome-shell.hidden {
-  display: none !important;
-}
-
-.welcome-hud {
-  position: absolute;
-  left: 50%;
-  bottom: -22px;
-  transform: translateX(-50%);
-  font: 600 0.68rem/1 ui-monospace, Menlo, monospace;
-  color: #6ec8ff;
-  background: #0a1020cc;
-  border: 1px solid #2a3555;
-  border-radius: 4px;
-  padding: 3px 7px;
-  white-space: nowrap;
-  pointer-events: none;
-}
-
-.welcome-handle {
-  position: absolute;
-  z-index: 2;
-  padding: 0;
-  border: 0;
-  background: #ffc857;
-  box-shadow: 0 0 0 1px #0b1020;
-  cursor: pointer;
-}
-
-.welcome-handle[data-dir="n"],
-.welcome-handle[data-dir="s"] {
-  left: 18px;
-  right: 18px;
-  height: 8px;
-  cursor: ns-resize;
-}
-
-.welcome-handle[data-dir="n"] { top: -4px; }
-.welcome-handle[data-dir="s"] { bottom: -4px; }
-
-.welcome-handle[data-dir="e"],
-.welcome-handle[data-dir="w"] {
-  top: 18px;
-  bottom: 18px;
-  width: 8px;
-  cursor: ew-resize;
-}
-
-.welcome-handle[data-dir="e"] { right: -4px; }
-.welcome-handle[data-dir="w"] { left: -4px; }
-
-.welcome-handle[data-dir="ne"],
-.welcome-handle[data-dir="nw"],
-.welcome-handle[data-dir="se"],
-.welcome-handle[data-dir="sw"] {
-  width: 12px;
-  height: 12px;
-  border-radius: 2px;
-}
-
-.welcome-handle[data-dir="ne"] { top: -5px; right: -5px; cursor: nesw-resize; }
-.welcome-handle[data-dir="nw"] { top: -5px; left: -5px; cursor: nwse-resize; }
-.welcome-handle[data-dir="se"] { bottom: -5px; right: -5px; cursor: nwse-resize; }
-.welcome-handle[data-dir="sw"] { bottom: -5px; left: -5px; cursor: nesw-resize; }
-
+/* #118 — from tools/board-previews/ledger-cards.html#welcome JSON.
+   pinTop/pinRight/cardW/type map 1:1. Height follows copy. Tweak there, not here. */
 .welcome-card {
   position: absolute;
-  inset: 0;
+  z-index: 5;
+  top: 45px;
+  right: 45px;
+  left: auto;
+  bottom: auto;
   display: grid;
   grid-template-columns: 42% 1fr;
   align-items: stretch;
-  width: auto;
+  width: min(360px, calc(100% - 45px));
   height: auto;
-  max-height: none;
+  max-height: calc(100% - 45px);
   overflow: hidden;
   padding: 0;
-  pointer-events: auto;
-  cursor: grab;
+  pointer-events: none;
   transform: rotate(-2.5deg);
-  transform-origin: center center;
+  transform-origin: top right;
   border-radius: 14px;
   border-width: 6px;
 }
 
-.welcome-card:active {
-  cursor: grabbing;
+.welcome-card.hidden {
+  display: none !important;
 }
 
 .welcome-card .announce-art {
@@ -1482,23 +1410,23 @@ body.handbook-open {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 18px 22px 20px;
+  padding: 11px 20px;
   text-align: center;
 }
 
 .welcome-card .announce-kicker {
-  font-size: 0.85rem;
+  font-size: 0.68rem;
 }
 
 .welcome-card h2 {
-  margin: 10px 0 14px;
-  font-size: 2.15rem;
+  margin: 10px 0 12px;
+  font-size: 1.55rem;
 }
 
 .welcome-card .announce-body {
   margin: 0;
-  font-size: 1.05rem;
-  line-height: 1.45;
+  font-size: 0.75rem;
+  line-height: 1.5;
 }
 
 .welcome-card .tone {
