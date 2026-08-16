@@ -1858,13 +1858,6 @@ function requestCourse(
   const legal = getLegalActions(state);
   if (!legal.setDirection || !p.canBidirectional || p.directionLocked) return;
   if (p.moveDirection === direction) return;
-  if (direction === "backward") {
-    const ok = confirm(
-      "Set retrograde course for this charter?\n\n" +
-        "You will fly the Mainline in reverse. This locks after your next Move.",
-    );
-    if (!ok) return;
-  }
   void act({ type: "set_direction", direction });
 }
 
