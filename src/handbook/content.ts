@@ -195,9 +195,9 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
       <td>Next <strong>rent</strong> you would pay is waived once (any owner).</td>
     </tr>
     <tr>
-      <td><strong>Rogue Tesla Model 3 / Y / S / X / Roadster</strong></td>
+      <td><strong>Rogue Tesla Roadster</strong></td>
       <td>−</td>
-      <td>A derelict Tesla hits a random <strong>owned</strong> claim: deed returns to the bank and any fuel depot is destroyed. <strong>Mars orbit is immune</strong> (Elon, Mars, Phobos, Deimos — Elon’s car will not hit Elon).</td>
+      <td>Musk’s Roadster (the Falcon Heavy payload) hits a random <strong>owned</strong> claim: deed returns to the bank and any fuel depot is destroyed. <strong>Mars orbit is immune</strong> (Elon, Mars, Phobos, Deimos — Elon’s car will not hit Elon).</td>
     </tr>
     <tr>
       <td><strong>Olbers’ paradox, Netflix optional</strong></td>

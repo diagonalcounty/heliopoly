@@ -10,6 +10,7 @@
 //
 
 import SwiftUI
+import UIKit
 import UniformTypeIdentifiers
 import WebKit
 
@@ -39,6 +40,8 @@ struct GameWebView: UIViewRepresentable {
 
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.navigationDelegate = context.coordinator
+        // JS alert/confirm/prompt are silent without WKUIDelegate (#111).
+        webView.uiDelegate = context.coordinator
         webView.isOpaque = false
         webView.backgroundColor = Self.spaceBackground
         webView.scrollView.backgroundColor = Self.spaceBackground
@@ -74,7 +77,7 @@ struct GameWebView: UIViewRepresentable {
         UIColor(red: 0.043, green: 0.063, blue: 0.125, alpha: 1) // #0b1020
     }
 
-    final class Coordinator: NSObject, WKNavigationDelegate {
+    final class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         var onLoadFailed: ((String) -> Void)?
         /// Retained for the life of the web view (configuration also retains it).
         var schemeHandler: WebDistSchemeHandler?
@@ -180,6 +183,122 @@ struct GameWebView: UIViewRepresentable {
                 return
             }
             decisionHandler(.cancel)
+        }
+
+        // #111 — palindrome retrograde + quit use window.confirm.
+        func webView(
+            _ webView: WKWebView,
+            runJavaScriptAlertPanelWithMessage message: String,
+            initiatedByFrame frame: WKFrameInfo,
+            completionHandler: @escaping () -> Void
+        ) {
+            presentJsDialog(
+                title: nil,
+                message: message,
+                cancelTitle: nil,
+                okTitle: "OK",
+                completion: { _ in completionHandler() }
+            )
+        }
+
+        func webView(
+            _ webView: WKWebView,
+            runJavaScriptConfirmPanelWithMessage message: String,
+            initiatedByFrame frame: WKFrameInfo,
+            completionHandler: @escaping (Bool) -> Void
+        ) {
+            presentJsDialog(
+                title: nil,
+                message: message,
+                cancelTitle: "Cancel",
+                okTitle: "OK",
+                completion: completionHandler
+            )
+        }
+
+        func webView(
+            _ webView: WKWebView,
+            runJavaScriptTextInputPanelWithPrompt prompt: String,
+            defaultText: String?,
+            initiatedByFrame frame: WKFrameInfo,
+            completionHandler: @escaping (String?) -> Void
+        ) {
+            let alert = UIAlertController(
+                title: nil,
+                message: prompt,
+                preferredStyle: .alert
+            )
+            alert.addTextField { $0.text = defaultText }
+            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel) { _ in
+                completionHandler(nil)
+            })
+            alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
+                completionHandler(alert.textFields?.first?.text)
+            })
+            if !presentOnHost(alert) {
+                completionHandler(nil)
+            }
+        }
+
+        private func presentJsDialog(
+            title: String?,
+            message: String,
+            cancelTitle: String?,
+            okTitle: String,
+            completion: @escaping (Bool) -> Void
+        ) {
+            let alert = UIAlertController(
+                title: title,
+                message: message,
+                preferredStyle: .alert
+            )
+            if let cancelTitle {
+                alert.addAction(UIAlertAction(title: cancelTitle, style: .cancel) { _ in
+                    completion(false)
+                })
+            }
+            alert.addAction(UIAlertAction(title: okTitle, style: .default) { _ in
+                completion(true)
+            })
+            if !presentOnHost(alert) {
+                completion(false)
+            }
+        }
+
+        @discardableResult
+        private func presentOnHost(_ alert: UIAlertController) -> Bool {
+            guard let host = Self.topViewController() else {
+                return false
+            }
+            host.present(alert, animated: true)
+            return true
+        }
+
+        private static func topViewController(
+            from root: UIViewController? = nil
+        ) -> UIViewController? {
+            let start: UIViewController?
+            if let root {
+                start = root
+            } else {
+                let scenes = UIApplication.shared.connectedScenes
+                    .compactMap { $0 as? UIWindowScene }
+                let window = scenes
+                    .flatMap(\.windows)
+                    .first(where: \.isKeyWindow)
+                    ?? scenes.first?.windows.first
+                start = window?.rootViewController
+            }
+            if let nav = start as? UINavigationController {
+                return topViewController(from: nav.visibleViewController)
+            }
+            if let tab = start as? UITabBarController {
+                return topViewController(from: tab.selectedViewController)
+            }
+            if let presented = start?.presentedViewController {
+                return topViewController(from: presented)
+            }
+            return start
         }
     }
 }

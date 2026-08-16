@@ -35,7 +35,7 @@ export const VIBE_KICK_CHANCE = 0.5;
 /** Karen distraction: only after this round (#107). */
 export const KAREN_MIN_ROUND = 30;
 
-const TESLA_MODELS = ["3", "Y", "S", "X", "Roadster"] as const;
+/** Falcon Heavy payload was a Tesla Roadster (Starman). Not a Model 3/Y/S/X. (#109) */
 
 export type TimedEventId =
   | "monolith"
@@ -386,18 +386,17 @@ function fireRogueTesla(state: GameState): void {
   const owner = state.players.find((p) => p.id === ownerId)!;
   const hadDepot = !!state.stations[nodeId];
   stripClaimInline(state, nodeId);
-  const model = TESLA_MODELS[pickIndex(state, TESLA_MODELS.length)]!;
   state.pendingAnnouncement = {
     kind: "info",
-    title: `Rogue Tesla Model ${model}`,
+    title: "Rogue Tesla Roadster",
     body: [
-      `A derelict Tesla Model ${model} dropped out of a long-transfer orbit and hit ${node.name}.`,
+      `A derelict Tesla Roadster dropped out of a long-transfer orbit and hit ${node.name}.`,
       `${owner.name}'s claim is gone${hadDepot ? " — fuel depot destroyed" : ""}.`,
       "(Mars orbit is hard-coded immune. Elon's car will not hit Elon.)",
     ].join("\n"),
   };
   state.log.push(
-    `Charter alert: rogue Tesla Model ${model} destroyed ${owner.name}'s claim on ${node.name}${hadDepot ? " (depot lost)" : ""}.`,
+    `Charter alert: rogue Tesla Roadster destroyed ${owner.name}'s claim on ${node.name}${hadDepot ? " (depot lost)" : ""}.`,
   );
 }
 
