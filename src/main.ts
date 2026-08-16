@@ -1346,8 +1346,168 @@ async function act(action: PlayerAction): Promise<void> {
   }
 }
 
+const WELCOME_GEOM_KEY = "heliopoly-welcome-geom";
+const WELCOME_MIN_W = 220;
+const WELCOME_MIN_H = 180;
+
+type WelcomeGeom = { top: number; left: number; width: number; height: number };
+
+function readWelcomeGeom(): WelcomeGeom | null {
+  try {
+    const raw = localStorage.getItem(WELCOME_GEOM_KEY);
+    if (!raw) return null;
+    const g = JSON.parse(raw) as WelcomeGeom;
+    if (
+      typeof g.top !== "number" ||
+      typeof g.left !== "number" ||
+      typeof g.width !== "number" ||
+      typeof g.height !== "number"
+    ) {
+      return null;
+    }
+    return g;
+  } catch {
+    return null;
+  }
+}
+
+function writeWelcomeGeom(g: WelcomeGeom): void {
+  try {
+    localStorage.setItem(WELCOME_GEOM_KEY, JSON.stringify(g));
+  } catch {
+    /* private mode */
+  }
+}
+
+function applyWelcomeGeom(shell: HTMLElement, g: WelcomeGeom): void {
+  shell.style.top = `${Math.round(g.top)}px`;
+  shell.style.left = `${Math.round(g.left)}px`;
+  shell.style.right = "auto";
+  shell.style.width = `${Math.round(g.width)}px`;
+  shell.style.height = `${Math.round(g.height)}px`;
+  const hud = document.getElementById("welcome-hud");
+  if (hud) {
+    const panel = shell.parentElement;
+    const pr = panel?.clientWidth ?? 0;
+    const right = pr - g.left - g.width;
+    hud.textContent = `top ${Math.round(g.top)} · right ${Math.round(right)} · ${Math.round(g.width)}×${Math.round(g.height)}`;
+  }
+}
+
+function mountWelcomeDesigner(): void {
+  const shell = document.getElementById("welcome-shell");
+  const panel = shell?.parentElement;
+  if (!shell || !panel) return;
+
+  const clamp = (g: WelcomeGeom): WelcomeGeom => {
+    const pw = panel.clientWidth;
+    const ph = panel.clientHeight;
+    const width = Math.min(Math.max(g.width, WELCOME_MIN_W), pw);
+    const height = Math.min(Math.max(g.height, WELCOME_MIN_H), ph);
+    const left = Math.min(Math.max(g.left, 0), Math.max(0, pw - width));
+    const top = Math.min(Math.max(g.top, 0), Math.max(0, ph - height));
+    return { top, left, width, height };
+  };
+
+  const saved = readWelcomeGeom();
+  const start: WelcomeGeom = saved ?? {
+    top: 45,
+    left: Math.max(40, panel.clientWidth - 45 - 480),
+    width: Math.min(480, Math.max(WELCOME_MIN_W, panel.clientWidth - 90)),
+    height: Math.min(400, Math.max(WELCOME_MIN_H, panel.clientHeight - 135)),
+  };
+  applyWelcomeGeom(shell, clamp(start));
+
+  type Drag =
+    | { kind: "move"; x: number; y: number; g: WelcomeGeom }
+    | { kind: "resize"; dir: string; x: number; y: number; g: WelcomeGeom };
+  let drag: Drag | null = null;
+
+  const onMove = (ev: PointerEvent): void => {
+    if (!drag) return;
+    const dx = ev.clientX - drag.x;
+    const dy = ev.clientY - drag.y;
+    const g = { ...drag.g };
+    if (drag.kind === "move") {
+      g.left = drag.g.left + dx;
+      g.top = drag.g.top + dy;
+    } else {
+      const d = drag.dir;
+      if (d.includes("e")) g.width = drag.g.width + dx;
+      if (d.includes("s")) g.height = drag.g.height + dy;
+      if (d.includes("w")) {
+        g.width = drag.g.width - dx;
+        g.left = drag.g.left + dx;
+      }
+      if (d.includes("n")) {
+        g.height = drag.g.height - dy;
+        g.top = drag.g.top + dy;
+      }
+    }
+    applyWelcomeGeom(shell, clamp(g));
+  };
+
+  const onUp = (): void => {
+    if (!drag) return;
+    drag = null;
+    const rect = shell.getBoundingClientRect();
+    const prect = panel.getBoundingClientRect();
+    writeWelcomeGeom(
+      clamp({
+        top: rect.top - prect.top,
+        left: rect.left - prect.left,
+        width: rect.width,
+        height: rect.height,
+      }),
+    );
+    window.removeEventListener("pointermove", onMove);
+    window.removeEventListener("pointerup", onUp);
+  };
+
+  const begin = (next: Drag): void => {
+    drag = next;
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+  };
+
+  const card = document.getElementById("welcome-card");
+  card?.addEventListener("pointerdown", (ev) => {
+    if ((ev.target as HTMLElement).closest(".welcome-handle")) return;
+    ev.preventDefault();
+    const g = readWelcomeGeom() ?? start;
+    const live = {
+      top: shell.offsetTop,
+      left: shell.offsetLeft,
+      width: shell.offsetWidth,
+      height: shell.offsetHeight,
+    };
+    begin({ kind: "move", x: ev.clientX, y: ev.clientY, g: live ?? g });
+  });
+
+  shell.querySelectorAll<HTMLElement>(".welcome-handle").forEach((h) => {
+    h.addEventListener("pointerdown", (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      const dir = h.dataset.dir ?? "se";
+      const live = {
+        top: shell.offsetTop,
+        left: shell.offsetLeft,
+        width: shell.offsetWidth,
+        height: shell.offsetHeight,
+      };
+      begin({ kind: "resize", dir, x: ev.clientX, y: ev.clientY, g: live });
+    });
+  });
+
+  window.addEventListener("resize", () => {
+    const g = readWelcomeGeom();
+    if (!g) return;
+    applyWelcomeGeom(shell, clamp(g));
+  });
+}
+
 function hideWelcomeCard(): void {
-  document.getElementById("welcome-card")?.classList.add("hidden");
+  document.getElementById("welcome-shell")?.classList.add("hidden");
 }
 
 function startGame(human: boolean): void {
@@ -3047,6 +3207,7 @@ window.visualViewport?.addEventListener("resize", onShellResize);
   }
 })();
 
+mountWelcomeDesigner();
 setSetupCollapsed(false);
 drawBoard();
 renderSide();

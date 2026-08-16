@@ -1371,31 +1371,104 @@ body.handbook-open {
   min-height: 0;
 }
 
-/* #118 — 45px into the black board from top/right; 90px from bottom. */
+/* #118 — shell is what you drag/resize; the card only paints and tilts */
+.welcome-shell {
+  position: absolute;
+  z-index: 6;
+  top: 48px;
+  right: 48px;
+  width: 480px;
+  height: 400px;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.welcome-shell.hidden {
+  display: none !important;
+}
+
+.welcome-hud {
+  position: absolute;
+  left: 50%;
+  bottom: -22px;
+  transform: translateX(-50%);
+  font: 600 0.68rem/1 ui-monospace, Menlo, monospace;
+  color: #6ec8ff;
+  background: #0a1020cc;
+  border: 1px solid #2a3555;
+  border-radius: 4px;
+  padding: 3px 7px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.welcome-handle {
+  position: absolute;
+  z-index: 2;
+  padding: 0;
+  border: 0;
+  background: #ffc857;
+  box-shadow: 0 0 0 1px #0b1020;
+  cursor: pointer;
+}
+
+.welcome-handle[data-dir="n"],
+.welcome-handle[data-dir="s"] {
+  left: 18px;
+  right: 18px;
+  height: 8px;
+  cursor: ns-resize;
+}
+
+.welcome-handle[data-dir="n"] { top: -4px; }
+.welcome-handle[data-dir="s"] { bottom: -4px; }
+
+.welcome-handle[data-dir="e"],
+.welcome-handle[data-dir="w"] {
+  top: 18px;
+  bottom: 18px;
+  width: 8px;
+  cursor: ew-resize;
+}
+
+.welcome-handle[data-dir="e"] { right: -4px; }
+.welcome-handle[data-dir="w"] { left: -4px; }
+
+.welcome-handle[data-dir="ne"],
+.welcome-handle[data-dir="nw"],
+.welcome-handle[data-dir="se"],
+.welcome-handle[data-dir="sw"] {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.welcome-handle[data-dir="ne"] { top: -5px; right: -5px; cursor: nesw-resize; }
+.welcome-handle[data-dir="nw"] { top: -5px; left: -5px; cursor: nwse-resize; }
+.welcome-handle[data-dir="se"] { bottom: -5px; right: -5px; cursor: nwse-resize; }
+.welcome-handle[data-dir="sw"] { bottom: -5px; left: -5px; cursor: nesw-resize; }
+
 .welcome-card {
   position: absolute;
-  z-index: 5;
-  top: 45px;
-  right: 45px;
-  bottom: 90px;
-  left: auto;
+  inset: 0;
   display: grid;
   grid-template-columns: 42% 1fr;
   align-items: stretch;
-  width: min(656px, calc(100% - 45px - 36px));
+  width: auto;
   height: auto;
   max-height: none;
   overflow: hidden;
   padding: 0;
-  pointer-events: none;
+  pointer-events: auto;
+  cursor: grab;
   transform: rotate(-2.5deg);
-  transform-origin: top right;
+  transform-origin: center center;
   border-radius: 14px;
   border-width: 6px;
 }
 
-.welcome-card.hidden {
-  display: none !important;
+.welcome-card:active {
+  cursor: grabbing;
 }
 
 .welcome-card .announce-art {
