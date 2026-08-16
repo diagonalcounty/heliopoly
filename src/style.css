@@ -1349,7 +1349,7 @@ body.handbook-open {
 .layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
-  gap: 16px;
+  gap: 0;
   /* Sidebar height tracks the map column */
   align-items: stretch;
 }
@@ -1371,18 +1371,18 @@ body.handbook-open {
   min-height: 0;
 }
 
-/* #118 — fill the board: 45px top, 90px bottom, 90px off New game nav. */
+/* #118 — 45px into the black board from top/right; 90px from bottom. */
 .welcome-card {
   position: absolute;
   z-index: 5;
   top: 45px;
-  right: 90px;
+  right: 45px;
   bottom: 90px;
   left: auto;
   display: grid;
   grid-template-columns: 42% 1fr;
   align-items: stretch;
-  width: min(656px, calc(100% - 90px - 40px));
+  width: min(656px, calc(100% - 45px - 36px));
   height: auto;
   max-height: none;
   overflow: hidden;
@@ -1628,7 +1628,7 @@ body.handbook-open {
 @media (min-width: 1000px) and (max-width: 1200px) and (orientation: landscape) and (max-height: 800px) {
   .layout {
     grid-template-columns: minmax(0, 1fr) minmax(200px, min(28vw, 280px));
-    gap: 6px;
+    gap: 0;
   }
 
   .top h1 {
@@ -1706,7 +1706,7 @@ body.handbook-open {
     flex: 1 1 auto;
     min-height: 0;
     grid-template-columns: minmax(0, 1fr) minmax(220px, min(30vw, 320px));
-    gap: 8px;
+    gap: 0;
     align-items: stretch;
     overflow: hidden;
   }
