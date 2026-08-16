@@ -141,7 +141,9 @@
     right: var(--pin-right, 45px);
     left: auto;
     width: var(--card-w, 360px);
+    height: var(--card-h, auto);
     max-width: calc(100% - var(--pin-right, 45px));
+    max-height: calc(100% - var(--pin-top, 45px));
     transform: rotate(var(--tilt, -2.5deg));
     transform-origin: top right;
     pointer-events: auto;
@@ -151,7 +153,12 @@
   main[data-stage="welcome"] .card-wrap:active { cursor: grabbing; }
   main[data-stage="welcome"] .announce-card {
     width: 100%;
+    height: 100%;
     max-width: none;
+    min-height: 0;
+  }
+  main[data-stage="welcome"] .announce-card .copy {
+    overflow: hidden;
   }
   main[data-stage="welcome"] .announce-card.slot-chance .art,
   main[data-stage="welcome"] .announce-card.slot-left .art {
@@ -170,7 +177,19 @@
     cursor: ew-resize;
     background: linear-gradient(90deg, transparent 5px, #ffc857 5px, #ffc857 9px, transparent 9px);
   }
-  main[data-stage="welcome"] .welcome-resize { display: block; }
+  .welcome-resize-h {
+    display: none;
+    position: absolute;
+    left: 18%;
+    right: 18%;
+    bottom: -7px;
+    height: 14px;
+    z-index: 4;
+    cursor: ns-resize;
+    background: linear-gradient(180deg, transparent 5px, #ffc857 5px, #ffc857 9px, transparent 9px);
+  }
+  main[data-stage="welcome"] .welcome-resize,
+  main[data-stage="welcome"] .welcome-resize-h { display: block; }
   .stage-label {
     font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;
     color: var(--muted);
@@ -416,7 +435,7 @@
     <label class="row"><span class="name">Title size (rem)</span><span class="val" id="v_titleSize"></span>
       <input type="range" id="titleSize" min="1.1" max="2.6" step="0.05" value="1.85"/></label>
     <label class="row"><span class="name">Body size (rem)</span><span class="val" id="v_bodySize"></span>
-      <input type="range" id="bodySize" min="0.75" max="1.2" step="0.01" value="0.92"/></label>
+      <input type="range" id="bodySize" min="0.5" max="1.2" step="0.01" value="0.62"/></label>
     <label class="row"><span class="name">Kicker size (rem)</span><span class="val" id="v_kickSize"></span>
       <input type="range" id="kickSize" min="0.55" max="0.9" step="0.01" value="0.66"/></label>
     <label class="check"><input type="checkbox" id="alignLeft"/> Left-align text</label>
@@ -458,8 +477,8 @@
     <div id="welcomeKnobs">
       <p class="hint">
         These map 1:1 to live <kbd>.welcome-card</kbd> CSS
-        (<kbd>top</kbd> / <kbd>right</kbd> / <kbd>width</kbd>).
-        Drag the card on the board to move it. Drag the gold bar on the left edge to change width.
+        (<kbd>top</kbd> / <kbd>right</kbd> / <kbd>width</kbd> / <kbd>height</kbd> / body size).
+        Drag the card to move it. Left gold bar = width. Bottom gold bar = height.
       </p>
       <label class="row"><span class="name">Pin from top (px) → CSS top</span><span class="val" id="v_pinTop"></span>
         <input type="range" id="pinTop" min="0" max="200" step="1" value="45"/></label>
@@ -481,6 +500,8 @@
     <h2>Size</h2>
     <label class="row"><span class="name">Card width (px)</span><span class="val" id="v_cardW"></span>
       <input type="range" id="cardW" min="240" max="720" step="4" value="360"/></label>
+    <label class="row"><span class="name">Card height (px, 0=auto)</span><span class="val" id="v_cardH"></span>
+      <input type="range" id="cardH" min="0" max="800" step="4" value="0"/></label>
     <label class="row"><span class="name">Pad X</span><span class="val" id="v_padX"></span>
       <input type="range" id="padX" min="10" max="40" step="1" value="20"/></label>
     <label class="row"><span class="name">Pad Y</span><span class="val" id="v_padY"></span>
@@ -521,6 +542,7 @@
     <div class="card-wrap show-art" id="wrap">
       <span class="pin" aria-hidden="true"></span>
       <div class="welcome-resize" id="welcomeResize" title="Drag to change width"></div>
+      <div class="welcome-resize-h" id="welcomeResizeH" title="Drag to change height"></div>
       <div class="announce-card kind-info slot-chance" id="card">
         <div class="art" id="art" title="Drag to place"></div>
         <div class="copy">
@@ -676,7 +698,7 @@ const PRESETS = {
     ruled: false, perf: false, clip: true, showArt: true, artSlot: "left",
     artW: 280, artH: 150, artX: 54, artY: 8, artA: 1,
     cardW: 360, padX: 20, padY: 11, radius: 14, borderW: 6,
-    titleSize: 1.55, bodySize: 0.75, kickSize: 0.68,
+    titleSize: 1.55, bodySize: 0.62, kickSize: 0.68, cardH: 0,
     titleFace: "limelight", bodyFace: "elite", alignLeft: false,
     paper: "#0c101c", inkBorder: "#aa7942", inkKicker: "#c9a227",
     inkTitle: "#f0e6c8", inkBody: "#d8d0b8",
@@ -685,7 +707,7 @@ const PRESETS = {
 };
 
 const $ = (id) => document.getElementById(id);
-const NUM = ["tilt","cardW","padX","padY","radius","borderW","titleSize","bodySize","kickSize","artW","artH","artX","artY","artA","pinTop","pinRight","artFocus"];
+const NUM = ["tilt","cardW","cardH","padX","padY","radius","borderW","titleSize","bodySize","kickSize","artW","artH","artX","artY","artA","pinTop","pinRight","artFocus"];
 const CHK = ["showPin","showStamp","showTone","ruled","perf","clip","alignLeft","showArt","showHole"];
 const COL = ["paper","inkBorder","inkKicker","inkTitle","inkBody"];
 const SEL = ["stage","artSlot","titleFace","bodyFace"];
@@ -730,6 +752,7 @@ function welcomeCss(st) {
     `  top: ${st.pinTop}px;`,
     `  right: ${st.pinRight}px;`,
     `  width: min(${st.cardW}px, calc(100% - ${st.pinRight}px));`,
+    `  height: ${st.cardH ? st.cardH + "px" : "auto"};`,
     `  max-height: calc(100% - ${st.pinTop}px);`,
     `  transform: rotate(${st.tilt}deg);`,
     `  border-radius: ${st.radius}px;`,
@@ -740,7 +763,7 @@ function welcomeCss(st) {
     `.welcome-card .announce-copy { padding: ${st.padY}px ${st.padX}px; }`,
     `.welcome-card .announce-kicker { font-size: ${st.kickSize}rem; }`,
     `.welcome-card h2 { font-size: ${st.titleSize}rem; }`,
-    `.welcome-card .announce-body { font-size: ${st.bodySize}rem; }`,
+    `.welcome-card .announce-body { font-size: ${st.bodySize}rem; line-height: 1.4; }`,
   ].join("\n");
 }
 
@@ -760,6 +783,7 @@ function paint() {
   card.classList.add("slot-" + st.artSlot);
   card.style.setProperty("--card-w", st.cardW + "px");
   wrap.style.setProperty("--card-w", st.cardW + "px");
+  wrap.style.setProperty("--card-h", st.cardH ? st.cardH + "px" : "auto");
   card.style.setProperty("--pad-x", st.padX + "px");
   card.style.setProperty("--pad-y", st.padY + "px");
   card.style.setProperty("--radius", st.radius + "px");
@@ -798,14 +822,15 @@ function paint() {
   }
   $("stageLabel").textContent =
     st.stage === "welcome"
-      ? "Welcome on New game — drag to move, left bar to resize, sliders match live CSS"
+      ? "Welcome on New game — drag to move; left = width, bottom = height; sliders match live CSS"
       : (st.stage === "board" ? "Message board" : st.stage === "stars" ? "Star field" : "Game overlay")
         + " · drag the clerk";
   $("fontPreview").style.fontFamily = TITLE_FONTS[st.titleFace];
   $("fontPreview").textContent = $("title").textContent || "Heliopoly";
   for (const k of NUM) {
     const el = $("v_" + k);
-    if (el) el.textContent = String(st[k]);
+    if (!el) continue;
+    el.textContent = k === "cardH" && !st.cardH ? "auto" : String(st[k]);
   }
   $("export").value = JSON.stringify({
     issue: st.stage === "welcome" ? 118 : 113,
@@ -876,7 +901,7 @@ const wrapEl = $("wrap");
 let pinDrag = null;
 wrapEl.addEventListener("pointerdown", (e) => {
   if ($("stage").value !== "welcome") return;
-  if (e.target.closest("#welcomeResize")) return;
+  if (e.target.closest("#welcomeResize") || e.target.closest("#welcomeResizeH")) return;
   e.preventDefault();
   pinDrag = {
     x: e.clientX,
@@ -913,6 +938,24 @@ resizeEl.addEventListener("pointermove", (e) => {
 });
 resizeEl.addEventListener("pointerup", () => { widthDrag = null; });
 resizeEl.addEventListener("pointercancel", () => { widthDrag = null; });
+
+const resizeHEl = $("welcomeResizeH");
+let heightDrag = null;
+resizeHEl.addEventListener("pointerdown", (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  const startH = Number($("cardH").value) || wrapEl.getBoundingClientRect().height;
+  heightDrag = { y: e.clientY, h: startH };
+  resizeHEl.setPointerCapture(e.pointerId);
+});
+resizeHEl.addEventListener("pointermove", (e) => {
+  if (!heightDrag) return;
+  const next = Math.max(160, Math.min(800, heightDrag.h + (e.clientY - heightDrag.y)));
+  $("cardH").value = String(Math.round(next / 4) * 4);
+  paint();
+});
+resizeHEl.addEventListener("pointerup", () => { heightDrag = null; });
+resizeHEl.addEventListener("pointercancel", () => { heightDrag = null; });
 
 $("btnCopy").addEventListener("click", async () => {
   await navigator.clipboard.writeText($("export").value);
