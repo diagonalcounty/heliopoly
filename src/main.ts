@@ -478,19 +478,19 @@ const announceTitle = document.getElementById("announce-title")!;
 const announceBody = document.getElementById("announce-body")!;
 let announceWaiters: Array<() => void> = [];
 
-/** Chance-card clerk pose (#113). Paths under public/handbook/cards/. */
+/** Chance-card clerk pose (#113). 2:1 banners — heads and props in frame. */
 function announceArtFor(a: { kind: string; title: string }): string {
   const t = a.title.toLowerCase();
   if (a.kind === "gusher" || t.includes("struck") || t.includes("ice"))
-    return "/handbook/cards/clerk-gusher.jpg";
+    return "/handbook/cards/banners/clerk-gusher.jpg";
   if (a.kind === "leak" || t.includes("leak"))
-    return "/handbook/cards/clerk-leak.jpg";
-  if (a.kind === "out") return "/handbook/cards/clerk-out.jpg";
+    return "/handbook/cards/banners/clerk-leak.jpg";
+  if (a.kind === "out") return "/handbook/cards/banners/clerk-out.jpg";
   if (t.includes("tesla") || t.includes("roadster"))
-    return "/handbook/cards/clerk-tesla.jpg";
-  if (t.includes("monolith")) return "/handbook/cards/clerk-monolith.jpg";
-  if (t.includes("dividend")) return "/handbook/cards/clerk-dividend.jpg";
-  return "/handbook/cards/clerk-canonical.jpg";
+    return "/handbook/cards/banners/clerk-tesla.jpg";
+  if (t.includes("monolith")) return "/handbook/cards/banners/clerk-monolith.jpg";
+  if (t.includes("dividend")) return "/handbook/cards/banners/clerk-dividend.jpg";
+  return "/handbook/cards/banners/clerk-canonical.jpg";
 }
 
 function showAnnouncement(s: GameState): boolean {

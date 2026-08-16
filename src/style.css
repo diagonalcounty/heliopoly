@@ -2542,7 +2542,7 @@ button:not(:disabled):active {
 }
 
 .announce-art {
-  height: 176px;
+  height: 178px;
   background: #080c16 center / cover no-repeat;
 }
 
