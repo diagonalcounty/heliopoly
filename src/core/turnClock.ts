@@ -134,17 +134,16 @@ export function isMarsOrbitNode(state: GameState, nodeId: string): boolean {
 }
 
 /**
- * Tesla hits only **beyond Mars**: Jupiter + Saturn deeds (#115).
- * Not Mercury/Venus/Earth, not Mars system, not belt blanks.
+ * Tesla hits only **beyond Mars** planetoids (#115).
+ * Stations (Holst / Daktulios / Elon) move out of the way.
+ * Fuel depots on moons/planets cannot.
  */
 export const TESLA_TARGET_GROUPS = ["jupiter", "saturn"] as const;
 
 export function isTeslaTargetNode(state: GameState, nodeId: string): boolean {
+  if (isStationHub(nodeId)) return false;
   const group = state.board.nodes[nodeId]?.group;
-  return (
-    group === "jupiter" ||
-    group === "saturn"
-  );
+  return group === "jupiter" || group === "saturn";
 }
 
 /** Owned Jupiter/Saturn deeds Tesla may hit. */
@@ -154,10 +153,10 @@ export function teslaTargetClaims(state: GameState): string[] {
     if (!ownerId) continue;
     if (!isTeslaTargetNode(state, nodeId)) continue;
     const node = state.board.nodes[nodeId];
-    if (!node || (node.kind !== "planet" && node.kind !== "moon" && node.kind !== "federation")) {
+    if (!node || (node.kind !== "planet" && node.kind !== "moon")) {
       continue;
     }
-    if (node.price == null && node.kind !== "federation") continue;
+    if (node.price == null) continue;
     const owner = state.players.find((p) => p.id === ownerId && !p.eliminated);
     if (!owner) continue;
     out.push(nodeId);
@@ -407,7 +406,7 @@ function fireRogueTesla(state: GameState): void {
     body: [
       `A derelict Tesla Roadster dropped out of a long-transfer orbit and hit ${node.name}.`,
       `${owner.name}'s claim is gone${hadDepot ? " — fuel depot destroyed" : ""}.`,
-      "(Beyond Mars only. Elon's car will not hit Elon — Mars orbit is immune.)",
+      "(Beyond Mars only. Stations dodge. Mars orbit is immune.)",
     ].join("\n"),
   };
   state.log.push(
