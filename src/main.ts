@@ -2472,6 +2472,43 @@ function hitRouteStopAt(sx: number, sy: number): RouteStopHit | null {
   return bestSeg;
 }
 
+/** Board token (#110): one hull, seat color. Nose up — Monopoly-token style. */
+function drawRocketToken(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  color: string,
+  moving: boolean,
+): void {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.beginPath();
+  ctx.moveTo(0, -10);
+  ctx.lineTo(3.6, -2);
+  ctx.lineTo(3.6, 4);
+  ctx.lineTo(7, 8);
+  ctx.lineTo(1.8, 6.2);
+  ctx.lineTo(1.8, 8.6);
+  ctx.lineTo(-1.8, 8.6);
+  ctx.lineTo(-1.8, 6.2);
+  ctx.lineTo(-7, 8);
+  ctx.lineTo(-3.6, 4);
+  ctx.lineTo(-3.6, -2);
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.strokeStyle = moving ? "#ffc857" : "#fff";
+  ctx.lineWidth = moving ? 2 : 1.15;
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.ellipse(0, -3.4, 1.45, 1.7, 0, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(8, 12, 24, 0.38)";
+  ctx.fill();
+  ctx.restore();
+}
+
 function drawBoard(): void {
   const w = canvas.width;
   const h = canvas.height;
@@ -2810,16 +2847,7 @@ function drawBoard(): void {
         const x = px(node) + Math.cos(ang) * 18;
         const y = py(node) + Math.sin(ang) * 18;
         const moving = visualNode[pl.id] !== undefined;
-        ctx.beginPath();
-        ctx.moveTo(x, y - 9);
-        ctx.lineTo(x + 7, y + 7);
-        ctx.lineTo(x - 7, y + 7);
-        ctx.closePath();
-        ctx.fillStyle = pl.color;
-        ctx.fill();
-        ctx.strokeStyle = moving ? "#ffc857" : "#fff";
-        ctx.lineWidth = moving ? 2 : 1;
-        ctx.stroke();
+        drawRocketToken(ctx, x, y, pl.color, moving);
       });
     }
   }
