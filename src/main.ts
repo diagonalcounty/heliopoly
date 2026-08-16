@@ -2472,7 +2472,7 @@ function hitRouteStopAt(sx: number, sy: number): RouteStopHit | null {
   return bestSeg;
 }
 
-/** Board token (#110): one hull, seat color. Nose up — Monopoly-token style. */
+/** Board token (#110): classic teardrop hull + three swept fins. */
 function drawRocketToken(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -2483,17 +2483,15 @@ function drawRocketToken(
   ctx.save();
   ctx.translate(x, y);
   ctx.beginPath();
-  ctx.moveTo(0, -10);
-  ctx.lineTo(3.6, -2);
-  ctx.lineTo(3.6, 4);
-  ctx.lineTo(7, 8);
-  ctx.lineTo(1.8, 6.2);
-  ctx.lineTo(1.8, 8.6);
-  ctx.lineTo(-1.8, 8.6);
-  ctx.lineTo(-1.8, 6.2);
-  ctx.lineTo(-7, 8);
-  ctx.lineTo(-3.6, 4);
-  ctx.lineTo(-3.6, -2);
+  ctx.moveTo(0, -11);
+  ctx.bezierCurveTo(2.8, -11, 4.2, -6, 4.0, 1.2);
+  ctx.bezierCurveTo(5.8, 2.4, 7.4, 5.0, 7.4, 8.0);
+  ctx.bezierCurveTo(5.6, 6.8, 4.0, 6.0, 2.6, 5.6);
+  ctx.bezierCurveTo(2.4, 7.2, 1.4, 8.8, 0, 9.6);
+  ctx.bezierCurveTo(-1.4, 8.8, -2.4, 7.2, -2.6, 5.6);
+  ctx.bezierCurveTo(-4.0, 6.0, -5.6, 6.8, -7.4, 8.0);
+  ctx.bezierCurveTo(-7.4, 5.0, -5.8, 2.4, -4.0, 1.2);
+  ctx.bezierCurveTo(-4.2, -6, -2.8, -11, 0, -11);
   ctx.closePath();
   ctx.fillStyle = color;
   ctx.fill();
