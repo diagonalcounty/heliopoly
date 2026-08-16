@@ -137,13 +137,13 @@
   }
   main[data-stage="welcome"] .card-wrap {
     position: absolute;
-    top: var(--pin-top, 45px);
-    right: var(--pin-right, 45px);
+    top: var(--pin-top, 5%);
+    right: var(--pin-right, 4%);
     left: auto;
-    width: var(--card-w, 360px);
-    height: var(--card-h, auto);
-    max-width: calc(100% - var(--pin-right, 45px));
-    max-height: calc(100% - var(--pin-top, 45px));
+    width: var(--card-w, 88%);
+    height: var(--card-h, 84%);
+    max-width: none;
+    max-height: none;
     transform: rotate(var(--tilt, -2.5deg));
     transform-origin: top right;
     pointer-events: auto;
@@ -476,14 +476,17 @@
     </select>
     <div id="welcomeKnobs">
       <p class="hint">
-        These map 1:1 to live <kbd>.welcome-card</kbd> CSS
-        (<kbd>top</kbd> / <kbd>right</kbd> / <kbd>width</kbd> / <kbd>height</kbd> / body size).
-        Drag the card to move it. Left gold bar = width. Bottom gold bar = height.
+        Percents of the board — same units as live <kbd>.welcome-card</kbd>.
+        Drag the card to move. Left gold bar = width. Bottom gold bar = height.
       </p>
-      <label class="row"><span class="name">Pin from top (px) → CSS top</span><span class="val" id="v_pinTop"></span>
-        <input type="range" id="pinTop" min="0" max="200" step="1" value="45"/></label>
-      <label class="row"><span class="name">Pin from right (px) → CSS right</span><span class="val" id="v_pinRight"></span>
-        <input type="range" id="pinRight" min="0" max="200" step="1" value="45"/></label>
+      <label class="row"><span class="name">Top (% of board)</span><span class="val" id="v_pinTop"></span>
+        <input type="range" id="pinTop" min="0" max="20" step="0.5" value="5"/></label>
+      <label class="row"><span class="name">Right (% of board)</span><span class="val" id="v_pinRight"></span>
+        <input type="range" id="pinRight" min="0" max="20" step="0.5" value="4"/></label>
+      <label class="row"><span class="name">Width (% of board)</span><span class="val" id="v_cardWPct"></span>
+        <input type="range" id="cardWPct" min="40" max="96" step="1" value="88"/></label>
+      <label class="row"><span class="name">Height (% of board)</span><span class="val" id="v_cardHPct"></span>
+        <input type="range" id="cardHPct" min="40" max="96" step="1" value="84"/></label>
       <label class="row"><span class="name">Art crop (0=face, 100=feet)</span><span class="val" id="v_artFocus"></span>
         <input type="range" id="artFocus" min="0" max="50" step="1" value="8"/></label>
       <label class="check"><input type="checkbox" id="showHole"/> Show board-hole outline</label>
@@ -697,17 +700,18 @@ const PRESETS = {
     stage: "welcome", tilt: -2.5, showPin: false, showStamp: false, showTone: true,
     ruled: false, perf: false, clip: true, showArt: true, artSlot: "left",
     artW: 280, artH: 150, artX: 54, artY: 8, artA: 1,
-    cardW: 412, padX: 20, padY: 11, radius: 14, borderW: 6,
-    titleSize: 1.65, bodySize: 0.62, kickSize: 0.68, cardH: 396,
+    cardW: 400, padX: 22, padY: 16, radius: 14, borderW: 6,
+    titleSize: 2.15, bodySize: 0.95, kickSize: 0.75, cardH: 0,
+    cardWPct: 88, cardHPct: 84,
     titleFace: "limelight", bodyFace: "elite", alignLeft: false,
     paper: "#0c101c", inkBorder: "#aa7942", inkKicker: "#c9a227",
     inkTitle: "#f0e6c8", inkBody: "#d8d0b8",
-    pinTop: 46, pinRight: 42, artFocus: 8, showHole: false,
+    pinTop: 5, pinRight: 4, artFocus: 18, showHole: false,
   },
 };
 
 const $ = (id) => document.getElementById(id);
-const NUM = ["tilt","cardW","cardH","padX","padY","radius","borderW","titleSize","bodySize","kickSize","artW","artH","artX","artY","artA","pinTop","pinRight","artFocus"];
+const NUM = ["tilt","cardW","cardH","cardWPct","cardHPct","padX","padY","radius","borderW","titleSize","bodySize","kickSize","artW","artH","artX","artY","artA","pinTop","pinRight","artFocus"];
 const CHK = ["showPin","showStamp","showTone","ruled","perf","clip","alignLeft","showArt","showHole"];
 const COL = ["paper","inkBorder","inkKicker","inkTitle","inkBody"];
 const SEL = ["stage","artSlot","titleFace","bodyFace"];
@@ -746,14 +750,17 @@ function writeState(st) {
 }
 
 function welcomeCss(st) {
+  const top = st.pinTop;
+  const right = st.pinRight;
+  const w = st.cardWPct ?? 88;
+  const h = st.cardHPct ?? 84;
   return [
-    `/* from ledger-cards.html#welcome — apply to src/style.css .welcome-card */`,
+    `/* from ledger-cards.html#welcome — percents of .board-panel */`,
     `.welcome-card {`,
-    `  top: ${st.pinTop}px;`,
-    `  right: ${st.pinRight}px;`,
-    `  width: min(${st.cardW}px, calc(100% - ${st.pinRight}px));`,
-    `  height: ${st.cardH ? st.cardH + "px" : "auto"};`,
-    `  max-height: calc(100% - ${st.pinTop}px);`,
+    `  top: ${top}%;`,
+    `  right: ${right}%;`,
+    `  width: ${w}%;`,
+    `  height: ${h}%;`,
     `  transform: rotate(${st.tilt}deg);`,
     `  border-radius: ${st.radius}px;`,
     `  border-width: ${st.borderW}px;`,
@@ -764,6 +771,7 @@ function welcomeCss(st) {
     `.welcome-card .announce-kicker { font-size: ${st.kickSize}rem; }`,
     `.welcome-card h2 { font-size: ${st.titleSize}rem; }`,
     `.welcome-card .announce-body { font-size: ${st.bodySize}rem; line-height: 1.4; }`,
+    `.welcome-card .announce-art { background-position: center ${st.artFocus}%; }`,
   ].join("\n");
 }
 
@@ -782,8 +790,15 @@ function paint() {
   card.classList.remove("slot-chance","slot-left","slot-right","slot-corner","slot-watermark","slot-custom");
   card.classList.add("slot-" + st.artSlot);
   card.style.setProperty("--card-w", st.cardW + "px");
-  wrap.style.setProperty("--card-w", st.cardW + "px");
-  wrap.style.setProperty("--card-h", st.cardH ? st.cardH + "px" : "auto");
+  if (st.stage === "welcome") {
+    wrap.style.setProperty("--card-w", (st.cardWPct ?? 88) + "%");
+    wrap.style.setProperty("--card-h", (st.cardHPct ?? 84) + "%");
+    wrap.style.setProperty("--pin-top", (st.pinTop ?? 5) + "%");
+    wrap.style.setProperty("--pin-right", (st.pinRight ?? 4) + "%");
+  } else {
+    wrap.style.setProperty("--card-w", st.cardW + "px");
+    wrap.style.setProperty("--card-h", st.cardH ? st.cardH + "px" : "auto");
+  }
   card.style.setProperty("--pad-x", st.padX + "px");
   card.style.setProperty("--pad-y", st.padY + "px");
   card.style.setProperty("--radius", st.radius + "px");
@@ -806,8 +821,10 @@ function paint() {
   card.style.setProperty("--art-y", st.artY + "%");
   card.style.setProperty("--art-a", String(st.artA));
   card.style.setProperty("--art-focus", (st.artFocus ?? 8) + "%");
-  wrap.style.setProperty("--pin-top", (st.pinTop ?? 12) + "px");
-  wrap.style.setProperty("--pin-right", (st.pinRight ?? 16) + "px");
+  if (st.stage !== "welcome") {
+    wrap.style.setProperty("--pin-top", (st.pinTop ?? 12) + "px");
+    wrap.style.setProperty("--pin-right", (st.pinRight ?? 16) + "px");
+  }
   wrap.style.setProperty("--tilt", st.tilt + "deg");
   $("stageBox").dataset.stage = st.stage;
   const hole = $("boardHole");
@@ -903,20 +920,23 @@ wrapEl.addEventListener("pointerdown", (e) => {
   if ($("stage").value !== "welcome") return;
   if (e.target.closest("#welcomeResize") || e.target.closest("#welcomeResizeH")) return;
   e.preventDefault();
+  const hole = $("boardHole").getBoundingClientRect();
   pinDrag = {
     x: e.clientX,
     y: e.clientY,
     top: Number($("pinTop").value),
     right: Number($("pinRight").value),
+    hw: hole.width,
+    hh: hole.height,
   };
   wrapEl.setPointerCapture(e.pointerId);
 });
 wrapEl.addEventListener("pointermove", (e) => {
   if (!pinDrag) return;
-  const top = Math.max(0, Math.min(200, pinDrag.top + (e.clientY - pinDrag.y)));
-  const right = Math.max(0, Math.min(200, pinDrag.right - (e.clientX - pinDrag.x)));
-  $("pinTop").value = String(Math.round(top));
-  $("pinRight").value = String(Math.round(right));
+  const top = Math.max(0, Math.min(20, pinDrag.top + ((e.clientY - pinDrag.y) / pinDrag.hh) * 100));
+  const right = Math.max(0, Math.min(20, pinDrag.right - ((e.clientX - pinDrag.x) / pinDrag.hw) * 100));
+  $("pinTop").value = String(Math.round(top * 2) / 2);
+  $("pinRight").value = String(Math.round(right * 2) / 2);
   paint();
 });
 wrapEl.addEventListener("pointerup", () => { pinDrag = null; });
@@ -927,13 +947,14 @@ let widthDrag = null;
 resizeEl.addEventListener("pointerdown", (e) => {
   e.preventDefault();
   e.stopPropagation();
-  widthDrag = { x: e.clientX, w: Number($("cardW").value) };
+  const hole = $("boardHole").getBoundingClientRect();
+  widthDrag = { x: e.clientX, w: Number($("cardWPct").value), hw: hole.width };
   resizeEl.setPointerCapture(e.pointerId);
 });
 resizeEl.addEventListener("pointermove", (e) => {
   if (!widthDrag) return;
-  const next = Math.max(240, Math.min(720, widthDrag.w - (e.clientX - widthDrag.x)));
-  $("cardW").value = String(Math.round(next / 4) * 4);
+  const next = Math.max(40, Math.min(96, widthDrag.w - ((e.clientX - widthDrag.x) / widthDrag.hw) * 100));
+  $("cardWPct").value = String(Math.round(next));
   paint();
 });
 resizeEl.addEventListener("pointerup", () => { widthDrag = null; });
@@ -944,14 +965,14 @@ let heightDrag = null;
 resizeHEl.addEventListener("pointerdown", (e) => {
   e.preventDefault();
   e.stopPropagation();
-  const startH = Number($("cardH").value) || wrapEl.getBoundingClientRect().height;
-  heightDrag = { y: e.clientY, h: startH };
+  const hole = $("boardHole").getBoundingClientRect();
+  heightDrag = { y: e.clientY, h: Number($("cardHPct").value), hh: hole.height };
   resizeHEl.setPointerCapture(e.pointerId);
 });
 resizeHEl.addEventListener("pointermove", (e) => {
   if (!heightDrag) return;
-  const next = Math.max(160, Math.min(800, heightDrag.h + (e.clientY - heightDrag.y)));
-  $("cardH").value = String(Math.round(next / 4) * 4);
+  const next = Math.max(40, Math.min(96, heightDrag.h + ((e.clientY - heightDrag.y) / heightDrag.hh) * 100));
+  $("cardHPct").value = String(Math.round(next));
   paint();
 });
 resizeHEl.addEventListener("pointerup", () => { heightDrag = null; });
