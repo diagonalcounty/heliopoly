@@ -185,7 +185,7 @@ struct GameWebView: UIViewRepresentable {
             decisionHandler(.cancel)
         }
 
-        // #111 — palindrome retrograde + quit use window.confirm.
+        // #111 — Quit still uses window.confirm (course change does not).
         func webView(
             _ webView: WKWebView,
             runJavaScriptAlertPanelWithMessage message: String,
