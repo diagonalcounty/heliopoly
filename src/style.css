@@ -1471,6 +1471,19 @@ body.handbook-open {
     font-size: 0.9rem;
     min-height: 44px;
   }
+
+  /* #111: Course / Break rows are 36px; global 44px buttons clip Retrograde. */
+  .dir-row,
+  .break-row {
+    height: auto;
+    min-height: 44px;
+  }
+
+  .dir-row button,
+  .break-row button {
+    min-height: 40px;
+    padding: 6px 10px;
+  }
 }
 
 /**
