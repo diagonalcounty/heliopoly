@@ -90,7 +90,7 @@ export function strikeAnnouncementBody(
   isHuman: boolean,
 ): string {
   const where = `${playerName} on ${bodyName}.`;
-  const cash = `${bonusLabel} on the charter ledger.`;
+  const cash = `${bonusLabel} written to the ledger.`;
   const depot = isHuman
     ? "Your depot tapped a natural fuel reservoir — sell excess propellant to pilots who land here."
     : `${playerName}'s depot tapped a natural fuel reservoir — excess propellant can be sold to pilots who land here.`;

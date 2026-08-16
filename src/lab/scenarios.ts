@@ -34,7 +34,7 @@ export const LAB_GROUP_BLURBS: Record<LabScenarioGroup, string> = {
   "which-is-larger":
     "Literacy drills: pick the larger of two numbers in a target numbering system.",
   minigame: "Standalone practice modes (e.g. Gravity Duel).",
-  end: "Canned charter end screens for UI / copy checks.",
+  end: "Canned end screens for UI / copy checks.",
   economy: "Economy and risk edge cases.",
 };
 
@@ -144,7 +144,7 @@ export const LAB_SCENARIOS: LabScenario[] = [
     id: "duel-you-challenger",
     title: "Gravity Duel",
     blurb:
-      "You arrive on a belt blank occupied by an AI pilot. Stance (Low/High), then roll. Replaces the current charter with this duel setup.",
+      "You arrive on a belt blank occupied by an AI pilot. Stance (Low/High), then roll. Replaces the current expedition with this duel setup.",
     group: "minigame",
     kind: "game",
     available: true,
@@ -159,7 +159,7 @@ export const LAB_SCENARIOS: LabScenario[] = [
   {
     id: "end-you-win",
     title: "End screen — you prevail",
-    blurb: "All other pilots eliminated; opens charter end UI.",
+    blurb: "All other pilots eliminated; opens the end screen.",
     group: "end",
     kind: "game",
     build: () => {
