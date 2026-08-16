@@ -2176,15 +2176,31 @@ button:not(:disabled):active {
 
 .duel-panel {
   max-width: 480px;
+  height: auto;
+  max-height: min(92dvh, 620px);
+}
+
+.duel-panel .handbook-header {
+  padding: 10px 14px;
+}
+
+.duel-panel .handbook-header h2 {
+  font-size: 1.1rem;
 }
 
 .duel-body {
-  padding: 16px 18px 22px;
+  padding: 10px 14px 12px;
+}
+
+.duel-body > .hint {
+  margin: 4px 0 0;
+  font-size: 0.78rem;
+  line-height: 1.35;
 }
 
 .duel-matchup {
-  font-size: 1.05rem;
-  margin: 0 0 8px;
+  font-size: 0.95rem;
+  margin: 0 0 4px;
 }
 
 .duel-actions {
@@ -2199,8 +2215,9 @@ button:not(:disabled):active {
 }
 
 .duel-dice {
-  margin-top: 12px;
+  margin-top: 6px;
   color: var(--accent-2);
+  font-size: 0.78rem;
 }
 
 /* KQ-inspired end screen */
@@ -2319,10 +2336,10 @@ button:not(:disabled):active {
 /* —— Dice / mirrored duel sides (#57) —— */
 .dice-stage {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  gap: 18px;
-  margin: 14px 0;
+  gap: 12px;
+  margin: 8px 0 0;
   flex-wrap: wrap;
 }
 
@@ -2330,17 +2347,17 @@ button:not(:disabled):active {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  min-width: 120px;
-  flex: 0 1 140px;
+  gap: 6px;
+  min-width: 132px;
+  flex: 0 0 auto;
 }
 
 .dice-pair {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 8px;
   justify-content: center;
-  max-width: 120px;
+  max-width: none;
 }
 
 .dice-label {
@@ -2353,10 +2370,12 @@ button:not(:disabled):active {
 
 .duel-side-actions {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: wrap;
   gap: 6px;
   width: 100%;
-  max-width: 132px;
+  max-width: 148px;
+  justify-content: center;
 }
 
 .duel-side-actions.hidden {
@@ -2364,15 +2383,16 @@ button:not(:disabled):active {
 }
 
 .duel-btn {
-  min-height: 40px;
-  padding: 8px 10px;
+  min-height: 36px;
+  padding: 4px 10px;
   border-radius: 10px;
   border: 2px solid var(--border);
   background: var(--btn);
   color: var(--text);
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   cursor: pointer;
+  flex: 1 1 calc(50% - 3px);
 }
 
 .duel-btn:hover:not(:disabled) {
@@ -2394,7 +2414,8 @@ button:not(:disabled):active {
 }
 
 .duel-btn.duel-roll-btn {
-  margin-top: 2px;
+  margin-top: 0;
+  flex: 1 1 100%;
   border-color: #3a5080;
   background: #1a2744;
 }
@@ -2406,9 +2427,9 @@ button:not(:disabled):active {
 .dice-vs {
   font-weight: 800;
   color: var(--accent-2);
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   align-self: center;
-  padding-top: 2.2rem;
+  padding-top: 0;
 }
 /* Physical-looking d6 with pip faces (Gravity Duel) */
 .die {
@@ -2471,8 +2492,8 @@ button:not(:disabled):active {
 
 /* —— Duel result footer (same panel; no second popup) —— */
 .duel-result-footer {
-  margin-top: 14px;
-  padding-top: 14px;
+  margin-top: 8px;
+  padding-top: 8px;
   border-top: 1px solid var(--border);
   text-align: center;
 }
