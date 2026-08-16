@@ -1371,20 +1371,22 @@ body.handbook-open {
   min-height: 0;
 }
 
-/* #118 — locked from ledger-cards.html#welcome JSON 2026-08-16T19:22:15Z */
+/* #118 — match the approved iPad frame: card is a share of the board, not 412px.
+   Playground welcome knobs are % of the board so the next JSON maps 1:1. */
 .welcome-card {
   position: absolute;
   z-index: 5;
-  top: 46px;
-  right: 42px;
+  top: 5%;
+  right: 4%;
   left: auto;
   bottom: auto;
   display: grid;
   grid-template-columns: 42% 1fr;
   align-items: stretch;
-  width: min(412px, calc(100% - 42px));
-  height: 396px;
-  max-height: calc(100% - 46px);
+  width: 88%;
+  height: 84%;
+  max-width: none;
+  max-height: none;
   overflow: hidden;
   padding: 0;
   pointer-events: none;
@@ -1403,7 +1405,7 @@ body.handbook-open {
 .welcome-card .announce-art {
   height: auto;
   min-height: 100%;
-  background-position: center 8%;
+  background-position: center 18%;
   background-size: cover;
 }
 
@@ -1411,22 +1413,24 @@ body.handbook-open {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 11px 20px;
+  min-height: 0;
+  overflow: hidden;
+  padding: 16px 22px;
   text-align: center;
 }
 
 .welcome-card .announce-kicker {
-  font-size: 0.68rem;
+  font-size: 0.75rem;
 }
 
 .welcome-card h2 {
   margin: 10px 0 12px;
-  font-size: 1.65rem;
+  font-size: 2.15rem;
 }
 
 .welcome-card .announce-body {
   margin: 0;
-  font-size: 0.62rem;
+  font-size: 0.95rem;
   line-height: 1.4;
 }
 
