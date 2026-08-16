@@ -24,6 +24,7 @@ export const TOPIC_ICONS: Record<string, string> = {
   "how-to-win": "/handbook/badge-rocket.png",
   glossary: "/handbook/gameplay.png",
   "charter-alerts": "/handbook/cash-alert.png",
+  "ledger-alerts": "/handbook/cash-alert.png",
   "turn-flow": "/handbook/dice-break.png",
   legend: "/handbook/badge-rocket.png",
   monopoly: "/handbook/vault-key.png",

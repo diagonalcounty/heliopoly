@@ -11,14 +11,14 @@ const PILOT_ARTICLES: Record<string, string> = {
   recorde: `
 <p class="pilot-hook"><em>Robert Recorde — invented the equals sign (=) in 1557.</em></p>
 <p><strong>Robert Recorde</strong> was a Welsh physician and mathematician. In <em>The Whetstone of Witte</em> he introduced the twin parallel lines of the <strong>equals sign</strong>, writing that no two things can be more equal.</p>
-<p>Every rent line, fuel equation, and charter balance sheet still runs on his glyph. If Recorde is flying against you, remember: the ledger is older than the rocket — and more succinct math is how free enterprise keeps score.</p>
+<p>Every rent line, fuel equation, and ledger balance sheet still runs on his glyph. If Recorde is flying against you, remember: the ledger is older than the rocket — and more succinct math is how free enterprise keeps score.</p>
 `,
   k127: `
 <p class="pilot-hook"><em>Khmer stele (Sambor) — early dated zero in a decimal place-value system (683&nbsp;CE).</em></p>
 <p><strong>K-127</strong> is a 7th-century <strong>Khmer stone stele</strong> from Cambodia, often cited as one of the oldest <em>firmly dated</em> uses of the <strong>zero symbol</strong> in a decimal place-value system. It is not a Mesopotamian clay tablet; the designation is an epigraphic catalogue number.</p>
 <p>French official Adhémar Leclère found it in 1891 near a temple at Sambor (Sambaur) on the Mekong in Kratié province. Scholar George Cœdès catalogued and translated it in 1931 as <strong>K-127</strong>. Written in Old Khmer, it records a date of Śaka 605 (about <strong>683&nbsp;CE</strong>) and uses a small <strong>dot for zero</strong> in the number. The text is administrative — slaves, oxen, rice — the ordinary ledger work of a state.</p>
 <p>The stele vanished during the Khmer Rouge period, was later rediscovered, and is now in the <strong>National Museum of Cambodia</strong> in Phnom Penh. Historians of mathematics treat it as important Southeast Asian evidence for the zero numeral.</p>
-<p>In Heliopoly the callsign is deliberate: zero is not “nothing,” it is structure. Without place-value, you cannot keep price, propellant, or a charter. The blank still counts.</p>
+<p>In Heliopoly the callsign is deliberate: zero is not “nothing,” it is structure. Without place-value, you cannot keep price, propellant, or a ledger. The blank still counts.</p>
 `,
   turing: `
 <p class="pilot-hook"><em>Helped invent computer science; broke codes in World War II.</em></p>
@@ -28,7 +28,7 @@ const PILOT_ARTICLES: Record<string, string> = {
   ada: `
 <p class="pilot-hook"><em>Ada Lovelace — often called the first computer programmer.</em></p>
 <p><strong>Ada Lovelace</strong> (Ada King, Countess of Lovelace) worked with Charles Babbage’s Analytical Engine designs in the 1840s. Her notes include what many historians treat as the first published algorithm intended for a machine.</p>
-<p>She saw that engines might manipulate symbols, not only numbers — art, music, and general thought. Charter software and the quantum-era ledger all sit in that lineage.</p>
+<p>She saw that engines might manipulate symbols, not only numbers — art, music, and general thought. Mainline software and the quantum-era ledger all sit in that lineage.</p>
 `,
   sagan: `
 <p class="pilot-hook"><em>Astronomer who brought Cosmos to millions of living rooms.</em></p>
@@ -43,12 +43,12 @@ const PILOT_ARTICLES: Record<string, string> = {
   clarke: `
 <p class="pilot-hook"><em>2001: A Space Odyssey; also predicted geostationary satellites.</em></p>
 <p><strong>Arthur C. Clarke</strong> co-created <em>2001</em> and wrote hard science fiction that treated space as engineering, not magic. Years before Sputnik, he described satellites parked in geostationary orbit — the same altitude that now carries much of Earth’s TV and weather data.</p>
-<p>Clarke’s lesson for charter play: the useful idea often arrives decades before the infrastructure.</p>
+<p>Clarke’s lesson for the Mainline: the useful idea often arrives decades before the infrastructure.</p>
 `,
   goddard: `
 <p class="pilot-hook"><em>American pioneer of liquid-fuel rockets (ideas, not a flight crew).</em></p>
 <p><strong>Robert Goddard</strong> launched the first liquid-fueled rocket in 1926. Newspapers mocked the idea of spaceflight; he kept filing patents and test-firing in New Mexico anyway.</p>
-<p>He is on the roster for the <em>physics of leave-burn</em>, not as a “famous astronaut.” Prove the burn, then scale it — that is still the charter’s problem.</p>
+<p>He is on the roster for the <em>physics of leave-burn</em>, not as a “famous astronaut.” Prove the burn, then scale it — that is still the ledger’s problem.</p>
 `,
   "von-braun": `
 <p class="pilot-hook"><em>Heavy-lift rocketry that made crewed lunar flight possible.</em></p>
@@ -78,7 +78,7 @@ export function rivalPilotsIndexTopic(): HandbookTopic {
     title: "Overview",
     html: `
 <p>Each AI seat flies a <strong>named rocket</strong> — not a named pilot. Callsigns honor people and ideas behind <strong>number, notation, computation</strong>, and the culture of spaceflight (Civ-style civilopedia).</p>
-<p>You name <strong>your</strong> rocket at launch. Rivals draw from this short roster so every opponent has a page you can look up mid-charter.</p>
+<p>You name <strong>your</strong> rocket at launch. Rivals draw from this short roster so every opponent has a page you can look up mid-expedition.</p>
 <p><strong>No modern astronaut flight crews</strong> as ship names — foundations of the ledger age better. Unused names may still label <strong>transit lanes</strong> later.</p>
 <ul class="pilot-index">${items}</ul>
 <p class="hint">Open a rocket entry below in this section.</p>
