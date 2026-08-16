@@ -8,6 +8,8 @@ export default defineConfig({
   server: {
     host: true,
     port: 5173,
+    // LAN iPad / Bonjour: Jacobs-MacBook-Pro.local:5173
+    allowedHosts: [".local", "localhost"],
     // Local dev: optional local telemetry server on :3847
     proxy: {
       "/api/game-log": {
