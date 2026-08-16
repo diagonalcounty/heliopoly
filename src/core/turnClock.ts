@@ -121,9 +121,10 @@ function activeRockets(state: GameState): Player[] {
   return state.players.filter((p) => !p.eliminated);
 }
 
-function pickIndex(state: GameState, n: number): number {
+function pickIndex(state: GameState, n: number, salt = 0): number {
   if (n <= 0) return 0;
-  return Math.min(n - 1, Math.floor(charterEventRoll01(state) * n));
+  const u = (charterEventRoll01(state) + salt * 0.6180339887) % 1;
+  return Math.min(n - 1, Math.floor(u * n));
 }
 
 /** Mars orbit (Elon hub + Mars + moons) — immune to rogue Tesla (#107). */
@@ -132,17 +133,30 @@ export function isMarsOrbitNode(state: GameState, nodeId: string): boolean {
   return node?.group === "mars";
 }
 
-/** Owned deeds Tesla may hit: not Mars orbit. */
+/**
+ * Tesla hits only **beyond Mars**: Jupiter + Saturn deeds (#115).
+ * Not Mercury/Venus/Earth, not Mars system, not belt blanks.
+ */
+export const TESLA_TARGET_GROUPS = ["jupiter", "saturn"] as const;
+
+export function isTeslaTargetNode(state: GameState, nodeId: string): boolean {
+  const group = state.board.nodes[nodeId]?.group;
+  return (
+    group === "jupiter" ||
+    group === "saturn"
+  );
+}
+
+/** Owned Jupiter/Saturn deeds Tesla may hit. */
 export function teslaTargetClaims(state: GameState): string[] {
   const out: string[] = [];
   for (const [nodeId, ownerId] of Object.entries(state.owners)) {
     if (!ownerId) continue;
-    if (isMarsOrbitNode(state, nodeId)) continue;
+    if (!isTeslaTargetNode(state, nodeId)) continue;
     const node = state.board.nodes[nodeId];
     if (!node || (node.kind !== "planet" && node.kind !== "moon" && node.kind !== "federation")) {
       continue;
     }
-    // Only real claims (price / purchasable-ish): hubs + planetoids with owners
     if (node.price == null && node.kind !== "federation") continue;
     const owner = state.players.find((p) => p.id === ownerId && !p.eliminated);
     if (!owner) continue;
@@ -189,7 +203,7 @@ function remainingPool(state: GameState): TimedEventId[] {
     if (fired.has(id)) return false;
     // Late-game only: Karen
     if (id === "karen_skip" && state.round < KAREN_MIN_ROUND) return false;
-    // Tesla needs a non-Mars owned claim
+    // Tesla needs an owned Jupiter/Saturn claim (#115)
     if (id === "rogue_tesla" && teslaTargetClaims(state).length === 0) return false;
     // Blockchain needs an opponent claim
     if (id === "blockchain_steal") {
@@ -376,11 +390,12 @@ function fireRentHoliday(state: GameState): void {
   );
 }
 
-/** #107 — Musk's roadster inspiration; Mars orbit immune. */
+/** #107 / #109 / #115 — Roadster; Jupiter+Saturn only (not Mars, not inner). */
 function fireRogueTesla(state: GameState): void {
   const targets = teslaTargetClaims(state);
   if (targets.length === 0) return;
-  const nodeId = targets[pickIndex(state, targets.length)]!;
+  // Separate mixer from the event-pick roll so the same 01 is not reused.
+  const nodeId = targets[pickIndex(state, targets.length, 1)]!;
   const node = state.board.nodes[nodeId]!;
   const ownerId = state.owners[nodeId]!;
   const owner = state.players.find((p) => p.id === ownerId)!;
@@ -392,7 +407,7 @@ function fireRogueTesla(state: GameState): void {
     body: [
       `A derelict Tesla Roadster dropped out of a long-transfer orbit and hit ${node.name}.`,
       `${owner.name}'s claim is gone${hadDepot ? " — fuel depot destroyed" : ""}.`,
-      "(Mars orbit is hard-coded immune. Elon's car will not hit Elon.)",
+      "(Beyond Mars only. Elon's car will not hit Elon — Mars orbit is immune.)",
     ].join("\n"),
   };
   state.log.push(
