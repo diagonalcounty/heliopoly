@@ -478,6 +478,21 @@ const announceTitle = document.getElementById("announce-title")!;
 const announceBody = document.getElementById("announce-body")!;
 let announceWaiters: Array<() => void> = [];
 
+/** Chance-card clerk pose (#113). Paths under public/handbook/cards/. */
+function announceArtFor(a: { kind: string; title: string }): string {
+  const t = a.title.toLowerCase();
+  if (a.kind === "gusher" || t.includes("struck") || t.includes("ice"))
+    return "/handbook/cards/clerk-gusher.jpg";
+  if (a.kind === "leak" || t.includes("leak"))
+    return "/handbook/cards/clerk-leak.jpg";
+  if (a.kind === "out") return "/handbook/cards/clerk-out.jpg";
+  if (t.includes("tesla") || t.includes("roadster"))
+    return "/handbook/cards/clerk-tesla.jpg";
+  if (t.includes("monolith")) return "/handbook/cards/clerk-monolith.jpg";
+  if (t.includes("dividend")) return "/handbook/cards/clerk-dividend.jpg";
+  return "/handbook/cards/clerk-canonical.jpg";
+}
+
 function showAnnouncement(s: GameState): boolean {
   const a = s.pendingAnnouncement;
   if (!a) return false;
@@ -499,6 +514,11 @@ function showAnnouncement(s: GameState): boolean {
           : "Ledger event";
   announceTitle.textContent = a.title;
   announceBody.textContent = a.body;
+  const art = document.getElementById("announce-art");
+  if (art) {
+    art.hidden = false;
+    art.style.backgroundImage = `url("${announceArtFor(a)}")`;
+  }
   return true;
 }
 
