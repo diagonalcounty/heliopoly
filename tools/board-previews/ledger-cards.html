@@ -100,6 +100,55 @@
       repeating-linear-gradient(90deg, rgba(110,200,255,0.03) 0 2px, transparent 2px 10px),
       linear-gradient(180deg, #1a140c 0%, #0e0c08 100%);
   }
+  main[data-stage="welcome"] {
+    display: block;
+    padding: 0;
+    min-height: 0;
+    background: #070b16;
+  }
+  .table {
+    display: none;
+    position: relative;
+    width: 100%;
+    max-height: calc(100vh - 128px);
+    overflow: hidden;
+  }
+  main[data-stage="welcome"] .table { display: block; }
+  main[data-stage="welcome"] .stage-label { display: none; }
+  .table-bg {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: calc(100vh - 128px);
+    object-fit: contain;
+    object-position: top center;
+  }
+  .board-hole {
+    position: absolute;
+    left: 2.5%;
+    top: 11%;
+    width: 61.6%;
+    height: 82%;
+    pointer-events: none;
+  }
+  .board-hole.debug {
+    outline: 1px dashed #6ec8ff;
+  }
+  main[data-stage="welcome"] .card-wrap {
+    position: absolute;
+    top: var(--pin-top, 12px);
+    right: var(--pin-right, 16px);
+    left: auto;
+    width: var(--card-w, 300px);
+    max-width: 90%;
+    transform: rotate(var(--tilt, -2.5deg));
+    transform-origin: top right;
+    pointer-events: auto;
+  }
+  main[data-stage="welcome"] .announce-card.slot-chance .art {
+    background-position: center var(--art-focus, 8%);
+    background-size: cover;
+  }
   .stage-label {
     font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;
     color: var(--muted);
@@ -300,10 +349,8 @@
 <header>
   <h1>Ledger cards <span style="color:var(--muted);font-weight:500">(#113 playground)</span></h1>
   <p>
-    Design the existing ledger events like Chance / Community Chest: a
-    <strong>picture of the clerk</strong> plus the text. Title face defaults to
-    <strong>Yesteryear</strong> (chrome-script, Studebaker-adjacent). Drag the
-    art or use the slot + X/Y sliders. Not shipped — export JSON when a layout is a lock.
+    Design ledger event cards, or open <a href="#welcome" style="color:var(--accent-2)">Welcome on the board</a>
+    to place the clerk briefing against a real New game screenshot. Export JSON when it looks right.
   </p>
 </header>
 <div class="layout">
@@ -320,6 +367,7 @@
       <option value="notice">Message-board notice</option>
       <option value="index">Index card</option>
       <option value="form">Printout form</option>
+      <option value="welcome">Welcome on the board (#118)</option>
     </select>
 
     <h2>Type</h2>
@@ -383,7 +431,18 @@
       <option value="overlay">Game overlay (dim)</option>
       <option value="stars">Star field</option>
       <option value="board">Message board</option>
+      <option value="welcome">Welcome on New game board</option>
     </select>
+    <div id="welcomeKnobs">
+      <p class="hint">These map to live CSS on <kbd>.welcome-card</kbd>.</p>
+      <label class="row"><span class="name">Pin from top (px)</span><span class="val" id="v_pinTop"></span>
+        <input type="range" id="pinTop" min="0" max="80" step="1" value="12"/></label>
+      <label class="row"><span class="name">Pin from right (px)</span><span class="val" id="v_pinRight"></span>
+        <input type="range" id="pinRight" min="0" max="80" step="1" value="16"/></label>
+      <label class="row"><span class="name">Art crop (0=face, 100=feet)</span><span class="val" id="v_artFocus"></span>
+        <input type="range" id="artFocus" min="0" max="50" step="1" value="8"/></label>
+      <label class="check"><input type="checkbox" id="showHole"/> Show board-hole outline</label>
+    </div>
     <label class="row"><span class="name">Tilt (deg)</span><span class="val" id="v_tilt"></span>
       <input type="range" id="tilt" min="-8" max="8" step="0.5" value="0"/></label>
     <label class="check"><input type="checkbox" id="showPin"/> Pin</label>
@@ -426,6 +485,10 @@
     <p class="hint" style="margin-top:8px">Repo: <kbd>tools/board-previews/ledger-cards.html</kbd> · art in <kbd>cards/</kbd> · #113</p>
   </aside>
   <main id="stageBox" data-stage="overlay">
+    <div class="table" id="table">
+      <img class="table-bg" src="./welcome-board-bg.jpg" alt="New game board"/>
+      <div class="board-hole" id="boardHole"></div>
+    </div>
     <div class="stage-label" id="stageLabel">Game overlay · drag the clerk</div>
     <div class="card-wrap show-art" id="wrap">
       <span class="pin" aria-hidden="true"></span>
@@ -508,6 +571,14 @@ const SAMPLES = {
     body: "Ada is off the ledger.\nBankrupt.\nRound 22.",
     art: "./cards/clerk-out.jpg",
   },
+  welcome: {
+    kind: "info",
+    kicker: "Welcome",
+    tone: "+",
+    title: "The ledger is open",
+    body: "This book keeps two truths.\nContracts — who owns which world, who is owed.\nHistory — every rocket that lasted.\n\nOld Earth used public ledgers. Ethereum was one. Quantum machines broke those books.\n\nMoney here is Angzarr (\u237c). It is post-quantum. It still keeps a ledger.\n\nLast rocket flying is written as one of the greatest of all kind.\n\nName your rocket. Then Launch.",
+    art: "./cards/clerk-canonical.jpg",
+  },
 };
 
 const PRESETS = {
@@ -571,11 +642,22 @@ const PRESETS = {
     paper: "#0a1020", inkBorder: "#6ec8ff", inkKicker: "#6ec8ff",
     inkTitle: "#6ec8ff", inkBody: "#c5d0e8",
   },
+  welcome: {
+    stage: "welcome", tilt: -2.5, showPin: false, showStamp: false, showTone: false,
+    ruled: false, perf: false, clip: false, showArt: true, artSlot: "chance",
+    artW: 280, artH: 150, artX: 50, artY: 8, artA: 1,
+    cardW: 300, padX: 20, padY: 11, radius: 14, borderW: 6,
+    titleSize: 1.9, bodySize: 0.9, kickSize: 0.64,
+    titleFace: "limelight", bodyFace: "elite", alignLeft: false,
+    paper: "#0c101c", inkBorder: "#aa7942", inkKicker: "#c9a227",
+    inkTitle: "#f0e6c8", inkBody: "#d8d0b8",
+    pinTop: 12, pinRight: 16, artFocus: 8, showHole: false,
+  },
 };
 
 const $ = (id) => document.getElementById(id);
-const NUM = ["tilt","cardW","padX","padY","radius","borderW","titleSize","bodySize","kickSize","artW","artH","artX","artY","artA"];
-const CHK = ["showPin","showStamp","showTone","ruled","perf","clip","alignLeft","showArt"];
+const NUM = ["tilt","cardW","padX","padY","radius","borderW","titleSize","bodySize","kickSize","artW","artH","artX","artY","artA","pinTop","pinRight","artFocus"];
+const CHK = ["showPin","showStamp","showTone","ruled","perf","clip","alignLeft","showArt","showHole"];
 const COL = ["paper","inkBorder","inkKicker","inkTitle","inkBody"];
 const SEL = ["stage","artSlot","titleFace","bodyFace"];
 
@@ -648,10 +730,26 @@ function paint() {
   card.style.setProperty("--art-x", st.artX + "%");
   card.style.setProperty("--art-y", st.artY + "%");
   card.style.setProperty("--art-a", String(st.artA));
+  card.style.setProperty("--art-focus", (st.artFocus ?? 8) + "%");
+  wrap.style.setProperty("--pin-top", (st.pinTop ?? 12) + "px");
+  wrap.style.setProperty("--pin-right", (st.pinRight ?? 16) + "px");
+  wrap.style.setProperty("--tilt", st.tilt + "deg");
   $("stageBox").dataset.stage = st.stage;
+  const hole = $("boardHole");
+  const table = $("table");
+  if (st.stage === "welcome") {
+    if (wrap.parentElement !== hole) hole.appendChild(wrap);
+    hole.classList.toggle("debug", !!st.showHole);
+    $("welcomeKnobs").style.display = "";
+  } else {
+    if (wrap.parentElement !== $("stageBox")) $("stageBox").appendChild(wrap);
+    $("welcomeKnobs").style.display = "none";
+  }
   $("stageLabel").textContent =
-    (st.stage === "board" ? "Message board" : st.stage === "stars" ? "Star field" : "Game overlay")
-    + " · drag the clerk";
+    st.stage === "welcome"
+      ? "Welcome on New game — sliders match live CSS"
+      : (st.stage === "board" ? "Message board" : st.stage === "stars" ? "Star field" : "Game overlay")
+        + " · drag the clerk";
   $("fontPreview").style.fontFamily = TITLE_FONTS[st.titleFace];
   $("fontPreview").textContent = $("title").textContent || "Heliopoly";
   for (const k of NUM) {
@@ -670,6 +768,10 @@ function applyPreset() {
   const p = PRESETS[$("preset").value];
   if (!p) return;
   writeState(p);
+  if ($("preset").value === "welcome") {
+    $("sample").value = "welcome";
+    applySample();
+  }
   paint();
 }
 
@@ -702,6 +804,7 @@ const artEl = $("art");
 let drag = null;
 artEl.addEventListener("pointerdown", (e) => {
   e.preventDefault();
+  if ($("stage").value === "welcome") return;
   $("artSlot").value = "custom";
   const rect = $("card").getBoundingClientRect();
   drag = { dx: e.clientX, dy: e.clientY, x: Number($("artX").value), y: Number($("artY").value), w: rect.width, h: rect.height };
@@ -730,10 +833,19 @@ $("btnDl").addEventListener("click", () => {
   URL.revokeObjectURL(a.href);
 });
 
-$("preset").value = "chance";
+$("preset").value =
+  location.hash === "#welcome" || location.search.includes("welcome")
+    ? "welcome"
+    : "chance";
 applyPreset();
 applySample();
 paint();
+window.addEventListener("hashchange", () => {
+  if (location.hash === "#welcome") {
+    $("preset").value = "welcome";
+    applyPreset();
+  }
+});
 </script>
 </body>
 </html>
