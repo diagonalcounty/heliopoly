@@ -1371,15 +1371,17 @@ body.handbook-open {
   min-height: 0;
 }
 
-/* #118 — clerk briefing over the board; setup / Launch stay clickable */
+/* #118 — clerk briefing on the upper-right of the board; Launch stays free */
 .welcome-card {
   position: absolute;
   z-index: 5;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%) rotate(-2.5deg);
-  width: min(356px, calc(100% - 24px));
-  max-height: calc(100% - 20px);
+  top: 12px;
+  right: 16px;
+  left: auto;
+  transform: rotate(-2.5deg);
+  transform-origin: top right;
+  width: min(300px, 44%);
+  max-height: calc(100% - 24px);
   overflow: auto;
   pointer-events: none;
 }
@@ -1389,7 +1391,9 @@ body.handbook-open {
 }
 
 .welcome-card .announce-art {
-  height: 132px;
+  height: 150px;
+  background-position: center 8%;
+  background-size: cover;
 }
 
 #board {
