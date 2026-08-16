@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Heliopoly — ledger cards (#113)</title>
+<style>
+  :root {
+    color-scheme: dark;
+    font-family: system-ui, sans-serif;
+    --bg: #0b1020;
+    --panel: #141b2f;
+    --border: #2a3555;
+    --text: #e8eefc;
+    --muted: #9aa8c7;
+    --accent: #6ec8ff;
+    --accent-2: #ffc857;
+    --ok: #5ddea0;
+    --danger: #ff6b7a;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); }
+  .nav {
+    display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center;
+    padding: 8px 14px; border-bottom: 1px solid var(--border);
+    font-size: 0.78rem; background: #0a0f1a;
+  }
+  .nav a { color: var(--accent); text-decoration: none; }
+  .nav a:hover { text-decoration: underline; }
+  .nav .here { color: var(--accent-2); font-weight: 600; }
+  .nav span.sep { color: var(--border); }
+  header { padding: 12px 16px; border-bottom: 1px solid var(--border); }
+  header h1 { margin: 0 0 6px; font-size: 1.1rem; }
+  header p { margin: 0; color: var(--muted); font-size: 0.86rem; max-width: 88ch; line-height: 1.45; }
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(280px, 360px) 1fr;
+    min-height: calc(100vh - 118px);
+  }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+  aside {
+    padding: 10px 12px 24px; border-right: 1px solid var(--border);
+    overflow-y: auto; font-size: 0.8rem; color: var(--muted);
+  }
+  aside h2 {
+    margin: 14px 0 8px; font-size: 0.7rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--accent-2);
+  }
+  aside h2:first-child { margin-top: 4px; }
+  label.row {
+    display: grid; grid-template-columns: 1fr auto; gap: 2px 8px;
+    align-items: center; margin-bottom: 8px;
+  }
+  label.row span.name { grid-column: 1 / -1; color: var(--text); font-size: 0.78rem; }
+  label.row input[type="range"] { width: 100%; grid-column: 1 / -1; }
+  label.row input[type="color"] { width: 100%; height: 28px; grid-column: 1 / -1; border: 0; background: none; padding: 0; }
+  label.row .val {
+    grid-column: 2; grid-row: 1; font-variant-numeric: tabular-nums;
+    color: var(--accent-2); min-width: 2.6rem; text-align: right;
+  }
+  .check { display: flex; align-items: center; gap: 8px; margin: 6px 0; color: var(--text); }
+  .hint { font-size: 0.74rem; line-height: 1.35; margin: 0 0 8px; }
+  select, .actions button {
+    font: inherit; color: var(--text); background: #1e2a48;
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 10px; width: 100%;
+  }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .actions button { width: auto; cursor: pointer; }
+  button.primary { background: #0e7490; border-color: #22d3ee; }
+  button:hover { border-color: var(--accent); }
+  #export {
+    width: 100%; min-height: 140px; max-height: 260px; resize: vertical;
+    font-family: ui-monospace, Menlo, monospace; font-size: 0.68rem;
+    background: #0a0f1a; color: #7dd3fc; border: 1px solid #1e3a5f;
+    border-radius: 8px; padding: 8px;
+  }
+  kbd { background: #1e2a48; border: 1px solid var(--border); border-radius: 4px; padding: 0 5px; font-size: 0.72rem; }
+
+  main {
+    position: relative;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 28px 16px 40px; gap: 18px;
+    min-height: 70vh;
+  }
+  main[data-stage="overlay"] {
+    background: rgba(4, 8, 18, 0.88);
+  }
+  main[data-stage="stars"] {
+    background:
+      radial-gradient(ellipse at top, #152044 0%, var(--bg) 55%);
+  }
+  main[data-stage="board"] {
+    background:
+      repeating-linear-gradient(0deg, rgba(255,200,87,0.03) 0 2px, transparent 2px 8px),
+      repeating-linear-gradient(90deg, rgba(110,200,255,0.03) 0 2px, transparent 2px 10px),
+      linear-gradient(180deg, #1a140c 0%, #0e0c08 100%);
+  }
+  .stage-label {
+    font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* —— Live card —— */
+  .card-wrap {
+    position: relative;
+    transform: rotate(var(--tilt, 0deg));
+    filter: drop-shadow(0 18px 40px rgba(0,0,0,0.55));
+  }
+  .pin {
+    display: none;
+    position: absolute;
+    top: -10px; left: 50%;
+    width: 16px; height: 16px;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #fff6, var(--pin, #c94c4c) 45%, #4a1515);
+    box-shadow: 0 2px 0 #0008, 0 6px 10px #0006;
+    z-index: 2;
+  }
+  .card-wrap.show-pin .pin { display: block; }
+
+  .announce-card {
+    width: var(--card-w, 400px);
+    max-width: min(92vw, 520px);
+    text-align: var(--align, center);
+    padding: var(--pad-y, 24px) var(--pad-x, 20px) var(--pad-bot, 20px);
+    border-radius: var(--radius, 4px);
+    border: var(--border-w, 3px) solid var(--ink-border, #c9a227);
+    background: var(--paper, #0c101c);
+    color: var(--ink-body, #d8d0b8);
+    box-shadow:
+      0 0 0 var(--inner-line, 1px) var(--inner-col, #3d2a10),
+      0 20px 60px rgba(0, 0, 0, 0.6);
+    font-family: var(--body-font, "Courier New", Courier, monospace);
+    position: relative;
+    overflow: hidden;
+  }
+  .announce-card.ruled::before {
+    content: "";
+    pointer-events: none;
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(
+      180deg,
+      transparent 0 27px,
+      color-mix(in srgb, var(--ink-body) 12%, transparent) 27px 28px
+    );
+    opacity: 0.35;
+  }
+  .announce-card.perf {
+    border-left-style: dashed;
+    border-right-style: dashed;
+  }
+  .announce-card.clip::after {
+    content: "";
+    position: absolute; top: -2px; right: -2px;
+    width: 22px; height: 22px;
+    background: linear-gradient(135deg, transparent 50%, #0b1020 51%);
+  }
+
+  .stamp {
+    display: none;
+    position: absolute;
+    top: 10px; right: 12px;
+    width: var(--stamp-size, 44px); height: var(--stamp-size, 44px);
+    border: 2px solid var(--ink-kicker, #c9a227);
+    border-radius: 50%;
+    color: var(--ink-kicker, #c9a227);
+    font: 700 0.55rem/1.1 ui-monospace, Menlo, monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    display: none;
+    align-items: center; justify-content: center;
+    text-align: center;
+    transform: rotate(12deg);
+    opacity: 0.85;
+  }
+  .card-wrap.show-stamp .stamp { display: flex; }
+
+  .announce-kicker {
+    margin: 0;
+    letter-spacing: var(--kick-track, 0.2em);
+    text-transform: uppercase;
+    font-size: var(--kick-size, 0.68rem);
+    color: var(--ink-kicker, #c9a227);
+  }
+  .tone {
+    display: none;
+    margin: 8px 0 0;
+    font-size: 0.62rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--tone, #c9a227);
+  }
+  .card-wrap.show-tone .tone { display: block; }
+
+  .announce-card h2 {
+    margin: 10px 0 12px;
+    font-size: var(--title-size, 1.75rem);
+    letter-spacing: 0.06em;
+    color: var(--ink-title, #f0e6c8);
+    font-family: var(--title-font, Georgia, "Times New Roman", serif);
+    font-weight: 600;
+    position: relative;
+  }
+  .announce-body {
+    margin: 0 0 18px;
+    color: var(--ink-body, #d8d0b8);
+    line-height: 1.5;
+    white-space: pre-line;
+    font-size: var(--body-size, 0.95rem);
+    position: relative;
+  }
+  .announce-card button.continue {
+    font: 600 0.85rem var(--body-font, inherit);
+    color: var(--bg);
+    background: var(--ink-kicker, #c9a227);
+    border: 0;
+    border-radius: var(--btn-radius, 4px);
+    padding: 8px 16px;
+    cursor: default;
+  }
+  .announce-card.kind-gusher { --ink-border: var(--ok); --ink-kicker: var(--ok); --tone: var(--ok); }
+  .announce-card.kind-gusher h2 { color: var(--ok); }
+  .announce-card.kind-leak,
+  .announce-card.kind-out { --ink-border: var(--danger); --ink-kicker: var(--danger); --tone: var(--danger); }
+  .announce-card.kind-out h2 { color: var(--danger); }
+</style>
+</head>
+<body>
+<nav class="nav" aria-label="Board previews">
+  <a href="./difficulty-duration.html">Duration</a>
+  <span class="sep">·</span>
+  <a href="./elliptical-lanes.html">Lanes</a>
+  <span class="sep">·</span>
+  <a href="./ring-colors.html">Rings</a>
+  <span class="sep">·</span>
+  <a href="./board-mapper.html">Mapper</a>
+  <span class="sep">·</span>
+  <span class="here">Ledger cards</span>
+  <span class="sep">·</span>
+  <a href="./README.md">README</a>
+</nav>
+<header>
+  <h1>Ledger cards <span style="color:var(--muted);font-weight:500">(#113 preview)</span></h1>
+  <p>
+    Design sandbox for timed <strong>ledger events</strong> (gusher, leak, Tesla, dividend…).
+    Not shipped. Pay homage to a <em>pre-1997 game manual</em> and the ledger as a
+    contract + history book — not costume 80s, not a playing-card deck unless you pick that silhouette.
+    Export JSON when a look is a lock candidate.
+  </p>
+</header>
+<div class="layout">
+  <aside>
+    <h2>Sample event</h2>
+    <select id="sample"></select>
+
+    <h2>Silhouette</h2>
+    <p class="hint">Presets reset knobs. Then tune.</p>
+    <select id="preset">
+      <option value="current">Current overlay (shipped)</option>
+      <option value="slip">Ledger slip (perforated stub + stamp)</option>
+      <option value="notice">Message-board notice (pin)</option>
+      <option value="index">Index card (ruled, clipped)</option>
+      <option value="form">Printout form (boxed, mono)</option>
+    </select>
+
+    <h2>Stage</h2>
+    <select id="stage">
+      <option value="overlay">Game overlay (dim)</option>
+      <option value="stars">Star field</option>
+      <option value="board">Message board</option>
+    </select>
+    <label class="row"><span class="name">Tilt (deg)</span><span class="val" id="v_tilt"></span>
+      <input type="range" id="tilt" min="-8" max="8" step="0.5" value="0"/></label>
+    <label class="check"><input type="checkbox" id="showPin"/> Pin</label>
+    <label class="check"><input type="checkbox" id="showStamp"/> AIL stamp</label>
+    <label class="check"><input type="checkbox" id="showTone"/> + / − tone mark</label>
+    <label class="check"><input type="checkbox" id="ruled"/> Ruled lines</label>
+    <label class="check"><input type="checkbox" id="perf"/> Perforated sides</label>
+    <label class="check"><input type="checkbox" id="clip"/> Clipped corner</label>
+
+    <h2>Size</h2>
+    <label class="row"><span class="name">Card width (px)</span><span class="val" id="v_cardW"></span>
+      <input type="range" id="cardW" min="280" max="520" step="4" value="400"/></label>
+    <label class="row"><span class="name">Pad X</span><span class="val" id="v_padX"></span>
+      <input type="range" id="padX" min="10" max="40" step="1" value="20"/></label>
+    <label class="row"><span class="name">Pad Y</span><span class="val" id="v_padY"></span>
+      <input type="range" id="padY" min="10" max="40" step="1" value="24"/></label>
+    <label class="row"><span class="name">Corner radius</span><span class="val" id="v_radius"></span>
+      <input type="range" id="radius" min="0" max="20" step="1" value="4"/></label>
+    <label class="row"><span class="name">Border width</span><span class="val" id="v_borderW"></span>
+      <input type="range" id="borderW" min="1" max="8" step="1" value="3"/></label>
+
+    <h2>Type</h2>
+    <label class="row"><span class="name">Title size (rem)</span><span class="val" id="v_titleSize"></span>
+      <input type="range" id="titleSize" min="1.1" max="2.2" step="0.05" value="1.75"/></label>
+    <label class="row"><span class="name">Body size (rem)</span><span class="val" id="v_bodySize"></span>
+      <input type="range" id="bodySize" min="0.75" max="1.2" step="0.01" value="0.95"/></label>
+    <label class="row"><span class="name">Kicker size (rem)</span><span class="val" id="v_kickSize"></span>
+      <input type="range" id="kickSize" min="0.55" max="0.9" step="0.01" value="0.68"/></label>
+    <label class="check"><input type="checkbox" id="serifTitle" checked/> Serif title (Georgia)</label>
+    <label class="check"><input type="checkbox" id="monoBody" checked/> Mono body (Courier)</label>
+    <label class="check"><input type="checkbox" id="alignLeft"/> Left-align</label>
+
+    <h2>Ink / paper</h2>
+    <label class="row"><span class="name">Paper</span><span class="val"></span>
+      <input type="color" id="paper" value="#0c101c"/></label>
+    <label class="row"><span class="name">Border / foil</span><span class="val"></span>
+      <input type="color" id="inkBorder" value="#c9a227"/></label>
+    <label class="row"><span class="name">Kicker</span><span class="val"></span>
+      <input type="color" id="inkKicker" value="#c9a227"/></label>
+    <label class="row"><span class="name">Title</span><span class="val"></span>
+      <input type="color" id="inkTitle" value="#f0e6c8"/></label>
+    <label class="row"><span class="name">Body</span><span class="val"></span>
+      <input type="color" id="inkBody" value="#d8d0b8"/></label>
+
+    <h2>Export</h2>
+    <div class="actions">
+      <button type="button" class="primary" id="btnCopy">Copy JSON</button>
+      <button type="button" id="btnDl">Download</button>
+    </div>
+    <textarea id="export" readonly></textarea>
+    <p class="hint" style="margin-top:8px">Repo: <kbd>tools/board-previews/ledger-cards.html</kbd> · issue <strong>#113</strong></p>
+  </aside>
+  <main id="stageBox" data-stage="overlay">
+    <div class="stage-label" id="stageLabel">Game overlay</div>
+    <div class="card-wrap" id="wrap">
+      <span class="pin" aria-hidden="true"></span>
+      <div class="announce-card kind-info" id="card">
+        <div class="stamp" id="stamp">AIL<br/>OK</div>
+        <p class="announce-kicker" id="kicker">Ledger event</p>
+        <p class="tone" id="tone">+</p>
+        <h2 id="title">Title</h2>
+        <p class="announce-body" id="body">Body</p>
+        <button type="button" class="continue">Continue</button>
+      </div>
+    </div>
+  </main>
+</div>
+<script>
+const SAMPLES = {
+  tesla: {
+    kind: "info",
+    kicker: "Ledger event",
+    tone: "−",
+    title: "Rogue Tesla Roadster",
+    body: "A derelict Tesla Roadster dropped out of a long-transfer orbit and hit Ganymede.\nVenture's claim is gone — fuel depot destroyed.\n(Beyond Mars only. Stations dodge. Mars orbit is immune.)",
+  },
+  monolith: {
+    kind: "info",
+    kicker: "Ledger event",
+    tone: "+",
+    title: "Monolith on Earth's Moon",
+    body: "A black slab has been catalogued on the lunar farside.\nEvery active rocket: one-time ⍼300 on your next Earth land or pass.",
+  },
+  dividend: {
+    kind: "info",
+    kicker: "Ledger event",
+    tone: "+",
+    title: "Quantum ledger dividend",
+    body: "The AIL posts a universal dividend.\nEvery active rocket: +⍼250 now.",
+  },
+  gusher: {
+    kind: "gusher",
+    kicker: "Resource strike",
+    tone: "+",
+    title: "You've struck ice!",
+    body: "Venture on Enceladus.\n⍼750 written to the ledger.\nYour depot tapped a natural fuel reservoir — sell excess propellant to pilots who land here.",
+  },
+  leak: {
+    kind: "leak",
+    kicker: "Propellant failure",
+    tone: "−",
+    title: "Hydrogen leak",
+    body: "Tanks ruptured on landing.\nHalf fuel gone. Skip next turn to repair.",
+  },
+  out: {
+    kind: "out",
+    kicker: "Elimination",
+    tone: "−",
+    title: "OUT!",
+    body: "Ada is off the ledger.\nBankrupt.\nRound 22.",
+  },
+};
+
+const PRESETS = {
+  current: {
+    stage: "overlay", tilt: 0, showPin: false, showStamp: false, showTone: false,
+    ruled: false, perf: false, clip: false,
+    cardW: 400, padX: 20, padY: 24, radius: 4, borderW: 3,
+    titleSize: 1.75, bodySize: 0.95, kickSize: 0.68,
+    serifTitle: true, monoBody: true, alignLeft: false,
+    paper: "#0c101c", inkBorder: "#c9a227", inkKicker: "#c9a227",
+    inkTitle: "#f0e6c8", inkBody: "#d8d0b8",
+  },
+  slip: {
+    stage: "overlay", tilt: -1, showPin: false, showStamp: true, showTone: true,
+    ruled: false, perf: true, clip: false,
+    cardW: 420, padX: 28, padY: 26, radius: 2, borderW: 2,
+    titleSize: 1.45, bodySize: 0.92, kickSize: 0.64,
+    serifTitle: false, monoBody: true, alignLeft: true,
+    paper: "#14110c", inkBorder: "#c9a227", inkKicker: "#ffc857",
+    inkTitle: "#f0e6c8", inkBody: "#d8d0b8",
+  },
+  notice: {
+    stage: "board", tilt: -2.5, showPin: true, showStamp: false, showTone: true,
+    ruled: false, perf: false, clip: false,
+    cardW: 380, padX: 22, padY: 28, radius: 1, borderW: 1,
+    titleSize: 1.55, bodySize: 0.95, kickSize: 0.66,
+    serifTitle: true, monoBody: false, alignLeft: true,
+    paper: "#1a2238", inkBorder: "#ffc857", inkKicker: "#ffc857",
+    inkTitle: "#e8eefc", inkBody: "#c5d0e8",
+  },
+  index: {
+    stage: "stars", tilt: 1, showPin: false, showStamp: false, showTone: true,
+    ruled: true, perf: false, clip: true,
+    cardW: 360, padX: 22, padY: 20, radius: 2, borderW: 1,
+    titleSize: 1.35, bodySize: 0.9, kickSize: 0.62,
+    serifTitle: false, monoBody: true, alignLeft: true,
+    paper: "#12182a", inkBorder: "#6ec8ff", inkKicker: "#6ec8ff",
+    inkTitle: "#e8eefc", inkBody: "#9aa8c7",
+  },
+  form: {
+    stage: "overlay", tilt: 0, showPin: false, showStamp: true, showTone: false,
+    ruled: false, perf: false, clip: false,
+    cardW: 440, padX: 18, padY: 16, radius: 0, borderW: 2,
+    titleSize: 1.2, bodySize: 0.88, kickSize: 0.6,
+    serifTitle: false, monoBody: true, alignLeft: true,
+    paper: "#0a1020", inkBorder: "#6ec8ff", inkKicker: "#6ec8ff",
+    inkTitle: "#6ec8ff", inkBody: "#c5d0e8",
+  },
+};
+
+const $ = (id) => document.getElementById(id);
+const NUM = ["tilt","cardW","padX","padY","radius","borderW","titleSize","bodySize","kickSize"];
+const CHK = ["showPin","showStamp","showTone","ruled","perf","clip","serifTitle","monoBody","alignLeft"];
+const COL = ["paper","inkBorder","inkKicker","inkTitle","inkBody"];
+
+function applySample() {
+  const s = SAMPLES[$("sample").value] || SAMPLES.tesla;
+  const card = $("card");
+  card.className = "announce-card kind-" + s.kind;
+  $("kicker").textContent = s.kicker;
+  $("tone").textContent = s.tone;
+  $("title").textContent = s.title;
+  $("body").textContent = s.body;
+}
+
+function readState() {
+  const st = { preset: $("preset").value, sample: $("sample").value, stage: $("stage").value };
+  for (const k of NUM) st[k] = Number($(k).value);
+  for (const k of CHK) st[k] = $(k).checked;
+  for (const k of COL) st[k] = $(k).value;
+  return st;
+}
+
+function writeState(st) {
+  if (st.stage) $("stage").value = st.stage;
+  for (const k of NUM) if (st[k] != null) $(k).value = st[k];
+  for (const k of CHK) if (st[k] != null) $(k).checked = st[k];
+  for (const k of COL) if (st[k] != null) $(k).value = st[k];
+}
+
+function paint() {
+  const st = readState();
+  const wrap = $("wrap");
+  const card = $("card");
+  wrap.style.setProperty("--tilt", st.tilt + "deg");
+  wrap.classList.toggle("show-pin", st.showPin);
+  wrap.classList.toggle("show-stamp", st.showStamp);
+  wrap.classList.toggle("show-tone", st.showTone);
+  card.classList.toggle("ruled", st.ruled);
+  card.classList.toggle("perf", st.perf);
+  card.classList.toggle("clip", st.clip);
+  card.style.setProperty("--card-w", st.cardW + "px");
+  card.style.setProperty("--pad-x", st.padX + "px");
+  card.style.setProperty("--pad-y", st.padY + "px");
+  card.style.setProperty("--radius", st.radius + "px");
+  card.style.setProperty("--border-w", st.borderW + "px");
+  card.style.setProperty("--title-size", st.titleSize + "rem");
+  card.style.setProperty("--body-size", st.bodySize + "rem");
+  card.style.setProperty("--kick-size", st.kickSize + "rem");
+  card.style.setProperty("--paper", st.paper);
+  card.style.setProperty("--ink-border", st.inkBorder);
+  card.style.setProperty("--ink-kicker", st.inkKicker);
+  card.style.setProperty("--ink-title", st.inkTitle);
+  card.style.setProperty("--ink-body", st.inkBody);
+  card.style.setProperty("--align", st.alignLeft ? "left" : "center");
+  card.style.setProperty("--title-font", st.serifTitle ? 'Georgia, "Times New Roman", serif' : 'ui-monospace, Menlo, monospace');
+  card.style.setProperty("--body-font", st.monoBody ? '"Courier New", Courier, monospace' : "system-ui, sans-serif");
+  $("stageBox").dataset.stage = st.stage;
+  $("stageLabel").textContent =
+    st.stage === "board" ? "Message board" : st.stage === "stars" ? "Star field" : "Game overlay";
+  for (const k of NUM) {
+    const el = $("v_" + k);
+    if (el) el.textContent = String(st[k]);
+  }
+  const payload = {
+    issue: 113,
+    source: "ledger-cards",
+    saved: new Date().toISOString(),
+    ...st,
+  };
+  $("export").value = JSON.stringify(payload, null, 2);
+}
+
+function applyPreset() {
+  const p = PRESETS[$("preset").value];
+  if (!p) return;
+  writeState(p);
+  paint();
+}
+
+const sel = $("sample");
+for (const [id, s] of Object.entries(SAMPLES)) {
+  const o = document.createElement("option");
+  o.value = id;
+  o.textContent = s.title;
+  sel.appendChild(o);
+}
+sel.value = "tesla";
+
+$("preset").addEventListener("change", applyPreset);
+$("sample").addEventListener("change", () => { applySample(); paint(); });
+$("stage").addEventListener("change", paint);
+for (const k of [...NUM, ...CHK, ...COL]) $(k).addEventListener("input", paint);
+
+$("btnCopy").addEventListener("click", async () => {
+  await navigator.clipboard.writeText($("export").value);
+  $("btnCopy").textContent = "Copied";
+  setTimeout(() => { $("btnCopy").textContent = "Copy JSON"; }, 1200);
+});
+$("btnDl").addEventListener("click", () => {
+  const blob = new Blob([$("export").value], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "ledger-cards-export.json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+applySample();
+paint();
+</script>
+</body>
+</html>
