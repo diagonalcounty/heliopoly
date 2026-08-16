@@ -7,11 +7,13 @@
 iOS **MARKETING_VERSION** / web badge / package all **1.0.0** (build number `CURRENT_PROJECT_VERSION` = 1).
 
 ### Play / UX
-- **Rogue Tesla is the Roadster (#109):** no more random Model 3/Y/S/X — Falcon Heavy payload only.
+- **Rogue Tesla is the Roadster (#109 / #115):** Falcon Heavy payload only. Hits a random owned Jupiter or Saturn claim — not Mars system, not inner system. Stations dodge; planetoid fuel pods do not.
+- **Rocket board tokens (#110):** teardrop hull + three swept fins, seat color, gold outline while hopping. Ops Manual legend matches.
+- **Gravity Duel box (#117):** panel hugs content (no 88vh Ops Manual frame); dice and High/Low share rows.
 - **Ops Manual ledger lore (#112) + voice (#114):** the ledger is the contract book and the history book; Angzarr is post-quantum crypto that still keeps a ledger; last rocket flying is written as one of the greatest of all kind. Manual written for a smart 10–12 year old (pre-1997 game-manual shape, no costume 80s). “Charter alerts” → Ledger events.
 - **Gameplay chrome matches the book (#116):** standings **On the ledger**; alerts **Ledger event**; end kicker **Greatest of all kind**; quit / logs / vibe-kick drop “charter.”
-- **Ledger event cards (#113):** Chance-card silhouette — clerk art on top, Limelight title, Special Elite body, bronze border, slight tilt. Gap under the picture so “Ledger event” is not glued to the art.
-- **Welcome card (#118):** clerk briefing on New game (ledger lore). Launch hides it; setup stays clickable.
+- **Ledger event cards (#113):** Chance-card silhouette — clerk art on top, Limelight title, Special Elite body, bronze border, slight tilt. 2:1 banner crops so heads and props stay in frame.
+- **Welcome card (#118):** clerk briefing on New game (ledger lore). Launch hides it; setup stays clickable. Sits on the black board, flush with the New game column.
 - **iPad palindrome course (#111):** tap Prograde / Retrograde — no confirm. Native shell still implements `WKUIDelegate` so Quit `confirm()` works; Course/Break rows no longer clip under tablet 44px buttons.
 - **Charter alerts (#106 / #107):** expanded chance-card pool — Monolith, M&Ms, King's Quest, **Strong Bad Email → WARP**, Arcadia/Harlock, belt ice, AIL dividend, comet free leave, port holiday; plus **rogue Tesla** (claim+depot destroyed, Mars orbit immune), **Olbers station award**, **Karen skip** (late), **blockchain steal claim+depot**, rare **vibe-code kick** (50% once at round ≥60). Cadence midpoints only on real miss rolls.
 - **Duration meter polish (#94):** title **(µ)** only; type slightly smaller than AI difficulty legend; bars hard-clipped so they never cover tick labels (grid columns + opaque tick lane)
