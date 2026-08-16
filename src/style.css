@@ -2585,22 +2585,22 @@ button:not(:disabled):active {
   font-family: "Special Elite", Courier, monospace;
 }
 
-/* #118 — after .announce-card so width/transform are not overridden by the 356px Chance lock.
-   Percents of .board-panel. Matches the approved iPad frame. */
+/* #118 — approved iPad frame: nearly square, two-line title, board showing around it.
+   Cap in px so a large desktop board does not turn it into a landscape poster. */
 .announce-card.welcome-card {
   position: absolute;
   z-index: 5;
-  top: 5%;
-  right: 4%;
+  top: 6%;
+  right: 4.5%;
   left: auto;
   bottom: auto;
   display: grid;
-  grid-template-columns: 42% 1fr;
+  grid-template-columns: 40% 1fr;
   align-items: stretch;
-  width: 88%;
-  height: 84%;
-  max-width: none;
-  max-height: none;
+  width: min(620px, 74%);
+  height: min(600px, 76%);
+  max-width: calc(100% - 9%);
+  max-height: calc(100% - 12%);
   overflow: hidden;
   padding: 0;
   pointer-events: none;
@@ -2619,7 +2619,7 @@ button:not(:disabled):active {
 .announce-card.welcome-card .announce-art {
   height: auto;
   min-height: 100%;
-  background-position: center 18%;
+  background-position: center 22%;
   background-size: cover;
 }
 
@@ -2629,23 +2629,24 @@ button:not(:disabled):active {
   justify-content: center;
   min-height: 0;
   overflow: hidden;
-  padding: 16px 22px;
+  padding: 18px 26px 20px;
   text-align: center;
 }
 
 .announce-card.welcome-card .announce-kicker {
-  font-size: 0.75rem;
+  font-size: 0.68rem;
 }
 
 .announce-card.welcome-card h2 {
-  margin: 10px 0 12px;
-  font-size: 2.15rem;
+  margin: 10px 0 14px;
+  font-size: 2.45rem;
+  line-height: 1.12;
 }
 
 .announce-card.welcome-card .announce-body {
-  margin: 0 0 0;
-  font-size: 0.95rem;
-  line-height: 1.4;
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
 }
 
 .announce-card.welcome-card .tone {
