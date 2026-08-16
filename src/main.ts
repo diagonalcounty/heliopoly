@@ -1203,6 +1203,7 @@ async function runAiUntilHumanOrEnd(s: GameState): Promise<GameState> {
 }
 
 async function commitState(next: GameState): Promise<void> {
+  hideWelcomeCard();
   state = next;
   setSetupCollapsed(true);
   btnQuit.classList.remove("hidden");
@@ -1345,8 +1346,13 @@ async function act(action: PlayerAction): Promise<void> {
   }
 }
 
+function hideWelcomeCard(): void {
+  document.getElementById("welcome-card")?.classList.add("hidden");
+}
+
 function startGame(human: boolean): void {
   if (animating) return;
+  hideWelcomeCard();
   visualNode = {};
   void commitState(
     createGame({
@@ -1784,6 +1790,7 @@ setupToggle.addEventListener("click", () => {
 btnNew.addEventListener("click", () => startGame(includeHuman.checked));
 btnSelf.addEventListener("click", () => {
   if (animating) return;
+  hideWelcomeCard();
   includeHuman.checked = false;
   visualNode = {};
   let s = createGame({

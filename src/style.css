@@ -1362,12 +1362,34 @@ body.handbook-open {
 }
 
 .board-panel {
+  position: relative;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 8px;
   overflow: hidden;
   min-height: 0;
+}
+
+/* #118 — clerk briefing over the board; setup / Launch stay clickable */
+.welcome-card {
+  position: absolute;
+  z-index: 5;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) rotate(-2.5deg);
+  width: min(356px, calc(100% - 24px));
+  max-height: calc(100% - 20px);
+  overflow: auto;
+  pointer-events: none;
+}
+
+.welcome-card.hidden {
+  display: none !important;
+}
+
+.welcome-card .announce-art {
+  height: 132px;
 }
 
 #board {
