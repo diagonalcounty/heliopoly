@@ -2502,10 +2502,6 @@ function drawRocketToken(
   ctx.lineJoin = "round";
   ctx.lineCap = "round";
   ctx.stroke();
-  ctx.beginPath();
-  ctx.ellipse(0, -3.4, 1.45, 1.7, 0, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(8, 12, 24, 0.38)";
-  ctx.fill();
   ctx.restore();
 }
 
