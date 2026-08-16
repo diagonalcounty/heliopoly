@@ -1371,88 +1371,6 @@ body.handbook-open {
   min-height: 0;
 }
 
-/* #118 — match the approved iPad frame: card is a share of the board, not 412px.
-   Playground welcome knobs are % of the board so the next JSON maps 1:1. */
-.welcome-card {
-  position: absolute;
-  z-index: 5;
-  top: 5%;
-  right: 4%;
-  left: auto;
-  bottom: auto;
-  display: grid;
-  grid-template-columns: 42% 1fr;
-  align-items: stretch;
-  width: 88%;
-  height: 84%;
-  max-width: none;
-  max-height: none;
-  overflow: hidden;
-  padding: 0;
-  pointer-events: none;
-  transform: rotate(-2.5deg);
-  transform-origin: top right;
-  border-radius: 14px;
-  border-width: 6px;
-  border-color: #aa7942;
-  background: #0c101c;
-}
-
-.welcome-card.hidden {
-  display: none !important;
-}
-
-.welcome-card .announce-art {
-  height: auto;
-  min-height: 100%;
-  background-position: center 18%;
-  background-size: cover;
-}
-
-.welcome-card .announce-copy {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  min-height: 0;
-  overflow: hidden;
-  padding: 16px 22px;
-  text-align: center;
-}
-
-.welcome-card .announce-kicker {
-  font-size: 0.75rem;
-}
-
-.welcome-card h2 {
-  margin: 10px 0 12px;
-  font-size: 2.15rem;
-}
-
-.welcome-card .announce-body {
-  margin: 0;
-  font-size: 0.95rem;
-  line-height: 1.4;
-}
-
-.welcome-card .tone {
-  display: block;
-  margin: 6px 0 0;
-  font-size: 0.78rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: #c9a227;
-}
-
-.welcome-card.clip::after {
-  content: "";
-  position: absolute;
-  top: -2px;
-  right: -2px;
-  width: 22px;
-  height: 22px;
-  background: linear-gradient(135deg, transparent 50%, #070b16 51%);
-}
-
 #board {
   display: block;
   width: 100%;
@@ -2665,6 +2583,88 @@ button:not(:disabled):active {
 
 .announce-card #announce-ok {
   font-family: "Special Elite", Courier, monospace;
+}
+
+/* #118 — after .announce-card so width/transform are not overridden by the 356px Chance lock.
+   Percents of .board-panel. Matches the approved iPad frame. */
+.announce-card.welcome-card {
+  position: absolute;
+  z-index: 5;
+  top: 5%;
+  right: 4%;
+  left: auto;
+  bottom: auto;
+  display: grid;
+  grid-template-columns: 42% 1fr;
+  align-items: stretch;
+  width: 88%;
+  height: 84%;
+  max-width: none;
+  max-height: none;
+  overflow: hidden;
+  padding: 0;
+  pointer-events: none;
+  transform: rotate(-2.5deg);
+  transform-origin: top right;
+  border-radius: 14px;
+  border-width: 6px;
+  border-color: #aa7942;
+  background: #0c101c;
+}
+
+.announce-card.welcome-card.hidden {
+  display: none !important;
+}
+
+.announce-card.welcome-card .announce-art {
+  height: auto;
+  min-height: 100%;
+  background-position: center 18%;
+  background-size: cover;
+}
+
+.announce-card.welcome-card .announce-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 0;
+  overflow: hidden;
+  padding: 16px 22px;
+  text-align: center;
+}
+
+.announce-card.welcome-card .announce-kicker {
+  font-size: 0.75rem;
+}
+
+.announce-card.welcome-card h2 {
+  margin: 10px 0 12px;
+  font-size: 2.15rem;
+}
+
+.announce-card.welcome-card .announce-body {
+  margin: 0 0 0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.announce-card.welcome-card .tone {
+  display: block;
+  margin: 6px 0 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #c9a227;
+}
+
+.announce-card.welcome-card.clip::after {
+  content: "";
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 22px;
+  height: 22px;
+  background: linear-gradient(135deg, transparent 50%, #070b16 51%);
 }
 
 
