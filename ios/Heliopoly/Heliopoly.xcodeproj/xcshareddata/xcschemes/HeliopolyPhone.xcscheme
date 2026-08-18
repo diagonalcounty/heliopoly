@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "4CC6C54D301AC13100288A41"
-               BuildableName = "Heliopoly.app"
-               BlueprintName = "Heliopoly"
+               BlueprintIdentifier = "B4CC6C54D301AC13100288A42"
+               BuildableName = "HeliopolyPhone.app"
+               BlueprintName = "HeliopolyPhone"
                ReferencedContainer = "container:Heliopoly.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -43,9 +43,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "4CC6C54D301AC13100288A41"
-            BuildableName = "Heliopoly.app"
-            BlueprintName = "Heliopoly"
+            BlueprintIdentifier = "B4CC6C54D301AC13100288A42"
+            BuildableName = "HeliopolyPhone.app"
+            BlueprintName = "HeliopolyPhone"
             ReferencedContainer = "container:Heliopoly.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -60,9 +60,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "4CC6C54D301AC13100288A41"
-            BuildableName = "Heliopoly.app"
-            BlueprintName = "Heliopoly"
+            BlueprintIdentifier = "B4CC6C54D301AC13100288A42"
+            BuildableName = "HeliopolyPhone.app"
+            BlueprintName = "HeliopolyPhone"
             ReferencedContainer = "container:Heliopoly.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
