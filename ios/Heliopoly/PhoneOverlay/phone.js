@@ -4,7 +4,8 @@
   window.__heliopolyPhoneProto = true;
 
   var html = document.documentElement;
-  html.classList.add("phone-proto", "native-shell", "touch-ui");
+  html.classList.add("phone-proto", "touch-ui");
+  html.classList.remove("native-shell");
 
   function $(id) {
     return document.getElementById(id);
@@ -177,7 +178,8 @@
   }
 
   function boot() {
-    html.classList.add("phone-proto", "native-shell", "touch-ui");
+    html.classList.add("phone-proto", "touch-ui");
+    html.classList.remove("native-shell");
     ensureBadge();
     ensureChrome();
     layout();

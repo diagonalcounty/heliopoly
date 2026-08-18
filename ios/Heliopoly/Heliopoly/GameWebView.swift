@@ -69,9 +69,10 @@ struct GameWebView: UIViewRepresentable {
         webView.scrollView.backgroundColor = Self.spaceBackground
         // Let CSS safe-area-inset-* handle notches; avoid double padding.
         webView.scrollView.contentInsetAdjustmentBehavior = .never
-        // #95: no whole-page rubber-band / pinch; log scrolls inside the page.
-        webView.scrollView.bounces = false
-        webView.scrollView.alwaysBounceVertical = false
+        // iPad: no page rubber-band. iPhone proto must scroll or setup
+        // controls sit off-screen with no way to reach them.
+        webView.scrollView.bounces = injectPhoneOverlay
+        webView.scrollView.alwaysBounceVertical = injectPhoneOverlay
         webView.scrollView.alwaysBounceHorizontal = false
         webView.scrollView.bouncesZoom = false
         webView.allowsBackForwardNavigationGestures = false
@@ -165,13 +166,14 @@ struct GameWebView: UIViewRepresentable {
 
             // Ensure layout hooks even if WebDist is older than the main.ts
             // heliopoly: protocol check (no ios:sync required for this class).
+            // iPad uses native-shell (100dvh lock). On iPhone that lock can
+            // paint a 0-height page — dark background, no buttons.
             webView.evaluateJavaScript(
                 """
-                document.documentElement.classList.add('native-shell');
+                document.documentElement.classList.add('\(injectPhoneOverlay ? "phone-proto" : "native-shell")');
                 if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) {
                   document.documentElement.classList.add('touch-ui');
                 }
-                // Mirror viewport scale lock if meta is stale.
                 var meta = document.querySelector('meta[name="viewport"]');
                 if (meta) {
                   meta.setAttribute(

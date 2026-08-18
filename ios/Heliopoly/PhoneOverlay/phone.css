@@ -2,16 +2,21 @@
    Conservative: never lock the document to 0-height (100dvh in WKWebView
    can be 0 on first layout → blank screen). */
 
-html.phone-proto {
+html.phone-proto,
+html.phone-proto.native-shell,
+html.phone-proto body,
+html.phone-proto.native-shell body {
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
   background: #0b1020;
 }
 
-html.phone-proto body {
-  background: #0b1020;
-  min-height: 100%;
-}
-
-html.phone-proto #app {
+html.phone-proto #app,
+html.phone-proto.native-shell #app {
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
   max-width: none;
   margin: 0;
   padding: max(10px, env(safe-area-inset-top, 0px))
@@ -45,13 +50,7 @@ html.phone-proto.phone-setup #welcome-card {
   display: none !important;
 }
 
-html.phone-proto.phone-setup .log-card {
-  display: none !important;
-}
-
-html.phone-proto.phone-setup #pilot-controls {
-  display: none !important;
-}
+/* Keep Launch / New game / Ops Manual visible. Do not hide Pilot. */
 
 html.phone-proto.phone-setup .side {
   position: static;
