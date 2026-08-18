@@ -12,19 +12,28 @@ struct PhoneContentView: View {
     @State private var loadError: String?
 
     var body: some View {
-        ZStack {
-            Color(red: 0.043, green: 0.063, blue: 0.125)
-                .ignoresSafeArea()
+        VStack(spacing: 0) {
+            Text("HELIOPOLY PHONE")
+                .font(.system(size: 13, weight: .bold, design: .rounded))
+                .tracking(1.2)
+                .foregroundStyle(Color(red: 0.043, green: 0.063, blue: 0.125))
+                .frame(maxWidth: .infinity)
+                .padding(.top, 54)
+                .padding(.bottom, 10)
+                .background(Color(red: 1, green: 0.784, blue: 0.341))
 
-            if let loadError {
-                errorPanel(message: loadError)
-            } else {
-                GameWebView(injectPhoneOverlay: true) { message in
-                    loadError = message
+            ZStack {
+                Color(red: 0.043, green: 0.063, blue: 0.125)
+                if let loadError {
+                    errorPanel(message: loadError)
+                } else {
+                    GameWebView(injectPhoneOverlay: true) { message in
+                        loadError = message
+                    }
                 }
-                .ignoresSafeArea()
             }
         }
+        .ignoresSafeArea(edges: .top)
     }
 
     @ViewBuilder
