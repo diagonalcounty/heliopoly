@@ -17,9 +17,19 @@ import WebKit
 /// Full-screen game surface: local `WebDist/` via WKWebView + custom scheme.
 struct GameWebView: UIViewRepresentable {
     var onLoadFailed: ((String) -> Void)?
+    /// iPhone prototype only (#120). Default false — iPad target is unchanged.
+    var injectPhoneOverlay: Bool = false
+
+    init(
+        injectPhoneOverlay: Bool = false,
+        onLoadFailed: ((String) -> Void)? = nil
+    ) {
+        self.injectPhoneOverlay = injectPhoneOverlay
+        self.onLoadFailed = onLoadFailed
+    }
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(onLoadFailed: onLoadFailed)
+        Coordinator(onLoadFailed: onLoadFailed, injectPhoneOverlay: injectPhoneOverlay)
     }
 
     func makeUIView(context: Context) -> WKWebView {
@@ -36,6 +46,18 @@ struct GameWebView: UIViewRepresentable {
             )
             context.coordinator.schemeHandler = schemeHandler
             context.coordinator.useCustomScheme = true
+        }
+
+        if injectPhoneOverlay {
+            // Tiny loader only. Do not inline CSS/JS here — interpolating
+            // them into a WKUserScript can break the page (white screen).
+            config.userContentController.addUserScript(
+                WKUserScript(
+                    source: Self.phoneOverlayLoaderJS,
+                    injectionTime: .atDocumentEnd,
+                    forMainFrameOnly: true
+                )
+            )
         }
 
         let webView = WKWebView(frame: .zero, configuration: config)
@@ -69,8 +91,24 @@ struct GameWebView: UIViewRepresentable {
         return webView
     }
 
+    /// Served from bundled `WebDist/phone-overlay/` via heliopoly:// (#120).
+    private static let phoneOverlayLoaderJS = """
+    (function () {
+      if (document.getElementById('phone-overlay-js')) return;
+      var l = document.createElement('link');
+      l.rel = 'stylesheet';
+      l.href = 'phone-overlay/phone.css';
+      (document.head || document.documentElement).appendChild(l);
+      var s = document.createElement('script');
+      s.id = 'phone-overlay-js';
+      s.src = 'phone-overlay/phone.js';
+      (document.head || document.documentElement).appendChild(s);
+    })();
+    """
+
     func updateUIView(_ webView: WKWebView, context: Context) {
         context.coordinator.onLoadFailed = onLoadFailed
+        context.coordinator.injectPhoneOverlay = injectPhoneOverlay
     }
 
     private static var spaceBackground: UIColor {
@@ -79,12 +117,14 @@ struct GameWebView: UIViewRepresentable {
 
     final class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         var onLoadFailed: ((String) -> Void)?
+        var injectPhoneOverlay = false
         /// Retained for the life of the web view (configuration also retains it).
         var schemeHandler: WebDistSchemeHandler?
         var useCustomScheme = false
 
-        init(onLoadFailed: ((String) -> Void)?) {
+        init(onLoadFailed: ((String) -> Void)?, injectPhoneOverlay: Bool = false) {
             self.onLoadFailed = onLoadFailed
+            self.injectPhoneOverlay = injectPhoneOverlay
         }
 
         func loadBundledGame(into webView: WKWebView) {
@@ -141,6 +181,12 @@ struct GameWebView: UIViewRepresentable {
                 }
                 """
             )
+            if injectPhoneOverlay {
+                webView.evaluateJavaScript(
+                    GameWebView.phoneOverlayLoaderJS,
+                    completionHandler: nil
+                )
+            }
         }
 
         func webView(
