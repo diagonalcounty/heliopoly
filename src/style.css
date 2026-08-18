@@ -1089,6 +1089,83 @@ body.handbook-open {
     }
   }
 
+/**
+ * Ops Manual phone sheet (#124).
+ * iPhone / narrow Safari only. iPad mini 744+ keeps the framed modal.
+ */
+@media (max-width: 640px) {
+  #handbook-root.handbook {
+    padding: 0;
+    align-items: stretch;
+    justify-content: stretch;
+  }
+
+  #handbook-root .handbook-panel {
+    width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+    border: none;
+  }
+
+  #handbook-root .handbook-header {
+    padding-top: max(10px, env(safe-area-inset-top, 0px));
+    padding-left: max(12px, env(safe-area-inset-left, 0px));
+    padding-right: max(12px, env(safe-area-inset-right, 0px));
+    gap: 8px;
+  }
+
+  #handbook-root .handbook-header-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  #handbook-root .handbook-kicker {
+    display: none;
+  }
+
+  #handbook-root .handbook-header h2 {
+    font-size: 1.05rem;
+  }
+
+  #handbook-root .handbook-close {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  #handbook-root .handbook-section-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding-left: max(10px, env(safe-area-inset-left, 0px));
+    padding-right: max(10px, env(safe-area-inset-right, 0px));
+  }
+
+  #handbook-root .handbook-section-tab {
+    flex-shrink: 0;
+    min-height: 44px;
+  }
+
+  #handbook-root .handbook-article {
+    padding: 12px 14px max(28px, env(safe-area-inset-bottom, 0px));
+  }
+
+  #handbook-root .handbook-article-icon {
+    width: 52px;
+    height: 52px;
+  }
+
+  #handbook-root .handbook-article table,
+  #handbook-root .handbook-article pre,
+  #handbook-root .md-doc pre.md-pre {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 .handbook-toc {
   border-right: 1px solid var(--border);
   overflow-x: hidden;

@@ -17,12 +17,22 @@ import WebKit
 /// Full-screen game surface: local `WebDist/` via WKWebView + custom scheme.
 struct GameWebView: UIViewRepresentable {
     var onLoadFailed: ((String) -> Void)?
+    /// iPhone prototype only (#120). Default false — iPad target is unchanged.
+    var injectPhoneOverlay: Bool = false
 
-    func makeCoordinator() -> Coordinator {
-        Coordinator(onLoadFailed: onLoadFailed)
+    init(
+        injectPhoneOverlay: Bool = false,
+        onLoadFailed: ((String) -> Void)? = nil
+    ) {
+        self.injectPhoneOverlay = injectPhoneOverlay
+        self.onLoadFailed = onLoadFailed
     }
 
-    func makeUIView(context: Context) -> WKWebView {
+    func makeCoordinator() -> Coordinator {
+        Coordinator(onLoadFailed: onLoadFailed, injectPhoneOverlay: injectPhoneOverlay)
+    }
+
+    func makeUIView(context: Context) -> SizedWebHost {
         let config = WKWebViewConfiguration()
         config.defaultWebpagePreferences.allowsContentJavaScript = true
         config.allowsInlineMediaPlayback = true
@@ -36,28 +46,28 @@ struct GameWebView: UIViewRepresentable {
             )
             context.coordinator.schemeHandler = schemeHandler
             context.coordinator.useCustomScheme = true
+        } else if injectPhoneOverlay {
+            context.coordinator.onLoadFailed?(
+                "WebDist/index.html missing from the phone bundle. Run npm run ios:sync, then Clean Build the HeliopolyPhone scheme."
+            )
         }
 
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.navigationDelegate = context.coordinator
-        // JS alert/confirm/prompt are silent without WKUIDelegate (#111).
         webView.uiDelegate = context.coordinator
         webView.isOpaque = false
         webView.backgroundColor = Self.spaceBackground
         webView.scrollView.backgroundColor = Self.spaceBackground
-        // Let CSS safe-area-inset-* handle notches; avoid double padding.
-        webView.scrollView.contentInsetAdjustmentBehavior = .never
-        // #95: no whole-page rubber-band / pinch; log scrolls inside the page.
-        webView.scrollView.bounces = false
-        webView.scrollView.alwaysBounceVertical = false
+        webView.scrollView.contentInsetAdjustmentBehavior = injectPhoneOverlay
+            ? .automatic
+            : .never
+        webView.scrollView.bounces = injectPhoneOverlay
+        webView.scrollView.alwaysBounceVertical = injectPhoneOverlay
         webView.scrollView.alwaysBounceHorizontal = false
         webView.scrollView.bouncesZoom = false
         webView.allowsBackForwardNavigationGestures = false
-        // Match page to device width (critical for iPad layout CSS).
         webView.scrollView.contentInset = .zero
         webView.scrollView.scrollIndicatorInsets = .zero
-
-        // Pinch-zoom off — game is touch-laid out for the viewport (#95).
         webView.scrollView.minimumZoomScale = 1
         webView.scrollView.maximumZoomScale = 1
         webView.scrollView.pinchGestureRecognizer?.isEnabled = false
@@ -65,12 +75,21 @@ struct GameWebView: UIViewRepresentable {
             webView.isInspectable = true
         }
 
-        context.coordinator.loadBundledGame(into: webView)
-        return webView
+        let host = SizedWebHost(webView: webView)
+        // Load only after SwiftUI gives the view a real size. Loading at
+        // CGRect.zero leaves WKWebView blank on iPhone (works on iPad).
+        host.onReady = { [weak coordinator = context.coordinator] readyView in
+            coordinator?.startLoadIfNeeded(in: readyView)
+        }
+        return host
     }
 
-    func updateUIView(_ webView: WKWebView, context: Context) {
+    func updateUIView(_ host: SizedWebHost, context: Context) {
         context.coordinator.onLoadFailed = onLoadFailed
+        context.coordinator.injectPhoneOverlay = injectPhoneOverlay
+        if host.bounds.width > 1, host.bounds.height > 1 {
+            context.coordinator.startLoadIfNeeded(in: host.webView)
+        }
     }
 
     private static var spaceBackground: UIColor {
@@ -79,12 +98,21 @@ struct GameWebView: UIViewRepresentable {
 
     final class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         var onLoadFailed: ((String) -> Void)?
+        var injectPhoneOverlay = false
+        var didStartLoad = false
         /// Retained for the life of the web view (configuration also retains it).
         var schemeHandler: WebDistSchemeHandler?
         var useCustomScheme = false
 
-        init(onLoadFailed: ((String) -> Void)?) {
+        init(onLoadFailed: ((String) -> Void)?, injectPhoneOverlay: Bool = false) {
             self.onLoadFailed = onLoadFailed
+            self.injectPhoneOverlay = injectPhoneOverlay
+        }
+
+        func startLoadIfNeeded(in webView: WKWebView) {
+            guard !didStartLoad else { return }
+            didStartLoad = true
+            loadBundledGame(into: webView)
         }
 
         func loadBundledGame(into webView: WKWebView) {
@@ -125,22 +153,34 @@ struct GameWebView: UIViewRepresentable {
 
             // Ensure layout hooks even if WebDist is older than the main.ts
             // heliopoly: protocol check (no ios:sync required for this class).
-            webView.evaluateJavaScript(
-                """
-                document.documentElement.classList.add('native-shell');
-                if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) {
-                  document.documentElement.classList.add('touch-ui');
-                }
-                // Mirror viewport scale lock if meta is stale.
-                var meta = document.querySelector('meta[name="viewport"]');
-                if (meta) {
-                  meta.setAttribute(
-                    'content',
-                    'width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no'
-                  );
-                }
-                """
-            )
+            // iPad uses native-shell (100dvh lock). On iPhone that lock can
+            // paint a 0-height page — dark background, no buttons.
+            // Phone: do not add native-shell and do not inject overlay CSS yet.
+            // Those were blanking portrait. Show the stock game first.
+            if injectPhoneOverlay {
+                webView.evaluateJavaScript(
+                    """
+                    document.documentElement.classList.remove('native-shell');
+                    document.documentElement.classList.add('touch-ui');
+                    """
+                )
+            } else {
+                webView.evaluateJavaScript(
+                    """
+                    document.documentElement.classList.add('native-shell');
+                    if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) {
+                      document.documentElement.classList.add('touch-ui');
+                    }
+                    var meta = document.querySelector('meta[name="viewport"]');
+                    if (meta) {
+                      meta.setAttribute(
+                        'content',
+                        'width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no'
+                      );
+                    }
+                    """
+                )
+            }
         }
 
         func webView(
@@ -300,6 +340,37 @@ struct GameWebView: UIViewRepresentable {
             }
             return start
         }
+    }
+}
+
+/// Pins WKWebView to SwiftUI's proposed size, then fires `onReady`.
+final class SizedWebHost: UIView {
+    let webView: WKWebView
+    var onReady: ((WKWebView) -> Void)?
+    private var announced = false
+
+    init(webView: WKWebView) {
+        self.webView = webView
+        super.init(frame: .zero)
+        backgroundColor = UIColor(red: 0.043, green: 0.063, blue: 0.125, alpha: 1)
+        webView.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(webView)
+        NSLayoutConstraint.activate([
+            webView.topAnchor.constraint(equalTo: topAnchor),
+            webView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            webView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            webView.trailingAnchor.constraint(equalTo: trailingAnchor),
+        ])
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { nil }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        guard !announced, bounds.width > 1, bounds.height > 1 else { return }
+        announced = true
+        onReady?(webView)
     }
 }
 

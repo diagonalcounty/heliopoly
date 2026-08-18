@@ -31,15 +31,37 @@ In Xcode:
 
 ```text
 ios/Heliopoly/
-  Heliopoly.xcodeproj/     # project + shared scheme
+  Heliopoly.xcodeproj/     # project + shared schemes (Heliopoly, HeliopolyPhone)
   WebDist/                 # Vite production build (npm run ios:sync)
   Heliopoly/
-    HeliopolyApp.swift     # @main
-    ContentView.swift      # root shell / error UI
-    GameWebView.swift      # WKWebView → bundled WebDist/
-    PrivacyInfo.xcprivacy  # privacy nutrition stub (no tracking)
-    Assets.xcassets/       # AppIcon + AccentColor
+    HeliopolyApp.swift     # iPad @main
+    ContentView.swift      # iPad root shell
+    GameWebView.swift      # WKWebView → bundled WebDist/ (shared)
+    PrivacyInfo.xcprivacy
+    Assets.xcassets/
+  PhonePrototype/          # iPhone prototype @main (#120 / #121)
+  PhoneOverlay/            # CSS/JS injected only by HeliopolyPhone (#122)
 ```
+
+## iPhone prototype (does not change iPad)
+
+Parent: GitHub **#120**. The shipping **Heliopoly** scheme stays iPad-only (`TARGETED_DEVICE_FAMILY = 2`). Overlay is **not** in `src/style.css`.
+
+```bash
+npm run ios:sync
+open ios/Heliopoly/Heliopoly.xcodeproj
+```
+
+1. Select scheme **HeliopolyPhone**.
+2. Pick an **iPhone** simulator (iPhone 16 / 15, portrait).
+3. Run (⌘R).
+
+| Scheme | Device | What you get |
+|--------|--------|----------------|
+| **Heliopoly** | iPad | Unchanged shipping client |
+| **HeliopolyPhone** | iPhone | Same `WebDist/` + `PhoneOverlay/` (status strip, leftover board, fixed Roll bar) |
+
+`npm run ios:sync` still only refreshes `WebDist/`. Edit overlay in `PhoneOverlay/phone.css` + `phone.js`, then rebuild **HeliopolyPhone**.
 
 `WebDist/` lives **next to** the `.xcodeproj` (not inside the synced Swift sources). Xcode’s “Copy WebDist” Run Script phase packs it into the `.app` **with folder structure** so `./assets/` and `./handbook/` paths work.
 
