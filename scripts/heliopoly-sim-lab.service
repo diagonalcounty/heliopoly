@@ -1,0 +1,19 @@
+[Unit]
+Description=Heliopoly Sim Lab (simulation.heliopoly.live)
+After=network.target
+Documentation=https://github.com/diagonalcounty/heliopoly/issues/134
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/heliopoly-sim
+Environment=HELIOPOLY_SIM_LAB_HOST=127.0.0.1
+Environment=HELIOPOLY_SIM_LAB_PORT=5174
+Environment=HELIOPOLY_SIM_LAB_PUBLIC=1
+Environment=HELIOPOLY_SIM_LAB_MAX_GAMES=400
+ExecStart=/opt/heliopoly-sim/node_modules/.bin/tsx src/sim/lab-server.ts
+Restart=on-failure
+RestartSec=3
+# Do not write sim-results on the public host (lab-server forces save=false).
+
+[Install]
+WantedBy=multi-user.target

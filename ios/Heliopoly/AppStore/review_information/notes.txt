@@ -1,14 +1,59 @@
-Heliopoly is a fully offline single-device game. The UI is a SwiftUI shell that loads a bundled HTML/JS game from the app package via a custom scheme (heliopoly://), not Safari and not a remote website.
+GUIDELINE 2.1 — APP REVIEW INFORMATION (Heliopoly 1.0.0)
 
-No login, no IAP in this version, no ads, no tracking SDKs.
+Heliopoly is a complete, offline, single-player solar-system strategy game for iPad. It is not a website wrapper. A SwiftUI shell loads a bundled HTML/JS game from the app package over a custom URL scheme (heliopoly://). Core play does not require a network connection, account, or any external service.
 
-How to play a short review session:
-1. Launch the app.
-2. On New game: leave Seat 1 as human, name any rocket, pick Methane, AI difficulty Easy, 2–3 total pilots.
+1) SCREEN RECORDING
+A screen recording captured on a physical iPad running the latest public iPadOS is attached to the Resolution Center reply. It begins at app launch and shows: New game setup → Launch → Roll / optional Break → ship movement → Buy a claim (when available) → End turn → Helios Ops Manual → return to the board.
+
+Does not apply (none of these exist):
+- Account registration, login, or account deletion
+- Purchases, subscriptions, or paid unlocks
+- User-generated content, reporting, or blocking
+- Prompts for location, contacts, camera, photos, microphone, or App Tracking Transparency
+
+2) DEVICES AND OPERATING SYSTEMS TESTED
+Physical:
+- iPad Air 11-inch (M4), latest public iPadOS installed on the review-recording device (Settings → General → About)
+
+Simulators (Xcode):
+- iPad mini (6th generation)
+- iPad Air 11-inch
+- iPad Pro 11-inch
+
+Minimum OS: iPadOS 17.0. Devices: iPad only.
+
+3) FUNCTIONS AND TARGET AUDIENCE
+Heliopoly is a turn-based strategy / board game. The player names a rocket, chooses methane or hydrogen propellant, and competes against on-device AI rivals from Mercury to the Saturn moons. Players buy planetary claims, plant fuel depots, manage cash on the in-game ledger, and win by being the last solvent rocket flying. There is no turn cap.
+
+Target audience: players of offline strategy and classic property/economy board games who want a space-themed expedition.
+
+Problem / value: a complete, account-free, offline strategy game with bundled rules (Helios Ops Manual) and four AI difficulty levels. Open the app and play.
+
+4) HOW TO ACCESS MAIN FEATURES
+No login. No demo account. No sample files. Airplane Mode is fine.
+
+Review path:
+1. Launch Heliopoly. The New game panel is visible immediately.
+2. Leave “Seat 1 is human” checked. Name any rocket (or leave the default). Choose Methane. Set AI difficulty to Easy. Set Total pilots to 3 for a short session.
 3. Tap Launch.
-4. Use Pilot Controls: Roll → optional Break → Move. Buy claims when landed. End turn.
-5. Open Helios Ops Manual (in-game) for full rules.
+4. In Pilot Controls: tap Roll. Optionally use Break − / + to land short. The ship moves. If the world is for sale, tap Buy. Tap End turn. AI seats play automatically.
+5. Tap Ops Manual (header) for rules, glossary, and rival-rocket civilopedia. Dismiss to return to play.
+6. If two rockets meet on a blank lane, Gravity Duel appears: choose Low or High, then roll.
 
-If the board appears empty, the WebDist bundle was not packaged — rebuild with the shared scheme after npm run ios:sync from the monorepo. Review builds should include WebDist inside the .app.
+A few human turns are enough to review setup, board, claims, and AI. A full game is not required. Ignore “Self-play burst” unless you want an AI-only spectator demo.
 
-Demo account: none required.
+5) EXTERNAL SERVICES
+None required for core functionality. The game, art, rules engine, and heuristic AI are packaged in the binary.
+
+Not used: authentication, payment processors, cloud AI APIs, ads, analytics SDKs, social login.
+
+Public companion URLs (not required to play):
+- Privacy policy: https://heliopoly.live/privacy.html
+- Support: https://github.com/diagonalcounty/heliopoly/issues
+- Optional free browser companion (same rules engine): https://heliopoly.live/
+
+6) REGIONAL DIFFERENCES
+The app functions the same in all regions. English (U.S.) only. No geo-gated content, no regional storefronts, no location-based features.
+
+7) REGULATED INDUSTRY / PROTECTED MATERIAL
+Not applicable. Original strategy game. We own or have rights to the code, art, and copy (open source, MIT). Not affiliated with Solarquest or any commercial board game. Not a regulated industry. No licensed third-party IP.

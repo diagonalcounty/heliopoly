@@ -1,4 +1,4 @@
-Heliopoly is free enterprise in space — a solar-system strategy game of claims, propellant, and rival rockets.
+Heliopoly is orbital economics — a solar-system strategy game of claims, propellant, and rival rockets.
 
 You name a rocket, pick methane or hydrogen fuel, and compete against AI pilots from Mercury to the Saturn moons. Buy deeds, plant fuel depots, manage cash on the Automated Interplanetary Asset Ledger, and stay solvent long enough to be the last rocket flying.
 

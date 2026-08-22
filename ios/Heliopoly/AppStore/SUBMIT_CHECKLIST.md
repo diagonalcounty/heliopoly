@@ -22,12 +22,14 @@ Use with [LISTING.md](./LISTING.md).
 2. App Store Connect app record created with same bundle ID
 3. Paste listing fields from LISTING.md
 4. Upload 1024 icon if Connect asks separately (usually taken from binary)
-5. Screenshots for required iPad sizes
+5. Screenshots for required iPad sizes — actual play, not splash / title only
 6. Age rating questionnaire completed
 7. App Privacy: Data Not Collected
 8. Export compliance: exempt encryption (matches Info.plist key)
 9. Pricing & availability set
 10. Build selected on the version page
+11. Paste [`review_information/notes.txt`](review_information/notes.txt) into **App Review Information → Notes** (all seven Guideline 2.1 items)
+12. After a 2.1 Information Needed rejection: record on a **physical** iPad ([`review_information/RECORDING.md`](review_information/RECORDING.md)), reply in Resolution Center with the notes + video, then resubmit the same binary
 
 ## After Approve
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Heliopoly sim · prograde · run-20260812T183934Z</title>
+  <title>Heliopoly sim · prograde · run-20260821T175956Z</title>
   <style>
 :root {
   color-scheme: dark;
@@ -97,17 +97,6 @@ table {
   border-collapse: collapse;
   font-size: 0.9rem;
 }
-table.stats-table {
-  table-layout: fixed;
-}
-table.stats-table th:first-child,
-table.stats-table td.label-cell {
-  width: 46%;
-}
-table.stats-table th:not(:first-child),
-table.stats-table td.num {
-  width: 18%;
-}
 th, td {
   text-align: left;
   padding: 8px 8px;
@@ -120,18 +109,20 @@ th { color: var(--muted); font-weight: 600; font-size: 0.75rem; text-transform: 
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-.label-cell {
-  overflow: hidden;
-  min-width: 0;
-}
-.label {
+.stat-list { display: flex; flex-direction: column; gap: 12px; }
+.stat-row .label {
   font-weight: 600;
+  margin-bottom: 4px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  margin-bottom: 5px;
 }
-/* Full-width track; fill bar is clipped — never paints over other columns */
+.stat-row .stat-line {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
 .bar-track {
   display: block;
   width: 100%;
@@ -151,6 +142,10 @@ th { color: var(--muted); font-weight: 600; font-size: 0.75rem; text-transform: 
   min-width: 0;
 }
 .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.86em; }
+.pos { color: var(--ok); }
+.neg { color: #ff6b7a; }
+.muted { color: var(--muted); }
+tr.roi-top td:first-child { color: var(--accent-2); font-weight: 700; }
 .muted { color: var(--muted); }
 footer {
   max-width: 1100px;
@@ -170,238 +165,161 @@ footer {
 <body>
   <header>
     <h1>Heliopoly sim report</h1>
-    <p class="sub">Batch balance / AI review · generated 2026-08-12 19:15:50 UTC · schema v1</p>
+    <p class="sub">Batch balance / AI review · generated 2026-08-21 18:00:09 UTC · schema v1</p>
   </header>
   <main>
     <section>
       <h2>Run metadata</h2>
       
     <dl class="meta">
-      <div><dt>Run id</dt><dd class="mono">run-20260812T183934Z</dd></div>
+      <div><dt>Run id</dt><dd class="mono">run-20260821T175956Z</dd></div>
       <div><dt>Experiment</dt><dd><span class="pill">prograde</span></dd></div>
       <div><dt>AI difficulty</dt><dd>normal</dd></div>
       <div><dt>Players</dt><dd>4</dd></div>
       <div><dt>Games</dt><dd>20</dd></div>
-      <div><dt>Git</dt><dd class="mono">a881ec2</dd></div>
+      <div><dt>Git</dt><dd class="mono">22b88ae</dd></div>
       <div><dt>Base seed</dt><dd class="mono">1000 + i×997</dd></div>
-      <div><dt>Created</dt><dd class="mono">2026-08-12T18:39:34.127Z</dd></div>
+      <div><dt>Created</dt><dd class="mono">2026-08-21T17:59:56.987Z</dd></div>
       <div><dt>Engine</dt><dd>typescript-core</dd></div>
       <div><dt>Run folder</dt><dd class="mono">sample</dd></div>
     </dl>
     
       
     <div class="kpis">
-      <div class="kpi"><div class="kpi-v">32.1</div><div class="kpi-l">Mean rounds</div></div>
-      <div class="kpi"><div class="kpi-v">359</div><div class="kpi-l">Mean turns</div></div>
-      <div class="kpi"><div class="kpi-v">0.0%</div><div class="kpi-l">Unfinished (0)</div></div>
-      <div class="kpi"><div class="kpi-v">0.05s</div><div class="kpi-l">425.5 games/s</div></div>
+      <div class="kpi"><div class="kpi-v">22.5</div><div class="kpi-l">Mean rounds</div></div>
+      <div class="kpi"><div class="kpi-v">1910</div><div class="kpi-l">Mean turns</div></div>
+      <div class="kpi"><div class="kpi-v">60.0%</div><div class="kpi-l">Unfinished (12)</div></div>
+      <div class="kpi"><div class="kpi-v">0.61s</div><div class="kpi-l">32.7 games/s</div></div>
     </div>
     
     </section>
+    <section><p class='muted'>Rates = share of <strong>finished</strong> games (n=8) by <strong>winner</strong> attribute. All-retro → backward ≈ 100%. Mixed → forward + backward ≈ 100%.</p></section>
     
     <section>
       <h2>Wins by rocket name</h2>
-      <table class="stats-table">
+      <div class="stat-list">
+    <div class="stat-row">
+      <div class="label">Asimov</div>
+      <div class="bar-track" aria-hidden="true">
+        <div class="bar" style="width:100.0%"></div>
+      </div>
+      <div class="stat-line mono">2 wins · n=8 · 25.0%</div>
+    </div>
+    <div class="stat-row">
+      <div class="label">Ada</div>
+      <div class="bar-track" aria-hidden="true">
+        <div class="bar" style="width:100.0%"></div>
+      </div>
+      <div class="stat-line mono">2 wins · n=8 · 25.0%</div>
+    </div>
+    <div class="stat-row">
+      <div class="label">K-127</div>
+      <div class="bar-track" aria-hidden="true">
+        <div class="bar" style="width:50.0%"></div>
+      </div>
+      <div class="stat-line mono">1 wins · n=8 · 12.5%</div>
+    </div>
+    <div class="stat-row">
+      <div class="label">von Braun</div>
+      <div class="bar-track" aria-hidden="true">
+        <div class="bar" style="width:50.0%"></div>
+      </div>
+      <div class="stat-line mono">1 wins · n=8 · 12.5%</div>
+    </div>
+    <div class="stat-row">
+      <div class="label">Recorde</div>
+      <div class="bar-track" aria-hidden="true">
+        <div class="bar" style="width:50.0%"></div>
+      </div>
+      <div class="stat-line mono">1 wins · n=8 · 12.5%</div>
+    </div>
+    <div class="stat-row">
+      <div class="label">Sagan</div>
+      <div class="bar-track" aria-hidden="true">
+        <div class="bar" style="width:50.0%"></div>
+      </div>
+      <div class="stat-line mono">1 wins · n=8 · 12.5%</div>
+    </div></div>
+    </section>
+    
+    <section>
+      <h2>Properties by ROI</h2>
+      <p class="muted">Empirical rent collected ÷ claim + depot spend over finished games. Sorted highest ROI first.</p>
+      <table>
         <thead>
-          <tr><th>Rocket</th><th>Wins</th><th>Games</th><th>Share</th></tr>
+          <tr>
+            <th>Property</th><th>System</th><th class="num">n</th>
+            <th class="num">Mean invested</th><th class="num">Mean rent</th>
+            <th class="num">Mean net</th><th class="num">ROI</th>
+            <th class="num">Landings</th>
+          </tr>
         </thead>
-        <tbody>
-    <tr>
-      <td class="label-cell">
-        <div class="label">Sagan</div>
-        <div class="bar-track" aria-hidden="true">
-          <div class="bar" style="width:100.0%"></div>
-        </div>
-      </td>
-      <td class="num">5</td>
-      <td class="num">20</td>
-      <td class="num">25.0%</td>
-    </tr>
-    <tr>
-      <td class="label-cell">
-        <div class="label">Recorde</div>
-        <div class="bar-track" aria-hidden="true">
-          <div class="bar" style="width:60.0%"></div>
-        </div>
-      </td>
-      <td class="num">3</td>
-      <td class="num">20</td>
-      <td class="num">15.0%</td>
-    </tr>
-    <tr>
-      <td class="label-cell">
-        <div class="label">K-127</div>
-        <div class="bar-track" aria-hidden="true">
-          <div class="bar" style="width:60.0%"></div>
-        </div>
-      </td>
-      <td class="num">3</td>
-      <td class="num">20</td>
-      <td class="num">15.0%</td>
-    </tr>
-    <tr>
-      <td class="label-cell">
-        <div class="label">Ada</div>
-        <div class="bar-track" aria-hidden="true">
-          <div class="bar" style="width:60.0%"></div>
-        </div>
-      </td>
-      <td class="num">3</td>
-      <td class="num">20</td>
-      <td class="num">15.0%</td>
-    </tr>
-    <tr>
-      <td class="label-cell">
-        <div class="label">Turing</div>
-        <div class="bar-track" aria-hidden="true">
-          <div class="bar" style="width:40.0%"></div>
-        </div>
-      </td>
-      <td class="num">2</td>
-      <td class="num">20</td>
-      <td class="num">10.0%</td>
-    </tr>
-    <tr>
-      <td class="label-cell">
-        <div class="label">Asimov</div>
-        <div class="bar-track" aria-hidden="true">
-          <div class="bar" style="width:40.0%"></div>
-        </div>
-      </td>
-      <td class="num">2</td>
-      <td class="num">20</td>
-      <td class="num">10.0%</td>
-    </tr>
-    <tr>
-      <td class="label-cell">
-        <div class="label">Clarke</div>
-        <div class="bar-track" aria-hidden="true">
-          <div class="bar" style="width:20.0%"></div>
-        </div>
-      </td>
-      <td class="num">1</td>
-      <td class="num">20</td>
-      <td class="num">5.0%</td>
-    </tr>
-    <tr>
-      <td class="label-cell">
-        <div class="label">Goddard</div>
-        <div class="bar-track" aria-hidden="true">
-          <div class="bar" style="width:20.0%"></div>
-        </div>
-      </td>
-      <td class="num">1</td>
-      <td class="num">20</td>
-      <td class="num">5.0%</td>
-    </tr></tbody>
+        <tbody><tr class="roi-top"><td>Europa</td><td class='muted'>jupiter · moon</td><td class='num'>6</td><td class='num'>⍼493</td><td class='num'>⍼307</td><td class='num neg'>−⍼186</td><td class='num'>62.3%<div class='bar-track'><div class='bar' style='width:100.0%'></div></div></td><td class='num'>3.8</td></tr><tr><td>Tethys</td><td class='muted'>saturn · moon</td><td class='num'>4</td><td class='num'>⍼369</td><td class='num'>⍼132</td><td class='num neg'>−⍼237</td><td class='num'>35.8%<div class='bar-track'><div class='bar' style='width:57.4%'></div></div></td><td class='num'>2.0</td></tr><tr><td>Daktulios</td><td class='muted'>saturn · federation</td><td class='num'>4</td><td class='num'>⍼1,000</td><td class='num'>⍼301</td><td class='num neg'>−⍼699</td><td class='num'>30.1%<div class='bar-track'><div class='bar' style='width:48.4%'></div></div></td><td class='num'>2.2</td></tr><tr><td>Mars</td><td class='muted'>mars · planet</td><td class='num'>6</td><td class='num'>⍼700</td><td class='num'>⍼190</td><td class='num neg'>−⍼510</td><td class='num'>27.2%<div class='bar-track'><div class='bar' style='width:43.7%'></div></div></td><td class='num'>1.5</td></tr><tr><td>Deimos</td><td class='muted'>mars · moon</td><td class='num'>8</td><td class='num'>⍼291</td><td class='num'>⍼77</td><td class='num neg'>−⍼214</td><td class='num'>26.5%<div class='bar-track'><div class='bar' style='width:42.5%'></div></div></td><td class='num'>1.8</td></tr><tr><td>Enceladus</td><td class='muted'>saturn · moon</td><td class='num'>6</td><td class='num'>⍼400</td><td class='num'>⍼95</td><td class='num neg'>−⍼305</td><td class='num'>23.8%<div class='bar-track'><div class='bar' style='width:38.1%'></div></div></td><td class='num'>1.7</td></tr><tr><td>Mercury</td><td class='muted'>mercury · planet</td><td class='num'>5</td><td class='num'>⍼496</td><td class='num'>⍼96</td><td class='num neg'>−⍼400</td><td class='num'>19.4%<div class='bar-track'><div class='bar' style='width:31.1%'></div></div></td><td class='num'>0.6</td></tr><tr><td>Iapetus</td><td class='muted'>saturn · moon</td><td class='num'>5</td><td class='num'>⍼479</td><td class='num'>⍼85</td><td class='num neg'>−⍼394</td><td class='num'>17.8%<div class='bar-track'><div class='bar' style='width:28.5%'></div></div></td><td class='num'>1.2</td></tr><tr><td>Ganymede</td><td class='muted'>jupiter · moon</td><td class='num'>8</td><td class='num'>⍼571</td><td class='num'>⍼101</td><td class='num neg'>−⍼469</td><td class='num'>17.7%<div class='bar-track'><div class='bar' style='width:28.5%'></div></div></td><td class='num'>0.8</td></tr><tr><td>Elon</td><td class='muted'>mars · federation</td><td class='num'>7</td><td class='num'>⍼550</td><td class='num'>⍼86</td><td class='num neg'>−⍼464</td><td class='num'>15.6%<div class='bar-track'><div class='bar' style='width:25.0%'></div></div></td><td class='num'>1.1</td></tr><tr><td>Phobos</td><td class='muted'>mars · moon</td><td class='num'>6</td><td class='num'>⍼304</td><td class='num'>⍼45</td><td class='num neg'>−⍼259</td><td class='num'>14.8%<div class='bar-track'><div class='bar' style='width:23.7%'></div></div></td><td class='num'>1.0</td></tr><tr><td>Dione</td><td class='muted'>saturn · moon</td><td class='num'>6</td><td class='num'>⍼433</td><td class='num'>⍼55</td><td class='num neg'>−⍼379</td><td class='num'>12.6%<div class='bar-track'><div class='bar' style='width:20.3%'></div></div></td><td class='num'>0.7</td></tr><tr><td>Holst Space Station</td><td class='muted'>jupiter · federation</td><td class='num'>6</td><td class='num'>⍼817</td><td class='num'>⍼100</td><td class='num neg'>−⍼717</td><td class='num'>12.2%<div class='bar-track'><div class='bar' style='width:19.7%'></div></div></td><td class='num'>0.7</td></tr><tr><td>Callisto</td><td class='muted'>jupiter · moon</td><td class='num'>4</td><td class='num'>⍼662</td><td class='num'>⍼75</td><td class='num neg'>−⍼588</td><td class='num'>11.3%<div class='bar-track'><div class='bar' style='width:18.1%'></div></div></td><td class='num'>0.8</td></tr><tr><td>Titan</td><td class='muted'>saturn · moon</td><td class='num'>5</td><td class='num'>⍼756</td><td class='num'>⍼76</td><td class='num neg'>−⍼680</td><td class='num'>10.0%<div class='bar-track'><div class='bar' style='width:16.1%'></div></div></td><td class='num'>0.6</td></tr><tr><td>Rhea</td><td class='muted'>saturn · moon</td><td class='num'>5</td><td class='num'>⍼521</td><td class='num'>⍼36</td><td class='num neg'>−⍼485</td><td class='num'>6.9%<div class='bar-track'><div class='bar' style='width:11.1%'></div></div></td><td class='num'>0.4</td></tr><tr><td>Io</td><td class='muted'>jupiter · moon</td><td class='num'>5</td><td class='num'>⍼357</td><td class='num'>⍼22</td><td class='num neg'>−⍼335</td><td class='num'>6.3%<div class='bar-track'><div class='bar' style='width:10.1%'></div></div></td><td class='num'>0.4</td></tr><tr><td>Venus</td><td class='muted'>venus · planet</td><td class='num'>6</td><td class='num'>⍼775</td><td class='num'>⍼35</td><td class='num neg'>−⍼740</td><td class='num'>4.5%<div class='bar-track'><div class='bar' style='width:7.2%'></div></div></td><td class='num'>0.2</td></tr><tr><td>Mimas</td><td class='muted'>saturn · moon</td><td class='num'>6</td><td class='num'>⍼289</td><td class='num'>⍼9</td><td class='num neg'>−⍼281</td><td class='num'>3.0%<div class='bar-track'><div class='bar' style='width:4.8%'></div></div></td><td class='num'>0.2</td></tr></tbody>
       </table>
     </section>
     
     <section>
-      <h2>Win rate by travel direction</h2>
-      <table class="stats-table">
-        <thead>
-          <tr><th>Key</th><th>Wins</th><th>n</th><th>Rate</th></tr>
-        </thead>
-        <tbody>
-    <tr>
-      <td class="label-cell">
-        <div class="label">forward</div>
-        <div class="bar-track" aria-hidden="true">
-          <div class="bar" style="width:100.0%"></div>
-        </div>
-      </td>
-      <td class="num">20</td>
-      <td class="num">80</td>
-      <td class="num">25.0%</td>
-    </tr></tbody>
-      </table>
+      <h2>By direction (winner)</h2>
+      <div class="stat-list">
+    <div class="stat-row">
+      <div class="label">forward</div>
+      <div class="bar-track" aria-hidden="true">
+        <div class="bar" style="width:100.0%"></div>
+      </div>
+      <div class="stat-line mono">8 wins · n=8 · 100.0%</div>
+    </div></div>
     </section>
     
     <section>
-      <h2>Win rate by propellant</h2>
-      <table class="stats-table">
-        <thead>
-          <tr><th>Key</th><th>Wins</th><th>n</th><th>Rate</th></tr>
-        </thead>
-        <tbody>
-    <tr>
-      <td class="label-cell">
-        <div class="label">methane</div>
-        <div class="bar-track" aria-hidden="true">
-          <div class="bar" style="width:100.0%"></div>
-        </div>
-      </td>
-      <td class="num">11</td>
-      <td class="num">40</td>
-      <td class="num">27.5%</td>
-    </tr>
-    <tr>
-      <td class="label-cell">
-        <div class="label">hydrogen</div>
-        <div class="bar-track" aria-hidden="true">
-          <div class="bar" style="width:81.8%"></div>
-        </div>
-      </td>
-      <td class="num">9</td>
-      <td class="num">40</td>
-      <td class="num">22.5%</td>
-    </tr></tbody>
-      </table>
+      <h2>By propellant (winner)</h2>
+      <div class="stat-list">
+    <div class="stat-row">
+      <div class="label">hydrogen</div>
+      <div class="bar-track" aria-hidden="true">
+        <div class="bar" style="width:100.0%"></div>
+      </div>
+      <div class="stat-line mono">5 wins · n=8 · 62.5%</div>
+    </div>
+    <div class="stat-row">
+      <div class="label">methane</div>
+      <div class="bar-track" aria-hidden="true">
+        <div class="bar" style="width:60.0%"></div>
+      </div>
+      <div class="stat-line mono">3 wins · n=8 · 37.5%</div>
+    </div></div>
     </section>
     
     <section>
-      <h2>Win rate by seat</h2>
-      <table class="stats-table">
-        <thead>
-          <tr><th>Key</th><th>Wins</th><th>n</th><th>Rate</th></tr>
-        </thead>
-        <tbody>
-    <tr>
-      <td class="label-cell">
-        <div class="label">0</div>
-        <div class="bar-track" aria-hidden="true">
-          <div class="bar" style="width:100.0%"></div>
-        </div>
-      </td>
-      <td class="num">9</td>
-      <td class="num">20</td>
-      <td class="num">45.0%</td>
-    </tr>
-    <tr>
-      <td class="label-cell">
-        <div class="label">1</div>
-        <div class="bar-track" aria-hidden="true">
-          <div class="bar" style="width:33.3%"></div>
-        </div>
-      </td>
-      <td class="num">3</td>
-      <td class="num">20</td>
-      <td class="num">15.0%</td>
-    </tr>
-    <tr>
-      <td class="label-cell">
-        <div class="label">2</div>
-        <div class="bar-track" aria-hidden="true">
-          <div class="bar" style="width:66.7%"></div>
-        </div>
-      </td>
-      <td class="num">6</td>
-      <td class="num">20</td>
-      <td class="num">30.0%</td>
-    </tr>
-    <tr>
-      <td class="label-cell">
-        <div class="label">3</div>
-        <div class="bar-track" aria-hidden="true">
-          <div class="bar" style="width:22.2%"></div>
-        </div>
-      </td>
-      <td class="num">2</td>
-      <td class="num">20</td>
-      <td class="num">10.0%</td>
-    </tr></tbody>
-      </table>
+      <h2>By seat (winner)</h2>
+      <div class="stat-list">
+    <div class="stat-row">
+      <div class="label">0</div>
+      <div class="bar-track" aria-hidden="true">
+        <div class="bar" style="width:33.3%"></div>
+      </div>
+      <div class="stat-line mono">1 wins · n=8 · 12.5%</div>
+    </div>
+    <div class="stat-row">
+      <div class="label">1</div>
+      <div class="bar-track" aria-hidden="true">
+        <div class="bar" style="width:100.0%"></div>
+      </div>
+      <div class="stat-line mono">3 wins · n=8 · 37.5%</div>
+    </div>
+    <div class="stat-row">
+      <div class="label">2</div>
+      <div class="bar-track" aria-hidden="true">
+        <div class="bar" style="width:100.0%"></div>
+      </div>
+      <div class="stat-line mono">3 wins · n=8 · 37.5%</div>
+    </div>
+    <div class="stat-row">
+      <div class="label">3</div>
+      <div class="bar-track" aria-hidden="true">
+        <div class="bar" style="width:33.3%"></div>
+      </div>
+      <div class="stat-line mono">1 wins · n=8 · 12.5%</div>
+    </div></div>
     </section>
     
     <section>
@@ -411,7 +329,7 @@ footer {
         <thead>
           <tr><th>#</th><th>Seed</th><th>Winner</th><th>Rounds</th><th>Turns</th><th>Dirs</th></tr>
         </thead>
-        <tbody><tr><td class='num'>0</td><td class='num mono'>1000</td><td>Recorde</td><td class='num'>30</td><td class='num'>352</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>1</td><td class='num mono'>1997</td><td>Turing</td><td class='num'>23</td><td class='num'>283</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>2</td><td class='num mono'>2994</td><td>Clarke</td><td class='num'>43</td><td class='num'>409</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>3</td><td class='num mono'>3991</td><td>Sagan</td><td class='num'>39</td><td class='num'>477</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>4</td><td class='num mono'>4988</td><td>Recorde</td><td class='num'>27</td><td class='num'>316</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>5</td><td class='num mono'>5985</td><td>K-127</td><td class='num'>47</td><td class='num'>537</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>6</td><td class='num mono'>6982</td><td>Turing</td><td class='num'>37</td><td class='num'>454</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>7</td><td class='num mono'>7979</td><td>Goddard</td><td class='num'>42</td><td class='num'>461</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>8</td><td class='num mono'>8976</td><td>Sagan</td><td class='num'>21</td><td class='num'>225</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>9</td><td class='num mono'>9973</td><td>K-127</td><td class='num'>24</td><td class='num'>319</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>10</td><td class='num mono'>10970</td><td>Asimov</td><td class='num'>33</td><td class='num'>335</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>11</td><td class='num mono'>11967</td><td>Ada</td><td class='num'>19</td><td class='num'>227</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>12</td><td class='num mono'>12964</td><td>Sagan</td><td class='num'>27</td><td class='num'>324</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>13</td><td class='num mono'>13961</td><td>Ada</td><td class='num'>40</td><td class='num'>390</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>14</td><td class='num mono'>14958</td><td>Sagan</td><td class='num'>38</td><td class='num'>392</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>15</td><td class='num mono'>15955</td><td>Ada</td><td class='num'>29</td><td class='num'>365</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>16</td><td class='num mono'>16952</td><td>Sagan</td><td class='num'>47</td><td class='num'>460</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>17</td><td class='num mono'>17949</td><td>Asimov</td><td class='num'>25</td><td class='num'>265</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>18</td><td class='num mono'>18946</td><td>Recorde</td><td class='num'>19</td><td class='num'>203</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>19</td><td class='num mono'>19943</td><td>K-127</td><td class='num'>33</td><td class='num'>395</td><td class='mono muted'>f,f,f,f</td></tr></tbody>
+        <tbody><tr><td class='num'>0</td><td class='num mono'>1000</td><td>Asimov</td><td class='num'>59</td><td class='num'>624</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>1</td><td class='num mono'>1997</td><td>Ada</td><td class='num'>16</td><td class='num'>204</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>2</td><td class='num mono'>2994</td><td>∅ unfinished</td><td class='num'>10</td><td class='num'>3000</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>3</td><td class='num mono'>3991</td><td>∅ unfinished</td><td class='num'>29</td><td class='num'>3000</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>4</td><td class='num mono'>4988</td><td>∅ unfinished</td><td class='num'>15</td><td class='num'>3000</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>5</td><td class='num mono'>5985</td><td>∅ unfinished</td><td class='num'>23</td><td class='num'>3000</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>6</td><td class='num mono'>6982</td><td>∅ unfinished</td><td class='num'>51</td><td class='num'>3000</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>7</td><td class='num mono'>7979</td><td>Asimov</td><td class='num'>10</td><td class='num'>128</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>8</td><td class='num mono'>8976</td><td>∅ unfinished</td><td class='num'>23</td><td class='num'>3000</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>9</td><td class='num mono'>9973</td><td>∅ unfinished</td><td class='num'>13</td><td class='num'>3000</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>10</td><td class='num mono'>10970</td><td>∅ unfinished</td><td class='num'>12</td><td class='num'>3000</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>11</td><td class='num mono'>11967</td><td>K-127</td><td class='num'>17</td><td class='num'>208</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>12</td><td class='num mono'>12964</td><td>von Braun</td><td class='num'>15</td><td class='num'>161</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>13</td><td class='num mono'>13961</td><td>∅ unfinished</td><td class='num'>15</td><td class='num'>3000</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>14</td><td class='num mono'>14958</td><td>∅ unfinished</td><td class='num'>21</td><td class='num'>3000</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>15</td><td class='num mono'>15955</td><td>Recorde</td><td class='num'>36</td><td class='num'>396</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>16</td><td class='num mono'>16952</td><td>∅ unfinished</td><td class='num'>11</td><td class='num'>3000</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>17</td><td class='num mono'>17949</td><td>Ada</td><td class='num'>25</td><td class='num'>233</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>18</td><td class='num mono'>18946</td><td>Sagan</td><td class='num'>21</td><td class='num'>250</td><td class='mono muted'>f,f,f,f</td></tr><tr><td class='num'>19</td><td class='num mono'>19943</td><td>∅ unfinished</td><td class='num'>28</td><td class='num'>3000</td><td class='mono muted'>f,f,f,f</td></tr></tbody>
       </table>
     </section>
   </main>

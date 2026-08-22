@@ -6,13 +6,19 @@
  * - **Round** — every seat has had a turn (wrap of the player order). `state.round`.
  * - **Rotation** — one rocket completes a full board circuit (leave Earth → return). Personal; also `boardRotations` totals.
  *
- * Charter alerts fire on **round** boundaries, not every seat turn.
+ * Pool alerts fire on **round** boundaries, not every seat turn.
+ * Kostka is a separate Earth-landing clock (not in the pool).
  * RNG: third letter of human rocket × USNO→Apollo-11 range cm (daily table).
  */
+import { closeClaimBook } from "./claimLedger";
 import { formatMoney } from "./currency";
 import { lunarRangeCmForDate } from "./lunarRangeTable";
 import { STATION_HUB_IDS, isStationHub } from "./systems";
 import type { GameState, Player } from "./types";
+
+function easyTable(state: GameState): boolean {
+  return state.config.aiDifficulty === "easy";
+}
 
 /** Rounds after a fire (or start) before the first 50% roll. */
 export const TIMED_EVENT_GAP_ROUNDS = 5;
@@ -34,6 +40,18 @@ export const VIBE_KICK_MIN_ROUND = 60;
 export const VIBE_KICK_CHANCE = 0.5;
 /** Karen distraction: only after this round (#107). */
 export const KAREN_MIN_ROUND = 30;
+/** Hot mic: cash fine + skip (#135). */
+export const DISNEY_ROYALTY_CASH = 50;
+/** Error 47 fuel dump (#135). */
+export const ERROR47_FUEL = 2;
+/** Kostka adoption bounty on Earth (#135). Own clock, not the round pool. */
+export const KOSTKA_CASH = 200;
+/** Table-wide Earth transits (land or pass) before the landing window opens. */
+export const KOSTKA_TRANSIT_GAP = 5;
+/** First Earth landing after the gap. */
+export const KOSTKA_BASE_CHANCE = 0.3;
+/** Added on each later Earth landing miss. */
+export const KOSTKA_CHANCE_STEP = 0.1;
 
 /** Falcon Heavy payload was a Tesla Roadster (Starman). Not a Model 3/Y/S/X. (#109) */
 
@@ -50,8 +68,12 @@ export type TimedEventId =
   | "olbers_station"
   | "karen_skip"
   | "blockchain_steal"
-  | "strongbad_email";
+  | "strongbad_email"
+  | "disney_royalties"
+  | "tuesday_boy"
+  | "error_47";
 // vibe_kick is NOT in the regular pool — special one-shot at round ≥60
+// kostka_dog is NOT in the regular pool — Earth-transit clock, then landings
 
 /** Human rocket’s 3rd character code.
  * Short names fall back to first printable char or 67 ('C').
@@ -74,13 +96,18 @@ export function charterRocketName(state: GameState): string {
 /**
  * Seed material: thirdLetter × lunar range cm (table), mixed with round + rngState.
  */
-export function charterEventRoll01(state: GameState, at: Date = new Date()): number {
+export function charterEventRoll01(
+  state: GameState,
+  at: Date = new Date(),
+  salt = 0,
+): number {
   const letter = thirdLetterCode(charterRocketName(state));
   const rangeCm = lunarRangeCmForDate(at);
   const mixed =
     Math.imul(letter | 0, (rangeCm % 2147483647) | 0) +
     Math.imul(state.round | 0, 9973) +
     Math.imul(state.gameTurn | 0, 131) +
+    Math.imul(salt | 0, 7919) +
     (state.rngState | 0);
   let s = mixed | 0;
   s = (Math.imul(s ^ (s >>> 16), 2246822507) | 0) ^ state.round;
@@ -115,6 +142,9 @@ const POOL: TimedEventId[] = [
   "karen_skip",
   "blockchain_steal",
   "strongbad_email",
+  "disney_royalties",
+  "tuesday_boy",
+  "error_47",
 ];
 
 function activeRockets(state: GameState): Player[] {
@@ -159,6 +189,8 @@ export function teslaTargetClaims(state: GameState): string[] {
     if (node.price == null) continue;
     const owner = state.players.find((p) => p.id === ownerId && !p.eliminated);
     if (!owner) continue;
+    // Easy: Tesla may only hurt AI seats
+    if (easyTable(state) && owner.agent === "human") continue;
     out.push(nodeId);
   }
   return out;
@@ -170,6 +202,7 @@ function stripClaimInline(state: GameState, nodeId: string): void {
   for (const p of state.players) {
     if (!p.properties.includes(nodeId)) continue;
     p.properties = p.properties.filter((id) => id !== nodeId);
+    closeClaimBook(p, nodeId);
     if (p.ephemerisBodyId === nodeId) {
       p.ephemerisBodyId = p.properties[0] ?? null;
     }
@@ -182,6 +215,25 @@ function preferredChooser(state: GameState): Player | null {
   return activeRockets(state)[0] ?? null;
 }
 
+/** Prize card: one random living rocket this round — never “lead seat.” */
+export function prizeRocket(state: GameState): Player | null {
+  const list = activeRockets(state);
+  if (list.length === 0) return null;
+  return list[pickIndex(state, list.length, 3)]!;
+}
+
+/** Hazard card: one rocket; Easy never picks the human. */
+function hazardRocket(state: GameState): Player | null {
+  let list = activeRockets(state);
+  if (easyTable(state)) list = list.filter((p) => p.agent === "ai");
+  if (list.length === 0) return null;
+  return list[pickIndex(state, list.length)]!;
+}
+
+function youOrName(p: Player, youLine: string, theyLine: string): string {
+  return p.agent === "human" ? youLine : theyLine;
+}
+
 /** Opponent claims for blockchain steal. */
 export function stealableClaims(state: GameState, chooserId: string): string[] {
   return Object.entries(state.owners)
@@ -189,6 +241,8 @@ export function stealableClaims(state: GameState, chooserId: string): string[] {
       if (!ownerId || ownerId === chooserId) return false;
       const owner = state.players.find((p) => p.id === ownerId && !p.eliminated);
       if (!owner) return false;
+      // Easy: rivals cannot steal the human's deeds
+      if (easyTable(state) && owner.agent === "human") return false;
       const node = state.board.nodes[nodeId];
       return !!node && node.price != null;
     })
@@ -200,14 +254,31 @@ function remainingPool(state: GameState): TimedEventId[] {
   const fired = new Set(state.timedEvent.firedIds ?? []);
   return POOL.filter((id) => {
     if (fired.has(id)) return false;
-    // Late-game only: Karen
-    if (id === "karen_skip" && state.round < KAREN_MIN_ROUND) return false;
+    // Late-game only: Karen. Easy: only if an AI can take the skip.
+    if (id === "karen_skip") {
+      if (state.round < KAREN_MIN_ROUND) return false;
+      if (
+        easyTable(state) &&
+        !activeRockets(state).some((p) => p.agent === "ai")
+      ) {
+        return false;
+      }
+    }
     // Tesla needs an owned Jupiter/Saturn claim (#115)
     if (id === "rogue_tesla" && teslaTargetClaims(state).length === 0) return false;
+    if (
+      (id === "disney_royalties" || id === "error_47") &&
+      easyTable(state) &&
+      !activeRockets(state).some((p) => p.agent === "ai")
+    ) {
+      return false;
+    }
     // Blockchain needs an opponent claim
     if (id === "blockchain_steal") {
-      const chooser = preferredChooser(state);
-      if (!chooser || stealableClaims(state, chooser.id).length === 0) return false;
+      const ok = activeRockets(state).some(
+        (c) => stealableClaims(state, c.id).length > 0,
+      );
+      if (!ok) return false;
     }
     // Olbers always possible (station hubs exist)
     return true;
@@ -240,61 +311,71 @@ function fireMonolith(state: GameState): void {
 }
 
 function fireMmsFreeBreak(state: GameState): void {
-  const list = activeRockets(state);
-  for (const p of list) p.freeBreakPending = true;
+  const p = prizeRocket(state);
+  if (!p) return;
+  p.freeBreakPending = true;
   state.pendingAnnouncement = {
     kind: "info",
     title: "Blue and brown M&Ms are back",
     body: [
-      "You brought back the blue and brown M&Ms.",
-      "Every active rocket gets one free brake on their next turn — if they want it.",
-      "Break ≥1 space costs 0 fuel once; unused token expires at end of that seat turn.",
-      `(${list.length} rocket(s) stocked.)`,
+      youOrName(
+        p,
+        "You brought back the blue and brown M&Ms.",
+        `${p.name} brought back the blue and brown M&Ms.`,
+      ),
+      "One free brake on their next turn (break ≥1 space costs 0 fuel once; unused expires at end of that seat).",
     ].join("\n"),
   };
   state.log.push(
-    "Ledger event: blue & brown M&Ms — one free brake on each rocket's next seat turn.",
+    `Ledger event: blue & brown M&Ms — ${p.name} gets one free brake.`,
   );
 }
 
 function fireKingsQuest(state: GameState): void {
-  const list = activeRockets(state);
-  for (const p of list) p.warpCharges += 1;
+  const p = prizeRocket(state);
+  if (!p) return;
+  p.warpCharges += 1;
   state.pendingAnnouncement = {
     kind: "info",
     title: "King's Quest speed-run record",
     body: [
-      "A lonely spacer kills time on an old terminal and sets a new King's Quest record.",
-      "Every active rocket: one warp — instead of rolling, click any beacon on the board.",
-      "Teleport: no en-route stops, rent, or duels. Landing rules still apply at the destination.",
-      `(${list.length} rocket(s) charted.)`,
+      youOrName(
+        p,
+        "You kill time on an old terminal and set a King's Quest record.",
+        `${p.name} kills time on an old terminal and sets a King's Quest record.`,
+      ),
+      "One warp: instead of rolling, click any beacon. No stops on the way; landing rules still apply where you arrive.",
     ].join("\n"),
   };
   state.log.push(
-    "Ledger event: King's Quest — one board-wide warp charge per active rocket (click destination).",
+    `Ledger event: King's Quest — ${p.name} gets one warp charge.`,
   );
 }
 
 /** Homestar Runner: Strong Bad answers your email → Warp. */
 function fireStrongBadEmail(state: GameState): void {
-  const list = activeRockets(state);
-  for (const p of list) p.warpCharges += 1;
+  const p = prizeRocket(state);
+  if (!p) return;
+  p.warpCharges += 1;
   state.pendingAnnouncement = {
     kind: "info",
     title: "Strong Bad answers your email",
     body: [
-      "You emailed Strong Bad from a deep-space relay. He typed one word and hit send.",
+      youOrName(
+        p,
+        "You emailed Strong Bad from a deep-space relay. He typed one word and hit send.",
+        `${p.name} emailed Strong Bad from a deep-space relay. He typed one word and hit send.`,
+      ),
       "WARP.",
-      "Every active rocket: one board-wide warp (click any beacon instead of rolling). No en-route stops; landing rules still apply.",
-      `(${list.length} rocket(s) got the email.)`,
+      "One warp: click any beacon instead of rolling. No stops on the way; landing rules still apply where you arrive.",
     ].join("\n"),
   };
   state.log.push(
-    "Ledger event: Strong Bad Email — WARP — one board-wide warp charge per active rocket.",
+    `Ledger event: Strong Bad Email — WARP — ${p.name} gets one warp charge.`,
   );
 }
 
-/** Space Pirate Captain Harlock — free-enterprise hail from the Arcadia. */
+/** Space Pirate Captain Harlock — orbital-economics hail from the Arcadia. */
 function fireHarlockFuel(state: GameState): void {
   const maxF = state.config.maxFuel;
   const list = activeRockets(state);
@@ -310,7 +391,7 @@ function fireHarlockFuel(state: GameState): void {
     kind: "info",
     title: "Arcadia on the Mainline",
     body: [
-      "Captain Harlock salutes free enterprise — the Arcadia dumps spare tanks for every rocket.",
+      "Captain Harlock salutes orbital economics — the Arcadia dumps spare tanks for every rocket.",
       `Every active rocket: +${HARLOCK_FUEL_BONUS} fuel (capped at tank max ${maxF}).`,
       `(${list.length} rocket(s) topped.)`,
     ].join("\n"),
@@ -322,19 +403,23 @@ function fireHarlockFuel(state: GameState): void {
 
 /** #33 lite — ice survey without board topology change. */
 function fireAsteroidDepot(state: GameState): void {
-  const list = activeRockets(state);
-  for (const p of list) p.stationsInHand += ASTEROID_DEPOTS;
+  const p = prizeRocket(state);
+  if (!p) return;
+  p.stationsInHand += ASTEROID_DEPOTS;
   state.pendingAnnouncement = {
     kind: "info",
     title: "Belt ice survey",
     body: [
-      "A survey drone marks a rich carbonaceous rock — freeze-dried tanks for anyone who can claim a pad later.",
-      `Every active rocket: +${ASTEROID_DEPOTS} fuel depot in hand.`,
-      `(${list.length} rocket(s) stocked.)`,
+      "A survey drone marks a rich carbonaceous rock.",
+      youOrName(
+        p,
+        `You take +${ASTEROID_DEPOTS} fuel depot in hand.`,
+        `${p.name} takes +${ASTEROID_DEPOTS} fuel depot in hand.`,
+      ),
     ].join("\n"),
   };
   state.log.push(
-    `Ledger event: belt ice survey — +${ASTEROID_DEPOTS} depot in hand per active rocket.`,
+    `Ledger event: belt ice survey — ${p.name} +${ASTEROID_DEPOTS} depot in hand.`,
   );
 }
 
@@ -404,9 +489,8 @@ function fireRogueTesla(state: GameState): void {
     kind: "info",
     title: "Rogue Tesla Roadster",
     body: [
-      `A derelict Tesla Roadster dropped out of a long-transfer orbit and hit ${node.name}.`,
-      `${owner.name}'s claim is gone${hadDepot ? " — fuel depot destroyed" : ""}.`,
-      "(Beyond Mars only. Stations dodge. Mars orbit is immune.)",
+      `A Tesla Roadster fell out of a long orbit and hit ${node.name}.`,
+      `${owner.name} loses the claim${hadDepot ? " — and the fuel depot with it" : ""}.`,
     ].join("\n"),
   };
   state.log.push(
@@ -415,7 +499,7 @@ function fireRogueTesla(state: GameState): void {
 }
 
 function fireOlbersStation(state: GameState): void {
-  const chooser = preferredChooser(state);
+  const chooser = prizeRocket(state);
   if (!chooser) return;
   state.pendingCharterChoice = {
     kind: "olbers_station",
@@ -438,7 +522,8 @@ function fireOlbersStation(state: GameState): void {
 }
 
 function fireKarenSkip(state: GameState): void {
-  const list = activeRockets(state);
+  let list = activeRockets(state);
+  if (easyTable(state)) list = list.filter((p) => p.agent === "ai");
   if (list.length === 0) return;
   const victim = list[pickIndex(state, list.length)]!;
   victim.skipTurns += 1;
@@ -456,8 +541,11 @@ function fireKarenSkip(state: GameState): void {
 }
 
 function fireBlockchainSteal(state: GameState): void {
-  const chooser = preferredChooser(state);
-  if (!chooser) return;
+  const candidates = activeRockets(state).filter(
+    (p) => stealableClaims(state, p.id).length > 0,
+  );
+  if (candidates.length === 0) return;
+  const chooser = candidates[pickIndex(state, candidates.length, 5)]!;
   if (stealableClaims(state, chooser.id).length === 0) return;
   state.pendingCharterChoice = {
     kind: "blockchain_steal",
@@ -477,6 +565,131 @@ function fireBlockchainSteal(state: GameState): void {
   state.log.push(
     `Ledger event: blockchain reassignment — ${chooser.name} steals one opponent claim + depot.`,
   );
+}
+
+function fireDisneyRoyalties(state: GameState): void {
+  const p = hazardRocket(state);
+  if (!p) return;
+  const fine = Math.min(DISNEY_ROYALTY_CASH, Math.max(0, p.cash));
+  p.cash -= fine;
+  p.skipTurns += 1;
+  state.pendingAnnouncement = {
+    kind: "info",
+    title: "Hot microphone",
+    body: [
+      youOrName(
+        p,
+        "You sing a Disney song. The mic was live.",
+        `${p.name} sings a Disney song. The mic was live.`,
+      ),
+      `Royalties ${formatMoney(fine)}. Miss the next seat turn.`,
+    ].join("\n"),
+  };
+  state.log.push(
+    `Ledger event: hot microphone — ${p.name} pays ${formatMoney(fine)} and skips a turn.`,
+  );
+}
+
+function fireTuesdayBoy(state: GameState): void {
+  const p = prizeRocket(state);
+  if (!p) return;
+  const before = p.parkCount;
+  p.parkCount = Math.max(0, p.parkCount - 1);
+  state.pendingAnnouncement = {
+    kind: "info",
+    title: "The Tuesday boy paradox",
+    body: [
+      youOrName(
+        p,
+        "You prove the Tuesday boy paradox is 13/27.",
+        `${p.name} proves the Tuesday boy paradox is 13/27.`,
+      ),
+      before > 0
+        ? "Park count −1. Feral is one park further away."
+        : "Park count is already 0. The proof still stands.",
+    ].join("\n"),
+  };
+  state.log.push(
+    `Ledger event: Tuesday boy — ${p.name} park count ${before} → ${p.parkCount}.`,
+  );
+}
+
+function fireError47(state: GameState): void {
+  const p = hazardRocket(state);
+  if (!p) return;
+  const lost = Math.min(ERROR47_FUEL, p.fuel);
+  p.fuel = Math.max(0, p.fuel - ERROR47_FUEL);
+  state.pendingAnnouncement = {
+    kind: "info",
+    title: "Error 47: not an object",
+    body: [
+      "The terminal prints Error 47: not an object.",
+      youOrName(
+        p,
+        `You dump ${lost} fuel.`,
+        `${p.name} dumps ${lost} fuel.`,
+      ),
+    ].join("\n"),
+  };
+  state.log.push(
+    `Ledger event: Error 47 — ${p.name} loses ${lost} fuel.`,
+  );
+}
+
+function fireKostka(state: GameState, p: Player): void {
+  p.cash += KOSTKA_CASH;
+  state.pendingAnnouncement = {
+    kind: "info",
+    title: "Kostka",
+    body: [
+      youOrName(
+        p,
+        `On Earth, you adopt a dog named Kostka. +${formatMoney(KOSTKA_CASH)}.`,
+        `On Earth, ${p.name} adopts a dog named Kostka. +${formatMoney(KOSTKA_CASH)}.`,
+      ),
+    ].join("\n"),
+  };
+  state.log.push(
+    `Ledger event: Kostka — ${p.name} +${formatMoney(KOSTKA_CASH)} (Earth).`,
+  );
+  if (!state.timedEvent.firedIds.includes("kostka_dog")) {
+    state.timedEvent.firedIds.push("kostka_dog");
+  }
+  state.timedEvent.lastEventId = "kostka_dog";
+}
+
+/**
+ * Count an Earth land or pass. After 5 table-wide transits, each later
+ * **landing** rolls Kostka (30%, then +10% per miss). Passes only count.
+ * The rocket that just landed is the one who adopts.
+ */
+export function noteEarthTransit(
+  state: GameState,
+  p: Player,
+  kind: "land" | "pass",
+): void {
+  const te = state.timedEvent;
+  te.earthTransits = (te.earthTransits ?? 0) + 1;
+  if (kind !== "land") return;
+  tryKostkaOnEarthLanding(state, p);
+}
+
+function tryKostkaOnEarthLanding(state: GameState, p: Player): void {
+  const te = state.timedEvent;
+  if ((te.firedIds ?? []).includes("kostka_dog")) return;
+  if ((te.earthTransits ?? 0) <= KOSTKA_TRANSIT_GAP) return;
+  if (p.eliminated) return;
+  // Don't clobber a leak/gusher card; retry on a later landing without burning chance.
+  if (state.pendingAnnouncement) return;
+  if (!te.kostkaChance || te.kostkaChance <= 0) {
+    te.kostkaChance = KOSTKA_BASE_CHANCE;
+  }
+  const u = charterEventRoll01(state, new Date(), 17 + (te.earthTransits ?? 0));
+  if (u >= te.kostkaChance) {
+    te.kostkaChance = Math.min(1, te.kostkaChance + KOSTKA_CHANCE_STEP);
+    return;
+  }
+  fireKostka(state, p);
 }
 
 /** Rare: one 50% roll when the charter first hits round ≥60 (#107). */
@@ -558,6 +771,15 @@ function fireTimedEvent(state: GameState, id: TimedEventId): void {
       break;
     case "blockchain_steal":
       fireBlockchainSteal(state);
+      break;
+    case "disney_royalties":
+      fireDisneyRoyalties(state);
+      break;
+    case "tuesday_boy":
+      fireTuesdayBoy(state);
+      break;
+    case "error_47":
+      fireError47(state);
       break;
     default: {
       const _exhaustive: never = id;

@@ -22,6 +22,15 @@ function fmtInt(n) {
   return Number(n).toLocaleString("en-US");
 }
 
+/** Charter ledger mark — same as live game currency. */
+const MONEY = "\u237C";
+
+function fmtMoney(n) {
+  const v = Number(n) || 0;
+  const sign = v < 0 ? "−" : "";
+  return `${sign}${MONEY}${Math.round(Math.abs(v)).toLocaleString("en-US")}`;
+}
+
 /**
  * One block per key: label, bar, then "W wins · n finished · rate"
  * (avoids skinny columns overlapping at 20k+ games).
@@ -286,6 +295,77 @@ function renderLaunchOrder(summary, finished, players) {
   }
 }
 
+function kindLabel(kind) {
+  if (kind === "federation") return "hub";
+  return kind || "body";
+}
+
+function renderPropertyRoi(rows) {
+  const panel = document.getElementById("roi-panel");
+  const tbl = document.getElementById("tbl-roi");
+  const callout = document.getElementById("roi-callout");
+  if (!panel || !tbl) return;
+  if (!rows.length) {
+    panel.hidden = true;
+    return;
+  }
+  panel.hidden = false;
+  const maxRoi = Math.max(
+    ...rows.map((r) => (r.roi != null ? r.roi : 0)),
+    0.01,
+  );
+  const body = rows
+    .map((r, i) => {
+      const roiTxt = r.roi == null ? "n/a" : pct(r.roi);
+      const barW =
+        r.roi == null ? 0 : Math.min(100, (r.roi / maxRoi) * 100);
+      const sys = r.group ? escapeHtml(r.group) : "—";
+      const top = i === 0 ? " roi-top" : "";
+      return `<tr class="${top}">
+        <td>${escapeHtml(r.name)}</td>
+        <td class="muted">${sys} · ${escapeHtml(kindLabel(r.kind))}</td>
+        <td class="num">${fmtInt(r.n)}</td>
+        <td class="num">${fmtMoney(r.meanInvested)}</td>
+        <td class="num">${fmtMoney(r.meanRentCollected)}</td>
+        <td class="num ${r.meanNet >= 0 ? "pos" : "neg"}">${fmtMoney(r.meanNet)}</td>
+        <td class="num roi-cell">
+          <div class="roi-num">${roiTxt}</div>
+          <div class="bar-track" aria-hidden="true">
+            <div class="bar" style="width:${barW.toFixed(1)}%"></div>
+          </div>
+        </td>
+        <td class="num">${(r.meanLandings || 0).toFixed(1)}</td>
+      </tr>`;
+    })
+    .join("");
+  tbl.innerHTML = `<div class="scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Property</th>
+          <th>System</th>
+          <th class="num">n</th>
+          <th class="num">Mean invested</th>
+          <th class="num">Mean rent</th>
+          <th class="num">Mean net</th>
+          <th class="num">ROI</th>
+          <th class="num">Landings</th>
+        </tr>
+      </thead>
+      <tbody>${body}</tbody>
+    </table>
+  </div>`;
+
+  const top = rows.find((r) => r.roi != null);
+  if (top && callout) {
+    callout.hidden = false;
+    callout.className = "launch-callout ok";
+    callout.textContent = `${top.name} leads at ${pct(top.roi)} ROI (${fmtMoney(top.meanRentCollected)} rent on ${fmtMoney(top.meanInvested)} invested, n=${fmtInt(top.n)}).`;
+  } else if (callout) {
+    callout.hidden = true;
+  }
+}
+
 function renderResults(payload) {
   const { summary, sampleGames, outDir } = payload;
   const games = summary.games || 1;
@@ -358,6 +438,7 @@ function renderResults(payload) {
   );
 
   renderLaunchOrder(summary, finished, players);
+  renderPropertyRoi(summary.propertyRoi || []);
 
   // Share of finished games (rates sum ≈ 100% across keys)
   const nameRows = Object.entries(summary.winsByName || {})
@@ -464,10 +545,35 @@ async function pingHealth() {
       ? ` · server since ${h.startedAt.slice(11, 19)} UTC` +
         (feats ? ` · ${feats}` : "")
       : "";
-    if (!h.features?.includes("human-loss-timing")) {
+    if (!h.features?.includes("property-roi")) {
+      el.textContent +=
+        " · ⚠ restart npm run sim-lab for property ROI table";
+      el.classList.add("warn");
+    } else if (!h.features?.includes("human-loss-timing")) {
       el.textContent +=
         " · ⚠ restart npm run sim-lab for dropout chart + human metrics";
       el.classList.add("warn");
+    }
+    if (h.public) {
+      const games = form.querySelector('input[name="games"]');
+      if (games && h.maxGames) {
+        games.max = String(h.maxGames);
+        if (Number(games.value) > h.maxGames) games.value = String(h.maxGames);
+      }
+      const save = form.querySelector('input[name="save"]');
+      if (save) {
+        save.checked = false;
+        save.disabled = true;
+        const wrap = save.closest("label");
+        if (wrap) wrap.hidden = true;
+      }
+      const hint = form.querySelector("p.hint");
+      if (hint && h.maxGames) {
+        hint.innerHTML = hint.innerHTML.replace(
+          /Up to[\s\S]*Local only\./,
+          `Public host: at most <strong>${fmtInt(h.maxGames)}</strong> games, one batch at a time, nothing saved to disk.`,
+        );
+      }
     }
   } catch {
     el.textContent = " · server unreachable";

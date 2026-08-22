@@ -64,6 +64,18 @@ export interface SimSeatResult {
   isHumanProxy: boolean;
 }
 
+/** Per-node cash in one game (only nodes that were claimed or collected rent). */
+export interface SimPropertyCash {
+  nodeId: string;
+  name: string;
+  group: string | null;
+  kind: string;
+  invested: number;
+  rentCollected: number;
+  landings: number;
+  claims: number;
+}
+
 export interface SimGameResult {
   schemaVersion: 1;
   gameIndex: number;
@@ -84,6 +96,27 @@ export interface SimGameResult {
   seats: SimSeatResult[];
   /** Seat 0 (or humanSeat) won this finished game. */
   humanWon: boolean | null;
+  /** Empirical claim+depot spend vs rent collected (#127). */
+  propertyCash: SimPropertyCash[];
+}
+
+/** Batch-level property ROI (finished games). */
+export interface PropertyRoiRow {
+  nodeId: string;
+  name: string;
+  group: string | null;
+  kind: string;
+  /** Finished games where this node was claimed or collected rent. */
+  n: number;
+  meanInvested: number;
+  meanRentCollected: number;
+  meanLandings: number;
+  /** mean(rent − invested) */
+  meanNet: number;
+  /** Pooled rent / invested; null if nothing was paid for the node. */
+  roi: number | null;
+  /** Mean of per-game rent/invested where invested > 0. */
+  meanRoi: number | null;
 }
 
 export interface SimSummary {
@@ -138,6 +171,11 @@ export interface SimSummary {
    * (horizontal axis = game round; KDE-style curves like classic sim charts).
    */
   eliminationPlaceCurves: EliminationPlaceCurves | null;
+  /**
+   * Claimable properties ranked by empirical ROI (#127).
+   * `roi` = pooled rent collected / claim+depot spend over finished games.
+   */
+  propertyRoi: PropertyRoiRow[];
 }
 
 /** One density curve along the round axis (precomputed for the browser). */

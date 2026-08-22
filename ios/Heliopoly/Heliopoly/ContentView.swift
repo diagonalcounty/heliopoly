@@ -34,7 +34,7 @@ struct ContentView: View {
                 .foregroundStyle(Color(red: 1, green: 0.784, blue: 0.341))
                 .tracking(2)
 
-            Text("Free Enterprise In Space")
+            Text("Orbital Economics")
                 .font(.subheadline)
                 .foregroundStyle(Color(red: 0.604, green: 0.659, blue: 0.78))
 

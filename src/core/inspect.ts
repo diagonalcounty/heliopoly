@@ -113,6 +113,18 @@ export function inspectBody(
 
   if (viewer && ownerId === viewer.id) {
     lines.push(`Your net worth: ${formatMoney(netWorth(state, viewer))}`);
+    const book = viewer.claimBooks[nodeId];
+    if (book) {
+      const earned = book.rentCollected + book.gusherCollected;
+      if (book.cashInvested > 0) {
+        const pct = Math.round((earned / book.cashInvested) * 100);
+        lines.push(
+          `This claim: ${pct}% recovered (${formatMoney(earned)} / ${formatMoney(book.cashInvested)})`,
+        );
+      } else if (earned > 0) {
+        lines.push(`This claim: no cash in · ${formatMoney(earned)} earned`);
+      }
+    }
   }
 
   // Buy / depot hints for current body when viewer is here

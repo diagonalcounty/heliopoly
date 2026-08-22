@@ -99,6 +99,60 @@ def table_win_rate(
     </section>"""
 
 
+def money(n: float) -> str:
+    sign = "−" if n < 0 else ""
+    return f"{sign}⍼{abs(round(n)):,}"
+
+
+def table_property_roi(rows: list[dict[str, Any]]) -> str:
+    if not rows:
+        return (
+            "<section><h2>Properties by ROI</h2>"
+            "<p class='muted'>No property ROI in this run.</p></section>"
+        )
+    max_roi = max((float(r.get("roi") or 0) for r in rows), default=0.01) or 0.01
+    body_parts: list[str] = []
+    for i, r in enumerate(rows):
+        roi = r.get("roi")
+        roi_s = "n/a" if roi is None else pct(float(roi))
+        width = 0.0 if roi is None else min(100.0, float(roi) / max_roi * 100.0)
+        net = float(r.get("meanNet") or 0)
+        net_cls = "pos" if net >= 0 else "neg"
+        top = ' class="roi-top"' if i == 0 else ""
+        grp = esc(r.get("group") or "—")
+        kind = esc(r.get("kind") or "body")
+        body_parts.append(
+            f"<tr{top}>"
+            f"<td>{esc(r.get('name'))}</td>"
+            f"<td class='muted'>{grp} · {kind}</td>"
+            f"<td class='num'>{int(r.get('n') or 0):,}</td>"
+            f"<td class='num'>{money(float(r.get('meanInvested') or 0))}</td>"
+            f"<td class='num'>{money(float(r.get('meanRentCollected') or 0))}</td>"
+            f"<td class='num {net_cls}'>{money(net)}</td>"
+            f"<td class='num'>{roi_s}"
+            f"<div class='bar-track'><div class='bar' style='width:{width:.1f}%'></div></div>"
+            f"</td>"
+            f"<td class='num'>{float(r.get('meanLandings') or 0):.1f}</td>"
+            f"</tr>"
+        )
+    return f"""
+    <section>
+      <h2>Properties by ROI</h2>
+      <p class="muted">Empirical rent collected ÷ claim + depot spend over finished games. Sorted highest ROI first.</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Property</th><th>System</th><th class="num">n</th>
+            <th class="num">Mean invested</th><th class="num">Mean rent</th>
+            <th class="num">Mean net</th><th class="num">ROI</th>
+            <th class="num">Landings</th>
+          </tr>
+        </thead>
+        <tbody>{"".join(body_parts)}</tbody>
+      </table>
+    </section>"""
+
+
 def table_wins_by_name(wins: dict[str, int], finished: int) -> str:
     if not wins:
         return "<section><h2>Wins by rocket</h2><p class='muted'>No finished winners.</p></section>"
@@ -224,6 +278,7 @@ def build_html(
         summary.get("winRateByPropellant") or {},
     )
     names = table_wins_by_name(summary.get("winsByName") or {}, finished)
+    roi = table_property_roi(summary.get("propertyRoi") or [])
     sample = sample_games_html(run_dir / "games.ndjson")
 
     css = """
@@ -364,6 +419,10 @@ th { color: var(--muted); font-weight: 600; font-size: 0.75rem; text-transform: 
   min-width: 0;
 }
 .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.86em; }
+.pos { color: var(--ok); }
+.neg { color: #ff6b7a; }
+.muted { color: var(--muted); }
+tr.roi-top td:first-child { color: var(--accent-2); font-weight: 700; }
 .muted { color: var(--muted); }
 footer {
   max-width: 1100px;
@@ -401,6 +460,7 @@ footer {
     </section>
     <section>{note}</section>
     {names}
+    {roi}
     {dirs}
     {props}
     {seats}

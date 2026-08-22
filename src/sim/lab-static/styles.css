@@ -523,6 +523,45 @@ th {
   margin: 0 0 8px;
 }
 
+.roi-panel {
+  margin: 16px 0 18px;
+}
+
+.roi-panel .scroll {
+  overflow-x: auto;
+}
+
+.roi-panel table {
+  min-width: 720px;
+}
+
+.roi-panel tr.roi-top td:first-child {
+  color: var(--accent-2);
+  font-weight: 700;
+}
+
+.roi-cell .roi-num {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.roi-cell .bar-track {
+  margin-top: 4px;
+  height: 6px;
+}
+
+.pos {
+  color: var(--ok);
+}
+
+.neg {
+  color: var(--danger);
+}
+
+.muted {
+  color: var(--muted);
+}
+
 .stat-list {
   display: flex;
   flex-direction: column;

@@ -1,28 +1,15 @@
-Heliopoly AppIcon install log
-================================
-Agent shell: BROKEN (every run_terminal_command fails with IO Error before execution)
-python3 scripts/install_app_icons.py: NOT EXECUTED from this agent
-
-## What is on disk (list_dir + visual read_file)
-
-AppIcon.appiconset:
-  AppIcon.png         art=rocket+sun color (any/default)   dimensions=UNVERIFIED  size=UNVERIFIED
-  AppIcon-dark.png    art=rocket+sun dark                  dimensions=UNVERIFIED  size=UNVERIFIED
-  AppIcon-tinted.png  art=rocket+sun grayscale             dimensions=UNVERIFIED  size=UNVERIFIED
-  Contents.json       slots=default/dark/tinted 1024x1024 universal iOS
-
-AppStore:
-  AppIcon-1024.png    art=matches default                  dimensions=UNVERIFIED  size=UNVERIFIED
-  sources/any.jpg     master present
-  sources/dark.jpg    master present
-  sources/tinted.jpg  master present
-
-## RESULT: FAIL (conversion/IHDR not verified by this agent)
-
-Art appears installed (no longer Ops Manual book), but this agent could not:
-  - run install_app_icons.py
-  - confirm 1024x1024 / RGB / no-alpha via IHDR
-  - report exact byte sizes
-
-Run locally to finish and rewrite this log with OK lines:
-  python3 /Users/jacobroecker/code/heliopoly/ios/Heliopoly/scripts/install_app_icons.py
+OK AppIcon.png: size=856810 dim=1024x1024 hasAlpha=False colorType=2
+  source any.jpg: size=200435
+OK AppIcon-dark.png: size=962027 dim=1024x1024 hasAlpha=False colorType=2
+  source dark.jpg: size=210040
+OK AppIcon-tinted.png: size=484067 dim=1024x1024 hasAlpha=False colorType=2
+  source tinted.jpg: size=145699
+OK AppIcon-1024.png: size=856810 dim=1024x1024 hasAlpha=False colorType=2
+OK public/favicon-16.png: size=1328 dim=16x16 colorType=2
+OK public/favicon-32.png: size=2762 dim=32x32 colorType=2
+OK public/favicon.png: size=2762 dim=32x32 colorType=2
+OK public/apple-touch-icon.png: size=45487 dim=180x180 colorType=2
+OK public/icon-192.png: size=50902 dim=192x192 colorType=2
+OK public/favicon.ico: size=4128
+copied 6 web icons → WebDist/
+RESULT: SUCCESS

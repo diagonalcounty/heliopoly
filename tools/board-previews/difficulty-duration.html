@@ -335,19 +335,19 @@ const DIFFS = {
    *   expert  | 50             | 48           | 50    | ~27–90  (µ~60 matches mean)
    */
   easy: {
-    label: "Easy — no break; always prograde",
+    label: "Easy — shorter games; ledger events won’t hurt you",
     mu: 32, sigma: 10, skew: 0.4, iqr: 10, barCount: 12,
   },
   normal: {
-    label: "Normal — small break only to afford leave",
+    label: "Normal — standard length",
     mu: 25, sigma: 8, skew: 0.35, iqr: 7, barCount: 11,
   },
   hard: {
-    label: "Hard — break for buys, hubs, Earth landings",
+    label: "Hard — longer games",
     mu: 35, sigma: 14, skew: 0.7, iqr: 14, barCount: 18,
   },
   expert: {
-    label: "Expert — deep break, monopoly & Earth focus",
+    label: "Expert — long games",
     // Expert×Expert: p50≈50, mean≈63 → show µ 60 as player-facing "typical long fight"
     mu: 60, sigma: 22, skew: 0.9, iqr: 28, barCount: 24,
   },

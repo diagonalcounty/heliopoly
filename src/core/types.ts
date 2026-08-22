@@ -47,8 +47,8 @@ export interface Board {
 export type AgentKind = "human" | "ai";
 
 /**
- * AI seat skill (#87).
- * easy → normal → hard → expert (break use + bidirectional quality).
+ * Table setting at Launch (#87 / #135). Player-facing name is Game difficulty.
+ * Sets expedition length, ledger kindness, and rival skill.
  * Legacy "difficult" maps to hard.
  */
 export type AiDifficulty = "easy" | "normal" | "hard" | "expert";
@@ -88,6 +88,43 @@ export interface PendingCharterChoice {
   chooserId: string;
 }
 
+/** Running books for one claim while the current owner holds it. */
+export interface ClaimBook {
+  /** Deed list price when acquired. */
+  listPrice: number;
+  /** Cash paid for the deed (0 if gifted/stolen) plus later depot cash. */
+  cashInvested: number;
+  rentCollected: number;
+  gusherCollected: number;
+  acquiredOnTurn: number;
+}
+
+/**
+ * Sim-only running totals per claimable node (#127).
+ * Survives ownership transfers so batch ROI is property-centric.
+ */
+export interface PropertyLedgerRow {
+  nodeId: string;
+  invested: number;
+  rentCollected: number;
+  landings: number;
+  claims: number;
+}
+
+export type PropertyLedger = Record<string, PropertyLedgerRow>;
+
+/** Seller-started table auction; reserve is the seller's ask, ≥ bank half-price. */
+export interface PendingAuction {
+  sellerId: string;
+  nodeId: string;
+  /** Seller-chosen ask (clamped to [mark, deed]); bids must be >= this. */
+  reserve: number;
+  /** playerId → bid; 0 = pass. Missing = not yet bid. */
+  bids: Record<string, number>;
+  /** Next living rival who must bid (not the seller). */
+  awaitingBidderId: string | null;
+}
+
 export interface Player {
   id: string;
   name: string;
@@ -98,6 +135,21 @@ export interface Player {
   position: string;
   propellant: PropellantId;
   properties: string[];
+  /**
+   * Per-claim books for the current ownership period (ROI on the dossier).
+   * Closed when the claim leaves this rocket (sell, auction, feral, steal, out).
+   */
+  claimBooks: Record<string, ClaimBook>;
+  /**
+   * Remaining free landings on a body after selling it at auction
+   * (property-specific; survives later owners).
+   */
+  landingRights: Record<string, number>;
+  /**
+   * Claim ids listed at auction this seat (sold or withdrawn).
+   * Each body may be auctioned at most once per turn; other claims may still list.
+   */
+  auctionedThisTurn: string[];
   stationsInHand: number;
   eliminated: boolean;
   /** Shared `gameTurn` when eliminated (log); null if still flying. */
@@ -274,6 +326,11 @@ export interface GameState {
    * Bodies that already paid a gusher bonus (one strike per claim node).
    */
   gusherPaid: Record<string, boolean>;
+  /**
+   * Per-node cash ledger for Sim Lab ROI (#127).
+   * Allocated by the batch harness; omitted in live play.
+   */
+  propertyLedger?: PropertyLedger;
   /** Pending Oregon Trail–style popup; UI shows then clears. */
   pendingAnnouncement: GameAnnouncement | null;
   /**
@@ -281,6 +338,8 @@ export interface GameState {
    * Blocks normal actions until resolved (#107).
    */
   pendingCharterChoice: PendingCharterChoice | null;
+  /** Seller-started claim auction (blocks other seat actions until resolved). */
+  pendingAuction: PendingAuction | null;
   /**
    * Timed charter-alert cadence (**rounds**, not seat turns).
    * After 5 rounds: 50%; each miss splits the difference toward 100%;
@@ -302,6 +361,13 @@ export interface GameState {
      * True once the 50% roll has been attempted (hit or miss).
      */
     vibeKickChecked: boolean;
+    /**
+     * Earth land + pass count this charter (Kostka clock, not the round pool).
+     * After 5 transits, later **landings** roll 30% then +10% per miss.
+     */
+    earthTransits: number;
+    /** Kostka landing chance once the transit gap has passed; 0 = not armed. */
+    kostkaChance: number;
   };
   config: GameConfig;
   rngState: number;
@@ -314,6 +380,13 @@ export type PlayerAction =
   | { type: "move" }
   | { type: "buy" }
   | { type: "sell"; nodeId: string }
+  /**
+   * Put a claim up to the table. Optional reserve is the seller's ask;
+   * the engine clamps it to [bank half-price mark, deed list price].
+   */
+  | { type: "auction_start"; nodeId: string; reserve?: number }
+  /** Bid on pendingAuction (0 = pass). Bidder is awaitingBidderId, not necessarily the seat. */
+  | { type: "auction_bid"; amount: number }
   | { type: "place_station" }
   | { type: "end_turn" }
   | { type: "duel_stance"; stance: DuelStance }
@@ -343,6 +416,10 @@ export interface LegalActions {
   sell: boolean;
   sellNodeId: string | null;
   sellValue: number;
+  /** Bank-dump / auction candidates this seat (empty if already sold this turn). */
+  sellClaims: { nodeId: string; value: number }[];
+  /** May start a table auction (await_action / await_post_land, rivals exist). */
+  canAuction: boolean;
   placeStation: boolean;
   /** Cash to place a depot now (0 if first this circuit). */
   placeStationCost: number;

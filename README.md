@@ -1,10 +1,10 @@
 # Heliopoly
 
-**Free Enterprise In Space**
+**Orbital Economics**
 
 A browser game of solar-system property, propellant, and rival rockets. Launch a ship, buy claims from Mercury to the Saturn moons, and stay solvent long enough to be the **last rocket flying**.
 
-**[Play on heliopoly.live](https://heliopoly.live/)** · [Source](https://github.com/diagonalcounty/heliopoly) · MIT · 1.0.0
+**[Play on heliopoly.live](https://heliopoly.live/)** · [Source](https://github.com/diagonalcounty/heliopoly) · MIT · 1.1.0
 
 ---
 
@@ -30,10 +30,12 @@ In-game **Helios Ops Manual** (top right) has the full rules, glossary (turn / r
 
 | | |
 |--|--|
-| **Live** | https://heliopoly.live/ |
+| **Live** | https://heliopoly.live/ (Sunday 00:01 UTC unlock — #98) |
+| **Preview** | https://preview.heliopoly.live/ (next Sunday’s staged game — #134) |
+| **Simulation** | https://simulation.heliopoly.live/ (Sim Lab — #91 / #134) |
 | **Local** | `npm install && npm run dev` → http://localhost:5173/ |
 
-Name your rocket, choose propellant and AI difficulty, **Launch**.
+Name your rocket, choose propellant and game difficulty, **Launch**.
 
 ## Screenshots / vibe
 
@@ -64,11 +66,11 @@ npm run sim -- --games 2000 --human-difficulty easy --pack-difficulty expert
 python3 scripts/sim_report.py sim-results/<run-folder>
 ```
 
-**What it’s for:** direction experiments (pro/retro), launch-order bias, and **human-proxy vs AI pack** skill gaps (easy/normal/hard/expert on the same heuristic scale as the live game).
+**What it’s for:** direction experiments (pro/retro), launch-order bias, **which properties yield the highest ROI**, and **human-proxy vs AI pack** skill gaps (easy/normal/hard/expert on the same heuristic scale as the live game).
 
 **Design note:** When every seat uses the **same** AI skill, win rates stay near fair share (~25% in a 4-player game). That evenness is **good** — clone AIs don’t invent a fake first-player monopoly; dice and economy still matter. Use **Human level ≠ AI pack level** when you want “does a novice have a chance against experts?”
 
-Full guide: **[scripts/README-sim.md](scripts/README-sim.md)** · issues [#89](https://github.com/diagonalcounty/heliopoly/issues/89) · [#91](https://github.com/diagonalcounty/heliopoly/issues/91).
+Full guide: **[scripts/README-sim.md](scripts/README-sim.md)** · issues [#89](https://github.com/diagonalcounty/heliopoly/issues/89) · [#91](https://github.com/diagonalcounty/heliopoly/issues/91) · [#127](https://github.com/diagonalcounty/heliopoly/issues/127).
 
 ### Board look previews (static HTML)
 

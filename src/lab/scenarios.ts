@@ -5,6 +5,7 @@
  * Menu UX: top-level **categories** expand to show items under them
  * (Which is larger? → numbering packs; Minigames → Gravity Duel; …).
  */
+import { grantClaim } from "../core/claimLedger";
 import { forceGravityDuel } from "../core/rules";
 import { createGame } from "../core/state";
 import type { GameState } from "../core/types";
@@ -159,7 +160,7 @@ export const LAB_SCENARIOS: LabScenario[] = [
   {
     id: "end-you-win",
     title: "End screen — you prevail",
-    blurb: "All other pilots eliminated; opens the end screen.",
+    blurb: "All other pilots eliminated; opens the end screen with the winner's best-books ROI line.",
     group: "end",
     kind: "game",
     build: () => {
@@ -181,6 +182,12 @@ export const LAB_SCENARIOS: LabScenario[] = [
       s.winnerId = you.id;
       s.phase = "game_over";
       s.endReason = `${you.name} is the last pilot flying.`;
+      // Paying books so the end story shows the "Best books" ROI line (#136);
+      // ganymede earns nothing and is cut by the top-3 cap.
+      grantClaim(s, you.id, "enceladus", { rentCollected: 756 }); // 236%
+      grantClaim(s, you.id, "venus", { rentCollected: 900 }); // 180%
+      grantClaim(s, you.id, "elon", { rentCollected: 500 }); // 91%
+      grantClaim(s, you.id, "ganymede", { rentCollected: 0 });
       s.log.push(`Winner: ${you.name} (lab)`);
       return tagLab(s, `End · ${you.name} wins`);
     },
@@ -232,6 +239,35 @@ export const LAB_SCENARIOS: LabScenario[] = [
       ai.position = "earth";
       ai.fuel = 25;
       return tagLab(s, "Going-under risk badges (standings)");
+    },
+  },
+  {
+    id: "claim-ledger",
+    title: "Claim ledger / remote sell",
+    blurb:
+      "You're on Earth with Elon (almost paid back) and Venus. Cash is tight. Click your name on the ledger — sell or auction Elon (a rival holds the rest of Mars).",
+    group: "economy",
+    kind: "game",
+    build: () => {
+      const s = baseGame(3);
+      const you = s.players[0];
+      const ai1 = s.players[1];
+      const ai2 = s.players[2];
+      you.position = "earth";
+      you.cash = 80;
+      you.fuel = 18;
+      grantClaim(s, you.id, "elon", { rentCollected: 400 });
+      grantClaim(s, you.id, "venus", { rentCollected: 0 });
+      grantClaim(s, ai1.id, "mars", { rentCollected: 90, depot: true });
+      grantClaim(s, ai1.id, "phobos", { rentCollected: 40 });
+      grantClaim(s, ai1.id, "deimos", { rentCollected: 20 });
+      ai1.cash = 1200;
+      ai1.position = "earth";
+      grantClaim(s, ai2.id, "europa", { rentCollected: 30 });
+      ai2.cash = 220;
+      ai2.position = "earth";
+      s.phase = "await_action";
+      return tagLab(s, "Claim ledger / remote sell");
     },
   },
 ];

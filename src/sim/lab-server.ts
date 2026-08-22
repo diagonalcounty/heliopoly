@@ -20,6 +20,12 @@ const LAB_STATIC = join(__dirname, "lab-static");
 const REPO_ROOT = resolve(__dirname, "../..");
 const HOST = process.env.HELIOPOLY_SIM_LAB_HOST ?? "127.0.0.1";
 const PORT = Number(process.env.HELIOPOLY_SIM_LAB_PORT ?? 5174);
+/** Public host (simulation.heliopoly.live): hard caps, no disk saves (#134). */
+const PUBLIC = process.env.HELIOPOLY_SIM_LAB_PUBLIC === "1";
+const MAX_PUBLIC_GAMES = Math.max(
+  1,
+  Math.floor(Number(process.env.HELIOPOLY_SIM_LAB_MAX_GAMES ?? 400)),
+);
 
 const EXPERIMENTS: SimExperiment[] = [
   "default",
@@ -38,6 +44,7 @@ const LAB_FEATURES = [
   "outcome-summary",
   "human-loss-timing",
   "launch-order-cards",
+  "property-roi",
 ] as const;
 
 function silenceDebug(): void {
@@ -130,9 +137,10 @@ function parseRun(body: RunBody): {
   if (!EXPERIMENTS.includes(experiment)) {
     throw new Error(`Unknown experiment: ${body.experiment}`);
   }
-  // Cap for Lab form only — beefy Macs can push large N (~200–400 g/s typical)
+  // Cap for Lab form only — beefy Macs can push large N (~200–400 g/s typical).
+  // Public droplet: hard cap so one visitor cannot pin the box (#134).
   const games = Math.min(
-    1_000_000,
+    PUBLIC ? MAX_PUBLIC_GAMES : 1_000_000,
     Math.max(1, Math.floor(Number(body.games) || 100)),
   );
   const players = Math.min(6, Math.max(2, Math.floor(Number(body.players) || 4)));
@@ -154,7 +162,7 @@ function parseRun(body: RunBody): {
     baseSeed: (Number(body.seed) || 1000) >>> 0,
     seedStride: Math.max(1, Math.floor(Number(body.seedStride) || 997)),
     maxTurns: Math.max(100, Math.floor(Number(body.maxTurns) || 3000)),
-    save: Boolean(body.save),
+    save: PUBLIC ? false : Boolean(body.save),
   };
 }
 
@@ -282,6 +290,8 @@ async function handle(
         port: PORT,
         startedAt: SERVER_STARTED_AT,
         features: LAB_FEATURES,
+        public: PUBLIC,
+        maxGames: PUBLIC ? MAX_PUBLIC_GAMES : 1_000_000,
       }),
       "application/json",
     );

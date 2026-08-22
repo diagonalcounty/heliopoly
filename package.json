@@ -1,7 +1,7 @@
 {
   "name": "heliopoly",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,6 +11,7 @@
     "sim": "tsx src/sim/run.ts",
     "sim-lab": "tsx src/sim/lab-server.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "tsx src/core/claimLedger.test.ts && tsx src/core/turnClock.test.ts",
     "ios:sync": "bash scripts/ios-sync-web.sh"
   },
   "devDependencies": {

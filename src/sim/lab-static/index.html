@@ -4,14 +4,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Heliopoly Sim Lab</title>
-    <link rel="stylesheet" href="/styles.css?v=seat-colors-1" />
+    <link rel="stylesheet" href="/styles.css?v=property-roi-1" />
   </head>
   <body>
     <header>
       <div>
         <h1>Heliopoly Sim Lab</h1>
         <p class="sub">
-          Local batch runner · live TypeScript core · not heliopoly.live
+          Batch runner · live TypeScript core · not the Sunday game at heliopoly.live
           <span id="server-boot" class="server-boot"></span>
         </p>
       </div>
@@ -156,6 +156,17 @@
           <p id="launch-callout" class="launch-callout" hidden></p>
         </div>
 
+        <div class="roi-panel" id="roi-panel" hidden>
+          <h3 class="launch-title">Properties by ROI</h3>
+          <p class="hint launch-blurb">
+            Empirical <strong>rent collected ÷ claim + depot spend</strong> over
+            finished games. Sorted highest ROI first. Cheap moons can outrank
+            expensive planets if they pay back faster.
+          </p>
+          <div id="tbl-roi"></div>
+          <p id="roi-callout" class="launch-callout" hidden></p>
+        </div>
+
         <p class="hint rate-hint">
           Other rates = share of finished games by winner’s attribute
           (direction / propellant / rocket). All-retro → backward ≈ 100%.
@@ -185,8 +196,8 @@
 
     <footer>
       Docs: <code>scripts/README-sim.md</code> · harness #89 · HTML report #90 ·
-      lab #91 · <code>npm run sim-lab</code>
+      lab #91 · ROI #127 · <code>npm run sim-lab</code>
     </footer>
-    <script src="/app.js?v=seat-colors-1" type="module"></script>
+    <script src="/app.js?v=property-roi-1" type="module"></script>
   </body>
 </html>

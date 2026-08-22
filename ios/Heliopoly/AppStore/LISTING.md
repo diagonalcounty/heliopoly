@@ -10,7 +10,7 @@ Version aligned with Xcode: **1.0.0** (build **1**).
 | Field | Value |
 |--------|--------|
 | **Name** | Heliopoly |
-| **Subtitle** (30 chars max) | Free Enterprise In Space |
+| **Subtitle** (30 chars max) | Orbital Economics |
 | **Bundle ID** | `heliopoly.live.Heliopoly` |
 | **SKU** (your choice; unique) | `heliopoly-ios-1` |
 | **Primary language** | English (U.S.) |
@@ -71,7 +71,7 @@ First public release of Heliopoly on iPad.
 ## Description (4000 chars max)
 
 ```
-Heliopoly is free enterprise in space — a solar-system strategy game of claims, propellant, and rival rockets.
+Heliopoly is orbital economics — a solar-system strategy game of claims, propellant, and rival rockets.
 
 You name a rocket, pick methane or hydrogen fuel, and compete against AI pilots from Mercury to the Saturn moons. Buy deeds, plant fuel depots, manage cash on the Automated Interplanetary Asset Ledger, and stay solvent long enough to be the last rocket flying.
 
@@ -104,7 +104,7 @@ Not affiliated with Solarquest or any commercial board game.
 ## Promotional Text (170 chars max)
 
 ```
-Solar-system strategy: buy claims, burn propellant, duel rivals. Offline on iPad — free enterprise in space.
+Solar-system strategy: buy claims, burn propellant, duel rivals. Offline on iPad — orbital economics.
 ```
 
 ---
@@ -121,22 +121,11 @@ space,strategy,board,solar,rocket,dice,offline,ipad,economy,sci-fi,orbit
 
 ## Review Notes (for App Review)
 
-```
-Heliopoly is a fully offline single-device game. The UI is a SwiftUI shell that loads a bundled HTML/JS game from the app package via a custom scheme (heliopoly://), not Safari and not a remote website.
+Paste **[`review_information/notes.txt`](review_information/notes.txt)** into **App Review Information → Notes** on every submission. That file answers Apple’s seven Guideline 2.1 “Information Needed” items for new apps.
 
-No login, no IAP in this version, no ads, no tracking SDKs.
+Recording shot list and Resolution Center steps: **[`review_information/RECORDING.md`](review_information/RECORDING.md)**.
 
-How to play a short review session:
-1. Launch the app.
-2. On New game: leave Seat 1 as human, name any rocket, pick Methane, AI difficulty Easy, 2–3 total pilots.
-3. Tap Launch.
-4. Use Pilot Controls: Roll → optional Break → Move. Buy claims when landed. End turn.
-5. Open Helios Ops Manual (in-game) for full rules.
-
-If the board appears empty, the WebDist bundle was not packaged — rebuild with the shared scheme after npm run ios:sync from the monorepo. Review builds should include WebDist inside the .app.
-
-Demo account: none required.
-```
+Do **not** mention internal packaging (`WebDist`, `npm run ios:sync`) in review notes — that invited a completeness / empty-board reading.
 
 ---
 
@@ -226,8 +215,11 @@ Do **not** use marketing frames that violate Apple’s screenshot guidelines (mi
 |------|----------------|
 | App Store 1024×1024 | `AppStore/AppIcon-1024.png` |
 | Xcode asset | `Heliopoly/Assets.xcassets/AppIcon.appiconset/` (any / dark / tinted) |
+| Web favicon / apple-touch / icon-192 | `public/` (and `WebDist/`) — **same art**, resized from AppIcon |
 
 Requirements: 1024×1024, PNG, **no alpha**, no rounded corners baked in.
+
+Web tab icons and the iOS app icon are the same rocket-and-sun. The Ops Manual book (`public/ops-manual-icon.png`) is only the in-game handbook button.
 
 ### Install / refresh icons from design masters
 
@@ -238,7 +230,7 @@ python3 ios/Heliopoly/scripts/install_app_icons.py
 ```
 
 (Run from monorepo root or any cwd — paths in the script are absolute.)  
-This writes 1024×1024 RGB PNGs into the asset catalog and `AppStore/AppIcon-1024.png`, and caches masters under `AppStore/sources/`.
+This writes 1024×1024 RGB PNGs into the asset catalog and `AppStore/AppIcon-1024.png`, caches masters under `AppStore/sources/`, and derives `public/` favicons (`favicon.ico` / `.png` / `-16` / `-32`, `apple-touch-icon.png`, `icon-192.png`) plus copies into `WebDist/`.
 
 ---
 

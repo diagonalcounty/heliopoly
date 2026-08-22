@@ -1,6 +1,6 @@
 # Heliopoly PRD promote — droplet only (heliopoly.live host).
-# Install:  cp scripts/heliopoly-promote.cron /etc/cron.d/heliopoly-promote
-#           chmod 644 /etc/cron.d/heliopoly-promote
+# Install:  install -o root -g root -m 644 scripts/heliopoly-promote.cron /etc/cron.d/heliopoly-promote
+# Debian cron ignores the file unless it is owned by root (not a Mac uid).
 #
 # Time base: UTC (droplet timezone Etc/UTC). Product law: Sunday 00:01 UTC (#98).
 # Does not build — only promotes a dist already staged under /var/www/heliopoly-releases/.

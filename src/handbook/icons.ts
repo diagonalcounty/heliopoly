@@ -28,6 +28,7 @@ export const TOPIC_ICONS: Record<string, string> = {
   "turn-flow": "/handbook/dice-break.png",
   legend: "/handbook/badge-rocket.png",
   monopoly: "/handbook/vault-key.png",
+  "claims-ledger": "/handbook/cash-alert.png",
   depots: "/handbook/fuel-depot.png",
   propellant: "/handbook/molecule.png",
   duel: "/handbook/duel-rockets.png",
@@ -37,6 +38,7 @@ export const TOPIC_ICONS: Record<string, string> = {
   "not-in-build": "/handbook/lock.png",
   readme: "/handbook/badge-rocket.png",
   changelog: "/handbook/gameplay.png",
+  privacy: "/handbook/lock.png",
 
   // Economy / rent flavor (if topics added later)
   rent: "/handbook/cash-alert.png",

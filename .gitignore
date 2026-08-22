@@ -3,8 +3,9 @@ dist/
 .DS_Store
 *.local
 
-# local project backlog config
+# local project backlog + deploy inventory
 scripts/backlog.env
+scripts/deploy.env
 ios/**/xcuserdata/
    **/xcuserdata/
    *.xcuserstate

@@ -1,8 +1,8 @@
 /**
- * New game: estimated charter duration by AI pack difficulty (#94).
+ * New game: estimated expedition length by game difficulty (#94).
  * Visual lock: tools/board-previews/difficulty-duration-export.json
- * Framing: human pilot ≈ hard/expert; radios = AI pack skill.
- * Stronger pack → longer games (sim-results Aug 2026 choice runs).
+ * Radios are table setting (length + ledger + rivals), not brake tactics.
+ * Stronger table → longer games (sim-results Aug 2026 choice runs).
  */
 import type { AiDifficulty } from "../core/types";
 
@@ -92,7 +92,7 @@ export function renderDurationMeter(
   root.setAttribute("role", "img");
   root.setAttribute(
     "aria-label",
-    `Estimated rounds (median µ): about ${dist.mu} for ${difficulty} AI pack versus a strong pilot`,
+    `Estimated rounds (median µ): about ${dist.mu} for ${difficulty} game difficulty versus a strong pilot`,
   );
 
   const title = document.createElement("div");

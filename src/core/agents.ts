@@ -1,4 +1,5 @@
 import { getNode, isPurchasable } from "./board";
+import { chooseAuctionBid, claimEarnings } from "./claimLedger";
 import { leaveBurnCost } from "./fuel";
 import { walkMovePath } from "./path";
 import {
@@ -17,6 +18,8 @@ import {
   normalizeAiDifficulty,
   type AiDifficulty,
   type GameState,
+  type LegalActions,
+  type Player,
   type PlayerAction,
 } from "./types";
 
@@ -33,6 +36,20 @@ export function heuristicAI(
   const difficulty = normalizeAiDifficulty(
     difficultyOverride ?? state.config.aiDifficulty,
   );
+
+  if (state.pendingAuction) {
+    const waiting = state.pendingAuction.awaitingBidderId;
+    if (waiting) {
+      const bidder = state.players.find((x) => x.id === waiting);
+      if (bidder && bidder.agent === "ai") {
+        return {
+          type: "auction_bid",
+          amount: chooseAuctionBid(state, bidder, state.pendingAuction),
+        };
+      }
+    }
+    return { type: "end_turn" };
+  }
 
   if (state.phase === "await_duel" && state.pendingDuel) {
     const d = state.pendingDuel;
@@ -73,8 +90,9 @@ export function heuristicAI(
     ) {
       return { type: "buy" };
     }
-    if (legal.sell && p.cash < 200 && legal.sellValue > 0) {
-      return { type: "sell", nodeId: legal.sellNodeId! };
+    const liquidation = pickLiquidation(state, p, legal, difficulty);
+    if (liquidation && p.cash < 200) {
+      return liquidation;
     }
     if (
       legal.refuel &&
@@ -86,8 +104,8 @@ export function heuristicAI(
         return { type: "refuel", amount: want };
       }
     }
-    if (legal.sell && p.cash < 100 && p.properties.length > 2) {
-      return { type: "sell", nodeId: legal.sellNodeId! };
+    if (liquidation && p.cash < 100 && p.properties.length > 2) {
+      return liquidation;
     }
     if (legal.placeStation && (p.fuel <= 14 || p.stationsInHand >= 2)) {
       const cost = legal.placeStationCost;
@@ -132,6 +150,44 @@ export function heuristicAI(
     return { type: "refuel", amount: Math.min(fuel.max, 10) };
   }
   return { type: "end_turn" };
+}
+
+function pickLiquidation(
+  state: GameState,
+  p: Player,
+  legal: LegalActions,
+  difficulty: AiDifficulty,
+): PlayerAction | null {
+  if (legal.sellClaims.length === 0) return null;
+  const desperate = p.cash < 80;
+  const listed = new Set(p.auctionedThisTurn ?? []);
+  const scored = legal.sellClaims
+    .map((c) => {
+      const node = getNode(state.board, c.nodeId);
+      const sys = systemOfGroup(node.group);
+      const mono =
+        !!sys && hasSystemMonopoly(state.owners, p.id, sys.id as typeof sys.id);
+      const book = p.claimBooks[c.nodeId];
+      const earned = book ? claimEarnings(book) : 0;
+      return { ...c, mono, earned, rent: node.rent ?? 0, hub: isStationHub(c.nodeId) };
+    })
+    .filter((c) => desperate || !c.mono)
+    .sort((a, b) => a.earned - b.earned || a.rent - b.rent);
+  const withdrawn = scored.filter((c) => listed.has(c.nodeId));
+  const fresh = scored.filter((c) => !listed.has(c.nodeId));
+  // Everyone passed: dump that body if cash is still tight, otherwise keep it.
+  if (withdrawn.length > 0 && p.cash < 100) {
+    return { type: "sell", nodeId: withdrawn[0]!.nodeId };
+  }
+  const pick = fresh[0];
+  if (!pick) return null;
+  const rivals = state.players.filter((x) => !x.eliminated && x.id !== p.id);
+  const someoneCanBid = rivals.some((r) => r.cash >= pick.value);
+  if (legal.canAuction && someoneCanBid && difficulty !== "easy") {
+    return { type: "auction_start", nodeId: pick.nodeId };
+  }
+  if (p.cash < 100) return { type: "sell", nodeId: pick.nodeId };
+  return null;
 }
 
 /** How deep into the roll the AI may break (travel skill scale — #87). */

@@ -1,4 +1,19 @@
 import { getNode, isPurchasable } from "./board";
+import {
+  addLandingRight,
+  bankSellValue,
+  chooseAuctionBid,
+  closeClaimBook,
+  creditDepotSpend,
+  creditGusherCollected,
+  creditRentCollected,
+  formatAuctionResult,
+  livingRivals,
+  nextAuctionBidder,
+  openClaimBook,
+  recordPropertyClaim,
+  tryConsumeLandingRight,
+} from "./claimLedger";
 import { formatMoney } from "./currency";
 import { gravityClassOf, leaveBurnCost } from "./fuel";
 import {
@@ -31,6 +46,7 @@ import {
   MONOLITH_EARTH_BONUS,
   OLBERS_AWARD_CASH,
   isOlbersStation,
+  noteEarthTransit,
   olbersStationIds,
   stealableClaims,
   tickSeatTurn,
@@ -40,6 +56,7 @@ import type {
   GameState,
   LastRoll,
   LegalActions,
+  PendingAuction,
   Player,
   PlayerAction,
 } from "./types";
@@ -176,6 +193,8 @@ function payEarthVisit(
     );
     delta(state, `+${formatMoney(MONOLITH_EARTH_BONUS)} Monolith`);
   }
+
+  noteEarthTransit(state, p, kind);
 }
 
 /**
@@ -247,6 +266,11 @@ export function effectiveBreakFuelCost(
 }
 
 function releaseClaimToBank(state: GameState, nodeId: string): void {
+  const ownerId = state.owners[nodeId];
+  if (ownerId) {
+    const owner = state.players.find((p) => p.id === ownerId);
+    if (owner) closeClaimBook(owner, nodeId);
+  }
   delete state.owners[nodeId];
   if (state.stations[nodeId]) {
     delete state.stations[nodeId];
@@ -408,17 +432,22 @@ function advanceTurn(state: GameState): void {
     delta(state, `${p.name}: skipped turn`);
     state.turnDeltas = [`${p.name}: skipped turn (duel loss)`];
     applyParkingTick(state, p); // no move → park risk
+    // Prize Olbers/steal may have picked an AI this round — resolve so the
+    // next seat (often human) is not locked with empty legal actions.
+    autoResolveCharterChoice(state);
     advanceTurn(state);
     return;
   }
 
   p.rolledThisTurn = false;
   p.movedThisTurn = false;
+  p.auctionedThisTurn = [];
   state.turnDeltas = [];
   pushLog(
     state,
     `— Turn ${state.gameTurn} · Round ${state.round}: ${p.name}'s turn —`,
   );
+  autoResolveCharterChoice(state);
 }
 
 export function refuelInfo(state: GameState): {
@@ -470,6 +499,26 @@ export function refuelInfo(state: GameState): {
   return { allowed: false, max: 0, costPer: 0 };
 }
 
+function listSellClaims(
+  state: GameState,
+  p: Player,
+  remote: boolean,
+): { nodeId: string; value: number }[] {
+  if (p.eliminated) return [];
+  const ids = remote
+    ? p.properties
+    : p.properties.filter((id) => id === p.position);
+  const out: { nodeId: string; value: number }[] = [];
+  for (const id of ids) {
+    if (state.owners[id] !== p.id) continue;
+    const node = getNode(state.board, id);
+    if (!isPurchasable(node)) continue;
+    const value = bankSellValue(node.price);
+    if (value > 0) out.push({ nodeId: id, value });
+  }
+  return out;
+}
+
 export function getLegalActions(state: GameState): LegalActions {
   const empty: LegalActions = {
     refuel: false,
@@ -485,6 +534,8 @@ export function getLegalActions(state: GameState): LegalActions {
     sell: false,
     sellNodeId: null,
     sellValue: 0,
+    sellClaims: [],
+    canAuction: false,
     placeStation: false,
     placeStationCost: 0,
     endTurn: false,
@@ -499,6 +550,7 @@ export function getLegalActions(state: GameState): LegalActions {
   };
   // Charter alert pick in progress — no normal seat actions (#107)
   if (state.pendingCharterChoice) return empty;
+  if (state.pendingAuction) return empty;
   if (state.phase === "game_over") return empty;
 
   const p = currentPlayer(state);
@@ -545,10 +597,17 @@ export function getLegalActions(state: GameState): LegalActions {
     : 0;
   const canStation = depotSite && p.cash >= placeStationCost;
 
-  const sellValue = ownsHere && isPurchasable(node)
-    ? Math.floor((node.price ?? 0) / 2)
-    : 0;
-  const canSell = ownsHere && isPurchasable(node) && sellValue > 0;
+  const remoteSell =
+    state.phase === "await_action" || state.phase === "await_post_land";
+  const sellClaims = listSellClaims(state, p, remoteSell);
+  const hereSell = sellClaims.find((c) => c.nodeId === node.id);
+  const sellValue = hereSell?.value ?? 0;
+  const canSell = !!hereSell;
+  const listed = new Set(p.auctionedThisTurn ?? []);
+  const canAuction =
+    remoteSell &&
+    sellClaims.some((c) => !listed.has(c.nodeId)) &&
+    livingRivals(state, p.id).length > 0;
 
   if (state.phase === "await_move" && state.lastRoll) {
     const maxBreak = state.lastRoll.total;
@@ -570,6 +629,8 @@ export function getLegalActions(state: GameState): LegalActions {
       sell: canSell,
       sellNodeId: canSell ? node.id : null,
       sellValue,
+      sellClaims,
+      canAuction: false,
       placeStation: canStation,
       placeStationCost,
       endTurn: false,
@@ -604,6 +665,8 @@ export function getLegalActions(state: GameState): LegalActions {
       sell: canSell,
       sellNodeId: canSell ? node.id : null,
       sellValue,
+      sellClaims,
+      canAuction,
       placeStation: canStation,
       placeStationCost,
       endTurn: true,
@@ -632,6 +695,8 @@ export function getLegalActions(state: GameState): LegalActions {
     sell: canSell,
     sellNodeId: canSell ? node.id : null,
     sellValue,
+    sellClaims,
+    canAuction,
     placeStation: canStation,
     placeStationCost,
     endTurn: true,
@@ -959,6 +1024,14 @@ function applyKnockbackLanding(state: GameState, p: Player): void {
   if (ownerId && ownerId !== p.id && isPurchasable(node)) {
     const owner = state.players.find((x) => x.id === ownerId);
     if (!owner || owner.eliminated) return;
+    if (tryConsumeLandingRight(p, node.id)) {
+      pushLog(
+        state,
+        `${p.name} uses docking rights — no rent on ${node.name} (knockback).`,
+      );
+      delta(state, `docking rights ${node.name}`);
+      return;
+    }
     if (p.nextRentWaived) {
       p.nextRentWaived = false;
       pushLog(
@@ -981,13 +1054,16 @@ function applyKnockbackLanding(state: GameState, p: Player): void {
       if (p.cash >= rent) {
         p.cash -= rent;
         owner.cash += rent;
+        creditRentCollected(owner, node.id, rent, node.price ?? 0, state);
         pushLog(
           state,
           `${p.name} pays ${formatMoney(rent)} rent to ${owner.name} (knockback).`,
         );
         delta(state, `−${formatMoney(rent)} rent → ${owner.name}`);
       } else {
-        owner.cash += p.cash;
+        const paid = p.cash;
+        owner.cash += paid;
+        creditRentCollected(owner, node.id, paid, node.price ?? 0, state);
         pushLog(
           state,
           `${p.name} cannot pay ${formatMoney(rent)} rent (knockback).`,
@@ -1119,7 +1195,14 @@ function resolveLanding(state: GameState, stayed: boolean): void {
   // Rent on landing OR on failed leave (stayed) — intentional second charge
   if (ownerId && ownerId !== p.id && isPurchasable(node)) {
     const owner = state.players.find((x) => x.id === ownerId)!;
-    if (p.nextRentWaived) {
+    // Docking rights: next *landing* on this body is free (not failed-leave rent).
+    if (!stayed && tryConsumeLandingRight(p, node.id)) {
+      pushLog(
+        state,
+        `${p.name} uses docking rights — no rent on ${node.name}.`,
+      );
+      delta(state, `docking rights ${node.name}`);
+    } else if (p.nextRentWaived) {
       p.nextRentWaived = false;
       pushLog(
         state,
@@ -1140,6 +1223,7 @@ function resolveLanding(state: GameState, stayed: boolean): void {
         if (p.cash >= rent) {
           p.cash -= rent;
           owner.cash += rent;
+          creditRentCollected(owner, node.id, rent, node.price ?? 0, state);
           pushLog(
             state,
             `${p.name} pays ${formatMoney(rent)} rent to ${owner.name}.`,
@@ -1147,7 +1231,9 @@ function resolveLanding(state: GameState, stayed: boolean): void {
           delta(state, `−${formatMoney(rent)} rent → ${owner.name}`);
         } else {
           // Creditor gets remaining cash only; deeds go to bank on eliminate
-          owner.cash += p.cash;
+          const paid = p.cash;
+          owner.cash += paid;
+          creditRentCollected(owner, node.id, paid, node.price ?? 0, state);
           pushLog(
             state,
             `${p.name} cannot pay ${formatMoney(rent)} rent.`,
@@ -1233,6 +1319,12 @@ function doBuy(state: GameState): void {
   p.cash -= legal.buyPrice;
   state.owners[node.id] = p.id;
   p.properties.push(node.id);
+  openClaimBook(p, node.id, {
+    listPrice: node.price ?? legal.buyPrice,
+    cashInvested: legal.buyPrice,
+    acquiredOnTurn: state.gameTurn,
+  });
+  recordPropertyClaim(state, node.id, legal.buyPrice);
   if (!p.ephemerisBodyId) {
     p.ephemerisBodyId = node.id;
     pushLog(
@@ -1273,6 +1365,7 @@ function doPlaceStation(state: GameState): void {
   }
   if (cost > 0) {
     p.cash -= cost;
+    creditDepotSpend(p, body.id, cost, body.price ?? 0, state);
   }
   p.stationsInHand -= 1;
   p.depotsPlacedThisCircuit += 1;
@@ -1312,6 +1405,7 @@ function maybeStrikeGusher(
   state.gusherPaid[nodeId] = true;
   p.cash += bonus;
   const body = getNode(state.board, nodeId);
+  creditGusherCollected(p, nodeId, bonus, body.price ?? 0);
   const fuelWord = PROPELLANTS[p.propellant].short;
   const isHuman = p.agent === "human";
   const headline = pickStrikeHeadline(
@@ -1339,15 +1433,36 @@ function maybeStrikeGusher(
   };
 }
 
-/** Sell claim underfoot for half price; depot destroyed. */
+/** Sell claim to the bank for half price; depot destroyed. Remote ok. */
 function doSell(state: GameState, nodeId: string): void {
   const p = currentPlayer(state);
   const node = getNode(state.board, nodeId);
+  if (state.pendingAuction || state.pendingCharterChoice) {
+    pushLog(state, `${p.name} cannot sell during a pending table action.`);
+    return;
+  }
+
+  if (
+    state.phase !== "await_action" &&
+    state.phase !== "await_post_land" &&
+    state.phase !== "await_move"
+  ) {
+    pushLog(state, `${p.name} cannot sell ${node.name} now.`);
+    return;
+  }
+  if (state.phase === "await_move" && nodeId !== p.position) {
+    pushLog(state, `${p.name} can only dump the claim underfoot after rolling.`);
+    return;
+  }
   if (state.owners[nodeId] !== p.id || !isPurchasable(node)) {
     pushLog(state, `${p.name} cannot sell ${node.name}.`);
     return;
   }
-  const value = Math.floor((node.price ?? 0) / 2);
+  const value = bankSellValue(node.price);
+  if (value <= 0) {
+    pushLog(state, `${p.name} cannot sell ${node.name}.`);
+    return;
+  }
   p.cash += value;
   p.properties = p.properties.filter((id) => id !== nodeId);
   const hadDepot = !!state.stations[nodeId];
@@ -1357,9 +1472,251 @@ function doSell(state: GameState, nodeId: string): void {
   }
   pushLog(
     state,
-    `${p.name} sells ${node.name} for ${formatMoney(value)}${hadDepot ? " (depot scrapped)" : ""}.`,
+    `${p.name} sells ${node.name} to the bank for ${formatMoney(value)}${hadDepot ? " (depot scrapped)" : ""}.`,
   );
   delta(state, `+${formatMoney(value)} sold ${node.name}`);
+}
+
+function canStartAuction(state: GameState, seller: Player, nodeId: string): boolean {
+  if (state.pendingAuction || state.pendingCharterChoice) return false;
+  if (seller.eliminated) return false;
+  if ((seller.auctionedThisTurn ?? []).includes(nodeId)) return false;
+  if (state.phase !== "await_action" && state.phase !== "await_post_land") {
+    return false;
+  }
+  if (state.owners[nodeId] !== seller.id) return false;
+  const node = getNode(state.board, nodeId);
+  if (!isPurchasable(node) || bankSellValue(node.price) <= 0) return false;
+  return livingRivals(state, seller.id).length > 0;
+}
+
+function doAuctionStart(state: GameState, nodeId: string, reserve?: number): void {
+  const p = currentPlayer(state);
+  const node = getNode(state.board, nodeId);
+  if (!canStartAuction(state, p, nodeId)) {
+    pushLog(state, `${p.name} cannot auction ${node.name}.`);
+    return;
+  }
+  const mark = bankSellValue(node.price);
+  const list = node.price ?? mark;
+  const ask =
+    typeof reserve === "number" && Number.isFinite(reserve)
+      ? Math.floor(reserve)
+      : mark;
+  const clamped = Math.min(list, Math.max(mark, ask));
+  const auction: PendingAuction = {
+    sellerId: p.id,
+    nodeId,
+    reserve: clamped,
+    bids: {},
+    awaitingBidderId: null,
+  };
+  if (!p.auctionedThisTurn) p.auctionedThisTurn = [];
+  if (!p.auctionedThisTurn.includes(nodeId)) p.auctionedThisTurn.push(nodeId);
+  auction.awaitingBidderId = nextAuctionBidder(state, auction, p.id);
+  state.pendingAuction = auction;
+  const askNote =
+    clamped > mark
+      ? `reserve ${formatMoney(clamped)} — ${formatMoney(clamped - mark)} over the ${formatMoney(mark)} mark`
+      : `reserve ${formatMoney(mark)} — same as sell`;
+  pushLog(state, `${p.name} auctions ${node.name} (${askNote}).`);
+  delta(state, `auction ${node.name}`);
+  if (!auction.awaitingBidderId) {
+    resolveAuction(state);
+    return;
+  }
+  autoResolveAuctionAi(state);
+}
+
+function applyAuctionBid(
+  state: GameState,
+  bidderId: string,
+  amount: number,
+): void {
+  const auction = state.pendingAuction;
+  if (!auction || auction.awaitingBidderId !== bidderId) return;
+  const bidder = state.players.find((x) => x.id === bidderId);
+  if (!bidder || bidder.eliminated) return;
+  const raw = Math.floor(amount);
+  let bid = 0;
+  if (raw > 0) {
+    if (raw < auction.reserve) {
+      pushLog(
+        state,
+        `${bidder.name}'s bid ${formatMoney(raw)} is below reserve ${formatMoney(auction.reserve)}.`,
+      );
+      return;
+    }
+    if (raw > bidder.cash) {
+      pushLog(
+        state,
+        `${bidder.name} cannot bid ${formatMoney(raw)} (cash ${formatMoney(bidder.cash)}).`,
+      );
+      return;
+    }
+    bid = raw;
+  }
+  auction.bids[bidderId] = bid;
+  const bodyName = getNode(state.board, auction.nodeId).name;
+  pushLog(
+    state,
+    bid > 0
+      ? `${bidder.name} bids ${formatMoney(bid)} on ${bodyName}.`
+      : `${bidder.name} passes on ${bodyName}.`,
+  );
+  auction.awaitingBidderId = nextAuctionBidder(state, auction, bidderId);
+  if (!auction.awaitingBidderId) resolveAuction(state);
+}
+
+function doAuctionBid(state: GameState, bidderId: string, amount: number): void {
+  applyAuctionBid(state, bidderId, amount);
+  autoResolveAuctionAi(state);
+}
+
+function transferClaimKeepDepot(
+  state: GameState,
+  nodeId: string,
+  toId: string,
+  cashInvested: number,
+): void {
+  const node = getNode(state.board, nodeId);
+  const prevId = state.owners[nodeId];
+  const prev = state.players.find((p) => p.id === prevId);
+  const next = state.players.find((p) => p.id === toId);
+  if (!next) return;
+  if (prev) {
+    prev.properties = prev.properties.filter((id) => id !== nodeId);
+    closeClaimBook(prev, nodeId);
+    if (prev.ephemerisBodyId === nodeId) {
+      prev.ephemerisBodyId = prev.properties[0] ?? null;
+    }
+  }
+  state.owners[nodeId] = toId;
+  if (!next.properties.includes(nodeId)) next.properties.push(nodeId);
+  if (!next.ephemerisBodyId) next.ephemerisBodyId = nodeId;
+  openClaimBook(next, nodeId, {
+    listPrice: node.price ?? 0,
+    cashInvested,
+    acquiredOnTurn: state.gameTurn,
+  });
+}
+
+function resolveAuction(state: GameState): void {
+  const auction = state.pendingAuction;
+  if (!auction) return;
+  const node = getNode(state.board, auction.nodeId);
+  const seller = state.players.find((p) => p.id === auction.sellerId);
+  const qualified = Object.entries(auction.bids)
+    .filter(([, amt]) => amt >= auction.reserve)
+    .sort((a, b) => b[1] - a[1]);
+
+  if (!seller || seller.eliminated || state.owners[auction.nodeId] !== seller.id) {
+    state.pendingAuction = null;
+    pushLog(state, `Auction of ${node.name} cancelled.`);
+    return;
+  }
+
+  if (qualified.length === 0) {
+    const card = formatAuctionResult(state, auction, {
+      winnerId: null,
+      price: 0,
+      tied: false,
+    });
+    state.pendingAuction = null;
+    pushLog(
+      state,
+      `No bid met the reserve (${formatMoney(auction.reserve)}) for ${node.name} — auction withdrawn.`,
+    );
+    state.pendingAnnouncement = {
+      kind: "info",
+      title: card.title,
+      body: card.body,
+    };
+    return;
+  }
+
+  const top = qualified[0][1];
+  const tied = qualified.filter(([, amt]) => amt === top).map(([id]) => id);
+  let winnerId = tied[0];
+  if (tied.length > 1) {
+    const n = state.players.length;
+    const start = state.players.findIndex((p) => p.id === seller.id);
+    for (let i = 1; i <= n; i++) {
+      const cand = state.players[(start + i) % n];
+      if (cand && tied.includes(cand.id)) {
+        winnerId = cand.id;
+        break;
+      }
+    }
+  }
+  const buyer = state.players.find((p) => p.id === winnerId);
+  if (!buyer || buyer.cash < top) {
+    state.pendingAuction = null;
+    pushLog(state, `Auction of ${node.name} failed to settle.`);
+    return;
+  }
+
+  const hadDepot = !!state.stations[auction.nodeId];
+  const card = formatAuctionResult(state, auction, {
+    winnerId: buyer.id,
+    price: top,
+    tied: tied.length > 1,
+  });
+  buyer.cash -= top;
+  seller.cash += top;
+  transferClaimKeepDepot(state, auction.nodeId, buyer.id, top);
+  addLandingRight(seller, auction.nodeId);
+  state.pendingAuction = null;
+  const depotNote = hadDepot ? " (depot stays)" : "";
+  pushLog(
+    state,
+    `${buyer.name} takes ${node.name} from ${seller.name} for ${formatMoney(top)}${depotNote}. ${seller.name} keeps docking rights for one landing.`,
+  );
+  delta(state, `${node.name} → ${buyer.name} ${formatMoney(top)}`);
+  state.pendingAnnouncement = {
+    kind: "info",
+    title: card.title,
+    body: card.body,
+  };
+}
+
+function autoResolveAuctionAi(state: GameState): void {
+  let guard = 0;
+  while (state.pendingAuction && guard++ < 16) {
+    const id = state.pendingAuction.awaitingBidderId;
+    if (!id) {
+      resolveAuction(state);
+      return;
+    }
+    const bidder = state.players.find((p) => p.id === id);
+    if (!bidder || bidder.eliminated) {
+      state.pendingAuction.bids[id] = 0;
+      state.pendingAuction.awaitingBidderId = nextAuctionBidder(
+        state,
+        state.pendingAuction,
+        id,
+      );
+      continue;
+    }
+    if (bidder.agent === "human") return;
+    const amount = chooseAuctionBid(state, bidder, state.pendingAuction);
+    applyAuctionBid(state, bidder.id, amount);
+  }
+}
+
+/** Clone + fill AI auction bids / resolve if no human is waiting. */
+export function resolveAuctionIfAi(state: GameState): GameState {
+  const next = cloneState(state);
+  autoResolveAuctionAi(next);
+  return next;
+}
+
+export function humanAuctionNeedsInput(state: GameState): boolean {
+  const a = state.pendingAuction;
+  if (!a?.awaitingBidderId) return false;
+  return (
+    state.players.find((p) => p.id === a.awaitingBidderId)?.agent === "human"
+  );
 }
 
 function doSetBreak(state: GameState, spaces: number): void {
@@ -1647,19 +2004,26 @@ export function applyCharterSteal(
 
   if (prev) {
     prev.properties = prev.properties.filter((id) => id !== nodeId);
+    closeClaimBook(prev, nodeId);
     if (prev.ephemerisBodyId === nodeId) {
       prev.ephemerisBodyId = prev.properties[0] ?? null;
     }
   }
   state.owners[nodeId] = chooser.id;
   if (!chooser.properties.includes(nodeId)) chooser.properties.push(nodeId);
-  state.stations[nodeId] = true; // free fuel pod
+  const depotOk = node.kind === "planet" || node.kind === "moon";
+  if (depotOk) state.stations[nodeId] = true;
   if (!chooser.ephemerisBodyId) chooser.ephemerisBodyId = nodeId;
+  openClaimBook(chooser, nodeId, {
+    listPrice: node.price ?? 0,
+    cashInvested: 0,
+    acquiredOnTurn: state.gameTurn,
+  });
 
   state.pendingCharterChoice = null;
   pushLog(
     state,
-    `${chooser.name} reassigns ${node.name} from ${prev?.name ?? "the bank"} via AIL (depot installed).`,
+    `${chooser.name} reassigns ${node.name} from ${prev?.name ?? "the bank"} via AIL${depotOk ? " (depot installed)" : ""}.`,
   );
   delta(state, `blockchain claim ${node.name}`);
 }
@@ -1670,8 +2034,18 @@ export function applyAction(state: GameState, action: PlayerAction): GameState {
 
   // Auto-resolve AI charter picks before anything else
   autoResolveCharterChoice(next);
+  autoResolveAuctionAi(next);
   // Kick can end the charter (phase may change after narrowing above)
   if (next.phase === ("game_over" as typeof next.phase)) return next;
+
+  // Human bid on a rival's auction — bidder is not necessarily the seat.
+  if (next.pendingAuction) {
+    if (action.type === "auction_bid") {
+      const waiting = next.pendingAuction.awaitingBidderId;
+      if (waiting) doAuctionBid(next, waiting, action.amount);
+    }
+    return next;
+  }
 
   // While a human pick is pending, only charter_* actions apply
   if (next.pendingCharterChoice) {
@@ -1760,6 +2134,13 @@ export function applyAction(state: GameState, action: PlayerAction): GameState {
       ) {
         doSell(next, action.nodeId);
       }
+      break;
+    case "auction_start":
+      if (next.phase === "await_action" || next.phase === "await_post_land") {
+        doAuctionStart(next, action.nodeId, action.reserve);
+      }
+      break;
+    case "auction_bid":
       break;
     case "place_station":
       if (
@@ -1880,6 +2261,12 @@ export function runUntilHumanOrEnd(
   while (steps < maxSteps && s.phase !== "game_over") {
     s = resolveDuelAiFully(s);
     if (s.phase === "game_over") break;
+    if (s.pendingAuction) {
+      if (humanAuctionNeedsInput(s)) break;
+      s = resolveAuctionIfAi(s);
+      steps++;
+      continue;
+    }
 
     const p = currentPlayer(s);
     if (s.phase === "await_duel" && s.pendingDuel) {

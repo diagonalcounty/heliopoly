@@ -34,9 +34,10 @@ npm run sim-lab
 ```
 
 - Form: games, players, experiment, **Human level** (seat 0), **AI pack level** (other seats), seed, optional **Save** to `sim-results/`
-- Results: **human win %** vs fair share, plain-language outcome summary (no LLM), **when-human-loses dropout chart** (human out / pack out / game end by round), launch-order cards, direction/propellant/rocket tables
+- Results: **human win %** vs fair share, plain-language outcome summary (no LLM), **when-human-loses dropout chart** (human out / pack out / game end by round), launch-order cards, **properties by ROI** (rent collected vs claim+depot spend), direction/propellant/rocket tables
 - Progress stream while running
-- **Localhost only** — not deployed to heliopoly.live
+- Local: `npm run sim-lab` → http://127.0.0.1:5174/
+- Public: https://simulation.heliopoly.live/ (#134) — one batch at a time, capped games, nothing saved to disk. **Not** heliopoly.live (Sunday unlock #98).
 - Stop with Ctrl+C in the terminal
 
 Env overrides: `HELIOPOLY_SIM_LAB_HOST` (default `127.0.0.1`), `HELIOPOLY_SIM_LAB_PORT` (default `5174`).
@@ -206,6 +207,7 @@ After changing `src/core/agents.ts` or rules, re-run two sims (before/after comm
    - Seat-order bias?
    - CH₄ vs H₂ win rates?
    - Unfinished rate healthy?
+   - Which properties have the highest empirical ROI (`propertyRoi` in `summary.json`)?
 
 Schema version is `1` (`schemaVersion` field). Prefer stable field names when extending.
 

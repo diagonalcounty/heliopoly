@@ -11,7 +11,7 @@ const PILOT_ARTICLES: Record<string, string> = {
   recorde: `
 <p class="pilot-hook"><em>Robert Recorde — invented the equals sign (=) in 1557.</em></p>
 <p><strong>Robert Recorde</strong> was a Welsh physician and mathematician. In <em>The Whetstone of Witte</em> he introduced the twin parallel lines of the <strong>equals sign</strong>, writing that no two things can be more equal.</p>
-<p>Every rent line, fuel equation, and ledger balance sheet still runs on his glyph. If Recorde is flying against you, remember: the ledger is older than the rocket — and more succinct math is how free enterprise keeps score.</p>
+<p>Every rent line, fuel equation, and ledger balance sheet still runs on his glyph. If Recorde is flying against you, remember: the ledger is older than the rocket — and more succinct math is how orbital economics keeps score.</p>
 `,
   k127: `
 <p class="pilot-hook"><em>Khmer stele (Sambor) — early dated zero in a decimal place-value system (683&nbsp;CE).</em></p>
@@ -33,12 +33,12 @@ const PILOT_ARTICLES: Record<string, string> = {
   sagan: `
 <p class="pilot-hook"><em>Astronomer who brought Cosmos to millions of living rooms.</em></p>
 <p><strong>Carl Sagan</strong> made planetary science famous. Through the TV series <em>Cosmos</em>, books, and public talks, he argued that ordinary people could understand stars, evolution, and the fragile Earth.</p>
-<p>He is here as a <em>visionary</em>, not a flight-crew callsign: the culture that funded the next launch. Wonder is not soft; it is how free enterprise sells the sky.</p>
+<p>He is here as a <em>visionary</em>, not a flight-crew callsign: the culture that funded the next launch. Wonder is not soft; it is how orbital economics sells the sky.</p>
 `,
   asimov: `
 <p class="pilot-hook"><em>Science-fiction giant — robots, Foundation, and laws of robotics.</em></p>
 <p><strong>Isaac Asimov</strong> wrote hundreds of books. Students meet him through robot stories and the <em>Foundation</em> series: big futures, clear rules, and the idea that ideas themselves can shape empires.</p>
-<p>His Three Laws of Robotics are classroom shorthand for “design your tools before they design you.” In free enterprise among the planets, contracts and claims play a similar role.</p>
+<p>His Three Laws of Robotics are classroom shorthand for “design your tools before they design you.” In orbital economics among the planets, contracts and claims play a similar role.</p>
 `,
   clarke: `
 <p class="pilot-hook"><em>2001: A Space Odyssey; also predicted geostationary satellites.</em></p>
@@ -53,7 +53,7 @@ const PILOT_ARTICLES: Record<string, string> = {
   "von-braun": `
 <p class="pilot-hook"><em>Heavy-lift rocketry that made crewed lunar flight possible.</em></p>
 <p><strong>Wernher von Braun</strong> led design work on the Saturn V class of heavy-lift rockets. He also worked on the German V-2 in World War II — history classes rightly treat his career as both engineering triumph and moral hazard.</p>
-<p>Kept as an <em>infrastructure</em> callsign (how you get mass off Earth), not a flight-crew hero. Technology that opens the system can begin as a weapon. Free enterprise still has a past.</p>
+<p>Kept as an <em>infrastructure</em> callsign (how you get mass off Earth), not a flight-crew hero. Technology that opens the system can begin as a weapon. Orbital economics still has a past.</p>
 `,
 };
 

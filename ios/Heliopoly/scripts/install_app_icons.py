@@ -1,14 +1,20 @@
 #!/usr/bin/env python3
-"""Install App Store icons: 1024x1024 RGB PNG (no alpha)."""
+"""Install App Store icons and derive web favicons from AppIcon.png.
+
+App icon (rocket-and-sun) is the source of truth. Web favicons / apple-touch /
+icon-192 are resized copies of that same art — not the Ops Manual book.
+"""
 from __future__ import annotations
 
 import os
 import shutil
 import struct
+import subprocess
 import sys
 
 # Prefer durable sources under AppStore/sources; fall back to session Imagine output.
 REPO_IOS = "/Users/jacobroecker/code/heliopoly/ios/Heliopoly"
+REPO_ROOT = os.path.abspath(os.path.join(REPO_IOS, "..", ".."))
 SOURCES = os.path.join(REPO_IOS, "AppStore", "sources")
 SESSION_SRC = (
     "/Users/jacobroecker/.grok/sessions/"
@@ -20,6 +26,18 @@ DEST_DIR = os.path.join(
 )
 MARKETING = os.path.join(REPO_IOS, "AppStore", "AppIcon-1024.png")
 LOG_PATH = os.path.join(REPO_IOS, "AppStore", "icon-install-log.txt")
+PUBLIC_DIR = os.path.join(REPO_ROOT, "public")
+WEBDIST_DIR = os.path.join(REPO_IOS, "WebDist")
+
+# Web outputs derived from the default (any) AppIcon. Ops Manual book art stays
+# on ops-manual-icon.png only.
+WEB_PNGS = [
+    ("favicon-16.png", 16),
+    ("favicon-32.png", 32),
+    ("favicon.png", 32),
+    ("apple-touch-icon.png", 180),
+    ("icon-192.png", 192),
+]
 
 # (source basename, destination AppIcon name)
 MAPPING = [
@@ -91,6 +109,87 @@ def convert(src: str, dst: str) -> None:
         convert_with_sips(src, dst)
 
 
+def resize_png(src: str, dst: str, size: int) -> None:
+    """Resize an already-flat RGB PNG with sips. No Homebrew / Pillow required."""
+    os.makedirs(os.path.dirname(dst) or ".", exist_ok=True)
+    subprocess.check_call(
+        ["sips", "-z", str(size), str(size), src, "--out", dst],
+        stdout=subprocess.DEVNULL,
+    )
+
+
+def write_ico(png_paths: list[str], dst: str) -> None:
+    """Pack PNG payloads into a .ico (same layout as the previous favicon.ico)."""
+    blobs: list[tuple[int, int, bytes]] = []
+    for path in png_paths:
+        w, h, _bit, _ct = png_ihdr(path)
+        with open(path, "rb") as f:
+            blobs.append((w, h, f.read()))
+    count = len(blobs)
+    offset = 6 + 16 * count
+    out = bytearray()
+    out += struct.pack("<HHH", 0, 1, count)
+    payload = bytearray()
+    for w, h, data in blobs:
+        out += struct.pack(
+            "<BBBBHHII",
+            w if w < 256 else 0,
+            h if h < 256 else 0,
+            0,
+            0,
+            1,
+            32,
+            len(data),
+            offset,
+        )
+        payload += data
+        offset += len(data)
+    out += payload
+    os.makedirs(os.path.dirname(dst) or ".", exist_ok=True)
+    with open(dst, "wb") as f:
+        f.write(out)
+
+
+def install_web_icons(src_1024: str, lines: list[str]) -> bool:
+    """Derive public/ (+ WebDist/) favicons from the App Store 1024 master."""
+    ok_all = True
+    written: list[str] = []
+    for name, size in WEB_PNGS:
+        dst = os.path.join(PUBLIC_DIR, name)
+        resize_png(src_1024, dst, size)
+        w, h, _bit, color_type = png_ihdr(dst)
+        ok = w == size and h == size
+        ok_all = ok_all and ok
+        line = (
+            f"{'OK' if ok else 'BAD'} public/{name}: "
+            f"size={os.path.getsize(dst)} dim={w}x{h} colorType={color_type}"
+        )
+        print(line)
+        lines.append(line)
+        written.append(dst)
+
+    ico = os.path.join(PUBLIC_DIR, "favicon.ico")
+    write_ico(
+        [
+            os.path.join(PUBLIC_DIR, "favicon-16.png"),
+            os.path.join(PUBLIC_DIR, "favicon-32.png"),
+        ],
+        ico,
+    )
+    line = f"OK public/favicon.ico: size={os.path.getsize(ico)}"
+    print(line)
+    lines.append(line)
+    written.append(ico)
+
+    if os.path.isdir(WEBDIST_DIR):
+        for src in written:
+            dest = os.path.join(WEBDIST_DIR, os.path.basename(src))
+            shutil.copy2(src, dest)
+        lines.append(f"copied {len(written)} web icons → WebDist/")
+        print(f"copied {len(written)} web icons → WebDist/")
+    return ok_all
+
+
 def resolve_source(name: str) -> str | None:
     durable = os.path.join(SOURCES, name)
     if os.path.isfile(durable):
@@ -153,7 +252,9 @@ def main() -> int:
     print(line)
     lines.append(line)
 
-    if not all(r[5] for r in results):
+    web_ok = install_web_icons(default_icon, lines)
+
+    if not all(r[5] for r in results) or not web_ok:
         lines.append("RESULT: FAIL")
         with open(LOG_PATH, "w", encoding="utf-8") as lf:
             lf.write("\n".join(lines) + "\n")

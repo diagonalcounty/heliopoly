@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.1.0] — 2026-08-23
+
+Weekly **https://heliopoly.live/** promote at **Sunday 00:01 UTC** (`2026-08-23T00:01:00.000Z`).
+
+### Play / UX
+- **Best books on the end screen (#136):** the winning story names up to three held claims by ROI — “Best books: Enceladus 236% · Venus 180% · Elon 91%.” Sold / lost / zero-cash-in deeds don’t rank.
+- **Rocket dossier:** click any text on a seat in **On the ledger** to open that rocket’s holdings — cash, systems, current rent, and ROI (rent + fuel strikes vs cash in).
+- **Remote sell:** sell a claim from the dossier without being on it (half deed, depot scrapped). One sale per turn.
+- **Auction:** list a claim to the table at the same half-price reserve. Highest bid wins; depot stays; seller keeps one free landing. Result card lists every bid or pass.
+- **Ops Manual** covers dossier / sell / auction; Lab **Economy → Claim ledger / remote sell** for local checks.
+- **Game difficulty** (was AI difficulty at Launch). Radios describe expedition length, not brake tactics. Easy: Tesla, Karen, hot-mic royalties, and Error 47 never hit the human; blockchain steal no longer bolts a depot onto a hub.
+- **Ledger events, one rocket:** King’s Quest, M&Ms, Strong Bad Email, Belt ice, Tuesday boy, Olbers, and steal prize a **random living rocket that round**, not the lead seat (#135).
+- **New pool cards:** Hot microphone (Disney song, 50 + skip), Tuesday boy paradox (park count −1), Error 47 (−2 fuel). Clerk banners in the existing chance-card style.
+- **Kostka** is off the round pool: after 5 Earth transits (land or pass), the next Earth landing rolls 30%, then +10% per later landing. The lander gets +200.
+- **Tesla copy:** player-facing hit line; targeting notes stay in the Ops Manual, not on the card.
+
+### Meta
+- Version **1.1.0** (package, badge, Ops Manual welcome, README)
+- **Live window:** Sunday **00:01 UTC** — staged as `heliopoly-releases/1.1.0`
+
 ## [1.0.0] — 2026-08-16
 
 **First public 1.x** — App Store paperwork / TestFlight prep + weekly **https://heliopoly.live/** promote at **Sunday 00:01 UTC** (`2026-08-16T00:01:00.000Z`). Human QA passed on local + iPad.

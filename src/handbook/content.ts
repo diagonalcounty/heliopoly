@@ -29,7 +29,7 @@ const LORE_TOPICS: HandbookTopic[] = [
     id: "welcome",
     title: "Read this first",
     html: `
-<p><strong>Heliopoly</strong> — <em>Free Enterprise In Space</em> (1.0.0).</p>
+<p><strong>Heliopoly</strong> — <em>Orbital Economics</em> (1.1.0).</p>
 <p>You fly a rocket. You buy claims. You try not to go broke.</p>
 <p>Every buy, every rent, every duel is written to the <strong>ledger</strong>. The ledger is the official book of the Mainline. It is a contract book. It is also a history book.</p>
 <p>When you are the last rocket flying, the ledger writes your name as one of the <strong>greatest of all kind</strong>.</p>
@@ -154,88 +154,144 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
   <li>Then each round rolls <strong>50%</strong> to fire; each <em>real</em> miss moves the chance halfway toward 100% (50% → 75% → 87.5% …).</li>
   <li>On fire, wait 5 rounds again. Open popups do not burn midpoints without a roll.</li>
 </ol>
-<p>Unless noted, effects apply to <strong>every active (non-eliminated) rocket</strong> equally.</p>
+<p><strong>Who</strong> is not always the whole table. The table below is the live rule. <strong>Easy</strong> game difficulty never lets a − event hit the human seat (Tesla and Karen only land on AI).</p>
 
 <h3>Standard pool</h3>
 <table class="glossary">
-  <thead><tr><th>Alert</th><th>Tone</th><th>Effect</th></tr></thead>
+  <thead><tr><th>Alert</th><th>Tone</th><th>Trigger</th><th>Who</th><th>Effect</th></tr></thead>
   <tbody>
     <tr>
       <td><strong>Monolith on Earth’s Moon</strong></td>
       <td>+</td>
-      <td>One-time <strong>⍼300</strong> on your <em>next</em> Earth land or pass (per rocket).</td>
+      <td>Pool</td>
+      <td>Every active rocket</td>
+      <td>One-time <strong>⍼300</strong> on that rocket’s <em>next</em> Earth land or pass.</td>
     </tr>
     <tr>
       <td><strong>Blue and brown M&amp;Ms are back</strong></td>
       <td>+</td>
-      <td>One <strong>free brake</strong> on your next seat turn (break ≥1 space costs 0 fuel once; unused token expires end of that turn).</td>
+      <td>Pool</td>
+      <td>One random rocket this round</td>
+      <td>One <strong>free brake</strong> on that rocket’s next seat turn (unused token expires end of the turn).</td>
     </tr>
     <tr>
       <td><strong>King’s Quest speed-run record</strong></td>
       <td>+</td>
-      <td><strong>+1 warp charge</strong> — instead of rolling, click any board node to teleport (no en-route stops). Landing rules still apply.</td>
+      <td>Pool</td>
+      <td>One random rocket this round</td>
+      <td><strong>+1 warp charge</strong> (click any beacon instead of rolling). Landing rules still apply where they arrive.</td>
     </tr>
     <tr>
       <td><strong>Strong Bad answers your email</strong></td>
       <td>+</td>
-      <td>He types one word: <strong>WARP.</strong> Same as King’s Quest: <strong>+1 warp charge</strong> for every active rocket. Separate from King’s Quest (both can fire in one expedition).</td>
+      <td>Pool</td>
+      <td>One random rocket this round</td>
+      <td>Same warp as King’s Quest (separate card — both can fire in one expedition).</td>
     </tr>
     <tr>
       <td><strong>Arcadia on the Mainline</strong> (Captain Harlock)</td>
       <td>+</td>
-      <td><strong>+4 fuel</strong> (capped at tank max) — free-enterprise hail from the Arcadia.</td>
+      <td>Pool</td>
+      <td>Every active rocket</td>
+      <td><strong>+4 fuel</strong> (capped at tank max).</td>
     </tr>
     <tr>
       <td><strong>Belt ice survey</strong></td>
       <td>+</td>
-      <td><strong>+1 fuel depot</strong> in hand (no new board body).</td>
+      <td>Pool</td>
+      <td>One random rocket this round</td>
+      <td><strong>+1 fuel depot</strong> in hand.</td>
     </tr>
     <tr>
       <td><strong>Quantum ledger dividend</strong></td>
       <td>+</td>
-      <td><strong>+⍼250</strong> cash now (AIL universal dividend).</td>
+      <td>Pool</td>
+      <td>Every active rocket</td>
+      <td><strong>+⍼250</strong> cash now.</td>
     </tr>
     <tr>
       <td><strong>Comet dust trail</strong></td>
       <td>+</td>
-      <td>Next <strong>leave burn</strong> from a gravity well costs <strong>0 fuel</strong> once, then clears.</td>
+      <td>Pool</td>
+      <td>Every active rocket</td>
+      <td>Next <strong>leave burn</strong> from a gravity well costs <strong>0 fuel</strong> once.</td>
     </tr>
     <tr>
       <td><strong>Port authority holiday</strong></td>
       <td>+</td>
-      <td>Next <strong>rent</strong> you would pay is waived once (any owner).</td>
+      <td>Pool</td>
+      <td>Every active rocket</td>
+      <td>Next <strong>rent that rocket would pay</strong> is waived once.</td>
     </tr>
     <tr>
       <td><strong>Rogue Tesla Roadster</strong></td>
       <td>−</td>
-      <td>Musk’s Roadster hits a random <strong>owned planetoid beyond Mars</strong> (Jupiter or Saturn moons). Deed returns to the bank; any fuel depot is destroyed (pods cannot dodge). <strong>Stations move out of the way</strong> — Holst, Daktulios, and Elon are never hit. Also misses Mercury, Venus, Earth, the belt, and the Mars system (Mars, Phobos, Deimos).</td>
+      <td>Pool, only if a Jupiter or Saturn planetoid is owned (not hubs, not Mars, not inner system). Easy: only AI-owned planetoids count.</td>
+      <td>One random matching owner</td>
+      <td>That deed is gone, and any fuel depot on it.</td>
     </tr>
     <tr>
       <td><strong>Olbers’ paradox, Netflix optional</strong></td>
       <td>+</td>
-      <td>You prove Olbers’ paradox on a napkin. <strong>Click a station hub</strong> (Elon · Holst · Daktulios — <em>not</em> Earth) to warp there and collect <strong>⍼350</strong>. AI picks a hub automatically.</td>
+      <td>Pool</td>
+      <td>One random rocket this round (chooser)</td>
+      <td>Chooser warps to a station hub (Elon · Holst · Daktulios — not Earth) and collects <strong>⍼350</strong>. Human clicks the hub; AI auto-picks.</td>
     </tr>
     <tr>
       <td><strong>Karen in the comments</strong></td>
       <td>−</td>
-      <td>Only enters the pool from <strong>round 30</strong> onward. A random active rocket <strong>loses one full seat turn</strong> (skip).</td>
+      <td>Pool from <strong>round 30</strong>. Easy: only if an AI is still flying.</td>
+      <td>One random active rocket (Easy: AI only)</td>
+      <td>That rocket <strong>loses one full seat turn</strong>.</td>
     </tr>
     <tr>
       <td><strong>Invalid claim on the ledger</strong></td>
+      <td>+ / −</td>
+      <td>Pool, only if an opponent still holds a deed</td>
+      <td>One random rocket this round (chooser). Victim is the previous owner. Easy: cannot steal from the human.</td>
+      <td>Chooser takes one opponent claim. Planet/moon: free fuel depot. Hubs: deed only — no depot (hubs cannot host pods).</td>
+    </tr>
+    <tr>
+      <td><strong>Hot microphone</strong></td>
+      <td>−</td>
+      <td>Pool. Easy: only if an AI is still flying.</td>
+      <td>One rocket (Easy: AI only)</td>
+      <td>Sings a Disney song into a live mic. Pay <strong>50</strong> and <strong>miss the next seat turn</strong>.</td>
+    </tr>
+    <tr>
+      <td><strong>The Tuesday boy paradox</strong></td>
       <td>+</td>
-      <td><strong>Click an opponent’s claim</strong> on the board: the AIL reassigns it to you with a <strong>free fuel depot</strong> already installed. AI auto-picks a deed.</td>
+      <td>Pool</td>
+      <td>One random rocket this round</td>
+      <td>They prove it is <strong>13/27</strong>. Park count −1 (feral is one park further away).</td>
+    </tr>
+    <tr>
+      <td><strong>Error 47: not an object</strong></td>
+      <td>−</td>
+      <td>Pool. Easy: only if an AI is still flying.</td>
+      <td>One rocket (Easy: AI only)</td>
+      <td>The terminal dumps <strong>2 fuel</strong>.</td>
     </tr>
   </tbody>
 </table>
 
 <h3>Rare (outside the normal pool)</h3>
 <table class="glossary">
-  <thead><tr><th>Alert</th><th>When</th><th>Effect</th></tr></thead>
+  <thead><tr><th>Alert</th><th>Tone</th><th>Trigger</th><th>Who</th><th>Effect</th></tr></thead>
   <tbody>
     <tr>
+      <td><strong>Kostka</strong></td>
+      <td>+</td>
+      <td>Own clock. After <strong>5 Earth transits</strong> this charter (any rocket, land or pass), the <strong>next Earth landing</strong> rolls <strong>30%</strong>. Each later Earth landing +<strong>10%</strong> (30 → 40 → 50 …). Not in the round pool. Fires at most once.</td>
+      <td>The rocket that just landed on Earth</td>
+      <td>They adopt a dog named Kostka. <strong>+200</strong>.</td>
+    </tr>
+    <tr>
       <td><strong>You vibe-coded the rules</strong></td>
-      <td>The first time the expedition reaches <strong>round 60</strong>, one <strong>50%</strong> roll (hit or miss — never retries)</td>
-      <td>You write the patch notes: <strong>kick one AI rival</strong> off the ledger. Human: click that rocket in <strong>standings</strong>. AI: auto-picks a rival.</td>
+      <td>+ / −</td>
+      <td>First time the expedition reaches <strong>round 60</strong>, one <strong>50%</strong> roll (hit or miss — never retries). Not in the standard pool.</td>
+      <td>Living human, else the lead AI (chooser). Victim is an AI rival.</td>
+      <td>Chooser <strong>kicks one AI rocket</strong> off the ledger. Human: click that rocket in standings.</td>
     </tr>
   </tbody>
 </table>
@@ -259,6 +315,7 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
   <li><strong>Move</strong> — travel (dice − break). Button switches from Roll → Move (or path click lands immediately).</li>
   <li>After landing: <strong>Buy</strong> / <strong>Sell claim</strong> (½ price, depot scrapped) / Depot / End turn.</li>
 </ol>
+  <p><strong>Remote sell:</strong> you do not have to be on the claim. Click a rocket on <strong>On the ledger</strong> (any of that seat’s text) to open its dossier. On <em>your</em> turn you can <strong>sell</strong> any of your claims or <strong>auction</strong> it to the table at a reserve of your choosing. Each claim may be auctioned <strong>once per turn</strong>; you may list different claims in the same turn. If nobody meets your reserve, the auction is withdrawn — you may then sell that claim or keep it, but you cannot list it again this turn.</p>
 <p><strong>Buy window:</strong> you may claim an <em>unowned</em> deed underfoot when you land <em>or</em> later while you are still on it (before you leave) — e.g. after rent income on a following turn makes the price affordable.</p>
 <p>Landing is free. Leaving a gravity well costs fuel. Failed leave on an enemy claim charges rent again.</p>
 <p><strong>Earth pay</strong> is written to the ledger: <strong>⍼400</strong> when you <em>land</em> on Earth, <strong>⍼200</strong> when you <em>pass</em> Earth on a multi-space move (intermediate stop). Each completed board <strong>rotation</strong> adds <strong>⍼10</strong> to both amounts thereafter. Completing rotation <strong>10, 20, 30…</strong> also pays a one-time <strong>⍼1000</strong> decade bonus. Full circuit still resupplies fuel depots (+3 in hand).</p>
@@ -300,6 +357,32 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
 </ul>
 <p>System monopoly and the station network <em>stack</em> (e.g. full Mars + all hubs multiplies Elon by both).</p>
 <p>Earth is never a deed.</p>
+`,
+  },
+  {
+    id: "claims-ledger",
+    title: "Dossier, ROI & selling",
+    html: `
+<p>Click a rocket on <strong>On the ledger</strong> — name, cash, fuel, claims, anywhere on that seat’s row — to open its <strong>dossier</strong>. You get cash, fuel, claims grouped by system, current rent, and how much each claim has earned this owner (rent + fuel strikes vs cash you put in).</p>
+<p>Rival dossiers are public. The board already shows who owns what; the dossier is the books.</p>
+<p>When the ledger closes, the winning story names up to three held claims by ROI (“Best books”) — claims sold, lost, or taken without cash down are not ranked.</p>
+<h3>Sell</h3>
+<p>Sell for <strong>half the deed price</strong>. The claim goes unowned. Any <strong>depot is scrapped</strong>. Use this when you would rather the body sit empty than go to a rival.</p>
+<h3>Auction</h3>
+<p>Put a claim up to the table and <strong>set your own reserve</strong>. Three prices matter:</p>
+<ul>
+  <li><strong>Deed price (MSRP)</strong> — the board list price of the claim.</li>
+  <li><strong>Mark</strong> — half the deed. What the bank pays on a dump; the guaranteed floor.</li>
+  <li><strong>Reserve</strong> — your ask. Defaults to the mark; raise it up to the deed price when the table is flush (hub, monopoly piece, a depot that survives auction). The bank still pays only the mark if you later dump.</li>
+</ul>
+<p>Highest bid at or above your reserve wins. Ties go to the next seat after the seller.</p>
+<ul>
+  <li>You get the cash.</li>
+  <li>The buyer takes the claim. A <strong>depot stays</strong> with it.</li>
+  <li>You keep <strong>docking rights</strong>: the next time you <em>land</em> on that body, rent is free (failed leave still charges).</li>
+</ul>
+<p>If nobody meets the reserve, the auction is <strong>withdrawn</strong> — the claim stays yours, and you may still dump it for the mark. Dumping is a separate choice.</p>
+<p>Each claim may be auctioned <strong>once per turn</strong>; other claims can still list. After a withdrawn auction you may sell that claim or keep it. Sales are only before you roll or after you have landed (not while a path is in the air).</p>
 `,
   },
   {
@@ -382,48 +465,47 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
   },
   {
     id: "ai-difficulty",
-    title: "AI difficulty",
+    title: "Game difficulty",
     html: `
-<p>Rival seats use a heuristic pilot. Choose difficulty at <strong>New game</strong> only — it is <strong>locked for the rest of the expedition</strong> (change it before Launch, not mid-flight).</p>
-<p>The first skill scale we tune is <strong>travel</strong>: how well the AI uses <strong>break</strong> (and, for palindrome callsigns like Ada, <strong>prograde vs retrograde</strong>). Higher levels break more deliberately — including long breaks to land on a single key deed. Buy / depot scales can be layered later the same way.</p>
+<p>This is the <strong>table</strong> setting, chosen at <strong>New game</strong> and locked for the expedition. It sets how long the game tends to run, how kind the ledger is, and how hard rivals play.</p>
 <table class="glossary">
   <thead>
     <tr>
       <th>Level</th>
-      <th>Break (travel)</th>
-      <th>Retrograde (palindrome)</th>
-      <th>What to expect</th>
+      <th>Expedition</th>
+      <th>Ledger</th>
+      <th>Rivals</th>
     </tr>
   </thead>
   <tbody>
     <tr>
       <td><strong>Easy</strong></td>
-      <td>Never breaks</td>
-      <td>Always prograde</td>
-      <td>Soft rival. Rolls and lands where the dice put them; no tactical slowdown.</td>
+      <td>Shorter</td>
+      <td>− events never hit you (Tesla, Karen, hot mic, Error 47). Rivals cannot steal your deeds.</td>
+      <td>Soft. They land where the dice put them.</td>
     </tr>
     <tr>
       <td><strong>Normal</strong></td>
-      <td>Only a small break (≤2) when full leave fuel would strand them</td>
-      <td>Slight prograde bias; reverse only if clearly better</td>
-      <td>Default. Survival break only — not hunting monopolies with break.</td>
+      <td>Standard</td>
+      <td>Full pool. Prize cards go to one random rocket each fire.</td>
+      <td>Default table.</td>
     </tr>
     <tr>
       <td><strong>Hard</strong></td>
-      <td>Scores landings; may break up to about half the roll</td>
-      <td>Compares both directions</td>
-      <td>Will slow to buy open deeds, dodge rent, or reach Earth/own claims. Won’t usually break 11 of a 12.</td>
+      <td>Longer</td>
+      <td>Full pool.</td>
+      <td>Sharper — they play for deeds, hubs, and Earth.</td>
     </tr>
     <tr>
       <td><strong>Expert</strong></td>
-      <td>Full break depth (can move 1 space after a 12)</td>
-      <td>Low bar to reverse if the landing is better</td>
-      <td>Ruthless travel: break hard for monopoly pieces, hub stations, landing on Earth (not just passing), fuel-aware blanks, free-brake tokens.</td>
+      <td>Long</td>
+      <td>Full pool.</td>
+      <td>The table hunts monopolies and Earth landings.</td>
     </tr>
   </tbody>
 </table>
-<p><strong>Expert examples:</strong> roll 12 but the deed that completes a system monopoly is 1 space ahead → break 11 and take it. Full roll would <em>pass</em> Earth for ⍼200+ while a shorter move <em>lands</em> for ⍼400+ → break to land. Leave burn on a heavy well is worse than 0.5 fuel per break space onto a blank → prefer the blank.</p>
-<p>Control: header has <strong>Speed</strong> for animation only. AI skill is under New game setup. See also <strong>Roll, break, move</strong> and <strong>Rival rockets</strong>.</p>
+<p>Prize cards — King’s Quest, M&amp;Ms, Strong Bad, Belt ice, Tuesday boy, Olbers, steal — go to <strong>one random rocket that round</strong>, not the lead seat. See <strong>Ledger events</strong> for Who / Effect.</p>
+<p>The meter on New game is estimated length, not a timer. Header <strong>Speed</strong> is animation only.</p>
 `,
   },
   {

@@ -1,6 +1,6 @@
 # Contributing to Heliopoly
 
-Thanks for helping shape **Free Enterprise In Space**.
+Thanks for helping shape **Orbital Economics**.
 
 **Repo:** https://github.com/diagonalcounty/heliopoly  
 **Play:** https://heliopoly.live/

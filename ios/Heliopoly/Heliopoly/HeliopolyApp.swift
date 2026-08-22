@@ -2,7 +2,7 @@
 //  HeliopolyApp.swift
 //  Heliopoly
 //
-//  Free Enterprise In Space — iOS shell (#66).
+//  Orbital Economics — iOS shell (#66).
 //
 
 import SwiftUI

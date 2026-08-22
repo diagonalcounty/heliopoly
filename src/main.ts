@@ -26,14 +26,16 @@ import {
   prevailsHeadline,
   winsHeadline,
 } from "./core/pilotCopy";
-import { pilotByCallsign, sanitizePilotName } from "./core/pilotNames";
+import { sanitizePilotName } from "./core/pilotNames";
 import { goingUnderFlags } from "./core/goingUnder";
+import { bestBooksLine } from "./core/claimLedger";
 import {
   applyAction,
   resolveCharterChoiceIfAi,
   depotPlaceCashCost,
   effectiveBreakFuelCost,
   getLegalActions,
+  humanAuctionNeedsInput,
   meanDiceTotal,
   netWorth,
   rankings,
@@ -57,6 +59,7 @@ import {
 import { bodyRadius, drawBodyIcon, drawFuelDepotIcon } from "./bodyIcons";
 import { inspectBody } from "./core/inspect";
 import { mountHandbook } from "./handbook/handbook";
+import { mountDossier } from "./dossier";
 import {
   LAB_GROUP_BLURBS,
   LAB_GROUP_LABELS,
@@ -218,27 +221,39 @@ function escapeHtml(s: string): string {
     .replace(/"/g, "&quot;");
 }
 
-/**
- * Ops Manual topic for a rocket display name.
- * Roster callsigns → `pilot-*`; custom human names → Rival rockets overview.
- */
-function handbookTopicForRocketName(name: string): string {
-  const pilot = pilotByCallsign(name);
-  return pilot ? `pilot-${pilot.id}` : "rival-pilots-overview";
-}
-
-function rocketNameButton(name: string): string {
-  const topic = handbookTopicForRocketName(name);
-  const label = escapeHtml(name);
-  const title =
-    topic === "rival-pilots-overview"
-      ? "Open Rival rockets overview"
-      : `Open Ops Manual: ${label}`;
-  return `<button type="button" class="rocket-name-link" data-rocket-handbook="${topic}" title="${title}">${label}</button>`;
-}
-
 const handbook = mountHandbook(
   document.getElementById("handbook-root") as HTMLElement,
+);
+
+const dossier = mountDossier(
+  document.getElementById("dossier-root") as HTMLElement,
+  {
+    getState: () => state,
+    onSell: (nodeId) => {
+      if (!state) return;
+      const node = getNode(state.board, nodeId);
+      const legal = getLegalActions(state);
+      const row = legal.sellClaims.find((c) => c.nodeId === nodeId);
+      if (!row) return;
+      if (
+        !confirm(
+          `Sell ${node.name} for ${formatMoney(row.value)}? Any depot on it is scrapped.`,
+        )
+      ) {
+        return;
+      }
+      void act({ type: "sell", nodeId });
+    },
+    onAuction: (nodeId, reserve) => {
+      if (!state) return;
+      const legal = getLegalActions(state);
+      const row = legal.sellClaims.find((c) => c.nodeId === nodeId);
+      if (!row || !legal.canAuction) return;
+      const ask = Number.isFinite(reserve) ? Math.max(row.value, Math.floor(reserve)) : row.value;
+      void act({ type: "auction_start", nodeId, reserve: ask });
+    },
+    onOpenHandbook: (topicId) => handbook.open(topicId),
+  },
 );
 
 const canvas = document.getElementById("board") as HTMLCanvasElement;
@@ -275,7 +290,7 @@ ringOpacityInput?.addEventListener("input", () => {
   drawBoard();
 });
 
-// AI difficulty: setup only (locked once a game starts — #87)
+// Game difficulty: setup only (locked once a game starts — #87)
 // Duration meter (#94) updates with pack difficulty selection.
 (() => {
   const stored = loadStoredAiDifficulty();
@@ -490,6 +505,12 @@ function announceArtFor(a: { kind: string; title: string }): string {
     return "/handbook/cards/banners/clerk-tesla.jpg";
   if (t.includes("monolith")) return "/handbook/cards/banners/clerk-monolith.jpg";
   if (t.includes("dividend")) return "/handbook/cards/banners/clerk-dividend.jpg";
+  if (t.includes("kostka")) return "/handbook/cards/banners/clerk-kostka.jpg";
+  if (t.includes("microphone") || t.includes("disney"))
+    return "/handbook/cards/banners/clerk-hotmic.jpg";
+  if (t.includes("tuesday")) return "/handbook/cards/banners/clerk-tuesday.jpg";
+  if (t.includes("error 47") || t.includes("not an object"))
+    return "/handbook/cards/banners/clerk-error47.jpg";
   return "/handbook/cards/banners/clerk-canonical.jpg";
 }
 
@@ -511,7 +532,12 @@ function showAnnouncement(s: GameState): boolean {
         ? "Propellant failure"
         : a.kind === "out"
           ? "Elimination"
-          : "Ledger event";
+          : a.title === "Won" ||
+              a.title === "Outbid" ||
+              a.title === "Claim sold" ||
+              a.title === "Auction withdrawn"
+            ? "Claim auction"
+            : "Ledger event";
   announceTitle.textContent = a.title;
   announceBody.textContent = a.body;
   const art = document.getElementById("announce-art");
@@ -548,6 +574,49 @@ async function presentAnnouncementIfAny(s: GameState): Promise<GameState> {
   }
   return state ?? s;
 }
+
+const auctionRoot = document.getElementById("auction-root")!;
+const auctionTitle = document.getElementById("auction-title")!;
+const auctionBody = document.getElementById("auction-body")!;
+const auctionAmount = document.getElementById(
+  "auction-amount",
+) as HTMLInputElement;
+const auctionBidBtn = document.getElementById("auction-bid") as HTMLButtonElement;
+const auctionPassBtn = document.getElementById(
+  "auction-pass",
+) as HTMLButtonElement;
+
+function paintAuctionPrompt(): void {
+  if (!state || !humanAuctionNeedsInput(state) || !state.pendingAuction) {
+    auctionRoot.classList.add("hidden");
+    return;
+  }
+  const a = state.pendingAuction;
+  const node = getNode(state.board, a.nodeId);
+  const seller = state.players.find((p) => p.id === a.sellerId);
+  const human = state.players.find((p) => p.agent === "human" && !p.eliminated);
+  auctionTitle.textContent = node.name;
+  auctionBody.textContent = `${seller?.name ?? "A rival"} is auctioning ${node.name}. Reserve ${formatMoney(a.reserve)}. You have ${formatMoney(human?.cash ?? 0)}.`;
+  auctionAmount.min = String(a.reserve);
+  auctionAmount.max = String(human?.cash ?? 0);
+  if (!auctionAmount.value) auctionAmount.value = String(a.reserve);
+  const cash = human?.cash ?? 0;
+  const cur = Number(auctionAmount.value);
+  if (!auctionAmount.value || Number.isNaN(cur) || cur < a.reserve) {
+    auctionAmount.value = String(a.reserve);
+  }
+  const v = Number(auctionAmount.value);
+  auctionBidBtn.disabled = cash < a.reserve || v < a.reserve || v > cash;
+  auctionRoot.classList.remove("hidden");
+}
+
+auctionPassBtn?.addEventListener("click", () => {
+  void act({ type: "auction_bid", amount: 0 });
+});
+auctionBidBtn?.addEventListener("click", () => {
+  void act({ type: "auction_bid", amount: Number(auctionAmount.value) || 0 });
+});
+auctionAmount?.addEventListener("input", () => paintAuctionPrompt());
 
 /**
  * Shared fleet card: standings XOR new-game setup (same sidebar slot).
@@ -1035,7 +1104,8 @@ function endScreenStory(s: GameState, winner: Player | undefined): string {
     deeds > 0 || depots > 0
       ? ` Closing books: ${nw} net worth · ${deeds} claim${deeds === 1 ? "" : "s"} · ${depots} depot${depots === 1 ? "" : "s"}.`
       : ` Closing books: ${nw} net worth.`;
-  return reason + history + lengthBit + empire;
+  const best = bestBooksLine(s, winner.id);
+  return reason + history + lengthBit + empire + (best ? ` ${best}` : "");
 }
 
 function showEndScreen(s: GameState): void {
@@ -1158,6 +1228,8 @@ async function runAiUntilHumanOrEnd(s: GameState): Promise<GameState> {
     if (!duelResultEl.classList.contains("hidden")) break;
     if (!announceRoot.classList.contains("hidden")) break;
 
+    if (humanAuctionNeedsInput(cur)) break;
+
     // Charter alert pick (#107): human must act; AI auto-resolves
     if (cur.pendingCharterChoice) {
       const chooser = cur.players.find(
@@ -1226,6 +1298,27 @@ async function commitState(next: GameState): Promise<void> {
 
 async function act(action: PlayerAction): Promise<void> {
   if (!state || state.phase === "game_over" || animating) return;
+
+  if (action.type === "auction_bid") {
+    if (!humanAuctionNeedsInput(state)) return;
+    setBusy(true);
+    try {
+      const after = await applyActionAnimated(state, action);
+      state = after;
+      render();
+      if (state.phase !== "game_over") {
+        state = await runAiUntilHumanOrEnd(state);
+      }
+    } finally {
+      setBusy(false);
+    }
+    render();
+    if (state?.phase === "game_over") {
+      state = await presentAnnouncementIfAny(state);
+      showEndScreen(state);
+    }
+    return;
+  }
 
   // Duel actions allowed for human even if not "current" seat for defender
   if (action.type === "duel_stance" || action.type === "duel_roll") {
@@ -1433,17 +1526,42 @@ btnEndCopyLog?.addEventListener("click", () => {
   void copyGameLog(btnEndCopyLog);
 });
 
-/** Charter standings: rocket name → Rival rockets / pilot page. */
-function onRocketNameClick(e: Event): void {
-  const el = (e.target as HTMLElement | null)?.closest?.(
-    "[data-rocket-handbook]",
-  ) as HTMLElement | null;
-  if (!el) return;
-  e.preventDefault();
-  const topic = el.getAttribute("data-rocket-handbook");
-  if (topic) handbook.open(topic);
+/** Charter standings: any text on a rocket's row → that seat's dossier. */
+function standingsRowFromEvent(e: Event): HTMLElement | null {
+  return (
+    ((e.target as HTMLElement | null)?.closest?.(".rank-row") as HTMLElement | null) ??
+    null
+  );
 }
-rankingsEl.addEventListener("click", onRocketNameClick);
+
+function onStandingsActivate(row: HTMLElement): void {
+  if (!state || animating) return;
+  const pc = state.pendingCharterChoice;
+  const kickId = row.getAttribute("data-kick-id");
+  if (pc?.kind === "vibe_kick" && kickId) {
+    const chooser = state.players.find((x) => x.id === pc.chooserId);
+    if (chooser?.agent === "human") {
+      void act({ type: "charter_kick", targetPlayerId: kickId });
+      return;
+    }
+  }
+  const id = row.getAttribute("data-dossier-id");
+  if (id) dossier.open(id);
+}
+
+rankingsEl.addEventListener("click", (e) => {
+  const row = standingsRowFromEvent(e);
+  if (!row) return;
+  e.preventDefault();
+  onStandingsActivate(row);
+});
+rankingsEl.addEventListener("keydown", (e) => {
+  if (e.key !== "Enter" && e.key !== " ") return;
+  const row = standingsRowFromEvent(e);
+  if (!row) return;
+  e.preventDefault();
+  onStandingsActivate(row);
+});
 
 function openLab(): void {
   labRoot.classList.remove("hidden");
@@ -2071,6 +2189,8 @@ function render(): void {
   resizeLog();
   updateDuelModal(state);
   setAiDifficultyLocked(!!state && state.phase !== "game_over");
+  dossier.refresh();
+  paintAuctionPrompt();
 }
 
 function renderSide(): void {
@@ -2078,7 +2198,7 @@ function renderSide(): void {
     logEl.textContent = "";
     rankingsEl.textContent = "—";
     btnCopyLog.disabled = true;
-    for (const b of [btnRefuel, btnRoll, btnBuy, btnStation, btnEnd]) {
+    for (const b of [btnRefuel, btnRoll, btnBuy, btnSell, btnStation, btnEnd]) {
       b.disabled = true;
     }
     return;
@@ -2144,12 +2264,15 @@ function renderSide(): void {
         vibePick && !pl.eliminated && pl.agent === "ai"
           ? " vibe-kickable"
           : "";
-      const kickAttr =
+      const name = escapeHtml(pl.name);
+      const rowTitle =
         kickable !== ""
-          ? ` data-kick-id="${pl.id}" role="button" tabindex="0" title="Kick ${pl.name} off the ledger"`
-          : "";
+          ? `Kick ${name} off the ledger`
+          : `Open ${name}'s ledger`;
+      const kickAttr =
+        kickable !== "" ? ` data-kick-id="${pl.id}"` : "";
       // Single-line markup: avoids anonymous whitespace grid items if pre-wrap sneaks back
-      return `<div class="rank-row${lead}${active ? " active" : ""}${pl.eliminated ? " out" : ""}${atRisk.atRisk ? " at-risk" : ""}${kickable}"${kickAttr}><div class="swatch" style="background:${pl.color}" aria-hidden="true"></div><div class="rank-body"><div class="rank-top"><span class="rank-id">${rankLabel} ${rocketNameButton(pl.name)}${skip} · <span class="rank-prop">${plProp}</span>${riskBadge}</span><span class="rank-money"><span class="cash">${formatMoney(pl.cash)} cash</span> · NW ${formatMoney(worth)}</span></div><div class="rank-detail"><span class="fuel-bar${barTone}" title="Fuel ${pl.fuel} / ${maxFuel}" aria-label="Fuel ${pl.fuel} of ${maxFuel}">${bar}</span> <span class="fuel-n">${pl.fuel}</span> fuel · ${pl.properties.length} claims · ${at}</div></div></div>`;
+      return `<div class="rank-row rank-open${lead}${active ? " active" : ""}${pl.eliminated ? " out" : ""}${atRisk.atRisk ? " at-risk" : ""}${kickable}" data-dossier-id="${pl.id}"${kickAttr} role="button" tabindex="0" title="${rowTitle}" aria-label="${rowTitle}"><div class="swatch" style="background:${pl.color}" aria-hidden="true"></div><div class="rank-body"><div class="rank-top"><span class="rank-id">${rankLabel} ${name}${skip} · <span class="rank-prop">${plProp}</span>${riskBadge}</span><span class="rank-money"><span class="cash">${formatMoney(pl.cash)} cash</span> · NW ${formatMoney(worth)}</span></div><div class="rank-detail"><span class="fuel-bar${barTone}" title="Fuel ${pl.fuel} / ${maxFuel}" aria-label="Fuel ${pl.fuel} of ${maxFuel}">${bar}</span> <span class="fuel-n">${pl.fuel}</span> fuel · ${pl.properties.length} claims · ${at}</div></div></div>`;
     })
     .join("");
 
@@ -2181,6 +2304,7 @@ function renderSide(): void {
   const can =
     !animating &&
     !humanPickPending &&
+    !humanAuctionNeedsInput(state) &&
     p.agent === "human" &&
     state.phase !== "game_over" &&
     state.phase !== "await_duel";
@@ -2367,7 +2491,7 @@ function renderSide(): void {
     // Belt-and-suspenders: never show engine reseed crumbs in the UI (#56)
     if (/↺|^\s*seed\[/i.test(line)) continue;
     const div = document.createElement("div");
-    if (/Winner|claims|collects|Heliopoly|wins Gravity/i.test(line))
+    if (/Winner|claims|collects|Heliopoly|wins Gravity|auctions |bids |docking rights|sells /i.test(line))
       div.className = "ok";
     else if (
       /eliminated|bankruptcy|stranded|cannot leave|boil-off|forfeit|TIE/i.test(
@@ -3028,19 +3152,7 @@ canvas.addEventListener("click", (ev) => {
   void act({ type: "warp", destination: id });
 });
 
-// Vibe-kick: click AI in standings
-rankingsEl.addEventListener("click", (ev) => {
-  if (!state || animating) return;
-  const pc = state.pendingCharterChoice;
-  if (!pc || pc.kind !== "vibe_kick") return;
-  const chooser = state.players.find((x) => x.id === pc.chooserId);
-  if (chooser?.agent !== "human") return;
-  const row = (ev.target as HTMLElement).closest("[data-kick-id]");
-  if (!row) return;
-  const tid = row.getAttribute("data-kick-id");
-  if (!tid) return;
-  void act({ type: "charter_kick", targetPlayerId: tid });
-});
+
 
 function onShellResize(): void {
   resizeLog();

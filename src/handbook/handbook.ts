@@ -44,7 +44,7 @@ export function mountHandbook(root: HTMLElement): HandbookController {
             decoding="async"
           />
           <div>
-            <p class="handbook-kicker">Heliopoly · Free Enterprise In Space</p>
+            <p class="handbook-kicker">Heliopoly · Orbital Economics</p>
             <h2 id="handbook-title">Helios Ops Manual</h2>
           </div>
         </div>

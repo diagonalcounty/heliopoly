@@ -14,8 +14,9 @@
 #   }
 #
 # Install on droplet (UTC):
-#   install -m 755 scripts/heliopoly-promote-next.sh /usr/local/bin/heliopoly-promote-next
-#   # /etc/cron.d/heliopoly-promote  (see scripts/heliopoly-promote.cron)
+#   install -o root -g root -m 755 scripts/heliopoly-promote-next.sh /usr/local/bin/heliopoly-promote-next
+#   install -o root -g root -m 644 scripts/heliopoly-promote.cron /etc/cron.d/heliopoly-promote
+#   # cron.d files MUST be root:root — Debian cron rejects any other owner.
 #
 # Cron runs at Sunday 00:01 UTC. Script no-ops if pending is missing, already
 # promoted, or now < enabledAfter (safety if cron fires early).

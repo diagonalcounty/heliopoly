@@ -2,6 +2,7 @@ import { heuristicAI } from "../core/agents";
 import {
   applyAction,
   resolveCharterChoiceIfAi,
+  resolveAuctionIfAi,
   getLegalActions,
   netWorth,
   resolveDuelAiFully,
@@ -13,7 +14,12 @@ import {
   type GameState,
   type MoveDirection,
 } from "../core/types";
-import type { SimExperiment, SimGameResult, SimSeatResult } from "./types";
+import type {
+  SimExperiment,
+  SimGameResult,
+  SimPropertyCash,
+  SimSeatResult,
+} from "./types";
 
 export const DEFAULT_MAX_TURNS = 3000;
 export const DEFAULT_SEED_STRIDE = 997;
@@ -105,6 +111,29 @@ function seatSnapshot(
   }));
 }
 
+function snapshotPropertyCash(state: GameState): SimPropertyCash[] {
+  const led = state.propertyLedger;
+  if (!led) return [];
+  const out: SimPropertyCash[] = [];
+  for (const row of Object.values(led)) {
+    if (row.claims === 0 && row.invested === 0 && row.rentCollected === 0) {
+      continue;
+    }
+    const node = state.board.nodes[row.nodeId];
+    out.push({
+      nodeId: row.nodeId,
+      name: node?.name ?? row.nodeId,
+      group: node?.group ?? null,
+      kind: node?.kind ?? "space",
+      invested: row.invested,
+      rentCollected: row.rentCollected,
+      landings: row.landings,
+      claims: row.claims,
+    });
+  }
+  return out;
+}
+
 function difficultyForCurrent(
   state: GameState,
   diffs: AiDifficulty[],
@@ -145,13 +174,21 @@ export function playOneGame(opts: {
     aiDifficulty: pack,
   });
   applyExperiment(state, opts.experiment);
+  state.propertyLedger = {};
 
   let turns = 0;
   while (state.phase !== "game_over" && turns < maxTurns) {
+    // Cards have no UI in sim — dismiss so the next round can fire.
+    if (state.pendingAnnouncement) state.pendingAnnouncement = null;
     state = resolveDuelAiFully(state);
     if (state.phase === "game_over") break;
     if (state.pendingCharterChoice) {
       state = resolveCharterChoiceIfAi(state);
+      turns++;
+      continue;
+    }
+    if (state.pendingAuction) {
+      state = resolveAuctionIfAi(state);
       turns++;
       continue;
     }
@@ -221,5 +258,6 @@ export function playOneGame(opts: {
     },
     seats: seatSnapshot(state, winnerId, diffs, humanSeat),
     humanWon,
+    propertyCash: snapshotPropertyCash(state),
   };
 }

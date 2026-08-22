@@ -72,6 +72,9 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
       position: board.startId,
       propellant,
       properties: [],
+      claimBooks: {},
+      landingRights: {},
+      auctionedThisTurn: [],
       stationsInHand: config.stationsEach,
       eliminated: false,
       eliminatedOnTurn: null,
@@ -125,7 +128,7 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
     lastRoll: null,
     breakSpaces: 0,
     log: [
-      `Heliopoly · Free Enterprise In Space`,
+      `Heliopoly · Orbital Economics`,
       `Game start: ${count} pilots · bank ${formatMoney(config.startingCash)} each`,
       `Propellants: ${propSummary}`,
       `Path: Earth→Venus→Mercury→Mars→Belt→Jupiter→Saturn→Earth`,
@@ -143,6 +146,7 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
     gusherPaid: {},
     pendingAnnouncement: null,
     pendingCharterChoice: null,
+    pendingAuction: null,
     timedEvent: {
       roundsSinceLast: 0,
       lastProcessedRound: 0,
@@ -150,6 +154,8 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
       lastEventId: null,
       firedIds: [],
       vibeKickChecked: false,
+      earthTransits: 0,
+      kostkaChance: 0,
     },
     config: {
       ...config,
@@ -198,6 +204,14 @@ export function cloneState(state: GameState): GameState {
       ...p,
       properties: [...p.properties],
       rentWaiversAgainst: [...p.rentWaiversAgainst],
+      claimBooks: Object.fromEntries(
+        Object.entries(p.claimBooks ?? {}).map(([id, book]) => [
+          id,
+          { ...book },
+        ]),
+      ),
+      landingRights: { ...(p.landingRights ?? {}) },
+      auctionedThisTurn: [...(p.auctionedThisTurn ?? [])],
     })),
     owners: { ...state.owners },
     stations: { ...state.stations },
@@ -231,10 +245,24 @@ export function cloneState(state: GameState): GameState {
     pendingCharterChoice: state.pendingCharterChoice
       ? { ...state.pendingCharterChoice }
       : null,
+    pendingAuction: state.pendingAuction
+      ? {
+          ...state.pendingAuction,
+          bids: { ...state.pendingAuction.bids },
+        }
+      : null,
     timedEvent: {
       ...state.timedEvent,
       firedIds: [...(state.timedEvent.firedIds ?? [])],
     },
     config: { ...state.config },
+    propertyLedger: state.propertyLedger
+      ? Object.fromEntries(
+          Object.entries(state.propertyLedger).map(([id, row]) => [
+            id,
+            { ...row },
+          ]),
+        )
+      : undefined,
   };
 }
