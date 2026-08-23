@@ -43,20 +43,29 @@ html.phone-proto .top-actions .setup-toggle {
   font-size: 0.9rem !important;
 }
 
-/* ========== SETUP: New Game / Launch first; Pilot fully out of the way ========== */
+/* ========== SETUP: Launch in first viewport (Easy kid never scrolls) ==========
+   Do NOT lock #app to 100dvh / overflow:hidden here — that trapped Launch below.
+   Do NOT hide #board. Compact chrome; pin Launch in the viewport. */
 html.phone-proto.phone-setup,
-html.phone-proto.phone-setup body,
+html.phone-proto.phone-setup body {
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
 html.phone-proto.phone-setup #app {
   height: auto !important;
   max-height: none !important;
   overflow: visible !important;
   overflow-y: auto !important;
+  /* Room for fixed Launch bar — not a 100dvh lock. */
+  padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
 }
 
 html.phone-proto.phone-setup .layout {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
   position: relative;
   z-index: 1;
 }
@@ -67,10 +76,11 @@ html.phone-proto.phone-setup header.top {
   pointer-events: auto !important;
 }
 
+/* Board stays visible (small), after the New Game card — never display:none. */
 html.phone-proto.phone-setup .board-panel,
 html.phone-proto.phone-setup #board {
-  max-width: min(100%, 220px) !important;
-  max-height: 220px !important;
+  max-width: min(100%, 120px) !important;
+  max-height: 120px !important;
   margin: 0 auto;
   order: 2;
   position: relative;
@@ -86,11 +96,11 @@ html.phone-proto.phone-setup .side {
   order: 1;
   display: flex !important;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
   pointer-events: auto !important;
 }
 
-/* Welcome in-flow (stock is absolute over board). Do not steal fleet taps. */
+/* Compact welcome — stock essay pushed Launch off-screen. */
 html.phone-proto.phone-setup #welcome-card {
   display: grid !important;
   position: static !important;
@@ -99,12 +109,13 @@ html.phone-proto.phone-setup #welcome-card {
   width: 100% !important;
   height: auto !important;
   max-width: 100% !important;
-  max-height: none !important;
+  max-height: 88px !important;
   margin: 0;
   order: -1;
-  pointer-events: none !important; /* decorative; Launch lives in #fleet-card */
+  pointer-events: none !important;
   z-index: 1;
-  grid-template-columns: 36% 1fr;
+  grid-template-columns: 28% 1fr;
+  overflow: hidden !important;
 }
 
 html.phone-proto.phone-setup #welcome-card.hidden {
@@ -112,16 +123,27 @@ html.phone-proto.phone-setup #welcome-card.hidden {
 }
 
 html.phone-proto.phone-setup #welcome-card h2 {
-  font-size: 1.25rem !important;
-  margin: 6px 0 8px !important;
+  font-size: 1rem !important;
+  margin: 2px 0 4px !important;
 }
 
 html.phone-proto.phone-setup #welcome-card .announce-copy {
-  padding: 10px 12px !important;
+  padding: 6px 8px !important;
 }
 
 html.phone-proto.phone-setup #welcome-card .announce-body {
-  font-size: 0.75rem !important;
+  font-size: 0.65rem !important;
+  line-height: 1.25 !important;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+html.phone-proto.phone-setup #welcome-card .announce-kicker,
+html.phone-proto.phone-setup #welcome-card .tone {
+  font-size: 0.65rem !important;
+  margin: 0 !important;
 }
 
 html.phone-proto.phone-setup #fleet-card {
@@ -130,6 +152,7 @@ html.phone-proto.phone-setup #fleet-card {
   pointer-events: auto !important;
   position: relative !important;
   z-index: 35 !important;
+  padding: 8px 10px !important;
 }
 
 html.phone-proto.phone-setup #setup-body {
@@ -137,22 +160,48 @@ html.phone-proto.phone-setup #setup-body {
   pointer-events: auto !important;
   position: relative !important;
   z-index: 35 !important;
+  gap: 4px;
 }
 
 html.phone-proto.phone-setup #setup-body[hidden] {
   display: block !important;
 }
 
+html.phone-proto.phone-setup #setup-body h2 {
+  font-size: 1rem !important;
+  margin: 0 0 4px !important;
+}
+
+html.phone-proto.phone-setup #setup-body label,
+html.phone-proto.phone-setup #setup-body fieldset {
+  margin: 2px 0 !important;
+  font-size: 0.78rem !important;
+}
+
+html.phone-proto.phone-setup #setup-body .hint,
+html.phone-proto.phone-setup #duration-meter {
+  font-size: 0.68rem !important;
+  margin: 2px 0 !important;
+}
+
+/* Launch pinned in the viewport — no scroll required (#148 HITL). */
 html.phone-proto.phone-setup #btn-new {
   display: block !important;
   visibility: visible !important;
   pointer-events: auto !important;
-  position: relative !important;
-  z-index: 36 !important;
-  min-height: 48px !important;
-  font-size: 1rem !important;
-  width: 100%;
-  margin-top: 8px;
+  position: fixed !important;
+  left: max(10px, env(safe-area-inset-left, 0px)) !important;
+  right: max(10px, env(safe-area-inset-right, 0px)) !important;
+  bottom: max(10px, env(safe-area-inset-bottom, 0px)) !important;
+  top: auto !important;
+  z-index: 120 !important;
+  min-height: 52px !important;
+  font-size: 1.05rem !important;
+  font-weight: 700 !important;
+  width: auto !important;
+  max-width: none !important;
+  margin: 0 !important;
+  box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.45);
 }
 
 /* Kill stock sticky Pilot on setup — must not cover Launch (#146 / HITL). */
