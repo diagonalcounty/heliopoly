@@ -2,8 +2,8 @@
 //  ContentView.swift
 //  HeliopolyPhone
 //
-//  iPhone prototype root. Injects PhoneOverlay into the shared WebDist
-//  game. The iPad target never sets injectPhoneOverlay.
+//  iPhone prototype root (#126 / #148). Gold bar + WebDist + PhoneOverlay.
+//  iPad uses Heliopoly/GameWebView.swift (never injects overlay).
 //
 
 import SwiftUI

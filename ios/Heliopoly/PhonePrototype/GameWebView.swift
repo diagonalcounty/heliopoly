@@ -1,12 +1,10 @@
 //
 //  GameWebView.swift
-//  Heliopoly
+//  HeliopolyPhone
 //
-//  Loads the packaged Vite build from WebDist/ (offline, not a remote site).
-//
-//  Uses a custom URL scheme (heliopoly://) instead of file:// so ES module
-//  scripts and CSS load. Module scripts always use CORS mode; file:// has no
-//  CORS headers → JS never runs → empty board + dead buttons (HTML only).
+//  Phone-only host (#126 / #148). iPad uses Heliopoly/GameWebView.swift.
+//  Loads packaged Vite WebDist/ offline via heliopoly:// (ES modules need a
+//  non-file origin). Injects PhoneOverlay for the #133 right-edge sheet.
 //
 
 import SwiftUI
@@ -14,14 +12,14 @@ import UIKit
 import UniformTypeIdentifiers
 import WebKit
 
-/// Full-screen game surface: local `WebDist/` via WKWebView + custom scheme.
+/// Phone game surface: local `WebDist/` via WKWebView + custom scheme.
 struct GameWebView: UIViewRepresentable {
     var onLoadFailed: ((String) -> Void)?
-    /// iPhone prototype only (#120). Default false — iPad target is unchanged.
-    var injectPhoneOverlay: Bool = false
+    /// When true, load PhoneOverlay CSS/JS from the phone bundle (#148).
+    var injectPhoneOverlay: Bool = true
 
     init(
-        injectPhoneOverlay: Bool = false,
+        injectPhoneOverlay: Bool = true,
         onLoadFailed: ((String) -> Void)? = nil
     ) {
         self.injectPhoneOverlay = injectPhoneOverlay
@@ -46,9 +44,21 @@ struct GameWebView: UIViewRepresentable {
             )
             context.coordinator.schemeHandler = schemeHandler
             context.coordinator.useCustomScheme = true
-        } else if injectPhoneOverlay {
+        } else {
             context.coordinator.onLoadFailed?(
                 "WebDist/index.html missing from the phone bundle. Run npm run ios:sync, then Clean Build the HeliopolyPhone scheme."
+            )
+        }
+
+        if injectPhoneOverlay {
+            // Tiny loader only — do not inline phone.css/js into the script
+            // (large string interpolation has blanked WKWebView before).
+            config.userContentController.addUserScript(
+                WKUserScript(
+                    source: Self.phoneOverlayLoaderJS,
+                    injectionTime: .atDocumentEnd,
+                    forMainFrameOnly: true
+                )
             )
         }
 
@@ -58,11 +68,10 @@ struct GameWebView: UIViewRepresentable {
         webView.isOpaque = false
         webView.backgroundColor = Self.spaceBackground
         webView.scrollView.backgroundColor = Self.spaceBackground
-        webView.scrollView.contentInsetAdjustmentBehavior = injectPhoneOverlay
-            ? .automatic
-            : .never
-        webView.scrollView.bounces = injectPhoneOverlay
-        webView.scrollView.alwaysBounceVertical = injectPhoneOverlay
+        // Phone: allow page scroll (native-shell lock blanked portrait).
+        webView.scrollView.contentInsetAdjustmentBehavior = .automatic
+        webView.scrollView.bounces = true
+        webView.scrollView.alwaysBounceVertical = true
         webView.scrollView.alwaysBounceHorizontal = false
         webView.scrollView.bouncesZoom = false
         webView.allowsBackForwardNavigationGestures = false
@@ -77,7 +86,7 @@ struct GameWebView: UIViewRepresentable {
 
         let host = SizedWebHost(webView: webView)
         // Load only after SwiftUI gives the view a real size. Loading at
-        // CGRect.zero leaves WKWebView blank on iPhone (works on iPad).
+        // CGRect.zero leaves WKWebView blank on iPhone.
         host.onReady = { [weak coordinator = context.coordinator] readyView in
             coordinator?.startLoadIfNeeded(in: readyView)
         }
@@ -96,15 +105,30 @@ struct GameWebView: UIViewRepresentable {
         UIColor(red: 0.043, green: 0.063, blue: 0.125, alpha: 1) // #0b1020
     }
 
+    /// Served from bundled `WebDist/phone-overlay/` via heliopoly:// (#148).
+    private static let phoneOverlayLoaderJS = """
+    (function () {
+      if (document.getElementById('phone-overlay-js')) return;
+      var l = document.createElement('link');
+      l.rel = 'stylesheet';
+      l.href = 'phone-overlay/phone.css';
+      (document.head || document.documentElement).appendChild(l);
+      var s = document.createElement('script');
+      s.id = 'phone-overlay-js';
+      s.src = 'phone-overlay/phone.js';
+      (document.head || document.documentElement).appendChild(s);
+    })();
+    """
+
     final class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         var onLoadFailed: ((String) -> Void)?
-        var injectPhoneOverlay = false
+        var injectPhoneOverlay = true
         var didStartLoad = false
         /// Retained for the life of the web view (configuration also retains it).
         var schemeHandler: WebDistSchemeHandler?
         var useCustomScheme = false
 
-        init(onLoadFailed: ((String) -> Void)?, injectPhoneOverlay: Bool = false) {
+        init(onLoadFailed: ((String) -> Void)?, injectPhoneOverlay: Bool = true) {
             self.onLoadFailed = onLoadFailed
             self.injectPhoneOverlay = injectPhoneOverlay
         }
@@ -151,33 +175,20 @@ struct GameWebView: UIViewRepresentable {
             webView.scrollView.pinchGestureRecognizer?.isEnabled = false
             webView.scrollView.contentOffset = .zero
 
-            // Ensure layout hooks even if WebDist is older than the main.ts
-            // heliopoly: protocol check (no ios:sync required for this class).
-            // iPad uses native-shell (100dvh lock). On iPhone that lock can
-            // paint a 0-height page — dark background, no buttons.
-            // Phone: do not add native-shell and do not inject overlay CSS yet.
-            // Those were blanking portrait. Show the stock game first.
+            // Phone: never apply iPad native-shell (100dvh lock blanks portrait).
+            // Overlay loader adds phone-proto; keep a class nudge here too.
             if injectPhoneOverlay {
                 webView.evaluateJavaScript(
                     """
                     document.documentElement.classList.remove('native-shell');
-                    document.documentElement.classList.add('touch-ui');
+                    document.documentElement.classList.add('touch-ui', 'phone-proto');
                     """
                 )
             } else {
                 webView.evaluateJavaScript(
                     """
-                    document.documentElement.classList.add('native-shell');
-                    if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) {
-                      document.documentElement.classList.add('touch-ui');
-                    }
-                    var meta = document.querySelector('meta[name="viewport"]');
-                    if (meta) {
-                      meta.setAttribute(
-                        'content',
-                        'width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no'
-                      );
-                    }
+                    document.documentElement.classList.remove('native-shell');
+                    document.documentElement.classList.add('touch-ui');
                     """
                 )
             }

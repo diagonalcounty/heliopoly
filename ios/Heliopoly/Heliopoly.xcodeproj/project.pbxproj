@@ -14,7 +14,7 @@
 		A10000010000000000000005 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000005 /* PrivacyInfo.xcprivacy */; };
 		B10000010000000000000001 /* HeliopolyPhoneApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000010000000000000001 /* HeliopolyPhoneApp.swift */; };
 		B10000010000000000000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000010000000000000002 /* ContentView.swift */; };
-		B10000010000000000000003 /* GameWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000003 /* GameWebView.swift */; };
+		B10000010000000000000003 /* GameWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000010000000000000003 /* GameWebView.swift */; };
 		B10000010000000000000004 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000004 /* Assets.xcassets */; };
 		B10000010000000000000005 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000005 /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
@@ -29,6 +29,7 @@
 		B4CC6C54E301AC13100288A42 /* HeliopolyPhone.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HeliopolyPhone.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B20000010000000000000001 /* HeliopolyPhoneApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeliopolyPhoneApp.swift; sourceTree = "<group>"; };
 		B20000010000000000000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		B20000010000000000000003 /* GameWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameWebView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -84,6 +85,7 @@
 			children = (
 				B20000010000000000000001 /* HeliopolyPhoneApp.swift */,
 				B20000010000000000000002 /* ContentView.swift */,
+				B20000010000000000000003 /* GameWebView.swift */,
 			);
 			path = PhonePrototype;
 			sourceTree = "<group>";
@@ -202,7 +204,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -e\nWEB=\"${SRCROOT}/WebDist\"\nDEST=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/WebDist\"\nif [ ! -f \"${WEB}/index.html\" ]; then\n  echo \"error: WebDist/index.html missing. From repo root run: npm run ios:sync\" >&2\n  exit 1\nfi\nrm -rf \"${DEST}\"\nmkdir -p \"${DEST}\"\n# Preserve assets/ handbook/ hierarchy for Vite base './'\n/usr/bin/rsync -a \"${WEB}/\" \"${DEST}/\"\necho \"Copied WebDist → ${DEST}\"\n";
+			shellScript = "set -e\nWEB=\"${SRCROOT}/WebDist\"\nDEST=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/WebDist\"\nif [ ! -f \"${WEB}/index.html\" ]; then\n  echo \"error: WebDist/index.html missing. From repo root run: npm run ios:sync\" >&2\n  exit 1\nfi\nrm -rf \"${DEST}\"\nmkdir -p \"${DEST}\"\n# Preserve assets/ handbook/ hierarchy for Vite base './'\n/usr/bin/rsync -a \"${WEB}/\" \"${DEST}/\"\n# Exclusive membership (#126): PhoneOverlay must not ship in the iPad .app.\nrm -rf \"${DEST}/phone-overlay\"\necho \"Copied WebDist → ${DEST}\"\n";
 			showEnvVarsInLog = 0;
 		};
 		B4CC6C560301AC20000288A42 /* Copy WebDist */ = {
