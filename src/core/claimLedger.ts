@@ -182,33 +182,56 @@ export function claimRoi(book: ClaimBook): number | null {
   return claimEarnings(book) / book.cashInvested;
 }
 
+export function claimMark(book: ClaimBook): number {
+  return bankSellValue(book.listPrice);
+}
+
+/** Mark (bank half) + income (rent + strikes) — player-facing book value. */
+export function claimBookValue(book: ClaimBook): number {
+  return claimMark(book) + claimEarnings(book);
+}
+
 /**
- * End-screen line naming the seat's best-paying claims by ROI (#136).
- * Only deeds still held at close rank — closed books are gone — and
- * zero-cash-in claims (gift / steal) never do.
+ * End-screen profitability (#138): mark + income, not ROI%.
+ * Held deeds only (closed books are gone). Gifts/steals still rank.
  */
-export function bestBooksLine(
+export function assetSheetLine(
   state: GameState,
   playerId: string,
   max = 3,
 ): string {
   const p = state.players.find((x) => x.id === playerId);
   if (!p) return "";
-  const ranked: { name: string; pct: number }[] = [];
+  const ranked: { name: string; mark: number; income: number; total: number }[] =
+    [];
   for (const [nodeId, book] of Object.entries(p.claimBooks)) {
-    const roi = claimRoi(book);
-    if (roi === null) continue;
+    const mark = claimMark(book);
+    const income = claimEarnings(book);
     ranked.push({
       name: getNode(state.board, nodeId).name,
-      pct: Math.round(roi * 100),
+      mark,
+      income,
+      total: mark + income,
     });
   }
   if (ranked.length === 0) return "";
-  ranked.sort((a, b) => b.pct - a.pct);
-  return `Best books: ${ranked
+  ranked.sort((a, b) => b.total - a.total);
+  return `Books: ${ranked
     .slice(0, max)
-    .map((r) => `${r.name} ${r.pct}%`)
+    .map(
+      (r) =>
+        `${r.name} ${formatMoney(r.total)} (mark ${formatMoney(r.mark)} + income ${formatMoney(r.income)})`,
+    )
     .join(" · ")}.`;
+}
+
+/** @deprecated ROI% line — kept so old call sites compile until swapped. */
+export function bestBooksLine(
+  state: GameState,
+  playerId: string,
+  max = 3,
+): string {
+  return assetSheetLine(state, playerId, max);
 }
 
 export function grantClaim(
