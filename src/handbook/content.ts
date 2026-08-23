@@ -365,7 +365,7 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     html: `
 <p>Click a rocket on <strong>On the ledger</strong> — name, cash, fuel, claims, anywhere on that seat’s row — to open its <strong>dossier</strong>. You get cash, fuel, claims grouped by system, current rent, and how much each claim has earned this owner (rent + fuel strikes vs cash you put in).</p>
 <p>Rival dossiers are public. The board already shows who owns what; the dossier is the books.</p>
-<p>When the ledger closes, the winning story names up to three held claims by ROI (“Best books”) — claims sold, lost, or taken without cash down are not ranked.</p>
+<p>When the ledger closes, the winning story names up to three held claims by <strong>mark + income</strong> (bank half plus rent and strikes this owner). Sold or lost books drop off. Gifts and steals still count — they have a mark even with no cash in.</p>
 <h3>Sell</h3>
 <p>Sell for <strong>half the deed price</strong>. The claim goes unowned. Any <strong>depot is scrapped</strong>. Use this when you would rather the body sit empty than go to a rival.</p>
 <h3>Auction</h3>
