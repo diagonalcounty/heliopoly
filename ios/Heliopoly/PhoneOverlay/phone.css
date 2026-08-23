@@ -1,7 +1,8 @@
 /* HeliopolyPhone overlay (#148 / #133).
    Injected only by the phone target. Never lock 100dvh to a 0-height first layout.
    Setup: welcome / fleet / Launch stay tappable — Pilot does not cover them.
-   Play: board is the page; ~10% right grab handle; swipe opens Pilot 70–90%. */
+   Play: board is the page; ~10% right grab handle; swipe opens Pilot 70–90%.
+   Modals (Ops Manual / Lab): must keep their own hit targets. */
 
 html.phone-proto,
 html.phone-proto.native-shell,
@@ -35,17 +36,35 @@ html.phone-proto .anim-speed-field {
 html.phone-proto button,
 html.phone-proto .pilot-controls .actions button,
 html.phone-proto .top-actions .lab-launch,
-html.phone-proto .top-actions .handbook-launch {
+html.phone-proto .top-actions .handbook-launch,
+html.phone-proto .top-actions .setup-toggle {
   min-height: 44px !important;
   padding: 8px 12px !important;
   font-size: 0.9rem !important;
 }
 
-/* ========== SETUP: New Game / Launch first; Pilot off-screen ========== */
+/* ========== SETUP: New Game / Launch first; Pilot fully out of the way ========== */
+html.phone-proto.phone-setup,
+html.phone-proto.phone-setup body,
+html.phone-proto.phone-setup #app {
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+  overflow-y: auto !important;
+}
+
 html.phone-proto.phone-setup .layout {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  position: relative;
+  z-index: 1;
+}
+
+html.phone-proto.phone-setup header.top {
+  position: relative;
+  z-index: 40;
+  pointer-events: auto !important;
 }
 
 html.phone-proto.phone-setup .board-panel,
@@ -54,19 +73,24 @@ html.phone-proto.phone-setup #board {
   max-height: 220px !important;
   margin: 0 auto;
   order: 2;
+  position: relative;
+  z-index: 1;
+  pointer-events: auto;
 }
 
 html.phone-proto.phone-setup .side {
-  position: static !important;
+  position: relative !important;
+  z-index: 30 !important;
   max-height: none !important;
   overflow: visible !important;
   order: 1;
-  display: flex;
+  display: flex !important;
   flex-direction: column;
   gap: 10px;
+  pointer-events: auto !important;
 }
 
-/* Welcome in-flow (stock is absolute over board and steals taps). */
+/* Welcome in-flow (stock is absolute over board). Do not steal fleet taps. */
 html.phone-proto.phone-setup #welcome-card {
   display: grid !important;
   position: static !important;
@@ -78,7 +102,7 @@ html.phone-proto.phone-setup #welcome-card {
   max-height: none !important;
   margin: 0;
   order: -1;
-  pointer-events: auto !important;
+  pointer-events: none !important; /* decorative; Launch lives in #fleet-card */
   z-index: 1;
   grid-template-columns: 36% 1fr;
 }
@@ -102,27 +126,54 @@ html.phone-proto.phone-setup #welcome-card .announce-body {
 
 html.phone-proto.phone-setup #fleet-card {
   order: 0;
-  position: static !important;
+  visibility: visible !important;
   pointer-events: auto !important;
-  z-index: 2;
+  position: relative !important;
+  z-index: 35 !important;
+}
+
+html.phone-proto.phone-setup #setup-body {
+  visibility: visible !important;
+  pointer-events: auto !important;
+  position: relative !important;
+  z-index: 35 !important;
+}
+
+html.phone-proto.phone-setup #setup-body[hidden] {
+  display: block !important;
 }
 
 html.phone-proto.phone-setup #btn-new {
+  display: block !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  position: relative !important;
+  z-index: 36 !important;
   min-height: 48px !important;
   font-size: 1rem !important;
   width: 100%;
-  pointer-events: auto !important;
+  margin-top: 8px;
 }
 
-/* Pilot must not cover New Game / Launch on first screen (#146 / Jacob HITL). */
+/* Kill stock sticky Pilot on setup — must not cover Launch (#146 / HITL). */
 html.phone-proto.phone-setup #pilot-controls,
 html.phone-proto.phone-setup .log-card,
-html.phone-proto.phone-setup #phone-grab {
+html.phone-proto.phone-setup #phone-grab,
+html.phone-proto.phone-setup #phone-primary-row {
   display: none !important;
+  visibility: hidden !important;
   pointer-events: none !important;
+  position: fixed !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  z-index: -1 !important;
+  inset: auto !important;
+  top: -9999px !important;
+  left: -9999px !important;
 }
 
-/* ========== PLAY: board is the page; right-edge sheet ========== */
+/* ========== PLAY: board is the page; right-edge sheet below header ========== */
 html.phone-proto.phone-play,
 html.phone-proto.phone-play body {
   height: 100% !important;
@@ -138,17 +189,19 @@ html.phone-proto.phone-play #app {
   position: relative;
 }
 
+/* Full-width header ABOVE the grab strip so New game / Lab / Ops stay tappable. */
 html.phone-proto.phone-play header.top {
   position: absolute;
   top: 0;
   left: 0;
-  right: var(--phone-sheet-w, 10%);
-  z-index: 40;
+  right: 0;
+  z-index: 60;
   min-height: 44px;
   padding: max(4px, env(safe-area-inset-top, 0px)) 8px 4px;
-  background: rgba(12, 18, 32, 0.92);
+  background: rgba(12, 18, 32, 0.94);
   border-bottom: 1px solid #2a3555;
   box-sizing: border-box;
+  pointer-events: auto !important;
 }
 
 html.phone-proto.phone-play .top-row {
@@ -156,6 +209,19 @@ html.phone-proto.phone-play .top-row {
   align-items: center;
   flex-wrap: nowrap;
   gap: 6px;
+}
+
+html.phone-proto.phone-play .top-actions {
+  pointer-events: auto !important;
+  position: relative;
+  z-index: 61;
+}
+
+html.phone-proto.phone-play .top-actions button,
+html.phone-proto.phone-play .top-actions .setup-toggle {
+  pointer-events: auto !important;
+  position: relative;
+  z-index: 62;
 }
 
 html.phone-proto.phone-play .top h1 {
@@ -176,10 +242,10 @@ html.phone-proto.phone-play .layout {
   gap: 0;
 }
 
-/* Board fills everything left of the sheet. Never fully covered. */
+/* Board fills everything left of the sheet, below the header. */
 html.phone-proto.phone-play .board-panel {
   position: absolute;
-  top: 0;
+  top: var(--phone-header-h, 48px);
   left: 0;
   bottom: 0;
   right: var(--phone-sheet-w, 10%);
@@ -199,10 +265,10 @@ html.phone-proto.phone-play .board-stage,
 html.phone-proto.phone-play #board {
   width: min(100%, 100%) !important;
   height: auto !important;
-  max-height: calc(100% - 52px) !important;
+  max-height: 100% !important;
   max-width: 100% !important;
   aspect-ratio: 1 / 1;
-  margin-top: 44px;
+  margin: 0;
 }
 
 html.phone-proto.phone-play #welcome-card {
@@ -217,16 +283,17 @@ html.phone-proto.phone-play .side {
   pointer-events: none;
 }
 
-/* Standings / log wait — not on the first sheet row. */
+/* Standings / log wait — not on the first sheet row.
+   New Game returns via header setup-toggle → phone-setup (fleet shown again). */
 html.phone-proto.phone-play .side > #fleet-card,
 html.phone-proto.phone-play .side > .log-card {
   display: none !important;
 }
 
-/* Right-edge Pilot sheet: closed ~10% handle, open 70–90%. */
+/* Right-edge Pilot sheet starts BELOW header so it never covers New game. */
 html.phone-proto.phone-play #pilot-controls {
   position: fixed !important;
-  top: 0;
+  top: var(--phone-header-h, 48px);
   right: 0;
   bottom: 0;
   width: var(--phone-sheet-w, 10%);
@@ -237,7 +304,7 @@ html.phone-proto.phone-play #pilot-controls {
   border-right: none;
   background: linear-gradient(180deg, #1a2440 0%, #141b2f 45%);
   box-shadow: -6px 0 24px rgba(0, 0, 0, 0.35);
-  padding: max(8px, env(safe-area-inset-top, 0px))
+  padding: 8px
     max(8px, env(safe-area-inset-right, 0px))
     max(10px, env(safe-area-inset-bottom, 0px))
     12px;
@@ -251,7 +318,6 @@ html.phone-proto.phone-play #pilot-controls {
   -webkit-overflow-scrolling: touch;
 }
 
-/* Closed: only the grab handle shows — looks like a handle, not a sliver. */
 html.phone-proto.phone-play:not(.phone-sheet-open) #pilot-controls {
   padding-left: 0;
   padding-right: 0;
@@ -393,7 +459,6 @@ html.phone-proto.phone-play.phone-sheet-open .actions {
   margin-top: 4px;
 }
 
-/* Roll / End live in primary row; hide duplicates if still in .actions. */
 html.phone-proto.phone-play.phone-sheet-open .actions #btn-roll,
 html.phone-proto.phone-play.phone-sheet-open .actions #btn-end {
   display: none !important;
@@ -406,7 +471,7 @@ html.phone-proto.phone-play .path-flash {
 html.phone-proto #phone-proto-badge {
   position: fixed;
   top: max(4px, env(safe-area-inset-top, 0px));
-  right: max(10px, calc(var(--phone-sheet-w, 10%) + 4px));
+  right: 8px;
   z-index: 200;
   font-size: 10px;
   letter-spacing: 0.08em;
@@ -415,22 +480,63 @@ html.phone-proto #phone-proto-badge {
   background: #ffc857;
   padding: 3px 7px;
   border-radius: 999px;
-  pointer-events: none;
+  pointer-events: none !important;
 }
 
-html.phone-proto.phone-setup #phone-proto-badge {
-  right: 8px;
-}
-
-/* Leftover map strip closes the sheet when tapped (via JS). */
 html.phone-proto.phone-play.phone-sheet-open .board-panel {
   cursor: pointer;
 }
 
-/* Lab: keep A | vs | B usable (do not expand this ticket into Lab chrome). */
+/* ========== Ops Manual / Lab / overlays: hit-test above Pilot ========== */
+html.phone-proto #handbook-root,
+html.phone-proto #dossier-root,
+html.phone-proto #lab-root,
+html.phone-proto #eac-root,
+html.phone-proto #duel-root {
+  pointer-events: auto !important;
+  z-index: 3000 !important;
+}
+
+html.phone-proto #handbook-root .handbook-panel,
+html.phone-proto #handbook-root .handbook-body,
+html.phone-proto #handbook-root .handbook-toc,
+html.phone-proto #handbook-root .handbook-nav,
+html.phone-proto #handbook-root .handbook-section-tabs,
+html.phone-proto #handbook-root .handbook-article,
+html.phone-proto #handbook-root .handbook-header {
+  pointer-events: auto !important;
+  position: relative;
+  z-index: 2;
+}
+
+html.phone-proto #handbook-root .handbook-toc,
+html.phone-proto #handbook-root .handbook-nav {
+  touch-action: pan-x;
+  -webkit-overflow-scrolling: touch;
+  z-index: 3 !important;
+}
+
+html.phone-proto #handbook-root .handbook-toc-item,
+html.phone-proto #handbook-root .handbook-section-tab,
+html.phone-proto #handbook-root .handbook-close,
+html.phone-proto #handbook-root .handbook-nav button {
+  pointer-events: auto !important;
+  touch-action: manipulation;
+  position: relative;
+  z-index: 4;
+}
+
+/* While a modal is open, do not let the Pilot sheet steal taps. */
+html.phone-proto.phone-modal-open #pilot-controls,
+html.phone-proto.phone-modal-open #phone-grab {
+  pointer-events: none !important;
+}
+
+/* Lab: keep A | vs | B usable. */
 html.phone-proto #eac-root .eac-panel {
   width: min(100vw - 16px, 420px);
   max-height: min(92dvh, 640px);
+  pointer-events: auto !important;
 }
 
 html.phone-proto #eac-root .eac-choices {
@@ -439,6 +545,7 @@ html.phone-proto #eac-root .eac-choices {
   align-items: center;
   justify-content: center;
   gap: 8px;
+  pointer-events: auto !important;
 }
 
 html.phone-proto #eac-root .eac-num {
@@ -446,4 +553,5 @@ html.phone-proto #eac-root .eac-num {
   min-width: 0 !important;
   max-width: 42%;
   min-height: 72px !important;
+  pointer-events: auto !important;
 }

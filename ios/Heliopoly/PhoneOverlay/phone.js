@@ -1,17 +1,26 @@
 /* HeliopolyPhone overlay (#148 / #133). Injected only by the phone target.
    Setup: Pilot off — welcome / fleet / Launch stay tappable.
-   Play: board is the page; ~10% right handle; swipe opens Pilot 70–90%. */
+   Play: board is the page; ~10% right handle; swipe opens Pilot 70–90%.
+   Modals (Ops Manual / Lab): never steal topic / button taps. */
 (function () {
   if (window.__heliopolyPhoneProto) return;
   window.__heliopolyPhoneProto = true;
 
   var SHEET_CLOSED = 0.1; // 10% grab strip
   var SHEET_OPEN = 0.8; // 80% within 70–90%
-  var EDGE_PX = 28; // swipe starts near right edge / handle
+  var EDGE_PX = 28;
 
   var html = document.documentElement;
   html.classList.add("phone-proto", "touch-ui");
   html.classList.remove("native-shell");
+
+  var MODAL_IDS = [
+    "handbook-root",
+    "dossier-root",
+    "lab-root",
+    "eac-root",
+    "duel-root",
+  ];
 
   var touch = {
     tracking: false,
@@ -32,6 +41,14 @@
     return fc.classList.contains("mode-standings");
   }
 
+  function isModalOpen() {
+    for (var i = 0; i < MODAL_IDS.length; i++) {
+      var el = $(MODAL_IDS[i]);
+      if (el && !el.classList.contains("hidden")) return true;
+    }
+    return false;
+  }
+
   function sheetOpen() {
     return html.classList.contains("phone-sheet-open");
   }
@@ -43,7 +60,21 @@
     if (app) app.style.setProperty("--phone-sheet-w", pct);
   }
 
+  function setHeaderHeight() {
+    var top = document.querySelector("header.top");
+    var h = 48;
+    if (top) {
+      var rect = top.getBoundingClientRect();
+      if (rect.height > 0) h = Math.ceil(rect.height);
+    }
+    var px = h + "px";
+    html.style.setProperty("--phone-header-h", px);
+    var app = $("app");
+    if (app) app.style.setProperty("--phone-header-h", px);
+  }
+
   function openSheet() {
+    if (isModalOpen()) return;
     html.classList.add("phone-sheet-open");
     setSheetWidth(SHEET_OPEN);
     layout();
@@ -76,6 +107,7 @@
       grab.addEventListener("click", function (e) {
         e.preventDefault();
         e.stopPropagation();
+        if (isModalOpen()) return;
         toggleSheet();
       });
     }
@@ -93,7 +125,6 @@
     if (!row) {
       row = document.createElement("div");
       row.id = "phone-primary-row";
-      // First sheet row: Roll | Break | End (#148).
       pc.insertBefore(row, pc.querySelector(".actions") || null);
     }
     if (roll.parentElement !== row) row.appendChild(roll);
@@ -109,7 +140,6 @@
     var roll = $("btn-roll");
     var end = $("btn-end");
     var brk = $("break-row");
-    // Put Break back above actions; Roll/End back into actions.
     if (brk) pc.insertBefore(brk, actions || null);
     if (actions) {
       if (roll) actions.insertBefore(roll, actions.firstChild);
@@ -118,16 +148,48 @@
     row.remove();
   }
 
+  function ensureSetupHitTargets() {
+    var fleet = $("fleet-card");
+    var setup = $("setup-body");
+    var btn = $("btn-new");
+    if (fleet) {
+      fleet.style.pointerEvents = "auto";
+      fleet.removeAttribute("aria-hidden");
+    }
+    if (setup) {
+      setup.style.pointerEvents = "auto";
+      // Setup mode must show the New Game form (stock uses [hidden] toggle).
+      setup.hidden = false;
+    }
+    var standings = $("standings-panel");
+    if (standings) standings.hidden = true;
+    if (btn) {
+      btn.style.pointerEvents = "auto";
+      btn.disabled = false;
+    }
+  }
+
   function layout() {
     var play = isPlay();
+    var modal = isModalOpen();
     html.classList.toggle("phone-play", play);
     html.classList.toggle("phone-setup", !play);
+    html.classList.toggle("phone-modal-open", modal);
+
+    setHeaderHeight();
 
     if (!play) {
       html.classList.remove("phone-sheet-open");
       setSheetWidth(SHEET_CLOSED);
       restorePrimaryRowToStock();
+      ensureSetupHitTargets();
       return;
+    }
+
+    if (modal) {
+      // Keep sheet closed under Ops Manual / Lab so topics stay tappable.
+      html.classList.remove("phone-sheet-open");
+      setSheetWidth(SHEET_CLOSED);
     }
 
     ensureGrab();
@@ -136,17 +198,8 @@
   }
 
   function onBoardTap(e) {
-    if (!isPlay() || !sheetOpen()) return;
-    // Leftover map strip closes the sheet (#133).
-    var panel = e.currentTarget;
-    var sheetW = window.innerWidth * SHEET_OPEN;
-    var x = e.clientX != null ? e.clientX : (e.touches && e.touches[0] && e.touches[0].clientX);
-    if (typeof x === "number" && x < window.innerWidth - sheetW) {
-      closeSheet();
-    } else if (panel) {
-      // Any tap on the visible board strip while open → close.
-      closeSheet();
-    }
+    if (!isPlay() || !sheetOpen() || isModalOpen()) return;
+    closeSheet();
   }
 
   function bindBoardClose() {
@@ -157,9 +210,23 @@
   }
 
   function onTouchStart(e) {
-    if (!isPlay() || !e.touches || !e.touches.length) return;
+    if (!isPlay() || isModalOpen() || !e.touches || !e.touches.length) {
+      touch.tracking = false;
+      return;
+    }
     var t = e.touches[0];
     var w = window.innerWidth;
+    var headerH = 48;
+    var top = document.querySelector("header.top");
+    if (top) {
+      var rh = top.getBoundingClientRect().height;
+      if (rh > 0) headerH = rh;
+    }
+    // Ignore gestures that start in the header (New game / Lab / Ops).
+    if (t.clientY <= headerH) {
+      touch.tracking = false;
+      return;
+    }
     touch.tracking = true;
     touch.startX = t.clientX;
     touch.startY = t.clientY;
@@ -168,12 +235,11 @@
   }
 
   function onTouchMove(e) {
-    if (!touch.tracking || !e.touches || !e.touches.length) return;
+    if (!touch.tracking || isModalOpen() || !e.touches || !e.touches.length) return;
     var t = e.touches[0];
     var dx = t.clientX - touch.startX;
     var dy = t.clientY - touch.startY;
     if (Math.abs(dx) < 12 || Math.abs(dx) < Math.abs(dy)) return;
-    // Horizontal sheet gesture — keep the board from scrolling away.
     if (touch.fromEdge || touch.fromSheet) {
       e.preventDefault();
     }
@@ -182,7 +248,7 @@
   function onTouchEnd(e) {
     if (!touch.tracking) return;
     touch.tracking = false;
-    if (!isPlay()) return;
+    if (!isPlay() || isModalOpen()) return;
     var t = e.changedTouches && e.changedTouches[0];
     if (!t) return;
     var dx = t.clientX - touch.startX;
@@ -206,12 +272,25 @@
     document.body.appendChild(b);
   }
 
+  function observeModals() {
+    if (!window.MutationObserver) return;
+    MODAL_IDS.forEach(function (id) {
+      var el = $(id);
+      if (!el) return;
+      new MutationObserver(layout).observe(el, {
+        attributes: true,
+        attributeFilter: ["class"],
+      });
+    });
+  }
+
   function boot() {
     html.classList.add("phone-proto", "touch-ui");
     html.classList.remove("native-shell");
     ensureBadge();
     layout();
     bindBoardClose();
+    observeModals();
 
     var fc = $("fleet-card");
     if (fc && window.MutationObserver) {
@@ -221,6 +300,8 @@
       });
     }
 
+    // Capture=false so handbook/lab handlers run normally; we only preventDefault
+    // on edge sheet pans when no modal is open.
     document.addEventListener("touchstart", onTouchStart, { passive: true });
     document.addEventListener("touchmove", onTouchMove, { passive: false });
     document.addEventListener("touchend", onTouchEnd, { passive: true });
