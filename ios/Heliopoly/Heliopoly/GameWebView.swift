@@ -52,6 +52,18 @@ struct GameWebView: UIViewRepresentable {
             )
         }
 
+        if injectPhoneOverlay {
+            // Tiny loader only — do not inline phone.css/js into the script
+            // (large string interpolation has blanked WKWebView before).
+            config.userContentController.addUserScript(
+                WKUserScript(
+                    source: Self.phoneOverlayLoaderJS,
+                    injectionTime: .atDocumentEnd,
+                    forMainFrameOnly: true
+                )
+            )
+        }
+
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.navigationDelegate = context.coordinator
         webView.uiDelegate = context.coordinator
@@ -95,6 +107,21 @@ struct GameWebView: UIViewRepresentable {
     private static var spaceBackground: UIColor {
         UIColor(red: 0.043, green: 0.063, blue: 0.125, alpha: 1) // #0b1020
     }
+
+    /// Served from bundled `WebDist/phone-overlay/` via heliopoly:// (#120).
+    private static let phoneOverlayLoaderJS = """
+    (function () {
+      if (document.getElementById('phone-overlay-js')) return;
+      var l = document.createElement('link');
+      l.rel = 'stylesheet';
+      l.href = 'phone-overlay/phone.css';
+      (document.head || document.documentElement).appendChild(l);
+      var s = document.createElement('script');
+      s.id = 'phone-overlay-js';
+      s.src = 'phone-overlay/phone.js';
+      (document.head || document.documentElement).appendChild(s);
+    })();
+    """
 
     final class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         var onLoadFailed: ((String) -> Void)?
@@ -151,17 +178,13 @@ struct GameWebView: UIViewRepresentable {
             webView.scrollView.pinchGestureRecognizer?.isEnabled = false
             webView.scrollView.contentOffset = .zero
 
-            // Ensure layout hooks even if WebDist is older than the main.ts
-            // heliopoly: protocol check (no ios:sync required for this class).
-            // iPad uses native-shell (100dvh lock). On iPhone that lock can
-            // paint a 0-height page — dark background, no buttons.
-            // Phone: do not add native-shell and do not inject overlay CSS yet.
-            // Those were blanking portrait. Show the stock game first.
+            // iPad: native-shell (100dvh lock). Phone: overlay loader + phone.js
+            // strip native-shell; keep a belt-and-suspenders class nudge here.
             if injectPhoneOverlay {
                 webView.evaluateJavaScript(
                     """
                     document.documentElement.classList.remove('native-shell');
-                    document.documentElement.classList.add('touch-ui');
+                    document.documentElement.classList.add('touch-ui', 'phone-proto');
                     """
                 )
             } else {

@@ -19,55 +19,117 @@ html.phone-proto.native-shell #app {
   overflow: visible !important;
   max-width: none;
   margin: 0;
-  padding: max(10px, env(safe-area-inset-top, 0px))
-    max(10px, env(safe-area-inset-right, 0px))
-    max(16px, env(safe-area-inset-bottom, 0px))
-    max(10px, env(safe-area-inset-left, 0px));
+  padding: max(8px, env(safe-area-inset-top, 0px))
+    max(8px, env(safe-area-inset-right, 0px))
+    max(12px, env(safe-area-inset-bottom, 0px))
+    max(8px, env(safe-area-inset-left, 0px));
 }
 
+/* Dev-only chrome: keep Lab reachable; hide self-play noise. */
 html.phone-proto #btn-selfplay,
-html.phone-proto .anim-speed-field,
-html.phone-proto #btn-lab {
+html.phone-proto .anim-speed-field {
   display: none !important;
 }
 
-/* Setup: keep the form on screen. Do NOT hide the board — that plus a
-   0-height #app was a blank Simulator. Compact the map instead. */
+/* —— Compact controls (stock buttons are too big on phone) —— */
+html.phone-proto button,
+html.phone-proto .pilot-controls .actions button,
+html.phone-proto .top-actions .lab-launch,
+html.phone-proto .top-actions .handbook-launch {
+  min-height: 40px !important;
+  padding: 6px 10px !important;
+  font-size: 0.82rem !important;
+}
+
+html.phone-proto .dir-row button,
+html.phone-proto .break-row button {
+  min-height: 36px !important;
+  padding: 4px 8px !important;
+  font-size: 0.78rem !important;
+}
+
+/* —— Setup: new-game / welcome first; Pilot must NOT cover it —— */
 html.phone-proto.phone-setup .layout {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 html.phone-proto.phone-setup .board-panel,
 html.phone-proto.phone-setup #board {
-  max-width: min(100%, 220px) !important;
-  max-height: 220px !important;
+  max-width: min(100%, 200px) !important;
+  max-height: 200px !important;
   margin: 0 auto;
+  order: 2;
 }
-
-html.phone-proto.phone-setup #welcome-card {
-  display: none !important;
-}
-
-/* Keep Launch / New game / Ops Manual visible. Do not hide Pilot. */
 
 html.phone-proto.phone-setup .side {
   position: static;
   max-height: none !important;
   overflow: visible !important;
+  order: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Welcome / new-game prompt: in-flow on phone (stock is absolute over board). */
+html.phone-proto.phone-setup #welcome-card {
+  display: grid !important;
+  position: static !important;
+  top: auto !important;
+  right: auto !important;
+  left: auto !important;
+  bottom: auto !important;
+  transform: none !important;
+  width: 100% !important;
+  height: auto !important;
+  max-width: 100% !important;
+  max-height: none !important;
+  min-height: 0;
+  margin: 0;
+  order: -1;
+  pointer-events: auto !important;
+  grid-template-columns: 36% 1fr;
+}
+
+html.phone-proto.phone-setup #welcome-card.hidden {
+  display: none !important;
+}
+
+html.phone-proto.phone-setup #welcome-card h2 {
+  font-size: 1.35rem !important;
+  margin: 6px 0 8px !important;
+}
+
+html.phone-proto.phone-setup #welcome-card .announce-copy {
+  padding: 10px 12px !important;
+}
+
+html.phone-proto.phone-setup #welcome-card .announce-body {
+  font-size: 0.75rem !important;
+}
+
+html.phone-proto.phone-setup #fleet-card {
+  order: 0;
+}
+
+/* Sticky Pilot Controls cover Launch on narrow phones — hide until play. */
+html.phone-proto.phone-setup #pilot-controls,
+html.phone-proto.phone-setup .log-card {
+  display: none !important;
 }
 
 html.phone-proto.phone-setup #btn-new {
-  min-height: 56px;
-  font-size: 1.05rem;
+  min-height: 44px !important;
+  font-size: 0.95rem !important;
   width: 100%;
 }
 
-/* Play: leftover board + fixed bar. Still no overflow:hidden on html. */
+/* —— Play: leftover board + collapsed pilot bar —— */
 html.phone-proto.phone-play #app {
-  padding-top: var(--status-h, calc(56px + env(safe-area-inset-top, 0px)));
-  padding-bottom: var(--pilot-h, calc(56px + env(safe-area-inset-bottom, 0px)));
+  padding-top: var(--status-h, calc(48px + env(safe-area-inset-top, 0px)));
+  padding-bottom: var(--pilot-h, calc(48px + env(safe-area-inset-bottom, 0px)));
 }
 
 html.phone-proto.phone-play .layout {
@@ -93,9 +155,9 @@ html.phone-proto.phone-play .board-panel {
 
 html.phone-proto.phone-play .board-stage,
 html.phone-proto.phone-play #board {
-  width: min(100%, var(--board-h, 52dvh)) !important;
+  width: min(100%, var(--board-h, 48dvh)) !important;
   height: auto !important;
-  max-height: var(--board-h, 52dvh) !important;
+  max-height: var(--board-h, 48dvh) !important;
   aspect-ratio: 1 / 1;
 }
 
@@ -117,7 +179,7 @@ html.phone-proto.phone-play .side > .log-card.is-open {
   position: fixed;
   left: 8px;
   right: 8px;
-  bottom: calc(var(--pilot-h, 90px) + 8px);
+  bottom: calc(var(--pilot-h, 80px) + 8px);
   max-height: 46dvh;
   z-index: 90;
   overflow: auto;
@@ -128,7 +190,7 @@ html.phone-proto.phone-play header.top {
   position: sticky;
   top: 0;
   z-index: 100;
-  min-height: 48px;
+  min-height: 44px;
   background: #0c1220;
   border-bottom: 1px solid #2a3555;
 }
@@ -137,11 +199,11 @@ html.phone-proto.phone-play .top-row {
   width: 100%;
   align-items: center;
   flex-wrap: nowrap;
-  gap: 8px;
+  gap: 6px;
 }
 
 html.phone-proto.phone-play .top h1 {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   white-space: nowrap;
   margin: 0;
 }
@@ -154,7 +216,7 @@ html.phone-proto.phone-play .badge {
 html.phone-proto.phone-play #phone-status-copy {
   flex: 1 1 auto;
   min-width: 0;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   color: #c9d4ee;
   white-space: nowrap;
   overflow: hidden;
@@ -165,10 +227,10 @@ html.phone-proto.phone-play #pilot-controls {
   position: sticky;
   bottom: 0;
   z-index: 100;
-  min-height: 56px;
-  padding: 6px 10px max(8px, env(safe-area-inset-bottom, 0px));
+  min-height: 48px;
+  padding: 4px 8px max(6px, env(safe-area-inset-bottom, 0px));
   margin: 0;
-  border-radius: 16px 16px 0 0;
+  border-radius: 14px 14px 0 0;
   border: 1px solid #3d5080;
   background: linear-gradient(180deg, #1a2440 0%, #141b2f 40%);
 }
@@ -185,13 +247,13 @@ html.phone-proto.phone-play #pilot-controls.is-collapsed #break-row {
 
 html.phone-proto.phone-play #pilot-controls.is-await-move.is-collapsed #break-row {
   display: flex !important;
-  min-height: 44px;
+  min-height: 40px;
   margin: 0 0 4px;
 }
 
 html.phone-proto.phone-play #pilot-controls.is-collapsed .actions {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   margin: 0;
   align-items: stretch;
 }
@@ -205,16 +267,16 @@ html.phone-proto.phone-play #phone-expand {
   display: inline-flex !important;
   align-items: center;
   justify-content: center;
-  min-height: 56px;
-  height: 56px;
+  min-height: 44px !important;
+  height: 44px;
   flex: 1 1 auto;
-  font-size: 1.05rem;
+  font-size: 0.92rem !important;
   font-weight: 700;
 }
 
 html.phone-proto.phone-play #phone-expand {
-  flex: 0 0 56px;
-  width: 56px;
+  flex: 0 0 44px;
+  width: 44px;
 }
 
 html.phone-proto.phone-play #phone-sheet-backdrop {
@@ -256,13 +318,13 @@ html.phone-proto.phone-play .path-flash {
 }
 
 html.phone-proto #phone-menu {
-  min-width: 44px;
-  min-height: 44px;
+  min-width: 40px;
+  min-height: 40px;
   border-radius: 10px;
   border: 1px solid #2a3555;
   background: #1e2a48;
   color: #e8eefc;
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
 html.phone-proto #phone-proto-badge {
@@ -278,4 +340,73 @@ html.phone-proto #phone-proto-badge {
   padding: 3px 7px;
   border-radius: 999px;
   pointer-events: none;
+}
+
+/* —— Lab: Which is larger? keep A | vs | B on one row; shrink hit targets —— */
+html.phone-proto #eac-root .eac-panel {
+  width: min(100vw - 16px, 420px);
+  max-height: min(92dvh, 640px);
+}
+
+html.phone-proto #eac-root .eac-body {
+  padding: 10px 12px 14px;
+  gap: 10px;
+}
+
+html.phone-proto #eac-root .eac-choices {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 4px 0;
+}
+
+html.phone-proto #eac-root .eac-num {
+  flex: 1 1 0;
+  min-width: 0 !important;
+  max-width: 42%;
+  min-height: 72px !important;
+  padding: 10px 8px !important;
+  border-radius: 12px;
+  gap: 4px;
+}
+
+html.phone-proto #eac-root .eac-glyph {
+  font-size: clamp(1.35rem, 7vw, 2rem) !important;
+}
+
+html.phone-proto #eac-root .eac-glyph.eac-glyph-binary {
+  font-size: clamp(1rem, 4.5vw, 1.35rem) !important;
+}
+
+html.phone-proto #eac-root .eac-western {
+  font-size: 0.85rem;
+}
+
+html.phone-proto #eac-root .eac-vs {
+  flex: 0 0 auto;
+  font-size: 0.75rem;
+}
+
+html.phone-proto #eac-root .eac-toolbar {
+  gap: 8px;
+  margin-top: 8px;
+}
+
+html.phone-proto #eac-root .eac-toolbar button,
+html.phone-proto #eac-root .eac-win-actions button {
+  min-height: 40px !important;
+  padding: 6px 12px !important;
+  font-size: 0.82rem !important;
+}
+
+html.phone-proto #eac-root .lab-scenario,
+html.phone-proto .lab-scenario {
+  min-height: 0;
+  padding: 8px 10px;
+}
+
+html.phone-proto .lab-panel {
+  max-height: min(88dvh, 640px);
 }

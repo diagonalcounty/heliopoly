@@ -13,7 +13,10 @@
 
   function isPlay() {
     var fc = $("fleet-card");
-    return !!(fc && fc.classList.contains("mode-standings"));
+    if (!fc) return false;
+    // Prefer explicit setup class so Launch isn't covered by Pilot.
+    if (fc.classList.contains("mode-setup")) return false;
+    return fc.classList.contains("mode-standings");
   }
 
   function breakLive() {
@@ -56,27 +59,23 @@
     html.classList.toggle("phone-play", play);
     html.classList.toggle("phone-setup", !play);
 
-    var statusH = 56;
+    var statusH = 48;
     var insetTop = 0;
     var insetBot = 0;
-    try {
-      var probe = getComputedStyle(html);
-      // env() is applied on #app padding in CSS; keep content bands here.
-    } catch (e) {}
 
-    var pilot = 56;
+    var pilot = 48;
     var pc = $("pilot-controls");
     if (pc) {
       pc.classList.toggle("is-collapsed", play && !html.classList.contains("phone-sheet-open"));
       var awaitMove = play && breakLive();
       pc.classList.toggle("is-await-move", awaitMove);
-      if (awaitMove && !html.classList.contains("phone-sheet-open")) pilot = 104;
+      if (awaitMove && !html.classList.contains("phone-sheet-open")) pilot = 92;
     }
 
     setVar("--status-h", "calc(" + statusH + "px + env(safe-area-inset-top, 0px))");
     setVar("--pilot-h", "calc(" + pilot + "px + env(safe-area-inset-bottom, 0px))");
 
-    var boardH = Math.max(180, vh - statusH - insetTop - pilot - insetBot - 8);
+    var boardH = Math.max(160, vh - statusH - insetTop - pilot - insetBot - 8);
     setVar("--board-h", boardH + "px");
 
     pickPrimary();
