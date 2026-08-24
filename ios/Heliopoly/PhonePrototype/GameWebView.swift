@@ -113,7 +113,7 @@ struct GameWebView: UIViewRepresentable {
 
     /// CSS that does not depend on PhoneOverlay files or phone.js.
     /// Uses :has(#fleet-card.mode-standings) so play restacks even if JS never runs.
-    private static let criticalOverlayCSS = """
+    fileprivate static let criticalOverlayCSS = """
     html.phone-proto{color-scheme:dark!important;background:#0b1020!important;color:#e8eefc!important}
     html.phone-proto body,html.phone-proto #app{background:#0b1020!important;color:#e8eefc!important}
     html.phone-proto.phone-setup .board-panel,html.phone-proto.phone-setup .board-stage,html.phone-proto.phone-setup #board{max-width:56px!important;max-height:56px!important;width:56px!important;height:56px!important;overflow:hidden!important;margin:0 auto!important;pointer-events:none!important}
@@ -598,8 +598,10 @@ final class WebDistSchemeHandler: NSObject, WKURLSchemeHandler {
         let ext = fileURL.pathExtension.lowercased()
         // Vite stamps crossorigin on module/CSS. WKWebView custom schemes treat
         // that as CORS and can drop both — unstyled HTML, white empty scroll.
+        // User scripts often do not run for heliopoly:// — stamp first-paint
+        // CSS into the HTML so the page is never a white empty scroll.
         if ext == "html" || ext == "htm", var html = String(data: data, encoding: .utf8) {
-            html = html.replacingOccurrences(of: " crossorigin", with: "")
+            html = Self.phoneBootHTML(html)
             body = Data(html.utf8)
         }
 
@@ -631,6 +633,37 @@ final class WebDistSchemeHandler: NSObject, WKURLSchemeHandler {
 
     func webView(_ webView: WKWebView, stop urlSchemeTask: WKURLSchemeTask) {
         // Nothing to cancel; reads are synchronous from the bundle.
+    }
+
+    /// Strip CORS, force dark navy paint, add overlay classes. Does not wait
+    /// for WKUserScript or didFinish (those missed on device → white scroll).
+    private static func phoneBootHTML(_ source: String) -> String {
+        var html = source.replacingOccurrences(of: " crossorigin", with: "")
+        if html.contains("<html lang=\"en\">") {
+            html = html.replacingOccurrences(
+                of: "<html lang=\"en\">",
+                with: "<html lang=\"en\" class=\"phone-proto phone-setup touch-ui\">"
+            )
+        } else if html.contains("<html>") {
+            html = html.replacingOccurrences(
+                of: "<html>",
+                with: "<html class=\"phone-proto phone-setup touch-ui\">"
+            )
+        }
+        guard !html.contains("phone-critical-css") else { return html }
+        let paint = """
+        <meta name="color-scheme" content="dark">
+        <style id="phone-critical-css">
+        html,body,#app{color-scheme:dark;background:#0b1020!important;color:#e8eefc!important}
+        \(GameWebView.criticalOverlayCSS)
+        </style>
+        """
+        if html.contains("</head>") {
+            html = html.replacingOccurrences(of: "</head>", with: paint + "</head>")
+        } else if let range = html.range(of: "<head>") {
+            html.insert(contentsOf: paint, at: range.upperBound)
+        }
+        return html
     }
 
     private static func mimeType(for url: URL) -> String {
