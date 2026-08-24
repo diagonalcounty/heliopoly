@@ -3936,10 +3936,26 @@ button:not(:disabled):active {
 
   #app:has(.fleet-card.mode-standings) .rank-row .swatch,
   #app:has(.fleet-card.mode-standings) .rank-row .rank-id,
-  #app:has(.fleet-card.mode-standings) .rank-row .rank-detail,
   #app:has(.fleet-card.mode-standings) .rank-row .rank-prop,
-  #app:has(.fleet-card.mode-standings) .rank-row .at-risk-badge {
+  #app:has(.fleet-card.mode-standings) .rank-row .at-risk-badge,
+  #app:has(.fleet-card.mode-standings) .rank-row .fuel-bar {
     display: none !important;
+  }
+
+  #app:has(.fleet-card.mode-standings) .rank-row .rank-detail {
+    display: block !important;
+    font-size: 0;
+    line-height: 1.15;
+  }
+
+  #app:has(.fleet-card.mode-standings) .rank-row .fuel-n {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #7dd3fc;
+  }
+
+  #app:has(.fleet-card.mode-standings) .rank-row .fuel-n::after {
+    content: " fuel";
   }
 
   #app:has(.fleet-card.mode-standings) .rank-row,
@@ -3954,6 +3970,13 @@ button:not(:disabled):active {
     min-height: 0;
     height: auto;
     grid-template-columns: none;
+  }
+
+  #app:has(.fleet-card.mode-standings) .rank-body {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 1px;
   }
 
   #app:has(.fleet-card.mode-standings) .rank-money {
@@ -4012,11 +4035,7 @@ button:not(:disabled):active {
     display: none;
   }
 
-  #app:has(.fleet-card.mode-standings) #telemetry div:first-child {
-    display: none;
-  }
-
-  #app:has(.fleet-card.mode-standings) #telemetry .line2 {
+  #app:has(.fleet-card.mode-standings) #telemetry div {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
