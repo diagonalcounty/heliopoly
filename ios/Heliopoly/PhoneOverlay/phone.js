@@ -154,6 +154,7 @@
     rankings: null,
     handbook: null,
     handbookLabel: null,
+    launch: null,
   };
 
   function rememberHome(key, el) {
@@ -174,8 +175,27 @@
     }
   }
 
+  function labelBook(handbook, on) {
+    if (!handbook) return;
+    var label = handbook.querySelector("span");
+    if (on) {
+      if (label && nodeHome.handbookLabel == null) {
+        nodeHome.handbookLabel = (label.textContent || "").trim();
+      }
+      if (label) label.textContent = "Book";
+      handbook.setAttribute("aria-label", "Book");
+      handbook.title = "Book";
+      handbook.classList.add("phone-sheet-book");
+    } else {
+      if (label) label.textContent = nodeHome.handbookLabel || "Ops Manual";
+      handbook.setAttribute("aria-label", "Open Helios Ops Manual");
+      handbook.title = "Helios Ops Manual";
+      handbook.classList.remove("phone-sheet-book");
+    }
+  }
+
   /**
-   * Open sheet: reuse #telemetry (fuel/status), #rankings (cash+fuel), and
+   * Open sheet: reuse #rankings (cash+fuel), #telemetry, and
    * #btn-handbook-header as Book. No second HUD, no ROI% (#150).
    */
   function ensureSheetMeta(open) {
@@ -198,25 +218,20 @@
     var tele = $("telemetry");
     var rankings = $("rankings");
     var handbook = $("btn-handbook-header");
-    var label = handbook && handbook.querySelector("span");
 
     if (open) {
-      if (tele) {
-        rememberHome("telemetry", tele);
-        meta.appendChild(tele);
-      }
+      // Vitals first, Book last — must be on the first sheet screen.
       if (rankings) {
         rememberHome("rankings", rankings);
         meta.appendChild(rankings);
       }
+      if (tele) {
+        rememberHome("telemetry", tele);
+        meta.appendChild(tele);
+      }
       if (handbook) {
         rememberHome("handbook", handbook);
-        if (label && nodeHome.handbookLabel == null) {
-          nodeHome.handbookLabel = label.textContent;
-        }
-        if (label) label.textContent = "Book";
-        handbook.setAttribute("aria-label", "Book");
-        handbook.title = "Book";
+        labelBook(handbook, true);
         meta.appendChild(handbook);
       }
       meta.hidden = false;
@@ -224,21 +239,37 @@
       if (tele) restoreHome("telemetry", tele);
       if (rankings) restoreHome("rankings", rankings);
       if (handbook) {
+        labelBook(handbook, false);
         restoreHome("handbook", handbook);
-        if (label) {
-          label.textContent = nodeHome.handbookLabel || "Ops Manual";
-        }
-        handbook.setAttribute("aria-label", "Open Helios Ops Manual");
-        handbook.title = "Helios Ops Manual";
       }
       meta.hidden = true;
+    }
+  }
+
+  /**
+   * iOS WKWebView: position:fixed inside overflowing #app scrolls away.
+   * Park Launch on document.body during setup so it stays in the viewport.
+   */
+  function ensureLaunchPin(setup) {
+    var btn = $("btn-new");
+    if (!btn) return;
+    if (setup) {
+      rememberHome("launch", btn);
+      if (btn.parentNode !== document.body) {
+        document.body.appendChild(btn);
+      }
+      btn.classList.add("phone-launch-pin");
+      btn.style.pointerEvents = "auto";
+      btn.disabled = false;
+    } else {
+      btn.classList.remove("phone-launch-pin");
+      if (nodeHome.launch) restoreHome("launch", btn);
     }
   }
 
   function ensureSetupHitTargets() {
     var fleet = $("fleet-card");
     var setup = $("setup-body");
-    var btn = $("btn-new");
     if (fleet) {
       fleet.style.pointerEvents = "auto";
       fleet.removeAttribute("aria-hidden");
@@ -250,10 +281,7 @@
     }
     var standings = $("standings-panel");
     if (standings) standings.hidden = true;
-    if (btn) {
-      btn.style.pointerEvents = "auto";
-      btn.disabled = false;
-    }
+    ensureLaunchPin(true);
   }
 
   function layout() {
@@ -273,6 +301,8 @@
       ensureSetupHitTargets();
       return;
     }
+
+    ensureLaunchPin(false);
 
     if (modal) {
       // Keep sheet closed under Ops Manual / Lab so topics stay tappable.
