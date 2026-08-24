@@ -3,9 +3,8 @@
 //  HeliopolyPhone
 //
 //  Phone-only host (#126 / #148). iPad uses Heliopoly/GameWebView.swift.
-//  Loads packaged Vite WebDist/ offline via heliopoly:// (ES modules need a
-//  non-file origin). PhoneOverlay is served as real files next to WebDist
-//  (one boot path — no user-script restack, no didFinish CSS/JS dump).
+//  Main HTML is loadHTMLString (custom-scheme HTML never painted on device).
+//  heliopoly:// only serves JS / images / overlay script. CSS is inlined.
 //
 
 import SwiftUI
@@ -157,11 +156,15 @@ struct GameWebView: UIViewRepresentable {
         }
 
         func loadBundledGame(into webView: WKWebView) {
-            // Prefer custom scheme (ES modules + CSS).
-            if useCustomScheme, let start = WebDistSchemeHandler.startURL {
-                var req = URLRequest(url: start)
-                req.cachePolicy = .reloadIgnoringLocalCacheData
-                webView.load(req)
+            // Main document does not go through heliopoly://. THUMBS · 2 proved
+            // the scheme-served HTML never paints (navy-on-tags + inlined CSS
+            // still a white scroll). Give WKWebView the HTML string; the scheme
+            // only answers JS / images / overlay script.
+            if useCustomScheme, let html = schemeHandler?.bootHTMLDocument() {
+                webView.loadHTMLString(
+                    html,
+                    baseURL: URL(string: "heliopoly://game/index.html")
+                )
                 return
             }
 
@@ -437,6 +440,16 @@ final class WebDistSchemeHandler: NSObject, WKURLSchemeHandler {
         rootURL = index.deletingLastPathComponent().standardizedFileURL
     }
 
+    /// Stamped, CSS-inlined index. Used by loadHTMLString so the document
+    /// never depends on WKURLSchemeHandler returning HTML.
+    func bootHTMLDocument() -> String? {
+        let index = rootURL.appendingPathComponent("index.html")
+        guard let source = try? String(contentsOf: index, encoding: .utf8) else {
+            return nil
+        }
+        return phoneBootHTML(source)
+    }
+
     /// Copy PhoneOverlay → WebDist/phone-overlay in the HeliopolyPhone target.
     func missingOverlayMessage() -> String? {
         let css = rootURL.appendingPathComponent("phone-overlay/phone.css")
@@ -567,6 +580,12 @@ final class WebDistSchemeHandler: NSObject, WKURLSchemeHandler {
             <script src="./phone-overlay/phone.js" defer></script>
             """
             html = html.replacingOccurrences(of: "</head>", with: tags + "</head>")
+        }
+        if !html.contains("id=\"phone-boot-mark\"") {
+            let mark = """
+            <div id="phone-boot-mark" style="position:fixed;left:8px;bottom:8px;z-index:2147483647;background:#ffc857;color:#0b1020;font:700 12px/1.2 -apple-system,sans-serif;padding:6px 8px;border-radius:6px">phone 3</div>
+            """
+            html = html.replacingOccurrences(of: "</body>", with: mark + "</body>")
         }
         return html
     }
