@@ -478,6 +478,7 @@
 				ENABLE_MODULE_VERIFIER = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PhonePrototype/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Heliopoly Phone";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.games";
@@ -516,6 +517,7 @@
 				ENABLE_MODULE_VERIFIER = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PhonePrototype/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Heliopoly Phone";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.games";

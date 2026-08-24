@@ -3,10 +3,11 @@
 //  HeliopolyPhone
 //
 //  Phone-only host (#126 / #148). iPad uses Heliopoly/GameWebView.swift.
-//  Main HTML is loadHTMLString (custom-scheme HTML never painted on device).
-//  heliopoly:// only serves JS / images / overlay script. CSS is inlined.
+//  Main document is http://127.0.0.1 (real HTTP). Custom scheme and
+//  loadHTMLString never painted on device (THUMBS · 2 / · 3).
 //
 
+import Darwin
 import SwiftUI
 import UIKit
 import UniformTypeIdentifiers
@@ -35,27 +36,9 @@ struct GameWebView: UIViewRepresentable {
         config.defaultWebpagePreferences.allowsContentJavaScript = true
         config.allowsInlineMediaPlayback = true
         config.mediaTypesRequiringUserActionForPlayback = []
-        // Persistent WK cache served a stale unstyled index (white scroll after
-        // a good launch). Phone proto always boots from the scheme handler.
         config.websiteDataStore = .nonPersistent()
 
-        // Serve bundled WebDist over heliopoly:// so type=module works offline.
-        if let schemeHandler = WebDistSchemeHandler(bundle: .main) {
-            config.setURLSchemeHandler(
-                schemeHandler,
-                forURLScheme: WebDistSchemeHandler.scheme
-            )
-            context.coordinator.schemeHandler = schemeHandler
-            context.coordinator.useCustomScheme = true
-        } else {
-            context.coordinator.onLoadFailed?(
-                "WebDist/index.html missing from the phone bundle. Run npm run ios:sync, then Clean Build the HeliopolyPhone scheme."
-            )
-        }
-
         if injectPhoneOverlay {
-            // Navy first-paint only. A restack stylesheet at document-start
-            // blanked the WKWebView. Overlay CSS/JS load as heliopoly:// files.
             config.userContentController.addUserScript(Self.navyPaintUserScript)
         }
 
@@ -136,9 +119,8 @@ struct GameWebView: UIViewRepresentable {
         var onLoadFailed: ((String) -> Void)?
         var injectPhoneOverlay = true
         var didStartLoad = false
-        /// Retained for the life of the web view (configuration also retains it).
         var schemeHandler: WebDistSchemeHandler?
-        var useCustomScheme = false
+        var httpServer: LoopbackWebServer?
 
         init(onLoadFailed: ((String) -> Void)?, injectPhoneOverlay: Bool = true) {
             self.onLoadFailed = onLoadFailed
@@ -148,42 +130,34 @@ struct GameWebView: UIViewRepresentable {
         func startLoadIfNeeded(in webView: WKWebView) {
             guard !didStartLoad else { return }
             didStartLoad = true
-            if injectPhoneOverlay, let missing = schemeHandler?.missingOverlayMessage() {
-                onLoadFailed?(missing)
-                return
-            }
             loadBundledGame(into: webView)
         }
 
         func loadBundledGame(into webView: WKWebView) {
-            // Main document does not go through heliopoly://. THUMBS · 2 proved
-            // the scheme-served HTML never paints (navy-on-tags + inlined CSS
-            // still a white scroll). Give WKWebView the HTML string; the scheme
-            // only answers JS / images / overlay script.
-            if useCustomScheme, let html = schemeHandler?.bootHTMLDocument() {
-                webView.loadHTMLString(
-                    html,
-                    baseURL: URL(string: "heliopoly://game/index.html")
-                )
-                return
-            }
-
-            // Fallback: file:// (CSS may work after crossorigin strip; modules often still fail).
-            guard
-                let indexURL = Bundle.main.url(
-                    forResource: "index",
-                    withExtension: "html",
-                    subdirectory: "WebDist"
-                )
-            else {
-                let msg =
+            guard let handler = WebDistSchemeHandler(bundle: .main) else {
+                onLoadFailed?(
                     "WebDist/index.html missing. From the repo root run: npm run ios:sync"
-                onLoadFailed?(msg)
+                )
                 return
             }
-
-            let accessDir = indexURL.deletingLastPathComponent()
-            webView.loadFileURL(indexURL, allowingReadAccessTo: accessDir)
+            schemeHandler = handler
+            if injectPhoneOverlay, let missing = handler.missingOverlayMessage() {
+                onLoadFailed?(missing)
+                return
+            }
+            let server = LoopbackWebServer(rootURL: handler.rootURL) { html in
+                handler.transformHTML(html)
+            }
+            do {
+                try server.start()
+            } catch {
+                onLoadFailed?("Loopback server failed: \(error.localizedDescription)")
+                return
+            }
+            httpServer = server
+            var req = URLRequest(url: server.indexURL)
+            req.cachePolicy = .reloadIgnoringLocalCacheData
+            webView.load(req)
         }
 
         func webView(
@@ -243,13 +217,11 @@ struct GameWebView: UIViewRepresentable {
                 decisionHandler(.allow)
                 return
             }
-            if url.scheme?.lowercased() == WebDistSchemeHandler.scheme {
+            let host = url.host?.lowercased()
+            if (url.scheme == "http" || url.scheme == "https"),
+               host == "127.0.0.1" || host == "localhost"
+            {
                 decisionHandler(.allow)
-                return
-            }
-            // Telemetry / optional https — do not navigate the game shell away.
-            if url.scheme == "http" || url.scheme == "https" {
-                decisionHandler(.cancel)
                 return
             }
             decisionHandler(.cancel)
@@ -425,7 +397,7 @@ final class WebDistSchemeHandler: NSObject, WKURLSchemeHandler {
         return URL(string: "\(scheme)://\(host)/index.html?boot=\(t)")
     }
 
-    private let rootURL: URL
+    fileprivate let rootURL: URL
 
     init?(bundle: Bundle = .main) {
         guard
@@ -440,14 +412,8 @@ final class WebDistSchemeHandler: NSObject, WKURLSchemeHandler {
         rootURL = index.deletingLastPathComponent().standardizedFileURL
     }
 
-    /// Stamped, CSS-inlined index. Used by loadHTMLString so the document
-    /// never depends on WKURLSchemeHandler returning HTML.
-    func bootHTMLDocument() -> String? {
-        let index = rootURL.appendingPathComponent("index.html")
-        guard let source = try? String(contentsOf: index, encoding: .utf8) else {
-            return nil
-        }
-        return phoneBootHTML(source)
+    func transformHTML(_ source: String) -> String {
+        phoneBootHTML(source)
     }
 
     /// Copy PhoneOverlay → WebDist/phone-overlay in the HeliopolyPhone target.
@@ -583,7 +549,7 @@ final class WebDistSchemeHandler: NSObject, WKURLSchemeHandler {
         }
         if !html.contains("id=\"phone-boot-mark\"") {
             let mark = """
-            <div id="phone-boot-mark" style="position:fixed;left:8px;bottom:8px;z-index:2147483647;background:#ffc857;color:#0b1020;font:700 12px/1.2 -apple-system,sans-serif;padding:6px 8px;border-radius:6px">phone 3</div>
+            <div id="phone-boot-mark" style="position:fixed;left:8px;bottom:8px;z-index:2147483647;background:#ffc857;color:#0b1020;font:700 12px/1.2 -apple-system,sans-serif;padding:6px 8px;border-radius:6px">phone 4</div>
             """
             html = html.replacingOccurrences(of: "</body>", with: mark + "</body>")
         }
@@ -644,7 +610,7 @@ final class WebDistSchemeHandler: NSObject, WKURLSchemeHandler {
         css.replacingOccurrences(of: "</", with: "<\\/")
     }
 
-    private static func contentType(for url: URL) -> String {
+    fileprivate static func contentType(for url: URL) -> String {
         switch url.pathExtension.lowercased() {
         case "html", "htm":
             return "text/html; charset=utf-8"
@@ -677,6 +643,167 @@ final class WebDistSchemeHandler: NSObject, WKURLSchemeHandler {
                 return mime
             }
             return "application/octet-stream"
+        }
+    }
+}
+
+// MARK: - loopback HTTP (phone only)
+
+/// Serves bundled WebDist over http://127.0.0.1 so WKWebView is a real browser.
+/// Custom scheme and loadHTMLString never painted on device.
+final class LoopbackWebServer {
+    let rootURL: URL
+    let rewriteHTML: (String) -> String
+    private var listenFD: Int32 = -1
+    private var acceptSource: DispatchSourceRead?
+    private(set) var port: UInt16 = 0
+
+    var indexURL: URL {
+        URL(string: "http://127.0.0.1:\(port)/index.html")!
+    }
+
+    init(rootURL: URL, rewriteHTML: @escaping (String) -> String) {
+        self.rootURL = rootURL
+        self.rewriteHTML = rewriteHTML
+    }
+
+    deinit { stop() }
+
+    func start() throws {
+        let fd = Darwin.socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)
+        guard fd >= 0 else { throw URLError(.cannotConnectToHost) }
+        var yes: Int32 = 1
+        Darwin.setsockopt(
+            fd,
+            SOL_SOCKET,
+            SO_REUSEADDR,
+            &yes,
+            socklen_t(MemoryLayout.size(ofValue: yes))
+        )
+        var addr = sockaddr_in()
+        addr.sin_len = UInt8(MemoryLayout<sockaddr_in>.size)
+        addr.sin_family = sa_family_t(AF_INET)
+        addr.sin_port = 0
+        addr.sin_addr = in_addr(s_addr: inet_addr("127.0.0.1"))
+        let bound = withUnsafePointer(to: &addr) { ptr in
+            ptr.withMemoryRebound(to: sockaddr.self, capacity: 1) { sock in
+                Darwin.bind(fd, sock, socklen_t(MemoryLayout<sockaddr_in>.size)) == 0
+            }
+        }
+        guard bound, Darwin.listen(fd, 16) == 0 else {
+            Darwin.close(fd)
+            throw URLError(.cannotConnectToHost)
+        }
+        var got = sockaddr_in()
+        var len = socklen_t(MemoryLayout<sockaddr_in>.size)
+        let named = withUnsafeMutablePointer(to: &got) { ptr in
+            ptr.withMemoryRebound(to: sockaddr.self, capacity: 1) { sock in
+                Darwin.getsockname(fd, sock, &len) == 0
+            }
+        }
+        guard named else {
+            Darwin.close(fd)
+            throw URLError(.cannotConnectToHost)
+        }
+        port = UInt16(bigEndian: got.sin_port)
+        listenFD = fd
+        let src = DispatchSource.makeReadSource(
+            fileDescriptor: fd,
+            queue: DispatchQueue.global(qos: .userInitiated)
+        )
+        src.setEventHandler { [weak self] in self?.acceptClient() }
+        src.setCancelHandler { Darwin.close(fd) }
+        src.resume()
+        acceptSource = src
+        NSLog("[heliopoly] loopback http://127.0.0.1:%u/", port)
+    }
+
+    func stop() {
+        acceptSource?.cancel()
+        acceptSource = nil
+        listenFD = -1
+    }
+
+    private func acceptClient() {
+        let client = Darwin.accept(listenFD, nil, nil)
+        guard client >= 0 else { return }
+        DispatchQueue.global(qos: .userInitiated).async {
+            self.serve(client)
+            Darwin.close(client)
+        }
+    }
+
+    private func serve(_ fd: Int32) {
+        var buf = [UInt8](repeating: 0, count: 16 * 1024)
+        let n = Darwin.recv(fd, &buf, buf.count, 0)
+        guard n > 0, let req = String(bytes: buf[0..<n], encoding: .utf8) else { return }
+        let first = req.split(
+            separator: "\r\n",
+            maxSplits: 1,
+            omittingEmptySubsequences: false
+        ).first.map(String.init) ?? ""
+        let tokens = first.split(separator: " ")
+        guard tokens.count >= 2 else {
+            send(fd, status: 400, type: "text/plain", body: Data("bad request".utf8))
+            return
+        }
+        var path = String(tokens[1])
+        if let q = path.firstIndex(of: "?") {
+            path = String(path[..<q])
+        }
+        if path.hasPrefix("/") { path.removeFirst() }
+        if path.isEmpty { path = "index.html" }
+        path = path.removingPercentEncoding ?? path
+        if path.contains("..") {
+            send(fd, status: 403, type: "text/plain", body: Data("forbidden".utf8))
+            return
+        }
+        let file = rootURL.appendingPathComponent(path).standardizedFileURL
+        let rootPath = rootURL.path
+        guard file.path == rootPath || file.path.hasPrefix(rootPath + "/") else {
+            send(fd, status: 403, type: "text/plain", body: Data("forbidden".utf8))
+            return
+        }
+        guard FileManager.default.fileExists(atPath: file.path),
+              var data = try? Data(contentsOf: file)
+        else {
+            NSLog("[heliopoly] 404 %@", path)
+            send(fd, status: 404, type: "text/plain", body: Data("not found".utf8))
+            return
+        }
+        let ext = file.pathExtension.lowercased()
+        if (ext == "html" || ext == "htm"), let html = String(data: data, encoding: .utf8) {
+            data = Data(rewriteHTML(html).utf8)
+        }
+        let mime = WebDistSchemeHandler.contentType(for: file)
+        NSLog("[heliopoly] 200 %@ mime=%@ bytes=%d", path, mime, data.count)
+        send(fd, status: 200, type: mime, body: data)
+    }
+
+    private func send(_ fd: Int32, status: Int, type: String, body: Data) {
+        let reason: String
+        switch status {
+        case 200: reason = "OK"
+        case 404: reason = "Not Found"
+        case 403: reason = "Forbidden"
+        default: reason = "Error"
+        }
+        var header = "HTTP/1.1 \(status) \(reason)\r\n"
+        header += "Content-Type: \(type)\r\n"
+        header += "Content-Length: \(body.count)\r\n"
+        header += "Access-Control-Allow-Origin: *\r\n"
+        header += "Cache-Control: no-store\r\n"
+        header += "Connection: close\r\n\r\n"
+        var packet = Data(header.utf8)
+        packet.append(body)
+        packet.withUnsafeBytes { raw in
+            guard let base = raw.bindMemory(to: UInt8.self).baseAddress else { return }
+            var sent = 0
+            while sent < packet.count {
+                let n = Darwin.send(fd, base + sent, packet.count - sent, 0)
+                if n <= 0 { break }
+                sent += n
+            }
         }
     }
 }
