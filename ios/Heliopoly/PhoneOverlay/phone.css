@@ -591,13 +591,17 @@ html.phone-proto.phone-play #break-cost {
 
 html.phone-proto.phone-play .actions {
   display: flex !important;
-  flex-wrap: wrap;
+  flex: 0 0 auto !important;
+  flex-wrap: nowrap;
   gap: 6px;
   margin: 0;
   order: 2;
+  max-height: 48px;
+  overflow: hidden;
 }
 
-html.phone-proto.phone-play .actions #btn-roll {
+html.phone-proto.phone-play .actions #btn-roll,
+html.phone-proto.phone-play .actions #btn-end {
   display: none !important;
 }
 
@@ -606,8 +610,10 @@ html.phone-proto.phone-play .actions button:disabled {
 }
 
 html.phone-proto.phone-play .actions button:not(:disabled) {
-  flex: 1 1 auto;
-  min-height: 40px !important;
+  flex: 1 1 0;
+  height: 44px !important;
+  min-height: 44px !important;
+  max-height: 44px !important;
   font-size: 0.85rem !important;
 }
 
@@ -636,6 +642,23 @@ html.phone-proto.phone-play #phone-thumb-bar #btn-roll {
   min-height: 56px !important;
   max-height: 56px !important;
   font-size: 1.15rem !important;
+  font-weight: 800 !important;
+  margin: 0 !important;
+}
+
+html.phone-proto.phone-play #phone-thumb-bar #btn-end {
+  display: none !important;
+}
+
+html.phone-proto.phone-play #phone-thumb-bar #btn-end:not(:disabled) {
+  display: inline-flex !important;
+  flex: 1.2 1 0;
+  align-items: center;
+  justify-content: center;
+  height: 56px !important;
+  min-height: 56px !important;
+  max-height: 56px !important;
+  font-size: 1.05rem !important;
   font-weight: 800 !important;
   margin: 0 !important;
 }
@@ -796,9 +819,12 @@ html.phone-proto #auction-root:not(.hidden) {
 }
 
 html.phone-proto #handbook-root:not(.hidden) {
+  display: flex !important;
   position: fixed !important;
   inset: 0 !important;
   z-index: 4000 !important;
+  pointer-events: auto !important;
+  visibility: visible !important;
 }
 
 html.phone-proto #handbook-root .handbook-panel {

@@ -41,6 +41,7 @@
 
   var nodeHome = {
     roll: null,
+    end: null,
     rankings: null,
     handbook: null,
     handbookLabel: null,
@@ -93,12 +94,14 @@
   function ensureThumbBar(on) {
     var pc = $("pilot-controls");
     var roll = $("btn-roll");
+    var end = $("btn-end");
     var rankings = $("rankings");
     var handbook = $("btn-handbook-header");
     var bar = $("phone-thumb-bar");
 
     if (!on) {
       if (roll) restoreHome("roll", roll);
+      if (end) restoreHome("end", end);
       if (rankings) restoreHome("rankings", rankings);
       if (handbook) {
         labelBook(handbook, false);
@@ -117,6 +120,10 @@
     if (roll) {
       rememberHome("roll", roll);
       bar.appendChild(roll);
+    }
+    if (end) {
+      rememberHome("end", end);
+      bar.appendChild(end);
     }
     if (rankings) {
       rememberHome("rankings", rankings);
@@ -211,15 +218,16 @@
     }
   }
 
-  function disarmDeadLayers() {
+  function clearModalInline() {
     for (var i = 0; i < MODAL_IDS.length; i++) {
       var el = $(MODAL_IDS[i]);
       if (!el) continue;
-      if (el.classList.contains("hidden") || el.hidden) {
-        el.style.pointerEvents = "none";
-        el.style.display = "none";
-      }
+      el.style.display = "";
+      el.style.pointerEvents = "";
     }
+  }
+
+  function disarmDeadLayers() {
     var welcome = $("welcome-card");
     if (welcome) welcome.style.pointerEvents = "none";
     if (!isPlay()) {
@@ -325,6 +333,7 @@
       return;
     }
 
+    clearModalInline();
     var board = $("board");
     if (board) board.style.pointerEvents = "auto";
     var panel = document.querySelector(".board-panel");
