@@ -377,7 +377,11 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
   </div>
   <div class="legend-item">
     <canvas class="legend-scene" data-legend="scene" data-node="mars" data-owner="1" data-depot="1" data-w="140" data-h="88" aria-hidden="true"></canvas>
-    <div><strong>Claim + fuel depot</strong><br/>Tank badge on a planet or moon you own. Hubs cannot host pods.</div>
+    <div><strong>Claim + fuel depot</strong><br/>Same tank badge, parked on the body. Hubs cannot host pods.</div>
+  </div>
+  <div class="legend-item">
+    <canvas data-legend="depot" data-w="48" data-h="48" aria-hidden="true"></canvas>
+    <div><strong>Fuel depot</strong><br/>Cyan tank with a gold band — the same badge the board paints on the body.</div>
   </div>
 </div>
 
