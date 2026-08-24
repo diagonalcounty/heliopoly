@@ -148,6 +148,93 @@
     row.remove();
   }
 
+  /** Remember where reused nodes live so we can put them back. */
+  var nodeHome = {
+    telemetry: null,
+    rankings: null,
+    handbook: null,
+    handbookLabel: null,
+  };
+
+  function rememberHome(key, el) {
+    if (!el || nodeHome[key]) return;
+    nodeHome[key] = {
+      parent: el.parentNode,
+      next: el.nextSibling,
+    };
+  }
+
+  function restoreHome(key, el) {
+    var home = nodeHome[key];
+    if (!el || !home || !home.parent) return;
+    if (home.next && home.next.parentNode === home.parent) {
+      home.parent.insertBefore(el, home.next);
+    } else {
+      home.parent.appendChild(el);
+    }
+  }
+
+  /**
+   * Open sheet: reuse #telemetry (fuel/status), #rankings (cash+fuel), and
+   * #btn-handbook-header as Book. No second HUD, no ROI% (#150).
+   */
+  function ensureSheetMeta(open) {
+    var pc = $("pilot-controls");
+    if (!pc) return;
+
+    var meta = $("phone-sheet-meta");
+    if (!meta) {
+      meta = document.createElement("div");
+      meta.id = "phone-sheet-meta";
+      var primary = $("phone-primary-row");
+      if (primary && primary.parentNode === pc) {
+        pc.insertBefore(meta, primary.nextSibling);
+      } else {
+        var actions = pc.querySelector(".actions");
+        pc.insertBefore(meta, actions || null);
+      }
+    }
+
+    var tele = $("telemetry");
+    var rankings = $("rankings");
+    var handbook = $("btn-handbook-header");
+    var label = handbook && handbook.querySelector("span");
+
+    if (open) {
+      if (tele) {
+        rememberHome("telemetry", tele);
+        meta.appendChild(tele);
+      }
+      if (rankings) {
+        rememberHome("rankings", rankings);
+        meta.appendChild(rankings);
+      }
+      if (handbook) {
+        rememberHome("handbook", handbook);
+        if (label && nodeHome.handbookLabel == null) {
+          nodeHome.handbookLabel = label.textContent;
+        }
+        if (label) label.textContent = "Book";
+        handbook.setAttribute("aria-label", "Book");
+        handbook.title = "Book";
+        meta.appendChild(handbook);
+      }
+      meta.hidden = false;
+    } else {
+      if (tele) restoreHome("telemetry", tele);
+      if (rankings) restoreHome("rankings", rankings);
+      if (handbook) {
+        restoreHome("handbook", handbook);
+        if (label) {
+          label.textContent = nodeHome.handbookLabel || "Ops Manual";
+        }
+        handbook.setAttribute("aria-label", "Open Helios Ops Manual");
+        handbook.title = "Helios Ops Manual";
+      }
+      meta.hidden = true;
+    }
+  }
+
   function ensureSetupHitTargets() {
     var fleet = $("fleet-card");
     var setup = $("setup-body");
@@ -181,6 +268,7 @@
     if (!play) {
       html.classList.remove("phone-sheet-open");
       setSheetWidth(SHEET_CLOSED);
+      ensureSheetMeta(false);
       restorePrimaryRowToStock();
       ensureSetupHitTargets();
       return;
@@ -194,7 +282,9 @@
 
     ensureGrab();
     ensurePrimaryRow();
-    setSheetWidth(sheetOpen() ? SHEET_OPEN : SHEET_CLOSED);
+    var open = sheetOpen();
+    setSheetWidth(open ? SHEET_OPEN : SHEET_CLOSED);
+    ensureSheetMeta(open);
   }
 
   function onBoardTap(e) {
