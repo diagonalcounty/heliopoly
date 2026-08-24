@@ -228,6 +228,34 @@
     }
   }
 
+  function syncTurnChrome() {
+    var roll = $("btn-roll");
+    var rollLive = !!(roll && !roll.disabled);
+    html.classList.toggle("phone-roll-ready", rollLive);
+  }
+
+  function observeTurnButtons() {
+    if (!window.MutationObserver) return;
+    var ids = [
+      "btn-roll",
+      "btn-buy",
+      "btn-end",
+      "btn-refuel",
+      "btn-sell",
+      "btn-station",
+      "break-row",
+    ];
+    for (var i = 0; i < ids.length; i++) {
+      var el = $(ids[i]);
+      if (!el || el.__phoneTurnObs) continue;
+      el.__phoneTurnObs = true;
+      new MutationObserver(syncTurnChrome).observe(el, {
+        attributes: true,
+        attributeFilter: ["disabled", "class"],
+      });
+    }
+  }
+
   function layout() {
     var play = isPlay();
     var modal = isModalOpen();
@@ -237,12 +265,15 @@
     html.classList.remove("phone-sheet-open");
 
     if (!play) {
+      html.classList.remove("phone-roll-ready");
       ensureThumbBar(false);
       ensureSetupHitTargets();
       return;
     }
 
     ensureThumbBar(true);
+    observeTurnButtons();
+    syncTurnChrome();
   }
 
   function ensureBadge() {
