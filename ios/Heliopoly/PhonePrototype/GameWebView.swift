@@ -51,18 +51,10 @@ struct GameWebView: UIViewRepresentable {
         }
 
         if injectPhoneOverlay {
-            // CSS at parse so setup is the expedition card before images load.
-            // Waiting for didFinish left sticky Pilot covering Launch (HITL).
-            config.userContentController.addUserScript(Self.overlayCssUserScript)
-            if let js = Self.overlayResource(name: "phone", ext: "js") {
-                config.userContentController.addUserScript(
-                    WKUserScript(
-                        source: js,
-                        injectionTime: .atDocumentEnd,
-                        forMainFrameOnly: true
-                    )
-                )
-            }
+            // Tiny CSS only at parse. Full phone.css as a user script blanked
+            // the WKWebView (gold bar + white page). Full overlay injects in
+            // didFinish, which is the path that actually painted on device.
+            config.userContentController.addUserScript(Self.criticalOverlayUserScript)
         }
 
         let webView = WKWebView(frame: .zero, configuration: config)
@@ -73,6 +65,9 @@ struct GameWebView: UIViewRepresentable {
         webView.isUserInteractionEnabled = true
         webView.backgroundColor = Self.spaceBackground
         webView.scrollView.backgroundColor = Self.spaceBackground
+        if #available(iOS 15.0, *) {
+            webView.underPageBackgroundColor = Self.spaceBackground
+        }
         webView.scrollView.isScrollEnabled = true
         webView.scrollView.delaysContentTouches = false
         webView.scrollView.canCancelContentTouches = false
@@ -147,26 +142,23 @@ struct GameWebView: UIViewRepresentable {
     html.phone-proto #duel-root .duel-btn{min-height:56px!important}
     """
 
-    /// Full PhoneOverlay CSS at parse when the bundle has it; else the subset.
-    /// Adds `phone-setup` immediately so setup rules apply before didFinish/JS.
-    private static var overlayCssUserScript: WKUserScript {
-        let bundled = overlayResource(name: "phone", ext: "css")
-        let css = bundled ?? criticalOverlayCSS
-        let styleId = bundled == nil ? "phone-critical-css" : "phone-overlay-css"
+    private static var criticalOverlayUserScript: WKUserScript {
         let cssJSON =
-            (try? String(data: JSONEncoder().encode(css), encoding: .utf8))
+            (try? String(data: JSONEncoder().encode(criticalOverlayCSS), encoding: .utf8))
             ?? "\"\""
         let source = """
         (function(){
-          var h=document.documentElement;
-          h.classList.remove('native-shell');
-          h.classList.add('touch-ui','phone-proto','phone-setup');
-          if(!document.getElementById('\(styleId)') && !document.getElementById('phone-overlay-css')){
-            var s=document.createElement('style');
-            s.id='\(styleId)';
-            s.textContent=\(cssJSON);
-            (document.head||h).appendChild(s);
-          }
+          try {
+            var h=document.documentElement;
+            h.classList.remove('native-shell');
+            h.classList.add('touch-ui','phone-proto','phone-setup');
+            if(!document.getElementById('phone-critical-css')){
+              var s=document.createElement('style');
+              s.id='phone-critical-css';
+              s.textContent=\(cssJSON);
+              (document.head||h).appendChild(s);
+            }
+          } catch (e) {}
         })();
         """
         return WKUserScript(source: source, injectionTime: .atDocumentStart, forMainFrameOnly: true)
@@ -219,7 +211,7 @@ struct GameWebView: UIViewRepresentable {
             let cssSource = """
             (function () {
               document.documentElement.classList.remove('native-shell');
-              document.documentElement.classList.add('touch-ui', 'phone-proto');
+              document.documentElement.classList.add('touch-ui', 'phone-proto', 'phone-setup');
               if (!document.getElementById('phone-overlay-css')) {
                 var st = document.createElement('style');
                 st.id = 'phone-overlay-css';
@@ -268,11 +260,18 @@ struct GameWebView: UIViewRepresentable {
             webView.loadFileURL(indexURL, allowingReadAccessTo: accessDir)
         }
 
+        func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+            webView.backgroundColor = GameWebView.spaceBackground
+            webView.scrollView.backgroundColor = GameWebView.spaceBackground
+        }
+
         func webView(
             _ webView: WKWebView,
             didFinish navigation: WKNavigation!
         ) {
             // Re-assert scale lock after load (iOS can reset zoom during navigation).
+            webView.backgroundColor = GameWebView.spaceBackground
+            webView.scrollView.backgroundColor = GameWebView.spaceBackground
             webView.scrollView.minimumZoomScale = 1
             webView.scrollView.maximumZoomScale = 1
             webView.scrollView.setZoomScale(1, animated: false)
