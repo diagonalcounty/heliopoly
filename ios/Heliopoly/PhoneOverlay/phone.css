@@ -43,10 +43,11 @@ html.phone-proto .top-actions .setup-toggle {
   font-size: 0.9rem !important;
 }
 
-/* ========== SETUP: Launch in first viewport (Easy kid never scrolls) ==========
-   Do NOT lock #app to 100dvh / overflow:hidden — that trapped Launch below.
-   Do NOT hide #board. No overflow scroll on #app (iOS breaks fixed inside it).
-   Launch is reparented to body (.phone-launch-pin) by phone.js. */
+/* ========== SETUP: first viewport is the expedition, not the essay ==========
+   Player job: name a rocket, pick fuel + table, Launch.
+   WebDist still has old "break tactics" difficulty copy and a 225px μ tower
+   (#94 desktop meter). Overlay restyles those nodes — no second HUD, no src/.
+   Do NOT lock 100dvh / overflow:hidden. Do NOT hide #board. */
 html.phone-proto.phone-setup,
 html.phone-proto.phone-setup body {
   height: auto !important;
@@ -59,14 +60,13 @@ html.phone-proto.phone-setup #app {
   height: auto !important;
   max-height: none !important;
   overflow: visible !important;
-  /* Room for body-pinned Launch — not a 100dvh lock. */
-  padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)) !important;
+  padding-bottom: max(16px, env(safe-area-inset-bottom, 0px)) !important;
 }
 
 html.phone-proto.phone-setup .layout {
   display: flex !important;
   flex-direction: column !important;
-  gap: 6px;
+  gap: 4px;
   position: relative;
   z-index: 1;
 }
@@ -76,25 +76,35 @@ html.phone-proto.phone-setup header.top {
   z-index: 40;
   order: 0;
   pointer-events: auto !important;
+  padding-bottom: 2px !important;
 }
 
-/* Tiny board thumb ABOVE the form — never between fields and Launch. */
+html.phone-proto.phone-setup .top h1 {
+  font-size: 0.9rem !important;
+}
+
+html.phone-proto.phone-setup .title-tagline,
+html.phone-proto.phone-setup .badge {
+  display: none !important;
+}
+
+/* Board stamp — visible, not a column between the kid and Launch. */
 html.phone-proto.phone-setup .board-panel {
   order: 1 !important;
   position: relative !important;
   z-index: 1 !important;
-  max-width: min(100%, 72px) !important;
-  max-height: 72px !important;
-  margin: 0 auto 4px !important;
+  max-width: min(100%, 56px) !important;
+  max-height: 56px !important;
+  margin: 0 auto 2px !important;
   pointer-events: none !important;
   overflow: hidden !important;
 }
 
 html.phone-proto.phone-setup #board {
-  max-width: 72px !important;
-  max-height: 72px !important;
-  width: 72px !important;
-  height: 72px !important;
+  max-width: 56px !important;
+  max-height: 56px !important;
+  width: 56px !important;
+  height: 56px !important;
   margin: 0 auto !important;
   pointer-events: none !important;
 }
@@ -111,18 +121,16 @@ html.phone-proto.phone-setup .side {
   pointer-events: auto !important;
 }
 
-/* Welcome essay pushes chrome around — keep #board, drop the card. */
 html.phone-proto.phone-setup #welcome-card {
   display: none !important;
 }
 
 html.phone-proto.phone-setup #fleet-card {
-  order: 0;
   visibility: visible !important;
   pointer-events: auto !important;
   position: relative !important;
   z-index: 35 !important;
-  padding: 8px 10px !important;
+  padding: 8px 10px 10px !important;
 }
 
 html.phone-proto.phone-setup #setup-body {
@@ -130,54 +138,176 @@ html.phone-proto.phone-setup #setup-body {
   pointer-events: auto !important;
   position: relative !important;
   z-index: 35 !important;
-  gap: 4px;
+  display: flex !important;
+  flex-direction: column;
+  gap: 8px;
 }
 
 html.phone-proto.phone-setup #setup-body[hidden] {
-  display: block !important;
+  display: flex !important;
 }
 
 html.phone-proto.phone-setup #setup-body h2 {
   font-size: 1rem !important;
-  margin: 0 0 4px !important;
+  margin: 0 !important;
+  order: 0;
 }
 
-html.phone-proto.phone-setup #setup-body label,
-html.phone-proto.phone-setup #setup-body fieldset {
-  margin: 2px 0 !important;
-  font-size: 0.78rem !important;
-}
-
+/* Table size / human-seat are desktop lab knobs — keep defaults. */
+html.phone-proto.phone-setup #setup-body > label:has(#player-count),
+html.phone-proto.phone-setup #setup-body > label.check:has(#include-human),
 html.phone-proto.phone-setup #setup-body .hint,
-html.phone-proto.phone-setup #duration-meter {
-  font-size: 0.68rem !important;
-  margin: 2px 0 !important;
+html.phone-proto.phone-setup #btn-selfplay {
+  display: none !important;
 }
 
-html.phone-proto.phone-setup #setup-body .ai-difficulty-field .check,
-html.phone-proto.phone-setup #setup-body .propellant-field .check {
+html.phone-proto.phone-setup #pilot-name-label {
+  display: flex !important;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.82rem !important;
+  color: #9aa8c7;
+  margin: 0 !important;
+  order: 1;
+}
+
+html.phone-proto.phone-setup #pilot-name {
+  min-height: 44px !important;
+  font-size: 1.05rem !important;
+}
+
+/* Fuel: two chips. JS shortens WebDist essays to Methane / Hydrogen. */
+html.phone-proto.phone-setup #setup-body > .propellant-field:not(.ai-difficulty-field) {
+  order: 2;
+  display: grid !important;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
+html.phone-proto.phone-setup #setup-body > .propellant-field:not(.ai-difficulty-field) legend {
+  grid-column: 1 / -1;
   font-size: 0.72rem !important;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9aa8c7;
+  padding: 0 !important;
 }
 
-/* Launch pinned to the viewport via body reparent (#148 / #150 HITL). */
-html.phone-proto.phone-setup #btn-new,
-html.phone-proto #btn-new.phone-launch-pin {
+html.phone-proto.phone-setup #setup-body > .propellant-field:not(.ai-difficulty-field) .check {
+  margin: 0 !important;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid #3d5080;
+  border-radius: 10px;
+  background: #152038;
+  font-size: 0.9rem !important;
+  justify-content: center;
+}
+
+/* Table: 4 chips + one-line μ. Kill the 225px histogram + old break copy. */
+html.phone-proto.phone-setup .ai-difficulty-row {
+  order: 3;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 6px;
+  margin: 0 !important;
+}
+
+html.phone-proto.phone-setup .ai-difficulty-field {
+  min-height: 0 !important;
+  height: auto !important;
+  display: grid !important;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  justify-content: flex-start !important;
+}
+
+html.phone-proto.phone-setup .ai-difficulty-field legend {
+  grid-column: 1 / -1;
+  font-size: 0.72rem !important;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9aa8c7;
+  padding: 0 !important;
+}
+
+html.phone-proto.phone-setup .ai-difficulty-field .check {
+  flex: none !important;
+  margin: 0 !important;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid #3d5080;
+  border-radius: 10px;
+  background: #152038;
+  font-size: 0.9rem !important;
+  justify-content: center;
+}
+
+html.phone-proto.phone-setup #setup-body .check:has(input:checked) {
+  border-color: #ffc857 !important;
+  color: #ffc857;
+  box-shadow: inset 0 0 0 1px #ffc857;
+}
+
+html.phone-proto.phone-setup #setup-body .check input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+html.phone-proto.phone-setup #setup-body .phone-choice-label {
+  font-weight: 600;
+}
+
+/* μ as a caption, not a tower. Inline 225px height from main.ts is overridden. */
+html.phone-proto.phone-setup #duration-meter {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  align-self: flex-start !important;
+  width: auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 4px 10px !important;
+  border-radius: 999px !important;
+  gap: 0;
+}
+
+html.phone-proto.phone-setup #duration-meter .duration-meter-title {
+  padding: 0 !important;
+  border: none !important;
+  font-size: 0.78rem !important;
+  letter-spacing: 0.04em;
+  color: #7dd3fc !important;
+  text-align: left;
+}
+
+html.phone-proto.phone-setup #duration-meter .duration-meter-body {
+  display: none !important;
+}
+
+html.phone-proto.phone-setup #btn-new {
   display: block !important;
   visibility: visible !important;
   pointer-events: auto !important;
-  position: fixed !important;
-  left: max(10px, env(safe-area-inset-left, 0px)) !important;
-  right: max(10px, env(safe-area-inset-right, 0px)) !important;
-  bottom: max(10px, env(safe-area-inset-bottom, 0px)) !important;
-  top: auto !important;
-  z-index: 400 !important;
+  position: relative !important;
+  inset: auto !important;
+  order: 4;
+  width: 100% !important;
   min-height: 52px !important;
-  font-size: 1.05rem !important;
+  margin: 4px 0 0 !important;
+  font-size: 1.1rem !important;
   font-weight: 700 !important;
-  width: auto !important;
-  max-width: none !important;
-  margin: 0 !important;
-  box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
 }
 
 /* Kill stock sticky Pilot on setup — must not cover Launch (#146 / HITL). */

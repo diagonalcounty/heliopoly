@@ -247,23 +247,102 @@
   }
 
   /**
-   * iOS WKWebView: position:fixed inside overflowing #app scrolls away.
-   * Park Launch on document.body during setup so it stays in the viewport.
+   * Phone setup is an expedition card, not the desktop New Game column.
+   * WebDist still ships old "break tactics" radio essays and a 225px μ
+   * histogram. Reuse those nodes: short chip labels + one-line μ.
    */
-  function ensureLaunchPin(setup) {
-    var btn = $("btn-new");
-    if (!btn) return;
-    if (setup) {
-      rememberHome("launch", btn);
-      if (btn.parentNode !== document.body) {
-        document.body.appendChild(btn);
+  var MU_BY_DIFF = { easy: 32, normal: 25, hard: 35, expert: 60 };
+  var PROP_WORDS = { methane: "Methane", hydrogen: "Hydrogen" };
+  var DIFF_WORDS = { easy: "Easy", normal: "Normal", hard: "Hard", expert: "Expert" };
+  var setupObserved = false;
+
+  function relabelChoices(selector, map) {
+    var nodes = document.querySelectorAll(selector);
+    for (var i = 0; i < nodes.length; i++) {
+      var input = nodes[i];
+      var word = map[input.value];
+      var label = input.closest ? input.closest("label") : input.parentNode;
+      if (!word || !label) continue;
+      var kid = label.firstChild;
+      while (kid) {
+        var next = kid.nextSibling;
+        if (kid !== input && kid.className !== "phone-choice-label") {
+          if (kid.nodeType === 3) kid.textContent = "";
+          else if (kid.classList && !kid.classList.contains("phone-choice-label")) {
+            kid.parentNode.removeChild(kid);
+          }
+        }
+        kid = next;
       }
-      btn.classList.add("phone-launch-pin");
-      btn.style.pointerEvents = "auto";
-      btn.disabled = false;
-    } else {
-      btn.classList.remove("phone-launch-pin");
-      if (nodeHome.launch) restoreHome("launch", btn);
+      var span = label.querySelector(".phone-choice-label");
+      if (!span) {
+        span = document.createElement("span");
+        span.className = "phone-choice-label";
+        label.appendChild(span);
+      }
+      span.textContent = word;
+    }
+  }
+
+  function compactSetupCopy() {
+    var fuelLegend = document.querySelector(
+      "#setup-body > .propellant-field:not(.ai-difficulty-field) legend"
+    );
+    if (fuelLegend) fuelLegend.textContent = "Fuel";
+    var tableLegend = document.querySelector(".ai-difficulty-field legend");
+    if (tableLegend) tableLegend.textContent = "Table";
+    relabelChoices('input[name="propellant"]', PROP_WORDS);
+    relabelChoices('input[name="ai-difficulty"]', DIFF_WORDS);
+    var h1 = document.querySelector("header.top h1");
+    if (h1) {
+      for (var n = h1.firstChild; n; n = n.nextSibling) {
+        if (n.nodeType === 3 && n.textContent.indexOf(">") >= 0) {
+          n.textContent = n.textContent.replace(">", "");
+        }
+      }
+    }
+  }
+
+  function compactDurationMeter() {
+    var meter = $("duration-meter");
+    if (!meter) return;
+    var checked = document.querySelector('input[name="ai-difficulty"]:checked');
+    var level = (checked && checked.value) || "normal";
+    var mu = MU_BY_DIFF[level] || 25;
+    meter.style.setProperty("width", "auto", "important");
+    meter.style.setProperty("height", "auto", "important");
+    meter.style.setProperty("min-height", "0", "important");
+    var title = meter.querySelector(".duration-meter-title");
+    if (title) title.textContent = "μ " + mu + " rounds";
+    var body = meter.querySelector(".duration-meter-body");
+    if (body) body.style.display = "none";
+  }
+
+  function observeSetupChrome() {
+    if (setupObserved || !window.MutationObserver) return;
+    setupObserved = true;
+    var meter = $("duration-meter");
+    if (meter) {
+      new MutationObserver(function () {
+        if (!isPlay()) compactDurationMeter();
+      }).observe(meter, { childList: true, subtree: true });
+    }
+    var radios = document.querySelectorAll('input[name="ai-difficulty"]');
+    for (var i = 0; i < radios.length; i++) {
+      radios[i].addEventListener("change", compactDurationMeter);
+    }
+  }
+
+  function ensureLaunchReady(setup) {
+    var btn = $("btn-new");
+    if (setup) {
+      compactSetupCopy();
+      compactDurationMeter();
+      observeSetupChrome();
+      if (btn) {
+        btn.style.pointerEvents = "auto";
+        btn.disabled = false;
+      }
     }
   }
 
@@ -281,7 +360,7 @@
     }
     var standings = $("standings-panel");
     if (standings) standings.hidden = true;
-    ensureLaunchPin(true);
+    ensureLaunchReady(true);
   }
 
   function layout() {
@@ -301,8 +380,6 @@
       ensureSetupHitTargets();
       return;
     }
-
-    ensureLaunchPin(false);
 
     if (modal) {
       // Keep sheet closed under Ops Manual / Lab so topics stay tappable.
