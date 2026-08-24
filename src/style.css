@@ -1423,6 +1423,12 @@ body.handbook-open {
   color: var(--accent);
 }
 
+.handbook-article h4 {
+  margin: 1rem 0 0.5rem;
+  font-size: 0.95rem;
+  color: var(--accent-2);
+}
+
 .handbook-article p {
   margin: 0 0 0.85rem;
 }
@@ -1467,6 +1473,7 @@ body.handbook-open {
 .legend-item {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 12px;
   padding: 8px 10px;
   border-radius: 10px;
@@ -1477,13 +1484,27 @@ body.handbook-open {
   color: var(--text);
 }
 
-.legend-item img {
+.legend-item img,
+.legend-item canvas {
   width: 48px;
   height: 48px;
   object-fit: contain;
   flex-shrink: 0;
   border-radius: 8px;
   background: #070b14;
+  display: block;
+}
+
+.legend-item canvas.legend-scene {
+  width: 140px;
+  height: 88px;
+}
+
+.legend-icons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
 .legend-item strong {

@@ -56,7 +56,13 @@ import {
   type PlayerAction,
   type PropellantId,
 } from "./core/types";
-import { bodyRadius, drawBodyIcon, drawFuelDepotIcon } from "./bodyIcons";
+import {
+  bodyRadius,
+  drawBodyIcon,
+  drawClaimHalo,
+  drawFuelDepotIcon,
+  drawRocketToken,
+} from "./bodyIcons";
 import { inspectBody } from "./core/inspect";
 import { mountHandbook } from "./handbook/handbook";
 import { mountDossier } from "./dossier";
@@ -2596,37 +2602,6 @@ function hitRouteStopAt(sx: number, sy: number): RouteStopHit | null {
   return bestSeg;
 }
 
-/** Board token (#110): classic teardrop hull + three swept fins. */
-function drawRocketToken(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  color: string,
-  moving: boolean,
-): void {
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.beginPath();
-  ctx.moveTo(0, -11);
-  ctx.bezierCurveTo(2.8, -11, 4.2, -6, 4.0, 1.2);
-  ctx.bezierCurveTo(5.8, 2.4, 7.4, 5.0, 7.4, 8.0);
-  ctx.bezierCurveTo(5.6, 6.8, 4.0, 6.0, 2.6, 5.6);
-  ctx.bezierCurveTo(2.4, 7.2, 1.4, 8.8, 0, 9.6);
-  ctx.bezierCurveTo(-1.4, 8.8, -2.4, 7.2, -2.6, 5.6);
-  ctx.bezierCurveTo(-4.0, 6.0, -5.6, 6.8, -7.4, 8.0);
-  ctx.bezierCurveTo(-7.4, 5.0, -5.8, 2.4, -4.0, 1.2);
-  ctx.bezierCurveTo(-4.2, -6, -2.8, -11, 0, -11);
-  ctx.closePath();
-  ctx.fillStyle = color;
-  ctx.fill();
-  ctx.strokeStyle = moving ? "#ffc857" : "#fff";
-  ctx.lineWidth = moving ? 2 : 1.15;
-  ctx.lineJoin = "round";
-  ctx.lineCap = "round";
-  ctx.stroke();
-  ctx.restore();
-}
-
 function drawBoard(): void {
   const w = canvas.width;
   const h = canvas.height;
@@ -2919,11 +2894,7 @@ function drawBoard(): void {
       ? state?.players.find((p) => p.id === ownerId)
       : undefined;
     if (owner) {
-      ctx.beginPath();
-      ctx.arc(x, y, baseR + 6, 0, Math.PI * 2);
-      ctx.strokeStyle = owner.color;
-      ctx.lineWidth = 3.5;
-      ctx.stroke();
+      drawClaimHalo(ctx, x, y, baseR, owner.color);
     }
 
     const r = drawBodyIcon(ctx, node, x, y);

@@ -6,6 +6,7 @@ import {
   type HandbookSection,
 } from "./content";
 import { sectionIcon, topicIcon } from "./icons";
+import { paintHandbookLegend } from "./legendCanvases";
 
 const STORAGE_KEY = "solarquest.handbook.topic";
 const SECTION_KEY = "solarquest.handbook.section";
@@ -195,6 +196,7 @@ export function mountHandbook(root: HTMLElement): HandbookController {
         </div>`
       : `<p class="handbook-article-section">${sec.title}</p><h3>${topic.title}</h3>`;
     article.innerHTML = `${titleBlock}${topic.html}`;
+    paintHandbookLegend(article);
     toc.querySelectorAll(".handbook-toc-item").forEach((el) => {
       el.classList.toggle(
         "active",
