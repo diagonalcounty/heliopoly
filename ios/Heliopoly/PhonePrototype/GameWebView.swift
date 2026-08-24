@@ -423,8 +423,6 @@ final class WebDistSchemeHandler: NSObject, WKURLSchemeHandler {
     }
 
     private let rootURL: URL
-    private let lock = NSLock()
-    private let stopped = NSHashTable<AnyObject>.weakObjects()
 
     init?(bundle: Bundle = .main) {
         guard
@@ -452,7 +450,7 @@ final class WebDistSchemeHandler: NSObject, WKURLSchemeHandler {
 
     func webView(_ webView: WKWebView, start urlSchemeTask: WKURLSchemeTask) {
         guard let url = urlSchemeTask.request.url else {
-            fail(urlSchemeTask, URLError(.badURL))
+            urlSchemeTask.didFailWithError(URLError(.badURL))
             return
         }
 
@@ -470,12 +468,12 @@ final class WebDistSchemeHandler: NSObject, WKURLSchemeHandler {
         let fileURL = rootURL.appendingPathComponent(relative).standardizedFileURL
         let rootPath = rootURL.path
         guard fileURL.path == rootPath || fileURL.path.hasPrefix(rootPath + "/") else {
-            fail(urlSchemeTask, URLError(.noPermissionsToReadFile))
+            urlSchemeTask.didFailWithError(URLError(.noPermissionsToReadFile))
             return
         }
         guard FileManager.default.fileExists(atPath: fileURL.path) else {
             NSLog("[heliopoly] 404 %@", relative)
-            fail(urlSchemeTask, URLError(.fileDoesNotExist))
+            urlSchemeTask.didFailWithError(URLError(.fileDoesNotExist))
             return
         }
 
@@ -483,7 +481,7 @@ final class WebDistSchemeHandler: NSObject, WKURLSchemeHandler {
         do {
             data = try Data(contentsOf: fileURL)
         } catch {
-            fail(urlSchemeTask, error)
+            urlSchemeTask.didFailWithError(error)
             return
         }
 
@@ -492,60 +490,45 @@ final class WebDistSchemeHandler: NSObject, WKURLSchemeHandler {
         if ext == "html" || ext == "htm", var html = String(data: data, encoding: .utf8) {
             if let missing = missingOverlayMessage() {
                 NSLog("[heliopoly] FAIL %@", missing)
-                fail(urlSchemeTask, URLError(.fileDoesNotExist))
+                urlSchemeTask.didFailWithError(URLError(.fileDoesNotExist))
                 return
             }
             html = Self.phoneBootHTML(html)
             body = Data(html.utf8)
         }
 
-        // URLResponse, not HTTPURLResponse: WKWebView custom schemes drop CSS/JS
-        // when the response looks like HTTP (white HTML, scrollable, intermittent).
-        let (mime, encoding) = Self.mimeAndEncoding(for: fileURL)
+        // Same contract as the working iPad handler: HTTP 200, CORS, charset.
+        // URLResponse (no status) + finishing CSS on the main queue is why
+        // this screen goes white — WebKit drops the stylesheet.
+        let mime = Self.contentType(for: fileURL)
         NSLog("[heliopoly] 200 %@ mime=%@ bytes=%d", relative, mime, body.count)
-        let response = URLResponse(
-            url: url,
-            mimeType: mime,
-            expectedContentLength: body.count,
-            textEncodingName: encoding
-        )
-        finish(urlSchemeTask, response: response, body: body)
+        guard
+            let response = HTTPURLResponse(
+                url: url,
+                statusCode: 200,
+                httpVersion: "HTTP/1.1",
+                headerFields: [
+                    "Content-Type": mime,
+                    "Content-Length": "\(body.count)",
+                    "Access-Control-Allow-Origin": "*",
+                    "Cache-Control": "no-store",
+                ]
+            )
+        else {
+            urlSchemeTask.didFailWithError(URLError(.cannotParseResponse))
+            return
+        }
+
+        // Bundle reads finish on this thread before start returns. Hopping to
+        // main + skipping "stopped" tasks is a race: WebKit cancels CSS, we
+        // never deliver it, unstyled 900px canvas = scrollable white page.
+        urlSchemeTask.didReceive(response)
+        urlSchemeTask.didReceive(body)
+        urlSchemeTask.didFinish()
     }
 
     func webView(_ webView: WKWebView, stop urlSchemeTask: WKURLSchemeTask) {
-        lock.lock()
-        stopped.add(urlSchemeTask)
-        lock.unlock()
-    }
-
-    private func isStopped(_ task: WKURLSchemeTask) -> Bool {
-        lock.lock()
-        defer { lock.unlock() }
-        return stopped.contains(task)
-    }
-
-    private func fail(_ task: WKURLSchemeTask, _ error: Error) {
-        let run = {
-            guard !self.isStopped(task) else { return }
-            task.didFailWithError(error)
-        }
-        if Thread.isMainThread { run() } else { DispatchQueue.main.async(execute: run) }
-    }
-
-    private func finish(
-        _ task: WKURLSchemeTask,
-        response: URLResponse,
-        body: Data
-    ) {
-        let run = {
-            guard !self.isStopped(task) else { return }
-            task.didReceive(response)
-            guard !self.isStopped(task) else { return }
-            task.didReceive(body)
-            guard !self.isStopped(task) else { return }
-            task.didFinish()
-        }
-        if Thread.isMainThread { run() } else { DispatchQueue.main.async(execute: run) }
+        // Nothing to cancel; reads finish inside start(_:).
     }
 
     /// Stamp navy on the tags (cannot parse-fail) and link overlay as files.
@@ -582,39 +565,39 @@ final class WebDistSchemeHandler: NSObject, WKURLSchemeHandler {
         return html
     }
 
-    private static func mimeAndEncoding(for url: URL) -> (String, String?) {
+    private static func contentType(for url: URL) -> String {
         switch url.pathExtension.lowercased() {
         case "html", "htm":
-            return ("text/html", "utf-8")
+            return "text/html; charset=utf-8"
         case "js", "mjs":
-            return ("text/javascript", "utf-8")
+            return "text/javascript; charset=utf-8"
         case "css":
-            return ("text/css", "utf-8")
+            return "text/css; charset=utf-8"
         case "png":
-            return ("image/png", nil)
+            return "image/png"
         case "jpg", "jpeg":
-            return ("image/jpeg", nil)
+            return "image/jpeg"
         case "svg":
-            return ("image/svg+xml", "utf-8")
+            return "image/svg+xml"
         case "ico":
-            return ("image/x-icon", nil)
+            return "image/x-icon"
         case "json", "map":
-            return ("application/json", "utf-8")
+            return "application/json"
         case "woff":
-            return ("font/woff", nil)
+            return "font/woff"
         case "woff2":
-            return ("font/woff2", nil)
+            return "font/woff2"
         case "webp":
-            return ("image/webp", nil)
+            return "image/webp"
         case "gif":
-            return ("image/gif", nil)
+            return "image/gif"
         default:
             if let type = UTType(filenameExtension: url.pathExtension),
                let mime = type.preferredMIMEType
             {
-                return (mime, nil)
+                return mime
             }
-            return ("application/octet-stream", nil)
+            return "application/octet-stream"
         }
     }
 }
