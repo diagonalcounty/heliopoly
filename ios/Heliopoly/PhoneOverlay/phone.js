@@ -381,16 +381,22 @@
       return;
     }
 
-    // Play dock is always on: board + vitals + actions. Do not cover the
-    // map with an 80% sheet — landing is a board tap + Move.
-    html.classList.add("phone-sheet-open");
-    restorePrimaryRowToStock();
-    ensureSheetMeta(true);
+    if (modal) {
+      // Keep sheet closed under Ops Manual / Lab so topics stay tappable.
+      html.classList.remove("phone-sheet-open");
+      setSheetWidth(SHEET_CLOSED);
+    }
+
+    ensureGrab();
+    ensurePrimaryRow();
+    var open = sheetOpen();
+    setSheetWidth(open ? SHEET_OPEN : SHEET_CLOSED);
+    ensureSheetMeta(open);
   }
 
   function onBoardTap(e) {
-    // Board taps must reach the game (path land). Do not steal them.
-    return;
+    if (!isPlay() || !sheetOpen() || isModalOpen()) return;
+    closeSheet();
   }
 
   function bindBoardClose() {
