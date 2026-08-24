@@ -128,6 +128,18 @@
     if (rankings) {
       rememberHome("rankings", rankings);
       bar.appendChild(rankings);
+      // Cash/fuel are vitals, not a door into On the ledger.
+      if (!rankings.__phoneMute) {
+        rankings.__phoneMute = true;
+        rankings.addEventListener(
+          "click",
+          function (e) {
+            e.stopPropagation();
+            e.preventDefault();
+          },
+          true
+        );
+      }
     }
     if (handbook) {
       rememberHome("handbook", handbook);

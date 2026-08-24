@@ -671,6 +671,23 @@ html.phone-proto.phone-play #phone-thumb-bar #rankings {
   overflow: hidden;
   margin: 0 !important;
   align-items: center;
+  pointer-events: none !important;
+}
+
+html.phone-proto.phone-play #body-tooltip {
+  left: 8px !important;
+  right: 8px !important;
+  top: 4px !important;
+  bottom: auto !important;
+  max-width: none !important;
+  width: auto !important;
+  transform: none !important;
+  z-index: 80;
+  font-size: 0.78rem !important;
+  line-height: 1.3;
+  max-height: 22vh;
+  overflow-y: auto;
+  pointer-events: none !important;
 }
 
 html.phone-proto.phone-play #phone-thumb-bar #rankings .rank-row {
@@ -825,6 +842,35 @@ html.phone-proto #handbook-root:not(.hidden) {
   z-index: 4000 !important;
   pointer-events: auto !important;
   visibility: visible !important;
+}
+
+html.phone-proto #dossier-root:not(.hidden) {
+  display: flex !important;
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 4100 !important;
+  padding: 0 !important;
+  align-items: stretch !important;
+  justify-content: stretch !important;
+}
+
+html.phone-proto #dossier-root .handbook-panel {
+  width: 100% !important;
+  max-width: none !important;
+  height: 100% !important;
+  max-height: none !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+}
+
+html.phone-proto #dossier-root .dossier-row-roi,
+html.phone-proto #dossier-root .dossier-vitals > p:not(.dossier-meta):not(.dossier-tools) {
+  display: none !important;
+}
+
+html.phone-proto #dossier-root .dossier-row-actions button {
+  min-height: 56px !important;
+  font-size: 1.05rem !important;
 }
 
 html.phone-proto #handbook-root .handbook-panel {
