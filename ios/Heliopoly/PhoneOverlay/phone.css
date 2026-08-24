@@ -41,6 +41,7 @@ html.phone-proto .top-actions .setup-toggle {
   min-height: 44px !important;
   padding: 8px 12px !important;
   font-size: 0.9rem !important;
+  touch-action: manipulation;
 }
 
 /* ========== SETUP: first viewport is the expedition, not the essay ==========
@@ -268,20 +269,66 @@ html.phone-proto.phone-setup header.top button {
   z-index: 50;
 }
 
+/* iOS will not toggle a 1px radio with pointer-events:none. The input
+   itself is the hit target; it fills the chip. */
 html.phone-proto.phone-setup #setup-body .check {
   position: relative;
+  overflow: hidden;
+  touch-action: manipulation;
+  font-size: 0;
 }
 
 html.phone-proto.phone-setup #setup-body .check input {
   position: absolute;
-  width: 1px;
-  height: 1px;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
   opacity: 0;
-  pointer-events: none;
+  -webkit-appearance: none;
+  appearance: none;
+  pointer-events: auto !important;
+  z-index: 3;
 }
 
 html.phone-proto.phone-setup #setup-body .phone-choice-label {
+  font-size: 0.9rem !important;
   font-weight: 600;
+  pointer-events: none;
+  position: relative;
+  z-index: 1;
+}
+
+html.phone-proto.phone-setup #setup-body .check:has([value="methane"])::after {
+  content: "Methane";
+}
+html.phone-proto.phone-setup #setup-body .check:has([value="hydrogen"])::after {
+  content: "Hydrogen";
+}
+html.phone-proto.phone-setup #setup-body .check:has([value="easy"])::after {
+  content: "Easy";
+}
+html.phone-proto.phone-setup #setup-body .check:has([value="normal"])::after {
+  content: "Normal";
+}
+html.phone-proto.phone-setup #setup-body .check:has([value="hard"])::after {
+  content: "Hard";
+}
+html.phone-proto.phone-setup #setup-body .check:has([value="expert"])::after {
+  content: "Expert";
+}
+
+html.phone-proto.phone-setup #setup-body .check::after {
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.2;
+  pointer-events: none;
+  position: relative;
+  z-index: 1;
+}
+
+html.phone-proto.phone-setup #setup-body .check:has(.phone-choice-label)::after {
+  content: none !important;
 }
 
 /* μ as a caption, not a tower. Inline 225px height from main.ts is overridden. */
@@ -319,12 +366,14 @@ html.phone-proto.phone-setup #btn-new {
   pointer-events: auto !important;
   position: relative !important;
   inset: auto !important;
+  z-index: 80 !important;
   order: 4;
   width: 100% !important;
-  min-height: 52px !important;
-  margin: 4px 0 0 !important;
-  font-size: 1.1rem !important;
-  font-weight: 700 !important;
+  min-height: 56px !important;
+  margin: 8px 0 0 !important;
+  font-size: 1.15rem !important;
+  font-weight: 800 !important;
+  touch-action: manipulation;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
 }
 
@@ -433,6 +482,7 @@ html.phone-proto.phone-play #board {
   height: auto !important;
   max-height: 100% !important;
   max-width: 100% !important;
+  min-height: 0 !important;
   aspect-ratio: 1 / 1;
   margin: 0;
 }
@@ -469,13 +519,14 @@ html.phone-proto.phone-play #pilot-controls {
   border: 1px solid #3d5080;
   border-bottom: none;
   background: linear-gradient(180deg, #1a2440 0%, #141b2f 60%);
-  padding: 8px 10px max(10px, env(safe-area-inset-bottom, 0px));
+  padding: 6px 10px max(8px, env(safe-area-inset-bottom, 0px));
   box-sizing: border-box;
   overflow: visible;
   display: flex !important;
   flex-direction: column;
   gap: 6px;
   pointer-events: auto;
+  flex: 0 0 auto;
 }
 
 html.phone-proto.phone-play .pilot-controls-head,
@@ -565,10 +616,12 @@ html.phone-proto.phone-play.phone-roll-ready .actions {
 #phone-thumb-bar,
 html.phone-proto.phone-play #phone-thumb-bar {
   display: flex !important;
-  align-items: stretch;
+  align-items: center;
   gap: 8px;
   order: 3;
   width: 100%;
+  min-height: 56px;
+  max-height: 56px;
 }
 
 html.phone-proto.phone-play #phone-thumb-bar #btn-roll {
@@ -576,7 +629,9 @@ html.phone-proto.phone-play #phone-thumb-bar #btn-roll {
   flex: 1.4 1 0;
   align-items: center;
   justify-content: center;
+  height: 56px !important;
   min-height: 56px !important;
+  max-height: 56px !important;
   font-size: 1.15rem !important;
   font-weight: 800 !important;
   margin: 0 !important;
@@ -586,6 +641,8 @@ html.phone-proto.phone-play #phone-thumb-bar #rankings {
   display: flex !important;
   flex: 1.2 1 0;
   min-width: 0;
+  max-height: 56px;
+  overflow: hidden;
   margin: 0 !important;
   align-items: center;
 }
@@ -597,11 +654,13 @@ html.phone-proto.phone-play #phone-thumb-bar #rankings .rank-row {
 html.phone-proto.phone-play #phone-thumb-bar #rankings .rank-row.active,
 html.phone-proto.phone-play #phone-thumb-bar #rankings:not(:has(.rank-row.active)) .rank-row:first-child {
   display: flex !important;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   gap: 6px 10px;
   width: 100%;
-  padding: 6px 8px !important;
+  max-height: 56px;
+  overflow: hidden;
+  padding: 4px 8px !important;
   margin: 0 !important;
   border: 1px solid #3d5080;
   border-radius: 10px;
@@ -714,18 +773,21 @@ html.phone-proto #lab-root.hidden,
 html.phone-proto #duel-root.hidden,
 html.phone-proto #announce-root.hidden,
 html.phone-proto #dossier-root.hidden,
-html.phone-proto #eac-root.hidden {
+html.phone-proto #eac-root.hidden,
+html.phone-proto #auction-root.hidden {
   display: none !important;
   pointer-events: none !important;
+  z-index: -1 !important;
 }
 
 /* ========== Ops Manual / Lab / overlays: hit-test above Pilot ========== */
-html.phone-proto #handbook-root,
-html.phone-proto #dossier-root,
-html.phone-proto #lab-root,
-html.phone-proto #eac-root,
-html.phone-proto #duel-root,
-html.phone-proto #announce-root {
+html.phone-proto #handbook-root:not(.hidden),
+html.phone-proto #dossier-root:not(.hidden),
+html.phone-proto #lab-root:not(.hidden),
+html.phone-proto #eac-root:not(.hidden),
+html.phone-proto #duel-root:not(.hidden),
+html.phone-proto #announce-root:not(.hidden),
+html.phone-proto #auction-root:not(.hidden) {
   pointer-events: auto !important;
   z-index: 3000 !important;
 }

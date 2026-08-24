@@ -17,6 +17,7 @@
     "eac-root",
     "duel-root",
     "announce-root",
+    "auction-root",
   ];
 
   function $(id) {
@@ -210,6 +211,24 @@
     }
   }
 
+  function ensureChipHits() {
+    var chips = document.querySelectorAll("#setup-body .check");
+    for (var i = 0; i < chips.length; i++) {
+      var label = chips[i];
+      var input = label.querySelector("input");
+      if (!input) continue;
+      input.style.pointerEvents = "auto";
+      input.style.position = "absolute";
+      input.style.left = "0";
+      input.style.top = "0";
+      input.style.width = "100%";
+      input.style.height = "100%";
+      input.style.margin = "0";
+      input.style.opacity = "0";
+      input.removeAttribute("disabled");
+    }
+  }
+
   function ensureSetupHitTargets() {
     var fleet = $("fleet-card");
     var setup = $("setup-body");
@@ -225,6 +244,7 @@
     if (standings) standings.hidden = true;
     compactSetupCopy();
     compactDurationMeter();
+    ensureChipHits();
     observeSetupChrome();
     var btn = $("btn-new");
     if (btn) {
@@ -302,7 +322,7 @@
   }
 
   function boot() {
-    html.classList.add("phone-proto", "touch-ui");
+    html.classList.add("phone-proto", "touch-ui", "phone-setup");
     html.classList.remove("native-shell");
     ensureBadge();
     layout();

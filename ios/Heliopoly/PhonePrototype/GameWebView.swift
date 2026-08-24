@@ -4,7 +4,7 @@
 //
 //  Phone-only host (#126 / #148). iPad uses Heliopoly/GameWebView.swift.
 //  Loads packaged Vite WebDist/ offline via heliopoly:// (ES modules need a
-//  non-file origin). Injects PhoneOverlay for the #133 right-edge sheet.
+//  non-file origin). Injects PhoneOverlay for the #150 bottom-thumb restack.
 //
 
 import SwiftUI
@@ -51,9 +51,18 @@ struct GameWebView: UIViewRepresentable {
         }
 
         if injectPhoneOverlay {
-            // Critical CSS at parse — does not wait for bundle files or JS.
-            // Recording 21:23 was stock 1.0.0; this must run if this binary is installed.
-            config.userContentController.addUserScript(Self.criticalOverlayUserScript)
+            // CSS at parse so setup is the expedition card before images load.
+            // Waiting for didFinish left sticky Pilot covering Launch (HITL).
+            config.userContentController.addUserScript(Self.overlayCssUserScript)
+            if let js = Self.overlayResource(name: "phone", ext: "js") {
+                config.userContentController.addUserScript(
+                    WKUserScript(
+                        source: js,
+                        injectionTime: .atDocumentEnd,
+                        forMainFrameOnly: true
+                    )
+                )
+            }
         }
 
         let webView = WKWebView(frame: .zero, configuration: config)
@@ -108,7 +117,13 @@ struct GameWebView: UIViewRepresentable {
     /// Uses :has(#fleet-card.mode-standings) so play restacks even if JS never runs.
     private static let criticalOverlayCSS = """
     html.phone-proto #btn-selfplay,html.phone-proto .anim-speed-field{display:none!important}
-    html.phone-proto #handbook-root.hidden,html.phone-proto #lab-root.hidden,html.phone-proto #duel-root.hidden,html.phone-proto #announce-root.hidden{display:none!important;pointer-events:none!important}
+    html.phone-proto #handbook-root.hidden,html.phone-proto #lab-root.hidden,html.phone-proto #duel-root.hidden,html.phone-proto #announce-root.hidden,html.phone-proto #auction-root.hidden,html.phone-proto #dossier-root.hidden,html.phone-proto #eac-root.hidden{display:none!important;pointer-events:none!important;z-index:-1!important}
+    html.phone-proto.phone-setup #welcome-card,html.phone-proto.phone-setup #pilot-controls,html.phone-proto.phone-setup .log-card{display:none!important;pointer-events:none!important}
+    html.phone-proto.phone-setup #duration-meter .duration-meter-body,html.phone-proto.phone-setup #setup-body>label:has(#player-count),html.phone-proto.phone-setup #setup-body>label.check:has(#include-human),html.phone-proto.phone-setup #setup-body .hint{display:none!important}
+    html.phone-proto.phone-setup .ai-difficulty-field{min-height:0!important;height:auto!important}
+    html.phone-proto.phone-setup #btn-new{min-height:56px!important;width:100%!important;pointer-events:auto!important;position:relative;z-index:80}
+    html.phone-proto.phone-setup #setup-body .check{position:relative;font-size:0}
+    html.phone-proto.phone-setup #setup-body .check input{position:absolute;inset:0;width:100%;height:100%;opacity:0;margin:0;pointer-events:auto!important}
     html.phone-proto #btn-handbook-header span{font-size:0!important;line-height:0!important}
     html.phone-proto #btn-handbook-header span::after{content:"Book";font-size:1rem;line-height:1.2;font-weight:700;color:#ffc857}
     html.phone-proto .break-stepper{height:56px!important;overflow:visible!important}
@@ -132,18 +147,23 @@ struct GameWebView: UIViewRepresentable {
     html.phone-proto #duel-root .duel-btn{min-height:56px!important}
     """
 
-    private static var criticalOverlayUserScript: WKUserScript {
+    /// Full PhoneOverlay CSS at parse when the bundle has it; else the subset.
+    /// Adds `phone-setup` immediately so setup rules apply before didFinish/JS.
+    private static var overlayCssUserScript: WKUserScript {
+        let bundled = overlayResource(name: "phone", ext: "css")
+        let css = bundled ?? criticalOverlayCSS
+        let styleId = bundled == nil ? "phone-critical-css" : "phone-overlay-css"
         let cssJSON =
-            (try? String(data: JSONEncoder().encode(criticalOverlayCSS), encoding: .utf8))
+            (try? String(data: JSONEncoder().encode(css), encoding: .utf8))
             ?? "\"\""
         let source = """
         (function(){
           var h=document.documentElement;
           h.classList.remove('native-shell');
-          h.classList.add('touch-ui','phone-proto');
-          if(!document.getElementById('phone-critical-css')){
+          h.classList.add('touch-ui','phone-proto','phone-setup');
+          if(!document.getElementById('\(styleId)') && !document.getElementById('phone-overlay-css')){
             var s=document.createElement('style');
-            s.id='phone-critical-css';
+            s.id='\(styleId)';
             s.textContent=\(cssJSON);
             (document.head||h).appendChild(s);
           }
