@@ -59,9 +59,14 @@ struct GameWebView: UIViewRepresentable {
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.navigationDelegate = context.coordinator
         webView.uiDelegate = context.coordinator
-        webView.isOpaque = false
+        // Opaque so SwiftUI views behind the web view do not steal taps.
+        webView.isOpaque = true
+        webView.isUserInteractionEnabled = true
         webView.backgroundColor = Self.spaceBackground
         webView.scrollView.backgroundColor = Self.spaceBackground
+        webView.scrollView.isScrollEnabled = true
+        webView.scrollView.delaysContentTouches = false
+        webView.scrollView.canCancelContentTouches = false
         // Overlay owns layout. WKWebView rubber-band was the scroll-fight in HITL.
         webView.scrollView.contentInsetAdjustmentBehavior = .never
         webView.scrollView.bounces = false
@@ -102,8 +107,8 @@ struct GameWebView: UIViewRepresentable {
     /// CSS that does not depend on PhoneOverlay files or phone.js.
     /// Uses :has(#fleet-card.mode-standings) so play restacks even if JS never runs.
     private static let criticalOverlayCSS = """
-    html.phone-proto::after{content:"phone proto";position:fixed;top:4px;left:8px;z-index:9999;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#0b1020;background:#ffc857;padding:3px 7px;border-radius:999px;pointer-events:none}
     html.phone-proto #btn-selfplay,html.phone-proto .anim-speed-field{display:none!important}
+    html.phone-proto #handbook-root.hidden,html.phone-proto #lab-root.hidden,html.phone-proto #duel-root.hidden,html.phone-proto #announce-root.hidden{display:none!important;pointer-events:none!important}
     html.phone-proto #btn-handbook-header span{font-size:0!important;line-height:0!important}
     html.phone-proto #btn-handbook-header span::after{content:"Book";font-size:1rem;line-height:1.2;font-weight:700;color:#ffc857}
     html.phone-proto .break-stepper{height:56px!important;overflow:visible!important}
@@ -436,8 +441,10 @@ final class SizedWebHost: UIView {
     init(webView: WKWebView) {
         self.webView = webView
         super.init(frame: .zero)
+        isUserInteractionEnabled = true
         backgroundColor = UIColor(red: 0.043, green: 0.063, blue: 0.125, alpha: 1)
         webView.translatesAutoresizingMaskIntoConstraints = false
+        webView.isUserInteractionEnabled = true
         addSubview(webView)
         NSLayoutConstraint.activate([
             webView.topAnchor.constraint(equalTo: topAnchor),

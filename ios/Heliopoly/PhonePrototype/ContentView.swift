@@ -24,6 +24,7 @@ struct PhoneContentView: View {
 
             ZStack {
                 Color(red: 0.043, green: 0.063, blue: 0.125)
+                    .allowsHitTesting(false)
                 if let loadError {
                     errorPanel(message: loadError)
                 } else {

@@ -256,8 +256,26 @@ html.phone-proto.phone-setup #setup-body .check:has(input:checked) {
   box-shadow: inset 0 0 0 1px #ffc857;
 }
 
+html.phone-proto.phone-setup #fleet-card,
+html.phone-proto.phone-setup #setup-body,
+html.phone-proto.phone-setup #btn-new,
+html.phone-proto.phone-setup #pilot-name,
+html.phone-proto.phone-setup .check,
+html.phone-proto.phone-setup header.top,
+html.phone-proto.phone-setup header.top button {
+  pointer-events: auto !important;
+  position: relative;
+  z-index: 50;
+}
+
+html.phone-proto.phone-setup #setup-body .check {
+  position: relative;
+}
+
 html.phone-proto.phone-setup #setup-body .check input {
   position: absolute;
+  width: 1px;
+  height: 1px;
   opacity: 0;
   pointer-events: none;
 }
@@ -691,20 +709,14 @@ html.phone-proto #phone-proto-badge {
   pointer-events: none !important;
 }
 
-html.phone-proto::after {
-  content: "phone proto";
-  position: fixed;
-  top: max(4px, env(safe-area-inset-top, 0px));
-  left: 8px;
-  z-index: 200;
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #0b1020;
-  background: #ffc857;
-  padding: 3px 7px;
-  border-radius: 999px;
-  pointer-events: none;
+html.phone-proto #handbook-root.hidden,
+html.phone-proto #lab-root.hidden,
+html.phone-proto #duel-root.hidden,
+html.phone-proto #announce-root.hidden,
+html.phone-proto #dossier-root.hidden,
+html.phone-proto #eac-root.hidden {
+  display: none !important;
+  pointer-events: none !important;
 }
 
 /* ========== Ops Manual / Lab / overlays: hit-test above Pilot ========== */
