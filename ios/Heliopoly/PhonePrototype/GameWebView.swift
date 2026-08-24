@@ -4,7 +4,8 @@
 //
 //  Phone-only host (#126 / #148). iPad uses Heliopoly/GameWebView.swift.
 //  Loads packaged Vite WebDist/ offline via heliopoly:// (ES modules need a
-//  non-file origin). Injects PhoneOverlay for the #150 bottom-thumb restack.
+//  non-file origin). PhoneOverlay is served as real files next to WebDist
+//  (one boot path — no user-script restack, no didFinish CSS/JS dump).
 //
 
 import SwiftUI
@@ -15,7 +16,7 @@ import WebKit
 /// Phone game surface: local `WebDist/` via WKWebView + custom scheme.
 struct GameWebView: UIViewRepresentable {
     var onLoadFailed: ((String) -> Void)?
-    /// When true, load PhoneOverlay CSS/JS from the phone bundle (#148).
+    /// When true, stamp navy + overlay file tags into served HTML (#150).
     var injectPhoneOverlay: Bool = true
 
     init(
@@ -54,10 +55,9 @@ struct GameWebView: UIViewRepresentable {
         }
 
         if injectPhoneOverlay {
-            // Tiny CSS only at parse. Full phone.css as a user script blanked
-            // the WKWebView (gold bar + white page). Full overlay injects in
-            // didFinish, which is the path that actually painted on device.
-            config.userContentController.addUserScript(Self.criticalOverlayUserScript)
+            // Navy first-paint only. A restack stylesheet at document-start
+            // blanked the WKWebView. Overlay CSS/JS load as heliopoly:// files.
+            config.userContentController.addUserScript(Self.navyPaintUserScript)
         }
 
         let webView = WKWebView(frame: .zero, configuration: config)
@@ -114,87 +114,23 @@ struct GameWebView: UIViewRepresentable {
         UIColor(red: 0.043, green: 0.063, blue: 0.125, alpha: 1) // #0b1020
     }
 
-    /// CSS that does not depend on PhoneOverlay files or phone.js.
-    /// Uses :has(#fleet-card.mode-standings) so play restacks even if JS never runs.
-    fileprivate static let criticalOverlayCSS = """
-    html.phone-proto{color-scheme:dark!important;background:#0b1020!important;color:#e8eefc!important}
-    html.phone-proto body,html.phone-proto #app{background:#0b1020!important;color:#e8eefc!important}
-    html.phone-proto.phone-setup .board-panel,html.phone-proto.phone-setup .board-stage,html.phone-proto.phone-setup #board{max-width:56px!important;max-height:56px!important;width:56px!important;height:56px!important;overflow:hidden!important;margin:0 auto!important;pointer-events:none!important}
-    html.phone-proto.phone-setup #fleet-card,html.phone-proto.phone-setup #setup-body{display:flex!important;visibility:visible!important;background:#141b2f!important;color:#e8eefc!important}
-    html.phone-proto.phone-setup #btn-new{display:block!important;color:#e8eefc!important}
-    html.phone-proto.phone-setup #setup-body .check:has([value="methane"])::after{content:"Methane"}
-    html.phone-proto.phone-setup #setup-body .check:has([value="hydrogen"])::after{content:"Hydrogen"}
-    html.phone-proto.phone-setup #setup-body .check:has([value="easy"])::after{content:"Easy"}
-    html.phone-proto.phone-setup #setup-body .check:has([value="normal"])::after{content:"Normal"}
-    html.phone-proto.phone-setup #setup-body .check:has([value="hard"])::after{content:"Hard"}
-    html.phone-proto.phone-setup #setup-body .check:has([value="expert"])::after{content:"Expert"}
-    html.phone-proto.phone-setup #setup-body .check::after{font-size:.9rem;font-weight:600;color:#e8eefc}
-    html.phone-proto #btn-selfplay,html.phone-proto .anim-speed-field{display:none!important}
-    html.phone-proto #handbook-root.hidden,html.phone-proto #lab-root.hidden,html.phone-proto #duel-root.hidden,html.phone-proto #announce-root.hidden,html.phone-proto #auction-root.hidden,html.phone-proto #dossier-root.hidden,html.phone-proto #eac-root.hidden{display:none!important;pointer-events:none!important;z-index:-1!important}
-    html.phone-proto.phone-setup #welcome-card,html.phone-proto.phone-setup #pilot-controls,html.phone-proto.phone-setup .log-card{display:none!important;pointer-events:none!important}
-    html.phone-proto.phone-setup #duration-meter .duration-meter-body,html.phone-proto.phone-setup #setup-body>label:has(#player-count),html.phone-proto.phone-setup #setup-body>label.check:has(#include-human),html.phone-proto.phone-setup #setup-body .hint{display:none!important}
-    html.phone-proto.phone-setup .ai-difficulty-field{min-height:0!important;height:auto!important}
-    html.phone-proto.phone-setup #btn-new{min-height:56px!important;width:100%!important;pointer-events:auto!important;position:relative;z-index:80}
-    html.phone-proto.phone-setup #setup-body .check{position:relative;font-size:0}
-    html.phone-proto.phone-setup #setup-body .check input{position:absolute;inset:0;width:100%;height:100%;opacity:0;margin:0;pointer-events:auto!important}
-    html.phone-proto #btn-handbook-header span{font-size:0!important;line-height:0!important}
-    html.phone-proto #btn-handbook-header span::after{content:"Book";font-size:1rem;line-height:1.2;font-weight:700;color:#ffc857}
-    html.phone-proto .break-stepper{height:56px!important;overflow:visible!important}
-    html.phone-proto .break-stepper button,html.phone-proto #btn-break-minus,html.phone-proto #btn-break-plus{min-width:56px!important;width:56px!important;height:56px!important;min-height:56px!important;font-size:1.6rem!important;font-weight:800!important}
-    html.phone-proto .break-count{font-size:1.6rem!important;min-width:40px!important}
-    html.phone-proto:has(#fleet-card.mode-standings),html.phone-proto:has(#fleet-card.mode-standings) body,html.phone-proto:has(#fleet-card.mode-standings) #app{height:100%!important;max-height:100%!important;overflow:hidden!important;margin:0;padding:0!important;display:flex!important;flex-direction:column!important}
-    html.phone-proto:has(#fleet-card.mode-standings) .top h1,html.phone-proto:has(#fleet-card.mode-standings) .badge,html.phone-proto:has(#fleet-card.mode-standings) .title-tagline,html.phone-proto:has(#fleet-card.mode-standings) #btn-lab{display:none!important}
-    html.phone-proto:has(#fleet-card.mode-standings) header.top{flex:0 0 auto;padding:4px 8px}
-    html.phone-proto:has(#fleet-card.mode-standings) .layout{flex:1 1 auto;min-height:0;display:flex!important;flex-direction:column!important;gap:0}
-    html.phone-proto:has(#fleet-card.mode-standings) .board-panel{flex:1 1 auto;min-height:0;margin:0;border:none;display:flex;align-items:center;justify-content:center}
-    html.phone-proto:has(#fleet-card.mode-standings) #board{max-width:100%!important;max-height:100%!important;width:100%!important}
-    html.phone-proto:has(#fleet-card.mode-standings) #welcome-card,html.phone-proto:has(#fleet-card.mode-standings) .side>#fleet-card,html.phone-proto:has(#fleet-card.mode-standings) .side>.log-card,html.phone-proto:has(#fleet-card.mode-standings) .pilot-controls-head,html.phone-proto:has(#fleet-card.mode-standings) #telemetry,html.phone-proto:has(#fleet-card.mode-standings) .ring-opacity-field,html.phone-proto:has(#fleet-card.mode-standings) #dir-row{display:none!important}
-    html.phone-proto:has(#fleet-card.mode-standings) .side{flex:0 0 auto;max-height:none!important;overflow:visible!important}
-    html.phone-proto:has(#fleet-card.mode-standings) #pilot-controls{position:relative!important;width:100%!important;margin:0!important;inset:auto!important;display:flex!important;flex-direction:column;gap:6px;padding:8px 10px max(10px,env(safe-area-inset-bottom,0px));border-radius:16px 16px 0 0}
-    html.phone-proto:has(#fleet-card.mode-standings) .actions{display:flex!important;flex-wrap:wrap;gap:6px}
-    html.phone-proto:has(#fleet-card.mode-standings) .actions button:disabled{display:none!important}
-    html.phone-proto:has(#fleet-card.mode-standings) .actions #btn-roll:not(:disabled),html.phone-proto:has(#fleet-card.mode-standings) .actions #btn-buy:not(:disabled),html.phone-proto:has(#fleet-card.mode-standings) .actions #btn-end:not(:disabled){flex:1 1 40%;min-height:56px!important;font-size:1.1rem!important;font-weight:800!important}
-    html.phone-proto #duel-root .dice-vs{display:none!important}
-    html.phone-proto #duel-root .dice-stage{display:flex!important;flex-direction:column!important;flex-wrap:nowrap!important;align-items:stretch!important}
-    html.phone-proto #duel-root .dice-pair{flex-direction:column!important}
-    html.phone-proto #duel-root .duel-btn{min-height:56px!important}
-    """
-
-    private static var criticalOverlayUserScript: WKUserScript {
-        let cssJSON =
-            (try? String(data: JSONEncoder().encode(criticalOverlayCSS), encoding: .utf8))
-            ?? "\"\""
+    /// Navy first-paint only. Restack lives in PhoneOverlay files, not here.
+    private static var navyPaintUserScript: WKUserScript {
         let source = """
         (function(){
           try {
             var h=document.documentElement;
-            h.classList.remove('native-shell');
-            h.classList.add('touch-ui','phone-proto','phone-setup');
-            h.style.colorScheme='dark';
             h.style.background='#0b1020';
             h.style.color='#e8eefc';
-            if(!document.getElementById('phone-critical-css')){
-              var s=document.createElement('style');
-              s.id='phone-critical-css';
-              s.textContent=\(cssJSON);
-              (document.head||h).appendChild(s);
+            h.style.colorScheme='dark';
+            if (document.body) {
+              document.body.style.background='#0b1020';
+              document.body.style.color='#e8eefc';
             }
           } catch (e) {}
         })();
         """
         return WKUserScript(source: source, injectionTime: .atDocumentStart, forMainFrameOnly: true)
-    }
-
-    /// Read PhoneOverlay files from the app bundle (Copy PhoneOverlay → WebDist/phone-overlay).
-    fileprivate static func overlayResource(name: String, ext: String) -> String? {
-        let bundle = Bundle.main
-        let url =
-            bundle.url(forResource: name, withExtension: ext, subdirectory: "WebDist/phone-overlay")
-            ?? bundle.url(forResource: name, withExtension: ext, subdirectory: "PhoneOverlay")
-        guard let url, let text = try? String(contentsOf: url, encoding: .utf8) else {
-            return nil
-        }
-        return text
     }
 
     final class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
@@ -213,57 +149,11 @@ struct GameWebView: UIViewRepresentable {
         func startLoadIfNeeded(in webView: WKWebView) {
             guard !didStartLoad else { return }
             didStartLoad = true
-            loadBundledGame(into: webView)
-        }
-
-        func injectOverlay(into webView: WKWebView, js: Bool) {
-            guard
-                let css = GameWebView.overlayResource(name: "phone", ext: "css"),
-                let cssJSON = try? String(data: JSONEncoder().encode(css), encoding: .utf8)
-            else {
-                onLoadFailed?(
-                    "PhoneOverlay missing from the phone bundle. Clean Build HeliopolyPhone."
-                )
+            if injectPhoneOverlay, let missing = schemeHandler?.missingOverlayMessage() {
+                onLoadFailed?(missing)
                 return
             }
-            // CSS via a style node. JS must be evaluateJavaScript'd — a <script>
-            // inserted from here does not run in WKWebView (Book/thumbs never appeared).
-            let cssSource = """
-            (function () {
-              var h = document.documentElement;
-              h.classList.remove('native-shell');
-              h.classList.add('touch-ui', 'phone-proto', 'phone-setup');
-              h.style.colorScheme = 'dark';
-              h.style.background = '#0b1020';
-              h.style.color = '#e8eefc';
-              if (document.body) {
-                document.body.style.background = '#0b1020';
-                document.body.style.color = '#e8eefc';
-              }
-              if (!document.getElementById('phone-overlay-css')) {
-                var st = document.createElement('style');
-                st.id = 'phone-overlay-css';
-                st.textContent = \(cssJSON);
-                (document.head || h).appendChild(st);
-              }
-            })();
-            """
-            webView.evaluateJavaScript(cssSource) { _, error in
-                if let error {
-                    self.onLoadFailed?("PhoneOverlay CSS inject failed: \(error.localizedDescription)")
-                    return
-                }
-                guard js, let overlayJS = GameWebView.overlayResource(name: "phone", ext: "js") else {
-                    return
-                }
-                webView.evaluateJavaScript(overlayJS) { _, jsError in
-                    if let jsError {
-                        self.onLoadFailed?(
-                            "PhoneOverlay JS inject failed: \(jsError.localizedDescription)"
-                        )
-                    }
-                }
-            }
+            loadBundledGame(into: webView)
         }
 
         func loadBundledGame(into webView: WKWebView) {
@@ -304,15 +194,13 @@ struct GameWebView: UIViewRepresentable {
         func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
             webView.backgroundColor = GameWebView.spaceBackground
             webView.scrollView.backgroundColor = GameWebView.spaceBackground
-            // Do not inject full phone.css here. didCommit + huge CSS blanked
-            // the page (white, not scrollable). Full overlay waits for didFinish.
         }
 
         func webView(
             _ webView: WKWebView,
             didFinish navigation: WKNavigation!
         ) {
-            // Re-assert scale lock after load (iOS can reset zoom during navigation).
+            // Scale lock only. Overlay CSS/JS already arrived as heliopoly:// files.
             webView.backgroundColor = GameWebView.spaceBackground
             webView.scrollView.backgroundColor = GameWebView.spaceBackground
             webView.scrollView.minimumZoomScale = 1
@@ -320,18 +208,6 @@ struct GameWebView: UIViewRepresentable {
             webView.scrollView.setZoomScale(1, animated: false)
             webView.scrollView.pinchGestureRecognizer?.isEnabled = false
             webView.scrollView.contentOffset = .zero
-
-            // Phone: never apply iPad native-shell (100dvh lock blanks portrait).
-            if injectPhoneOverlay {
-                injectOverlay(into: webView, js: true)
-            } else {
-                webView.evaluateJavaScript(
-                    """
-                    document.documentElement.classList.remove('native-shell');
-                    document.documentElement.classList.add('touch-ui');
-                    """
-                )
-            }
         }
 
         func webView(
@@ -563,6 +439,17 @@ final class WebDistSchemeHandler: NSObject, WKURLSchemeHandler {
         rootURL = index.deletingLastPathComponent().standardizedFileURL
     }
 
+    /// Copy PhoneOverlay → WebDist/phone-overlay in the HeliopolyPhone target.
+    func missingOverlayMessage() -> String? {
+        let css = rootURL.appendingPathComponent("phone-overlay/phone.css")
+        let js = rootURL.appendingPathComponent("phone-overlay/phone.js")
+        let fm = FileManager.default
+        guard fm.fileExists(atPath: css.path), fm.fileExists(atPath: js.path) else {
+            return "PhoneOverlay missing from the phone bundle (WebDist/phone-overlay). Clean Build HeliopolyPhone."
+        }
+        return nil
+    }
+
     func webView(_ webView: WKWebView, start urlSchemeTask: WKURLSchemeTask) {
         guard let url = urlSchemeTask.request.url else {
             fail(urlSchemeTask, URLError(.badURL))
@@ -587,6 +474,7 @@ final class WebDistSchemeHandler: NSObject, WKURLSchemeHandler {
             return
         }
         guard FileManager.default.fileExists(atPath: fileURL.path) else {
+            NSLog("[heliopoly] 404 %@", relative)
             fail(urlSchemeTask, URLError(.fileDoesNotExist))
             return
         }
@@ -602,6 +490,11 @@ final class WebDistSchemeHandler: NSObject, WKURLSchemeHandler {
         var body = data
         let ext = fileURL.pathExtension.lowercased()
         if ext == "html" || ext == "htm", var html = String(data: data, encoding: .utf8) {
+            if let missing = missingOverlayMessage() {
+                NSLog("[heliopoly] FAIL %@", missing)
+                fail(urlSchemeTask, URLError(.fileDoesNotExist))
+                return
+            }
             html = Self.phoneBootHTML(html)
             body = Data(html.utf8)
         }
@@ -609,6 +502,7 @@ final class WebDistSchemeHandler: NSObject, WKURLSchemeHandler {
         // URLResponse, not HTTPURLResponse: WKWebView custom schemes drop CSS/JS
         // when the response looks like HTTP (white HTML, scrollable, intermittent).
         let (mime, encoding) = Self.mimeAndEncoding(for: fileURL)
+        NSLog("[heliopoly] 200 %@ mime=%@ bytes=%d", relative, mime, body.count)
         let response = URLResponse(
             url: url,
             mimeType: mime,
@@ -654,9 +548,8 @@ final class WebDistSchemeHandler: NSObject, WKURLSchemeHandler {
         if Thread.isMainThread { run() } else { DispatchQueue.main.async(execute: run) }
     }
 
-    /// Strip CORS, paint navy on the tags, and pull overlay CSS/JS as real
-    /// files (same as game CSS). didFinish evaluateJavaScript is a backup;
-    /// user scripts often never run on heliopoly://.
+    /// Stamp navy on the tags (cannot parse-fail) and link overlay as files.
+    /// This is the only overlay boot path.
     private static func phoneBootHTML(_ source: String) -> String {
         var html = source.replacingOccurrences(of: " crossorigin", with: "")
         if let re = try? NSRegularExpression(pattern: "<html\\b[^>]*>", options: .caseInsensitive) {
