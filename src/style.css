@@ -3720,3 +3720,414 @@ button:not(:disabled):active {
     display: none;
   }
 }
+
+/**
+ * #157 — stacked / phone play: the board is the page.
+ * Bottom thumbs: Roll (or Buy / Move), cash, fuel, Book, End.
+ * Setup (:has(.mode-setup)) stays #158 — this block never covers Launch.
+ * Wide two-column play is unchanged.
+ */
+.play-thumbs {
+  display: none;
+}
+
+@media (max-width: 900px), ((max-width: 1180px) and (orientation: portrait)) {
+  #app:has(.fleet-card.mode-standings) {
+    --play-thumbs-h: calc(56px + 10px + env(safe-area-inset-bottom, 0px));
+    max-width: none;
+    width: 100%;
+    min-height: 100dvh;
+    height: 100dvh;
+    padding: 0;
+    padding-bottom: var(--play-thumbs-h);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  html:has(.fleet-card.mode-standings),
+  html:has(.fleet-card.mode-standings) body {
+    height: 100%;
+    min-height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+  }
+
+  html.native-shell:has(.fleet-card.mode-standings),
+  html.native-shell:has(.fleet-card.mode-standings) body,
+  html.native-shell:has(.fleet-card.mode-standings) #app {
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+  }
+
+  #app:has(.fleet-card.mode-standings) .play-thumbs {
+    display: block;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: var(--play-thumbs-h);
+    z-index: 40;
+    pointer-events: none;
+    background: linear-gradient(180deg, #1a2440 0%, #10182c 55%);
+    border-top: 1px solid #3d5080;
+    box-shadow: 0 -10px 28px rgba(0, 0, 0, 0.45);
+  }
+
+  #app:has(.fleet-card.mode-standings) #welcome-card,
+  #app:has(.fleet-card.mode-standings) .log-card,
+  #app:has(.fleet-card.mode-standings) .anim-speed-field,
+  #app:has(.fleet-card.mode-standings) #btn-lab,
+  #app:has(.fleet-card.mode-standings) #setup-toggle,
+  #app:has(.fleet-card.mode-standings) .title-tagline,
+  #app:has(.fleet-card.mode-standings) .badge {
+    display: none !important;
+  }
+
+  #app:has(.fleet-card.mode-standings) header.top {
+    position: relative;
+    z-index: 45;
+    flex: 0 0 auto;
+    min-height: 0;
+    padding: 4px 8px 0;
+    background: transparent;
+    border: none;
+  }
+
+  #app:has(.fleet-card.mode-standings) .top-row {
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  #app:has(.fleet-card.mode-standings) .top h1 {
+    font-size: 0.9rem;
+    margin: 0;
+  }
+
+  #app:has(.fleet-card.mode-standings) #btn-quit {
+    min-height: 36px;
+    padding: 4px 10px;
+    font-size: 0.78rem;
+  }
+
+  #app:has(.fleet-card.mode-standings) .layout {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    overflow: hidden;
+  }
+
+  #app:has(.fleet-card.mode-standings) .board-panel {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-width: none !important;
+    width: 100% !important;
+    margin: 0;
+    padding: 4px 0 0;
+    border: none;
+    border-radius: 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    pointer-events: auto;
+    z-index: 1;
+  }
+
+  #app:has(.fleet-card.mode-standings) .board-stage,
+  #app:has(.fleet-card.mode-standings) #board {
+    width: min(100%, calc(100dvh - var(--play-thumbs-h) - 48px)) !important;
+    height: auto !important;
+    max-width: 100% !important;
+    max-height: calc(100dvh - var(--play-thumbs-h) - 48px) !important;
+    aspect-ratio: 1 / 1;
+    pointer-events: auto;
+  }
+
+  #app:has(.fleet-card.mode-standings) .side {
+    position: static;
+    height: 0;
+    min-height: 0;
+    max-height: none;
+    overflow: visible;
+    margin: 0;
+    padding: 0;
+    gap: 0;
+    pointer-events: none;
+  }
+
+  #app:has(.fleet-card.mode-standings) #pilot-controls {
+    pointer-events: auto;
+  }
+
+  #app:has(.fleet-card.mode-standings) .fleet-card {
+    pointer-events: none;
+  }
+
+  #app:has(.fleet-card.mode-standings) #standings-panel h2,
+  #app:has(.fleet-card.mode-standings) .charter-choice-hint,
+  #app:has(.fleet-card.mode-standings) .pilot-controls-head,
+  #app:has(.fleet-card.mode-standings) #dir-row,
+  #app:has(.fleet-card.mode-standings) #break-row {
+    display: none !important;
+  }
+
+  /* Five thumb slots: cash · fuel · Roll/Buy · Book · End */
+  #app:has(.fleet-card.mode-standings) .fleet-card.mode-standings,
+  #app:has(.fleet-card.mode-standings) #btn-handbook-header {
+    position: fixed;
+    bottom: env(safe-area-inset-bottom, 0px);
+    z-index: 43;
+    height: 56px;
+    min-height: 56px;
+    margin: 0;
+    box-sizing: border-box;
+  }
+
+  #app:has(.fleet-card.mode-standings) .fleet-card.mode-standings {
+    left: 1%;
+    width: 20%;
+    padding: 0 4px;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+  }
+
+  #app:has(.fleet-card.mode-standings) #standings-panel,
+  #app:has(.fleet-card.mode-standings) #rankings {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 100%;
+    height: 56px;
+    min-height: 56px;
+    margin: 0;
+    gap: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  #app:has(.fleet-card.mode-standings) .rank-row {
+    display: none !important;
+  }
+
+  #app:has(.fleet-card.mode-standings) .rank-row:first-child {
+    display: flex !important;
+  }
+
+  #app:has(.fleet-card.mode-standings) #rankings:has(.rank-row.active)
+    .rank-row:first-child:not(.active) {
+    display: none !important;
+  }
+
+  #app:has(.fleet-card.mode-standings) .rank-row.active {
+    display: flex !important;
+  }
+
+  #app:has(.fleet-card.mode-standings) .rank-row.vibe-kickable {
+    pointer-events: auto;
+  }
+
+  #app:has(.fleet-card.mode-standings) .rank-row .swatch,
+  #app:has(.fleet-card.mode-standings) .rank-row .rank-id,
+  #app:has(.fleet-card.mode-standings) .rank-row .rank-detail,
+  #app:has(.fleet-card.mode-standings) .rank-row .rank-prop,
+  #app:has(.fleet-card.mode-standings) .rank-row .at-risk-badge {
+    display: none !important;
+  }
+
+  #app:has(.fleet-card.mode-standings) .rank-row,
+  #app:has(.fleet-card.mode-standings) .rank-body,
+  #app:has(.fleet-card.mode-standings) .rank-top {
+    display: flex;
+    margin: 0;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+    min-height: 0;
+    height: auto;
+    grid-template-columns: none;
+  }
+
+  #app:has(.fleet-card.mode-standings) .rank-money {
+    font-size: 0;
+    line-height: 1.1;
+  }
+
+  #app:has(.fleet-card.mode-standings) .rank-row .cash {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--ok);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  #app:has(.fleet-card.mode-standings) #pilot-controls {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 42;
+    height: var(--play-thumbs-h);
+    min-height: var(--play-thumbs-h);
+    margin: 0;
+    padding: 0 4px env(safe-area-inset-bottom, 0px);
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    display: grid;
+    grid-template-columns: 18% 16% 22% 18% 22%;
+    align-items: start;
+    overflow: visible;
+  }
+
+  #app:has(.fleet-card.mode-standings) #telemetry {
+    grid-column: 2;
+    width: auto;
+    height: 56px !important;
+    min-height: 56px;
+    padding: 4px 6px;
+    border-radius: 8px;
+    font-size: 0.68rem;
+    line-height: 1.2;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    pointer-events: none;
+    background: #0a0f1a;
+  }
+
+  #app:has(.fleet-card.mode-standings) #telemetry::after {
+    display: none;
+  }
+
+  #app:has(.fleet-card.mode-standings) #telemetry div:first-child {
+    display: none;
+  }
+
+  #app:has(.fleet-card.mode-standings) #telemetry .line2 {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  #app:has(.fleet-card.mode-standings) .pilot-controls .actions {
+    display: contents;
+    margin: 0;
+    min-height: 0;
+    grid-template-columns: none;
+  }
+
+  #app:has(.fleet-card.mode-standings) .pilot-controls .actions button {
+    display: none;
+  }
+
+  #app:has(.fleet-card.mode-standings) #btn-roll,
+  #app:has(.fleet-card.mode-standings) #btn-end,
+  #app:has(.fleet-card.mode-standings) #btn-roll:disabled ~ #btn-buy:not(:disabled) {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    height: 56px;
+    min-height: 56px;
+    width: auto;
+    padding: 0 6px;
+    font-size: 0.92rem;
+    font-weight: 800;
+    border-radius: 10px;
+  }
+
+  #app:has(.fleet-card.mode-standings) #btn-roll {
+    grid-column: 3;
+    background: linear-gradient(180deg, #0891b2, #0e7490);
+    border-color: #22d3ee;
+    color: #fff;
+  }
+
+  /* Buy shares the Roll slot when Roll is not the legal action. */
+  #app:has(.fleet-card.mode-standings) #btn-roll:disabled:has(~ #btn-buy:not(:disabled)) {
+    display: none !important;
+  }
+
+  #app:has(.fleet-card.mode-standings) #btn-roll:disabled ~ #btn-buy:not(:disabled) {
+    grid-column: 3;
+    background: linear-gradient(180deg, #0891b2, #0e7490);
+    border-color: #22d3ee;
+    color: #fff;
+  }
+
+  #app:has(.fleet-card.mode-standings) #btn-handbook-header {
+    left: 56%;
+    width: 18%;
+    padding: 0 6px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+
+  #app:has(.fleet-card.mode-standings) #btn-end {
+    grid-column: 5;
+    font-size: 0;
+  }
+
+  #app:has(.fleet-card.mode-standings) #btn-end::after {
+    content: "End";
+    font-size: 0.92rem;
+    font-weight: 800;
+  }
+
+  #app:has(.fleet-card.mode-standings) .handbook-launch .ops-manual-icon {
+    width: 22px;
+    height: 22px;
+  }
+
+  #app:has(.fleet-card.mode-standings) .handbook-launch span {
+    font-size: 0;
+  }
+
+  #app:has(.fleet-card.mode-standings) .handbook-launch span::after {
+    content: "Book";
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+
+  #app:has(.fleet-card.mode-standings) .body-tooltip {
+    left: 8px !important;
+    right: 8px !important;
+    top: auto !important;
+    bottom: calc(var(--play-thumbs-h) + 8px) !important;
+    max-width: none;
+    max-height: 22vw;
+    overflow: hidden;
+    padding: 6px 10px;
+    font-size: 0.75rem;
+  }
+
+  #app:has(.fleet-card.mode-standings) .body-tooltip h4 {
+    margin: 0 2px 0 0;
+    display: inline;
+    font-size: 0.82rem;
+  }
+
+  #app:has(.fleet-card.mode-standings) .path-flash {
+    bottom: calc(var(--play-thumbs-h) + 8px);
+  }
+
+  #app:has(.fleet-card.mode-standings) .handbook,
+  #app:has(.fleet-card.mode-standings) .announce-screen {
+    z-index: 120;
+  }
+}
