@@ -654,29 +654,37 @@ final class WebDistSchemeHandler: NSObject, WKURLSchemeHandler {
         if Thread.isMainThread { run() } else { DispatchQueue.main.async(execute: run) }
     }
 
-    /// Strip CORS, paint navy on the tags themselves (a `<style>` block can
-    /// be dropped; inline body background cannot). Overlay CSS still injects
-    /// after load.
+    /// Strip CORS, paint navy on the tags, and pull overlay CSS/JS as real
+    /// files (same as game CSS). didFinish evaluateJavaScript is a backup;
+    /// user scripts often never run on heliopoly://.
     private static func phoneBootHTML(_ source: String) -> String {
         var html = source.replacingOccurrences(of: " crossorigin", with: "")
-        html = html.replacingOccurrences(
-            of: "<html lang=\"en\">",
-            with: "<html lang=\"en\" class=\"phone-proto phone-setup touch-ui\" style=\"background:#0b1020;color:#e8eefc;color-scheme:dark\">"
-        )
-        html = html.replacingOccurrences(
-            of: "<html>",
-            with: "<html class=\"phone-proto phone-setup touch-ui\" style=\"background:#0b1020;color:#e8eefc;color-scheme:dark\">"
-        )
-        html = html.replacingOccurrences(
-            of: "<body>",
-            with: "<body style=\"background:#0b1020;color:#e8eefc;margin:0\">"
-        )
-        if !html.contains("phone-paint-css") {
-            let paint = """
+        if let re = try? NSRegularExpression(pattern: "<html\\b[^>]*>", options: .caseInsensitive) {
+            html = re.stringByReplacingMatches(
+                in: html,
+                options: [],
+                range: NSRange(html.startIndex..., in: html),
+                withTemplate:
+                    "<html lang=\"en\" class=\"phone-proto phone-setup touch-ui\" style=\"background:#0b1020;color:#e8eefc;color-scheme:dark\">"
+            )
+        }
+        if let re = try? NSRegularExpression(pattern: "<body\\b[^>]*>", options: .caseInsensitive) {
+            html = re.stringByReplacingMatches(
+                in: html,
+                options: [],
+                range: NSRange(html.startIndex..., in: html),
+                withTemplate:
+                    "<body style=\"background:#0b1020;color:#e8eefc;margin:0\">"
+            )
+        }
+        if !html.contains("phone-overlay/phone.css") {
+            let tags = """
             <meta name="color-scheme" content="dark">
             <style id="phone-paint-css">html,body,#app{background:#0b1020!important;color:#e8eefc!important;color-scheme:dark}</style>
+            <link rel="stylesheet" href="./phone-overlay/phone.css">
+            <script src="./phone-overlay/phone.js" defer></script>
             """
-            html = html.replacingOccurrences(of: "</head>", with: paint + "</head>")
+            html = html.replacingOccurrences(of: "</head>", with: tags + "</head>")
         }
         return html
     }
