@@ -68,12 +68,12 @@ struct GameWebView: UIViewRepresentable {
         if #available(iOS 15.0, *) {
             webView.underPageBackgroundColor = Self.spaceBackground
         }
-        // Overlay owns overflow. WKWebView scrolling turns taps into pans
-        // (HITL: page loads, nothing is clickable).
-        webView.scrollView.isScrollEnabled = false
+        // Keep page scroll until overlay restacks. Disabling it left a white
+        // locked screen when first paint missed. Buttons still get the touch
+        // immediately (no 150ms delay).
+        webView.scrollView.isScrollEnabled = true
         webView.scrollView.delaysContentTouches = false
-        webView.scrollView.canCancelContentTouches = true
-        webView.scrollView.panGestureRecognizer.isEnabled = false
+        webView.scrollView.canCancelContentTouches = false
         // Overlay owns layout. WKWebView rubber-band was the scroll-fight in HITL.
         webView.scrollView.contentInsetAdjustmentBehavior = .never
         webView.scrollView.bounces = false
@@ -299,10 +299,8 @@ struct GameWebView: UIViewRepresentable {
         func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
             webView.backgroundColor = GameWebView.spaceBackground
             webView.scrollView.backgroundColor = GameWebView.spaceBackground
-            // Don't wait for images/fonts — that's a white scrollable empty page.
-            if injectPhoneOverlay {
-                injectOverlay(into: webView, js: false)
-            }
+            // Do not inject full phone.css here. didCommit + huge CSS blanked
+            // the page (white, not scrollable). Full overlay waits for didFinish.
         }
 
         func webView(
