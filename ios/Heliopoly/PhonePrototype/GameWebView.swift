@@ -493,7 +493,7 @@ final class WebDistSchemeHandler: NSObject, WKURLSchemeHandler {
                 urlSchemeTask.didFailWithError(URLError(.fileDoesNotExist))
                 return
             }
-            html = Self.phoneBootHTML(html)
+            html = phoneBootHTML(html)
             body = Data(html.utf8)
         }
 
@@ -531,9 +531,10 @@ final class WebDistSchemeHandler: NSObject, WKURLSchemeHandler {
         // Nothing to cancel; reads finish inside start(_:).
     }
 
-    /// Stamp navy on the tags (cannot parse-fail) and link overlay as files.
-    /// This is the only overlay boot path.
-    private static func phoneBootHTML(_ source: String) -> String {
+    /// Stamp navy on the tags and **inline** CSS. `<link rel=stylesheet>` over
+    /// `heliopoly://` is what arrives as a white 900px canvas — the bytes 200
+    /// and WebKit still does not apply them. Overlay JS stays a file.
+    private func phoneBootHTML(_ source: String) -> String {
         var html = source.replacingOccurrences(of: " crossorigin", with: "")
         if let re = try? NSRegularExpression(pattern: "<html\\b[^>]*>", options: .caseInsensitive) {
             html = re.stringByReplacingMatches(
@@ -553,16 +554,75 @@ final class WebDistSchemeHandler: NSObject, WKURLSchemeHandler {
                     "<body style=\"background:#0b1020;color:#e8eefc;margin:0\">"
             )
         }
-        if !html.contains("phone-overlay/phone.css") {
+        html = inlineStylesheetLinks(in: html)
+        if !html.contains("id=\"phone-overlay-css\"") {
+            let overlayCSS = (try? String(
+                contentsOf: rootURL.appendingPathComponent("phone-overlay/phone.css"),
+                encoding: .utf8
+            )) ?? ""
             let tags = """
             <meta name="color-scheme" content="dark">
-            <style id="phone-paint-css">html,body,#app{background:#0b1020!important;color:#e8eefc!important;color-scheme:dark}</style>
-            <link rel="stylesheet" href="./phone-overlay/phone.css">
+            <style id="phone-paint-css">html,body,#app,#board{background:#0b1020!important;color:#e8eefc!important;color-scheme:dark}</style>
+            <style id="phone-overlay-css">\(Self.safeStyle(overlayCSS))</style>
             <script src="./phone-overlay/phone.js" defer></script>
             """
             html = html.replacingOccurrences(of: "</head>", with: tags + "</head>")
         }
         return html
+    }
+
+    /// Replace each stylesheet `<link>` with the file contents. No second hop.
+    private func inlineStylesheetLinks(in html: String) -> String {
+        guard
+            let re = try? NSRegularExpression(
+                pattern: "<link\\b[^>]*rel=[\"']stylesheet[\"'][^>]*>",
+                options: .caseInsensitive
+            )
+        else {
+            return html
+        }
+        let ns = html as NSString
+        let matches = re.matches(in: html, options: [], range: NSRange(location: 0, length: ns.length))
+        var result = html
+        for match in matches.reversed() {
+            let tag = ns.substring(with: match.range)
+            guard let href = Self.href(fromLinkTag: tag) else { continue }
+            var rel = href
+            if rel.hasPrefix("./") { rel = String(rel.dropFirst(2)) }
+            if rel.hasPrefix("/") { rel = String(rel.dropFirst()) }
+            let file = rootURL.appendingPathComponent(rel).standardizedFileURL
+            guard
+                file.path.hasPrefix(rootURL.path),
+                let css = try? String(contentsOf: file, encoding: .utf8),
+                let range = Range(match.range, in: result)
+            else {
+                continue
+            }
+            result.replaceSubrange(
+                range,
+                with: "<style data-inlined=\"\(rel)\">\(Self.safeStyle(css))</style>"
+            )
+        }
+        return result
+    }
+
+    private static func href(fromLinkTag tag: String) -> String? {
+        guard
+            let re = try? NSRegularExpression(
+                pattern: "href=[\"']([^\"']+)[\"']",
+                options: .caseInsensitive
+            ),
+            let match = re.firstMatch(in: tag, range: NSRange(tag.startIndex..., in: tag)),
+            match.numberOfRanges > 1,
+            let range = Range(match.range(at: 1), in: tag)
+        else {
+            return nil
+        }
+        return String(tag[range])
+    }
+
+    private static func safeStyle(_ css: String) -> String {
+        css.replacingOccurrences(of: "</", with: "<\\/")
     }
 
     private static func contentType(for url: URL) -> String {

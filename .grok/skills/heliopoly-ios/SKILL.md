@@ -17,7 +17,7 @@ Jacob's Xcode window opens **this clone**: `ios/Heliopoly/Heliopoly.xcodeproj` u
 - iPhone scheme: **HeliopolyPhone**. iPad scheme: **Heliopoly**.
 - Overlay: `ios/Heliopoly/PhoneOverlay/` (`phone.css`, `phone.js`) plus `ios/Heliopoly/PhonePrototype/` (phone `GameWebView.swift`, `ContentView.swift`).
 - Isolation: do not change iPad `ios/Heliopoly/Heliopoly/GameWebView.swift`, `src/**`, or `index.html` for overlay prototypes unless the ticket says so.
-- After overlay/Swift changes: device already deleted or **Product → Clean Build Folder**, then **⌘R**. Gold bar must match `ContentView.swift` (currently `HELIOPOLY PHONE · THUMBS`). If the bar does not match, Xcode did not build this tree.
+- After overlay/Swift changes: device already deleted or **Product → Clean Build Folder**, then **⌘R**. Gold bar must match `ContentView.swift` (currently `HELIOPOLY PHONE · THUMBS · 2`). If the bar does not match, Xcode did not build this tree.
 
 ## Do not
 
