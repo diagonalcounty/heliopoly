@@ -51,18 +51,9 @@ struct GameWebView: UIViewRepresentable {
         }
 
         if injectPhoneOverlay {
-            // Class only at parse time. CSS/JS are injected after navigation
-            // from bundle files — relative heliopoly:// URLs never loaded on device.
-            config.userContentController.addUserScript(
-                WKUserScript(
-                    source: """
-                    document.documentElement.classList.remove('native-shell');
-                    document.documentElement.classList.add('touch-ui','phone-proto');
-                    """,
-                    injectionTime: .atDocumentStart,
-                    forMainFrameOnly: true
-                )
-            )
+            // Critical CSS at parse — does not wait for bundle files or JS.
+            // Recording 21:23 was stock 1.0.0; this must run if this binary is installed.
+            config.userContentController.addUserScript(Self.criticalOverlayUserScript)
         }
 
         let webView = WKWebView(frame: .zero, configuration: config)
@@ -106,6 +97,54 @@ struct GameWebView: UIViewRepresentable {
 
     private static var spaceBackground: UIColor {
         UIColor(red: 0.043, green: 0.063, blue: 0.125, alpha: 1) // #0b1020
+    }
+
+    /// CSS that does not depend on PhoneOverlay files or phone.js.
+    /// Uses :has(#fleet-card.mode-standings) so play restacks even if JS never runs.
+    private static let criticalOverlayCSS = """
+    html.phone-proto::after{content:"phone proto";position:fixed;top:4px;left:8px;z-index:9999;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#0b1020;background:#ffc857;padding:3px 7px;border-radius:999px;pointer-events:none}
+    html.phone-proto #btn-selfplay,html.phone-proto .anim-speed-field{display:none!important}
+    html.phone-proto #btn-handbook-header span{font-size:0!important;line-height:0!important}
+    html.phone-proto #btn-handbook-header span::after{content:"Book";font-size:1rem;line-height:1.2;font-weight:700;color:#ffc857}
+    html.phone-proto .break-stepper{height:56px!important;overflow:visible!important}
+    html.phone-proto .break-stepper button,html.phone-proto #btn-break-minus,html.phone-proto #btn-break-plus{min-width:56px!important;width:56px!important;height:56px!important;min-height:56px!important;font-size:1.6rem!important;font-weight:800!important}
+    html.phone-proto .break-count{font-size:1.6rem!important;min-width:40px!important}
+    html.phone-proto:has(#fleet-card.mode-standings),html.phone-proto:has(#fleet-card.mode-standings) body,html.phone-proto:has(#fleet-card.mode-standings) #app{height:100%!important;max-height:100%!important;overflow:hidden!important;margin:0;padding:0!important;display:flex!important;flex-direction:column!important}
+    html.phone-proto:has(#fleet-card.mode-standings) .top h1,html.phone-proto:has(#fleet-card.mode-standings) .badge,html.phone-proto:has(#fleet-card.mode-standings) .title-tagline,html.phone-proto:has(#fleet-card.mode-standings) #btn-lab{display:none!important}
+    html.phone-proto:has(#fleet-card.mode-standings) header.top{flex:0 0 auto;padding:4px 8px}
+    html.phone-proto:has(#fleet-card.mode-standings) .layout{flex:1 1 auto;min-height:0;display:flex!important;flex-direction:column!important;gap:0}
+    html.phone-proto:has(#fleet-card.mode-standings) .board-panel{flex:1 1 auto;min-height:0;margin:0;border:none;display:flex;align-items:center;justify-content:center}
+    html.phone-proto:has(#fleet-card.mode-standings) #board{max-width:100%!important;max-height:100%!important;width:100%!important}
+    html.phone-proto:has(#fleet-card.mode-standings) #welcome-card,html.phone-proto:has(#fleet-card.mode-standings) .side>#fleet-card,html.phone-proto:has(#fleet-card.mode-standings) .side>.log-card,html.phone-proto:has(#fleet-card.mode-standings) .pilot-controls-head,html.phone-proto:has(#fleet-card.mode-standings) #telemetry,html.phone-proto:has(#fleet-card.mode-standings) .ring-opacity-field,html.phone-proto:has(#fleet-card.mode-standings) #dir-row{display:none!important}
+    html.phone-proto:has(#fleet-card.mode-standings) .side{flex:0 0 auto;max-height:none!important;overflow:visible!important}
+    html.phone-proto:has(#fleet-card.mode-standings) #pilot-controls{position:relative!important;width:100%!important;margin:0!important;inset:auto!important;display:flex!important;flex-direction:column;gap:6px;padding:8px 10px max(10px,env(safe-area-inset-bottom,0px));border-radius:16px 16px 0 0}
+    html.phone-proto:has(#fleet-card.mode-standings) .actions{display:flex!important;flex-wrap:wrap;gap:6px}
+    html.phone-proto:has(#fleet-card.mode-standings) .actions button:disabled{display:none!important}
+    html.phone-proto:has(#fleet-card.mode-standings) .actions #btn-roll:not(:disabled),html.phone-proto:has(#fleet-card.mode-standings) .actions #btn-buy:not(:disabled),html.phone-proto:has(#fleet-card.mode-standings) .actions #btn-end:not(:disabled){flex:1 1 40%;min-height:56px!important;font-size:1.1rem!important;font-weight:800!important}
+    html.phone-proto #duel-root .dice-vs{display:none!important}
+    html.phone-proto #duel-root .dice-stage{display:flex!important;flex-direction:column!important;flex-wrap:nowrap!important;align-items:stretch!important}
+    html.phone-proto #duel-root .dice-pair{flex-direction:column!important}
+    html.phone-proto #duel-root .duel-btn{min-height:56px!important}
+    """
+
+    private static var criticalOverlayUserScript: WKUserScript {
+        let cssJSON =
+            (try? String(data: JSONEncoder().encode(criticalOverlayCSS), encoding: .utf8))
+            ?? "\"\""
+        let source = """
+        (function(){
+          var h=document.documentElement;
+          h.classList.remove('native-shell');
+          h.classList.add('touch-ui','phone-proto');
+          if(!document.getElementById('phone-critical-css')){
+            var s=document.createElement('style');
+            s.id='phone-critical-css';
+            s.textContent=\(cssJSON);
+            (document.head||h).appendChild(s);
+          }
+        })();
+        """
+        return WKUserScript(source: source, injectionTime: .atDocumentStart, forMainFrameOnly: true)
     }
 
     /// Read PhoneOverlay files from the app bundle (Copy PhoneOverlay → WebDist/phone-overlay).

@@ -13,7 +13,7 @@ struct PhoneContentView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Text("HELIOPOLY PHONE")
+            Text("HELIOPOLY PHONE · THUMBS")
                 .font(.system(size: 13, weight: .bold, design: .rounded))
                 .tracking(1.2)
                 .foregroundStyle(Color(red: 0.043, green: 0.063, blue: 0.125))
