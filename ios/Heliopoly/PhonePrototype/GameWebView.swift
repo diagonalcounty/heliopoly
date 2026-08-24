@@ -606,28 +606,15 @@ final class WebDistSchemeHandler: NSObject, WKURLSchemeHandler {
             body = Data(html.utf8)
         }
 
-        let mime = Self.mimeType(for: fileURL)
-        let headers: [String: String] = [
-            "Content-Type": mime,
-            "Content-Length": "\(body.count)",
-            "Access-Control-Allow-Origin": "*",
-            "Cross-Origin-Resource-Policy": "cross-origin",
-            "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
-            "Pragma": "no-cache",
-        ]
-
-        guard
-            let response = HTTPURLResponse(
-                url: url,
-                statusCode: 200,
-                httpVersion: "HTTP/1.1",
-                headerFields: headers
-            )
-        else {
-            fail(urlSchemeTask, URLError(.cannotParseResponse))
-            return
-        }
-
+        // URLResponse, not HTTPURLResponse: WKWebView custom schemes drop CSS/JS
+        // when the response looks like HTTP (white HTML, scrollable, intermittent).
+        let (mime, encoding) = Self.mimeAndEncoding(for: fileURL)
+        let response = URLResponse(
+            url: url,
+            mimeType: mime,
+            expectedContentLength: body.count,
+            textEncodingName: encoding
+        )
         finish(urlSchemeTask, response: response, body: body)
     }
 
@@ -667,71 +654,66 @@ final class WebDistSchemeHandler: NSObject, WKURLSchemeHandler {
         if Thread.isMainThread { run() } else { DispatchQueue.main.async(execute: run) }
     }
 
-    /// Strip CORS, force dark navy paint, add overlay classes. Does not wait
-    /// for WKUserScript or didFinish (those missed on device → white scroll).
+    /// Strip CORS, paint navy on the tags themselves (a `<style>` block can
+    /// be dropped; inline body background cannot). Overlay CSS still injects
+    /// after load.
     private static func phoneBootHTML(_ source: String) -> String {
         var html = source.replacingOccurrences(of: " crossorigin", with: "")
-        if html.contains("<html lang=\"en\">") {
-            html = html.replacingOccurrences(
-                of: "<html lang=\"en\">",
-                with: "<html lang=\"en\" class=\"phone-proto phone-setup touch-ui\">"
-            )
-        } else if html.contains("<html>") {
-            html = html.replacingOccurrences(
-                of: "<html>",
-                with: "<html class=\"phone-proto phone-setup touch-ui\">"
-            )
-        }
-        guard !html.contains("phone-critical-css") else { return html }
-        let paint = """
-        <meta name="color-scheme" content="dark">
-        <style id="phone-critical-css">
-        html,body,#app{color-scheme:dark;background:#0b1020!important;color:#e8eefc!important}
-        \(GameWebView.criticalOverlayCSS)
-        </style>
-        """
-        if html.contains("</head>") {
+        html = html.replacingOccurrences(
+            of: "<html lang=\"en\">",
+            with: "<html lang=\"en\" class=\"phone-proto phone-setup touch-ui\" style=\"background:#0b1020;color:#e8eefc;color-scheme:dark\">"
+        )
+        html = html.replacingOccurrences(
+            of: "<html>",
+            with: "<html class=\"phone-proto phone-setup touch-ui\" style=\"background:#0b1020;color:#e8eefc;color-scheme:dark\">"
+        )
+        html = html.replacingOccurrences(
+            of: "<body>",
+            with: "<body style=\"background:#0b1020;color:#e8eefc;margin:0\">"
+        )
+        if !html.contains("phone-paint-css") {
+            let paint = """
+            <meta name="color-scheme" content="dark">
+            <style id="phone-paint-css">html,body,#app{background:#0b1020!important;color:#e8eefc!important;color-scheme:dark}</style>
+            """
             html = html.replacingOccurrences(of: "</head>", with: paint + "</head>")
-        } else if let range = html.range(of: "<head>") {
-            html.insert(contentsOf: paint, at: range.upperBound)
         }
         return html
     }
 
-    private static func mimeType(for url: URL) -> String {
+    private static func mimeAndEncoding(for url: URL) -> (String, String?) {
         switch url.pathExtension.lowercased() {
         case "html", "htm":
-            return "text/html; charset=utf-8"
+            return ("text/html", "utf-8")
         case "js", "mjs":
-            // Required for ES modules in WKWebView.
-            return "text/javascript; charset=utf-8"
+            return ("text/javascript", "utf-8")
         case "css":
-            return "text/css; charset=utf-8"
+            return ("text/css", "utf-8")
         case "png":
-            return "image/png"
+            return ("image/png", nil)
         case "jpg", "jpeg":
-            return "image/jpeg"
+            return ("image/jpeg", nil)
         case "svg":
-            return "image/svg+xml"
+            return ("image/svg+xml", "utf-8")
         case "ico":
-            return "image/x-icon"
+            return ("image/x-icon", nil)
         case "json", "map":
-            return "application/json"
+            return ("application/json", "utf-8")
         case "woff":
-            return "font/woff"
+            return ("font/woff", nil)
         case "woff2":
-            return "font/woff2"
+            return ("font/woff2", nil)
         case "webp":
-            return "image/webp"
+            return ("image/webp", nil)
         case "gif":
-            return "image/gif"
+            return ("image/gif", nil)
         default:
             if let type = UTType(filenameExtension: url.pathExtension),
                let mime = type.preferredMIMEType
             {
-                return mime
+                return (mime, nil)
             }
-            return "application/octet-stream"
+            return ("application/octet-stream", nil)
         }
     }
 }
