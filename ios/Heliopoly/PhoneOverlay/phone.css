@@ -470,15 +470,53 @@ html.phone-proto.phone-play #telemetry {
 html.phone-proto.phone-play #break-row {
   display: none;
   order: 1;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
   margin: 0;
-  min-height: 40px;
 }
 
 html.phone-proto.phone-play #break-row:not(.hidden-vis) {
-  display: flex !important;
+  display: grid !important;
+  grid-template-columns: 56px 1fr 56px;
+  grid-template-rows: auto auto;
+  align-items: center;
+  justify-items: center;
+  gap: 4px 8px;
+  width: 100%;
+  padding: 4px 0 8px;
+}
+
+html.phone-proto.phone-play #btn-break-label {
+  display: none !important;
+}
+
+html.phone-proto.phone-play #break-row:not(.hidden-vis) .break-stepper {
+  grid-column: 1 / -1;
+  display: grid !important;
+  grid-template-columns: 56px 1fr 56px;
+  align-items: center;
+  width: 100%;
+  gap: 8px;
+}
+
+html.phone-proto.phone-play #btn-break-minus,
+html.phone-proto.phone-play #btn-break-plus {
+  min-width: 56px !important;
+  min-height: 56px !important;
+  width: 56px !important;
+  font-size: 1.6rem !important;
+  font-weight: 800 !important;
+  padding: 0 !important;
+}
+
+html.phone-proto.phone-play #break-count {
+  font-size: 1.6rem !important;
+  font-weight: 800 !important;
+  text-align: center;
+}
+
+html.phone-proto.phone-play #break-cost {
+  grid-column: 1 / -1;
+  font-size: 0.9rem !important;
+  text-align: center;
 }
 
 html.phone-proto.phone-play .actions {
@@ -597,6 +635,7 @@ html.phone-proto.phone-play #phone-thumb-bar #rankings .rank-row.active .rank-mo
   font-size: 0.95rem !important;
 }
 
+html.phone-proto.phone-play #btn-handbook-header,
 html.phone-proto.phone-play #phone-thumb-bar #btn-handbook-header,
 html.phone-proto.phone-play #phone-thumb-bar #btn-handbook-header.phone-thumb-book {
   display: inline-flex !important;
@@ -604,7 +643,7 @@ html.phone-proto.phone-play #phone-thumb-bar #btn-handbook-header.phone-thumb-bo
   align-items: center;
   justify-content: center;
   gap: 6px;
-  min-width: 64px;
+  min-width: 72px;
   min-height: 56px !important;
   margin: 0 !important;
   padding: 6px 10px !important;
@@ -612,17 +651,27 @@ html.phone-proto.phone-play #phone-thumb-bar #btn-handbook-header.phone-thumb-bo
   border: 1px solid #3d5080 !important;
   border-radius: 10px;
   font-weight: 700 !important;
-  font-size: 0.9rem !important;
+  font-size: 0.95rem !important;
   color: #ffc857 !important;
 }
 
-html.phone-proto.phone-play #phone-thumb-bar #btn-handbook-header .ops-manual-icon {
+html.phone-proto.phone-play #btn-handbook-header .ops-manual-icon {
   width: 22px;
   height: 22px;
 }
 
-html.phone-proto.phone-play header.top #btn-handbook-header {
-  display: none !important;
+/* Always read "Book" in play — don't depend on JS rewriting Ops Manual. */
+html.phone-proto.phone-play #btn-handbook-header span {
+  font-size: 0 !important;
+  line-height: 0 !important;
+}
+
+html.phone-proto.phone-play #btn-handbook-header span::after {
+  content: "Book";
+  font-size: 0.95rem;
+  line-height: 1.2;
+  font-weight: 700;
+  color: #ffc857;
 }
 
 html.phone-proto.phone-play .path-flash {
@@ -759,10 +808,22 @@ html.phone-proto #duel-root .handbook-kicker {
 }
 
 html.phone-proto #duel-root .dice-stage {
+  display: flex !important;
   flex-direction: column !important;
   flex-wrap: nowrap !important;
   align-items: stretch !important;
-  gap: 14px !important;
+  justify-content: flex-start !important;
+  gap: 16px !important;
+  width: 100% !important;
+}
+
+html.phone-proto #duel-root .duel-side {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  align-items: center !important;
 }
 
 html.phone-proto #duel-root #duel-side-left {
@@ -772,12 +833,25 @@ html.phone-proto #duel-root #duel-side-left {
 html.phone-proto #duel-root .dice-vs {
   order: 2;
   padding: 0 !important;
+  text-align: center;
 }
 
 html.phone-proto #duel-root #duel-side-right {
   order: 3;
   width: 100% !important;
   min-width: 0 !important;
+}
+
+html.phone-proto #duel-root .dice-pair {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+html.phone-proto #duel-root .die {
+  width: 72px !important;
+  height: 72px !important;
 }
 
 html.phone-proto #duel-root #duel-actions-left {

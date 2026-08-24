@@ -70,7 +70,11 @@
       if (label && nodeHome.handbookLabel == null) {
         nodeHome.handbookLabel = (label.textContent || "").trim();
       }
-      if (label) label.textContent = "Book";
+      if (!label) {
+        label = document.createElement("span");
+        handbook.appendChild(label);
+      }
+      label.textContent = "Book";
       handbook.setAttribute("aria-label", "Book");
       handbook.title = "Book";
       handbook.classList.add("phone-thumb-book");
