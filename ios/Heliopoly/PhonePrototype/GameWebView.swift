@@ -35,6 +35,9 @@ struct GameWebView: UIViewRepresentable {
         config.defaultWebpagePreferences.allowsContentJavaScript = true
         config.allowsInlineMediaPlayback = true
         config.mediaTypesRequiringUserActionForPlayback = []
+        // Persistent WK cache served a stale unstyled index (white scroll after
+        // a good launch). Phone proto always boots from the scheme handler.
+        config.websiteDataStore = .nonPersistent()
 
         // Serve bundled WebDist over heliopoly:// so type=module works offline.
         if let schemeHandler = WebDistSchemeHandler(bundle: .main) {
@@ -266,7 +269,9 @@ struct GameWebView: UIViewRepresentable {
         func loadBundledGame(into webView: WKWebView) {
             // Prefer custom scheme (ES modules + CSS).
             if useCustomScheme, let start = WebDistSchemeHandler.startURL {
-                webView.load(URLRequest(url: start))
+                var req = URLRequest(url: start)
+                req.cachePolicy = .reloadIgnoringLocalCacheData
+                webView.load(req)
                 return
             }
 
@@ -535,12 +540,15 @@ final class WebDistSchemeHandler: NSObject, WKURLSchemeHandler {
     static let scheme = "heliopoly"
     static let host = "game"
 
-    /// Entry URL for the offline game.
+    /// Entry URL for the offline game. Query busts WK HTTP cache.
     static var startURL: URL? {
-        URL(string: "\(scheme)://\(host)/index.html")
+        let t = Int(Date().timeIntervalSince1970)
+        return URL(string: "\(scheme)://\(host)/index.html?boot=\(t)")
     }
 
     private let rootURL: URL
+    private let lock = NSLock()
+    private let stopped = NSHashTable<AnyObject>.weakObjects()
 
     init?(bundle: Bundle = .main) {
         guard
@@ -557,7 +565,7 @@ final class WebDistSchemeHandler: NSObject, WKURLSchemeHandler {
 
     func webView(_ webView: WKWebView, start urlSchemeTask: WKURLSchemeTask) {
         guard let url = urlSchemeTask.request.url else {
-            urlSchemeTask.didFailWithError(URLError(.badURL))
+            fail(urlSchemeTask, URLError(.badURL))
             return
         }
 
@@ -568,21 +576,18 @@ final class WebDistSchemeHandler: NSObject, WKURLSchemeHandler {
         if relative.isEmpty {
             relative = "index.html"
         }
-        // Decode percent-encoding (e.g. spaces in paths if any).
         if let decoded = relative.removingPercentEncoding {
             relative = decoded
         }
 
         let fileURL = rootURL.appendingPathComponent(relative).standardizedFileURL
         let rootPath = rootURL.path
-        // Path traversal guard.
         guard fileURL.path == rootPath || fileURL.path.hasPrefix(rootPath + "/") else {
-            urlSchemeTask.didFailWithError(URLError(.noPermissionsToReadFile))
+            fail(urlSchemeTask, URLError(.noPermissionsToReadFile))
             return
         }
-
         guard FileManager.default.fileExists(atPath: fileURL.path) else {
-            urlSchemeTask.didFailWithError(URLError(.fileDoesNotExist))
+            fail(urlSchemeTask, URLError(.fileDoesNotExist))
             return
         }
 
@@ -590,16 +595,12 @@ final class WebDistSchemeHandler: NSObject, WKURLSchemeHandler {
         do {
             data = try Data(contentsOf: fileURL)
         } catch {
-            urlSchemeTask.didFailWithError(error)
+            fail(urlSchemeTask, error)
             return
         }
 
         var body = data
         let ext = fileURL.pathExtension.lowercased()
-        // Vite stamps crossorigin on module/CSS. WKWebView custom schemes treat
-        // that as CORS and can drop both — unstyled HTML, white empty scroll.
-        // User scripts often do not run for heliopoly:// — stamp first-paint
-        // CSS into the HTML so the page is never a white empty scroll.
         if ext == "html" || ext == "htm", var html = String(data: data, encoding: .utf8) {
             html = Self.phoneBootHTML(html)
             body = Data(html.utf8)
@@ -611,7 +612,8 @@ final class WebDistSchemeHandler: NSObject, WKURLSchemeHandler {
             "Content-Length": "\(body.count)",
             "Access-Control-Allow-Origin": "*",
             "Cross-Origin-Resource-Policy": "cross-origin",
-            "Cache-Control": "no-cache",
+            "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+            "Pragma": "no-cache",
         ]
 
         guard
@@ -622,17 +624,47 @@ final class WebDistSchemeHandler: NSObject, WKURLSchemeHandler {
                 headerFields: headers
             )
         else {
-            urlSchemeTask.didFailWithError(URLError(.cannotParseResponse))
+            fail(urlSchemeTask, URLError(.cannotParseResponse))
             return
         }
 
-        urlSchemeTask.didReceive(response)
-        urlSchemeTask.didReceive(body)
-        urlSchemeTask.didFinish()
+        finish(urlSchemeTask, response: response, body: body)
     }
 
     func webView(_ webView: WKWebView, stop urlSchemeTask: WKURLSchemeTask) {
-        // Nothing to cancel; reads are synchronous from the bundle.
+        lock.lock()
+        stopped.add(urlSchemeTask)
+        lock.unlock()
+    }
+
+    private func isStopped(_ task: WKURLSchemeTask) -> Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        return stopped.contains(task)
+    }
+
+    private func fail(_ task: WKURLSchemeTask, _ error: Error) {
+        let run = {
+            guard !self.isStopped(task) else { return }
+            task.didFailWithError(error)
+        }
+        if Thread.isMainThread { run() } else { DispatchQueue.main.async(execute: run) }
+    }
+
+    private func finish(
+        _ task: WKURLSchemeTask,
+        response: URLResponse,
+        body: Data
+    ) {
+        let run = {
+            guard !self.isStopped(task) else { return }
+            task.didReceive(response)
+            guard !self.isStopped(task) else { return }
+            task.didReceive(body)
+            guard !self.isStopped(task) else { return }
+            task.didFinish()
+        }
+        if Thread.isMainThread { run() } else { DispatchQueue.main.async(execute: run) }
     }
 
     /// Strip CORS, force dark navy paint, add overlay classes. Does not wait
