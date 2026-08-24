@@ -438,8 +438,8 @@ html.phone-proto.phone-play .side {
   pointer-events: none;
 }
 
-/* Standings / log wait — not on the first sheet row.
-   New Game returns via header setup-toggle → phone-setup (fleet shown again). */
+/* "On the ledger" is the desktop standings card — not the phone chrome.
+   Cash/fuel are reused as chips inside the controls sheet (#150). */
 html.phone-proto.phone-play .side > #fleet-card,
 html.phone-proto.phone-play .side > .log-card {
   display: none !important;
@@ -607,7 +607,7 @@ html.phone-proto.phone-play.phone-sheet-open .pilot-controls-head {
   display: none !important;
 }
 
-/* Reused nodes: rankings cash/fuel + telemetry + Book (#150). */
+/* Sheet is Pilot controls. Vitals are chips, not a transplanted ledger. */
 html.phone-proto.phone-play.phone-sheet-open #phone-sheet-meta {
   display: flex !important;
   flex-direction: column;
@@ -645,7 +645,7 @@ html.phone-proto.phone-play.phone-sheet-open #phone-sheet-meta #rankings {
   pointer-events: auto !important;
 }
 
-/* Only the active rocket’s cash + fuel — reuse nodes, no second HUD / no ROI%. */
+/* Active row only — strip standings chrome so this is not "On the ledger". */
 html.phone-proto.phone-play.phone-sheet-open #phone-sheet-meta #rankings .rank-row {
   display: none !important;
 }
@@ -653,24 +653,39 @@ html.phone-proto.phone-play.phone-sheet-open #phone-sheet-meta #rankings .rank-r
 html.phone-proto.phone-play.phone-sheet-open #phone-sheet-meta #rankings .rank-row.active,
 html.phone-proto.phone-play.phone-sheet-open #phone-sheet-meta #rankings:not(:has(.rank-row.active)) .rank-row:first-child {
   display: flex !important;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
-  padding: 6px 8px !important;
+  gap: 10px;
+  padding: 8px 10px !important;
   margin: 0 !important;
   border: 1px solid #3d5080;
   border-radius: 10px;
   background: #152038;
 }
 
+html.phone-proto.phone-play.phone-sheet-open #phone-sheet-meta #rankings .rank-row.active .swatch,
 html.phone-proto.phone-play.phone-sheet-open #phone-sheet-meta #rankings .rank-row.active .rank-id,
-html.phone-proto.phone-play.phone-sheet-open #phone-sheet-meta #rankings .rank-row.active .rank-prop,
+html.phone-proto.phone-play.phone-sheet-open #phone-sheet-meta #rankings .rank-row.active .rank-prop {
+  display: none !important;
+}
+
+html.phone-proto.phone-play.phone-sheet-open #phone-sheet-meta #rankings .rank-row.active .rank-body,
+html.phone-proto.phone-play.phone-sheet-open #phone-sheet-meta #rankings .rank-row.active .rank-top {
+  display: flex !important;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
 html.phone-proto.phone-play.phone-sheet-open #phone-sheet-meta #rankings .rank-row.active .rank-detail {
-  font-size: 0.72rem !important;
+  font-size: 0 !important;
+  letter-spacing: 0;
 }
 
 html.phone-proto.phone-play.phone-sheet-open #phone-sheet-meta #rankings .rank-row.active .cash {
   display: inline !important;
-  font-size: 0.95rem !important;
+  font-size: 1rem !important;
   font-weight: 700;
   color: #ffc857;
 }
@@ -678,7 +693,8 @@ html.phone-proto.phone-play.phone-sheet-open #phone-sheet-meta #rankings .rank-r
 html.phone-proto.phone-play.phone-sheet-open #phone-sheet-meta #rankings .rank-row.active .fuel-bar,
 html.phone-proto.phone-play.phone-sheet-open #phone-sheet-meta #rankings .rank-row.active .fuel-n {
   display: inline !important;
-  font-size: 0.85rem !important;
+  font-size: 0.9rem !important;
+  letter-spacing: normal;
 }
 
 /* Hide net-worth tail; keep .cash (not ROI%). */
@@ -688,7 +704,7 @@ html.phone-proto.phone-play.phone-sheet-open #phone-sheet-meta #rankings .rank-r
 }
 
 html.phone-proto.phone-play.phone-sheet-open #phone-sheet-meta #rankings .rank-row.active .rank-money .cash {
-  font-size: 0.95rem !important;
+  font-size: 1rem !important;
 }
 
 html.phone-proto.phone-play.phone-sheet-open #phone-sheet-meta #btn-handbook-header,

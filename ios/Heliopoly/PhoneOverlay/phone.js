@@ -1,6 +1,7 @@
 /* HeliopolyPhone overlay (#148 / #133). Injected only by the phone target.
    Setup: Pilot off — welcome / fleet / Launch stay tappable.
    Play: board is the page; ~10% right handle; swipe opens Pilot 70–90%.
+   Sheet is controls (Roll/Break/End) plus cash/fuel chips — not "On the ledger".
    Modals (Ops Manual / Lab): never steal topic / button taps. */
 (function () {
   if (window.__heliopolyPhoneProto) return;
