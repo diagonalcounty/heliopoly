@@ -47,6 +47,8 @@ ios/Heliopoly/
 
 Parent: GitHub **#120**. The shipping **Heliopoly** scheme stays iPad-only (`TARGETED_DEVICE_FAMILY = 2`). Overlay is **not** in `src/style.css`.
 
+**Same git checkout as the open `.xcodeproj`.** Do not put PhoneOverlay / PhonePrototype edits in a second worktree — Xcode will keep building the window’s clone (HITL then tests stock WebDist). Gold bar text in `PhonePrototype/ContentView.swift` is the binary fingerprint.
+
 ```bash
 npm run ios:sync
 open ios/Heliopoly/Heliopoly.xcodeproj
