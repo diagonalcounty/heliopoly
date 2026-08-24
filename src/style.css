@@ -4144,9 +4144,111 @@ button:not(:disabled):active {
   #app:has(.fleet-card.mode-standings) .path-flash {
     bottom: calc(var(--play-thumbs-h) + 8px);
   }
+}
 
-  #app:has(.fleet-card.mode-standings) .handbook,
-  #app:has(.fleet-card.mode-standings) .announce-screen {
-    z-index: 120;
+/**
+ * #160 — stacked / phone sheets: full-bleed and tappable above the thumbs.
+ * Hidden sheets must not steal taps. Do not restyle duel/auction art.
+ */
+@media (max-width: 900px), ((max-width: 1180px) and (orientation: portrait)) {
+  #handbook-root.hidden,
+  #dossier-root.hidden,
+  #duel-root.hidden,
+  #auction-root.hidden,
+  #announce-root.hidden,
+  #end-root.hidden,
+  #lab-root.hidden {
+    pointer-events: none !important;
+  }
+
+  #handbook-root:not(.hidden),
+  #dossier-root:not(.hidden),
+  #duel-root:not(.hidden),
+  #auction-root:not(.hidden),
+  #announce-root:not(.hidden),
+  #end-root:not(.hidden) {
+    z-index: 2000 !important;
+    padding: 0;
+    align-items: stretch;
+    justify-content: stretch;
+    pointer-events: auto;
+  }
+
+  #handbook-root:not(.hidden) .handbook-panel,
+  #dossier-root:not(.hidden) .handbook-panel,
+  #duel-root:not(.hidden) .handbook-panel {
+    width: 100%;
+    max-width: none;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+
+  #handbook-root:not(.hidden) .handbook-header,
+  #dossier-root:not(.hidden) .handbook-header,
+  #duel-root:not(.hidden) .handbook-header {
+    padding-top: max(10px, env(safe-area-inset-top, 0px));
+    padding-left: max(12px, env(safe-area-inset-left, 0px));
+    padding-right: max(12px, env(safe-area-inset-right, 0px));
+  }
+
+  #handbook-root:not(.hidden) .handbook-close,
+  #dossier-root:not(.hidden) .handbook-close {
+    min-width: 44px;
+    min-height: 44px;
+    pointer-events: auto;
+  }
+
+  #handbook-root:not(.hidden) .handbook-body,
+  #dossier-root:not(.hidden) .dossier-body,
+  #duel-root:not(.hidden) .duel-body {
+    min-height: 0;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
+  }
+
+  #dossier-root:not(.hidden) .dossier-row-roi {
+    display: none;
+  }
+
+  #announce-root:not(.hidden) .announce-card,
+  #auction-root:not(.hidden) .announce-card {
+    width: 100%;
+    max-width: none;
+    min-height: 100dvh;
+    margin: 0;
+    border-radius: 0;
+    transform: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
+  }
+
+  #announce-root:not(.hidden) #announce-ok,
+  #auction-root:not(.hidden) #auction-bid,
+  #auction-root:not(.hidden) #auction-pass,
+  #end-root:not(.hidden) #end-again,
+  #end-root:not(.hidden) #end-close,
+  #duel-root:not(.hidden) .duel-btn {
+    min-height: 56px;
+    pointer-events: auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  #end-root:not(.hidden) .end-inner {
+    width: 100%;
+    max-width: none;
+    min-height: 100dvh;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: max(16px, env(safe-area-inset-top, 0px)) 16px
+      max(16px, env(safe-area-inset-bottom, 0px));
   }
 }
