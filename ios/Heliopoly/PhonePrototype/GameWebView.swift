@@ -68,9 +68,12 @@ struct GameWebView: UIViewRepresentable {
         if #available(iOS 15.0, *) {
             webView.underPageBackgroundColor = Self.spaceBackground
         }
-        webView.scrollView.isScrollEnabled = true
+        // Overlay owns overflow. WKWebView scrolling turns taps into pans
+        // (HITL: page loads, nothing is clickable).
+        webView.scrollView.isScrollEnabled = false
         webView.scrollView.delaysContentTouches = false
-        webView.scrollView.canCancelContentTouches = false
+        webView.scrollView.canCancelContentTouches = true
+        webView.scrollView.panGestureRecognizer.isEnabled = false
         // Overlay owns layout. WKWebView rubber-band was the scroll-fight in HITL.
         webView.scrollView.contentInsetAdjustmentBehavior = .never
         webView.scrollView.bounces = false
@@ -113,7 +116,7 @@ struct GameWebView: UIViewRepresentable {
     private static let criticalOverlayCSS = """
     html.phone-proto{color-scheme:dark!important;background:#0b1020!important;color:#e8eefc!important}
     html.phone-proto body,html.phone-proto #app{background:#0b1020!important;color:#e8eefc!important}
-    html.phone-proto.phone-setup .board-panel,html.phone-proto.phone-setup .board-stage,html.phone-proto.phone-setup #board{max-width:56px!important;max-height:56px!important;width:56px!important;height:56px!important;overflow:hidden!important;margin:0 auto!important}
+    html.phone-proto.phone-setup .board-panel,html.phone-proto.phone-setup .board-stage,html.phone-proto.phone-setup #board{max-width:56px!important;max-height:56px!important;width:56px!important;height:56px!important;overflow:hidden!important;margin:0 auto!important;pointer-events:none!important}
     html.phone-proto.phone-setup #fleet-card,html.phone-proto.phone-setup #setup-body{display:flex!important;visibility:visible!important;background:#141b2f!important;color:#e8eefc!important}
     html.phone-proto.phone-setup #btn-new{display:block!important;color:#e8eefc!important}
     html.phone-proto.phone-setup #setup-body .check:has([value="methane"])::after{content:"Methane"}
@@ -518,6 +521,11 @@ final class SizedWebHost: UIView {
         guard !announced, bounds.width > 1, bounds.height > 1 else { return }
         announced = true
         onReady?(webView)
+    }
+
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        let inWeb = convert(point, to: webView)
+        return webView.hitTest(inWeb, with: event) ?? webView
     }
 }
 

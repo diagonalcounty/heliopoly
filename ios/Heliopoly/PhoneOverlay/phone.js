@@ -211,20 +211,45 @@
     }
   }
 
+  function disarmDeadLayers() {
+    for (var i = 0; i < MODAL_IDS.length; i++) {
+      var el = $(MODAL_IDS[i]);
+      if (!el) continue;
+      if (el.classList.contains("hidden") || el.hidden) {
+        el.style.pointerEvents = "none";
+        el.style.display = "none";
+      }
+    }
+    var welcome = $("welcome-card");
+    if (welcome) welcome.style.pointerEvents = "none";
+    if (!isPlay()) {
+      var board = $("board");
+      if (board) board.style.pointerEvents = "none";
+      var panel = document.querySelector(".board-panel");
+      if (panel) panel.style.pointerEvents = "none";
+    }
+  }
+
   function ensureChipHits() {
     var chips = document.querySelectorAll("#setup-body .check");
     for (var i = 0; i < chips.length; i++) {
       var label = chips[i];
       var input = label.querySelector("input");
       if (!input) continue;
+      label.style.position = "relative";
+      label.style.isolation = "isolate";
       input.style.pointerEvents = "auto";
       input.style.position = "absolute";
       input.style.left = "0";
       input.style.top = "0";
+      input.style.right = "0";
+      input.style.bottom = "0";
       input.style.width = "100%";
       input.style.height = "100%";
+      input.style.maxWidth = "100%";
+      input.style.maxHeight = "100%";
       input.style.margin = "0";
-      input.style.opacity = "0";
+      input.style.opacity = "0.02";
       input.removeAttribute("disabled");
     }
   }
@@ -238,6 +263,7 @@
     }
     if (setup) {
       setup.style.pointerEvents = "auto";
+      setup.style.position = "static";
       setup.hidden = false;
     }
     var standings = $("standings-panel");
@@ -245,10 +271,13 @@
     compactSetupCopy();
     compactDurationMeter();
     ensureChipHits();
+    disarmDeadLayers();
     observeSetupChrome();
     var btn = $("btn-new");
     if (btn) {
       btn.style.pointerEvents = "auto";
+      btn.style.position = "relative";
+      btn.style.zIndex = "80";
       btn.disabled = false;
     }
   }
@@ -296,6 +325,10 @@
       return;
     }
 
+    var board = $("board");
+    if (board) board.style.pointerEvents = "auto";
+    var panel = document.querySelector(".board-panel");
+    if (panel) panel.style.pointerEvents = "auto";
     ensureThumbBar(true);
     observeTurnButtons();
     syncTurnChrome();

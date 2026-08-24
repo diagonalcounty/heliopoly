@@ -31,6 +31,7 @@ struct PhoneContentView: View {
                     GameWebView(injectPhoneOverlay: true) { message in
                         loadError = message
                     }
+                    .allowsHitTesting(true)
                 }
             }
         }
