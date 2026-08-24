@@ -143,15 +143,16 @@ struct GameWebView: UIViewRepresentable {
             guard
                 let css = GameWebView.overlayResource(name: "phone", ext: "css"),
                 let js = GameWebView.overlayResource(name: "phone", ext: "js"),
-                let cssJSON = try? String(data: JSONEncoder().encode(css), encoding: .utf8),
-                let jsJSON = try? String(data: JSONEncoder().encode(js), encoding: .utf8)
+                let cssJSON = try? String(data: JSONEncoder().encode(css), encoding: .utf8)
             else {
                 onLoadFailed?(
                     "PhoneOverlay missing from the phone bundle. Clean Build HeliopolyPhone."
                 )
                 return
             }
-            let source = """
+            // CSS via a style node. JS must be evaluateJavaScript'd — a <script>
+            // inserted from here does not run in WKWebView (Book/thumbs never appeared).
+            let cssSource = """
             (function () {
               document.documentElement.classList.remove('native-shell');
               document.documentElement.classList.add('touch-ui', 'phone-proto');
@@ -161,17 +162,19 @@ struct GameWebView: UIViewRepresentable {
                 st.textContent = \(cssJSON);
                 (document.head || document.documentElement).appendChild(st);
               }
-              if (!window.__heliopolyPhoneProto) {
-                var s = document.createElement('script');
-                s.id = 'phone-overlay-js';
-                s.textContent = \(jsJSON);
-                (document.documentElement).appendChild(s);
-              }
             })();
             """
-            webView.evaluateJavaScript(source) { _, error in
+            webView.evaluateJavaScript(cssSource) { _, error in
                 if let error {
-                    self.onLoadFailed?("PhoneOverlay inject failed: \(error.localizedDescription)")
+                    self.onLoadFailed?("PhoneOverlay CSS inject failed: \(error.localizedDescription)")
+                    return
+                }
+                webView.evaluateJavaScript(js) { _, jsError in
+                    if let jsError {
+                        self.onLoadFailed?(
+                            "PhoneOverlay JS inject failed: \(jsError.localizedDescription)"
+                        )
+                    }
                 }
             }
         }

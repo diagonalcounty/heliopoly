@@ -467,6 +467,32 @@ html.phone-proto.phone-play #telemetry {
   display: none !important;
 }
 
+/* Stock stepper is 28×30 — beat height, not just min-height. */
+html.phone-proto .break-stepper {
+  height: 56px !important;
+  overflow: visible !important;
+  border-radius: 10px !important;
+}
+
+html.phone-proto .break-stepper button,
+html.phone-proto #btn-break-minus,
+html.phone-proto #btn-break-plus {
+  min-width: 56px !important;
+  width: 56px !important;
+  height: 56px !important;
+  min-height: 56px !important;
+  font-size: 1.6rem !important;
+  font-weight: 800 !important;
+  padding: 0 !important;
+}
+
+html.phone-proto .break-count,
+html.phone-proto #break-count {
+  font-size: 1.6rem !important;
+  font-weight: 800 !important;
+  min-width: 48px !important;
+}
+
 html.phone-proto.phone-play #break-row {
   display: none;
   order: 1;
@@ -474,12 +500,10 @@ html.phone-proto.phone-play #break-row {
 }
 
 html.phone-proto.phone-play #break-row:not(.hidden-vis) {
-  display: grid !important;
-  grid-template-columns: 56px 1fr 56px;
-  grid-template-rows: auto auto;
-  align-items: center;
-  justify-items: center;
-  gap: 4px 8px;
+  display: flex !important;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
   width: 100%;
   padding: 4px 0 8px;
 }
@@ -488,33 +512,7 @@ html.phone-proto.phone-play #btn-break-label {
   display: none !important;
 }
 
-html.phone-proto.phone-play #break-row:not(.hidden-vis) .break-stepper {
-  grid-column: 1 / -1;
-  display: grid !important;
-  grid-template-columns: 56px 1fr 56px;
-  align-items: center;
-  width: 100%;
-  gap: 8px;
-}
-
-html.phone-proto.phone-play #btn-break-minus,
-html.phone-proto.phone-play #btn-break-plus {
-  min-width: 56px !important;
-  min-height: 56px !important;
-  width: 56px !important;
-  font-size: 1.6rem !important;
-  font-weight: 800 !important;
-  padding: 0 !important;
-}
-
-html.phone-proto.phone-play #break-count {
-  font-size: 1.6rem !important;
-  font-weight: 800 !important;
-  text-align: center;
-}
-
 html.phone-proto.phone-play #break-cost {
-  grid-column: 1 / -1;
   font-size: 0.9rem !important;
   text-align: center;
 }
@@ -660,13 +658,13 @@ html.phone-proto.phone-play #btn-handbook-header .ops-manual-icon {
   height: 22px;
 }
 
-/* Always read "Book" in play — don't depend on JS rewriting Ops Manual. */
-html.phone-proto.phone-play #btn-handbook-header span {
+/* Always read "Book" — CSS, not JS. */
+html.phone-proto #btn-handbook-header span {
   font-size: 0 !important;
   line-height: 0 !important;
 }
 
-html.phone-proto.phone-play #btn-handbook-header span::after {
+html.phone-proto #btn-handbook-header span::after {
   content: "Book";
   font-size: 0.95rem;
   line-height: 1.2;
@@ -691,6 +689,22 @@ html.phone-proto #phone-proto-badge {
   padding: 3px 7px;
   border-radius: 999px;
   pointer-events: none !important;
+}
+
+html.phone-proto::after {
+  content: "phone proto";
+  position: fixed;
+  top: max(4px, env(safe-area-inset-top, 0px));
+  left: 8px;
+  z-index: 200;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #0b1020;
+  background: #ffc857;
+  padding: 3px 7px;
+  border-radius: 999px;
+  pointer-events: none;
 }
 
 /* ========== Ops Manual / Lab / overlays: hit-test above Pilot ========== */
@@ -831,9 +845,7 @@ html.phone-proto #duel-root #duel-side-left {
 }
 
 html.phone-proto #duel-root .dice-vs {
-  order: 2;
-  padding: 0 !important;
-  text-align: center;
+  display: none !important;
 }
 
 html.phone-proto #duel-root #duel-side-right {
