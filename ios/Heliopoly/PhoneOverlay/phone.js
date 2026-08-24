@@ -16,6 +16,7 @@
     "lab-root",
     "eac-root",
     "duel-root",
+    "announce-root",
   ];
 
   function $(id) {

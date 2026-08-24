@@ -649,7 +649,8 @@ html.phone-proto #handbook-root,
 html.phone-proto #dossier-root,
 html.phone-proto #lab-root,
 html.phone-proto #eac-root,
-html.phone-proto #duel-root {
+html.phone-proto #duel-root,
+html.phone-proto #announce-root {
   pointer-events: auto !important;
   z-index: 3000 !important;
 }
@@ -719,6 +720,112 @@ html.phone-proto #handbook-root .handbook-nav button {
 html.phone-proto.phone-modal-open #pilot-controls,
 html.phone-proto.phone-modal-open #phone-grab {
   pointer-events: none !important;
+}
+
+/* Gravity Duel: You at the thumbs, opponent above — not a 36pt desktop dialog. */
+html.phone-proto #duel-root:not(.hidden) {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 4100 !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: stretch !important;
+  justify-content: stretch !important;
+}
+
+html.phone-proto #duel-root .duel-panel {
+  width: 100% !important;
+  max-width: none !important;
+  height: 100% !important;
+  max-height: none !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding-top: max(8px, env(safe-area-inset-top, 0px)) !important;
+  padding-bottom: max(12px, env(safe-area-inset-bottom, 0px)) !important;
+}
+
+html.phone-proto #duel-root .duel-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 8px 14px 16px !important;
+}
+
+html.phone-proto #duel-root .handbook-kicker {
+  display: none !important;
+}
+
+html.phone-proto #duel-root .dice-stage {
+  flex-direction: column !important;
+  flex-wrap: nowrap !important;
+  align-items: stretch !important;
+  gap: 14px !important;
+}
+
+html.phone-proto #duel-root #duel-side-left {
+  order: 1;
+}
+
+html.phone-proto #duel-root .dice-vs {
+  order: 2;
+  padding: 0 !important;
+}
+
+html.phone-proto #duel-root #duel-side-right {
+  order: 3;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+html.phone-proto #duel-root #duel-actions-left {
+  display: none !important;
+}
+
+html.phone-proto #duel-root #duel-actions-right {
+  max-width: none !important;
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+html.phone-proto #duel-root .duel-btn {
+  min-height: 56px !important;
+  font-size: 1.05rem !important;
+  padding: 8px 12px !important;
+}
+
+html.phone-proto #duel-root .duel-btn.duel-roll-btn {
+  grid-column: 1 / -1;
+  min-height: 56px !important;
+}
+
+html.phone-proto #duel-root #duel-result-ok {
+  min-height: 56px !important;
+  width: 100% !important;
+  font-size: 1.05rem !important;
+}
+
+/* Ledger events: tappable Continue, no tiny rotated desktop card. */
+html.phone-proto #announce-root:not(.hidden) {
+  z-index: 4200 !important;
+  padding: max(12px, env(safe-area-inset-top, 0px)) 12px
+    max(16px, env(safe-area-inset-bottom, 0px)) !important;
+}
+
+html.phone-proto #announce-card {
+  transform: none !important;
+  width: min(100%, 400px) !important;
+}
+
+html.phone-proto #announce-ok {
+  min-height: 56px !important;
+  width: calc(100% - 32px) !important;
+  margin: 0 16px 16px !important;
+  font-size: 1.05rem !important;
 }
 
 /* Lab: keep A | vs | B usable. */
