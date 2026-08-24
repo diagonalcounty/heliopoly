@@ -1,15 +1,10 @@
-/* HeliopolyPhone overlay (#148 / #133). Injected only by the phone target.
-   Setup: Pilot off — welcome / fleet / Launch stay tappable.
-   Play: board is the page; ~10% right handle; swipe opens Pilot 70–90%.
-   Sheet is controls (Roll/Break/End) plus cash/fuel chips — not "On the ledger".
-   Modals (Ops Manual / Lab): never steal topic / button taps. */
+/* HeliopolyPhone overlay (#150 rewrite).
+   Setup: expedition card — Launch on the first screen, Pilot off.
+   Play: board is the page. Bottom thumbs: Roll, cash, fuel, Book.
+   No right-edge handle. Reuse existing nodes. No second HUD. */
 (function () {
   if (window.__heliopolyPhoneProto) return;
   window.__heliopolyPhoneProto = true;
-
-  var SHEET_CLOSED = 0.1; // 10% grab strip
-  var SHEET_OPEN = 0.8; // 80% within 70–90%
-  var EDGE_PX = 28;
 
   var html = document.documentElement;
   html.classList.add("phone-proto", "touch-ui");
@@ -22,14 +17,6 @@
     "eac-root",
     "duel-root",
   ];
-
-  var touch = {
-    tracking: false,
-    startX: 0,
-    startY: 0,
-    fromEdge: false,
-    fromSheet: false,
-  };
 
   function $(id) {
     return document.getElementById(id);
@@ -50,112 +37,11 @@
     return false;
   }
 
-  function sheetOpen() {
-    return html.classList.contains("phone-sheet-open");
-  }
-
-  function setSheetWidth(fraction) {
-    var pct = Math.round(fraction * 1000) / 10 + "%";
-    html.style.setProperty("--phone-sheet-w", pct);
-    var app = $("app");
-    if (app) app.style.setProperty("--phone-sheet-w", pct);
-  }
-
-  function setHeaderHeight() {
-    var top = document.querySelector("header.top");
-    var h = 48;
-    if (top) {
-      var rect = top.getBoundingClientRect();
-      if (rect.height > 0) h = Math.ceil(rect.height);
-    }
-    var px = h + "px";
-    html.style.setProperty("--phone-header-h", px);
-    var app = $("app");
-    if (app) app.style.setProperty("--phone-header-h", px);
-  }
-
-  function openSheet() {
-    if (isModalOpen()) return;
-    html.classList.add("phone-sheet-open");
-    setSheetWidth(SHEET_OPEN);
-    layout();
-  }
-
-  function closeSheet() {
-    html.classList.remove("phone-sheet-open");
-    setSheetWidth(SHEET_CLOSED);
-    layout();
-  }
-
-  function toggleSheet() {
-    if (sheetOpen()) closeSheet();
-    else openSheet();
-  }
-
-  function ensureGrab() {
-    var pc = $("pilot-controls");
-    if (!pc) return;
-    var grab = $("phone-grab");
-    if (!grab) {
-      grab = document.createElement("button");
-      grab.type = "button";
-      grab.id = "phone-grab";
-      grab.setAttribute("aria-label", "Pilot Controls");
-      grab.innerHTML =
-        '<span class="phone-grab-pill" aria-hidden="true"></span>' +
-        '<span class="phone-grab-chevron" aria-hidden="true">‹</span>';
-      pc.insertBefore(grab, pc.firstChild);
-      grab.addEventListener("click", function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        if (isModalOpen()) return;
-        toggleSheet();
-      });
-    }
-  }
-
-  function ensurePrimaryRow() {
-    var pc = $("pilot-controls");
-    if (!pc) return;
-    var roll = $("btn-roll");
-    var end = $("btn-end");
-    var brk = $("break-row");
-    if (!roll || !end || !brk) return;
-
-    var row = $("phone-primary-row");
-    if (!row) {
-      row = document.createElement("div");
-      row.id = "phone-primary-row";
-      pc.insertBefore(row, pc.querySelector(".actions") || null);
-    }
-    if (roll.parentElement !== row) row.appendChild(roll);
-    if (brk.parentElement !== row) row.appendChild(brk);
-    if (end.parentElement !== row) row.appendChild(end);
-  }
-
-  function restorePrimaryRowToStock() {
-    var pc = $("pilot-controls");
-    var row = $("phone-primary-row");
-    if (!pc || !row) return;
-    var actions = pc.querySelector(".actions");
-    var roll = $("btn-roll");
-    var end = $("btn-end");
-    var brk = $("break-row");
-    if (brk) pc.insertBefore(brk, actions || null);
-    if (actions) {
-      if (roll) actions.insertBefore(roll, actions.firstChild);
-      if (end) actions.appendChild(end);
-    }
-    row.remove();
-  }
-
-  /** Remember where reused nodes live so we can put them back. */
   var nodeHome = {
-    telemetry: null,
+    roll: null,
     rankings: null,
     handbook: null,
     handbookLabel: null,
-    launch: null,
   };
 
   function rememberHome(key, el) {
@@ -186,72 +72,57 @@
       if (label) label.textContent = "Book";
       handbook.setAttribute("aria-label", "Book");
       handbook.title = "Book";
-      handbook.classList.add("phone-sheet-book");
+      handbook.classList.add("phone-thumb-book");
     } else {
       if (label) label.textContent = nodeHome.handbookLabel || "Ops Manual";
       handbook.setAttribute("aria-label", "Open Helios Ops Manual");
       handbook.title = "Helios Ops Manual";
-      handbook.classList.remove("phone-sheet-book");
+      handbook.classList.remove("phone-thumb-book");
     }
   }
 
   /**
-   * Open sheet: reuse #rankings (cash+fuel), #telemetry, and
-   * #btn-handbook-header as Book. No second HUD, no ROI% (#150).
+   * Bottom thumb bar: Roll, cash, fuel, Book. Same nodes, no sidebar hunt.
    */
-  function ensureSheetMeta(open) {
+  function ensureThumbBar(on) {
     var pc = $("pilot-controls");
-    if (!pc) return;
-
-    var meta = $("phone-sheet-meta");
-    if (!meta) {
-      meta = document.createElement("div");
-      meta.id = "phone-sheet-meta";
-      var primary = $("phone-primary-row");
-      if (primary && primary.parentNode === pc) {
-        pc.insertBefore(meta, primary.nextSibling);
-      } else {
-        var actions = pc.querySelector(".actions");
-        pc.insertBefore(meta, actions || null);
-      }
-    }
-
-    var tele = $("telemetry");
+    var roll = $("btn-roll");
     var rankings = $("rankings");
     var handbook = $("btn-handbook-header");
+    var bar = $("phone-thumb-bar");
 
-    if (open) {
-      // Vitals first, Book last — must be on the first sheet screen.
-      if (rankings) {
-        rememberHome("rankings", rankings);
-        meta.appendChild(rankings);
-      }
-      if (tele) {
-        rememberHome("telemetry", tele);
-        meta.appendChild(tele);
-      }
-      if (handbook) {
-        rememberHome("handbook", handbook);
-        labelBook(handbook, true);
-        meta.appendChild(handbook);
-      }
-      meta.hidden = false;
-    } else {
-      if (tele) restoreHome("telemetry", tele);
+    if (!on) {
+      if (roll) restoreHome("roll", roll);
       if (rankings) restoreHome("rankings", rankings);
       if (handbook) {
         labelBook(handbook, false);
         restoreHome("handbook", handbook);
       }
-      meta.hidden = true;
+      if (bar) bar.remove();
+      return;
+    }
+
+    if (!pc) return;
+    if (!bar) {
+      bar = document.createElement("div");
+      bar.id = "phone-thumb-bar";
+      pc.appendChild(bar);
+    }
+    if (roll) {
+      rememberHome("roll", roll);
+      bar.appendChild(roll);
+    }
+    if (rankings) {
+      rememberHome("rankings", rankings);
+      bar.appendChild(rankings);
+    }
+    if (handbook) {
+      rememberHome("handbook", handbook);
+      labelBook(handbook, true);
+      bar.appendChild(handbook);
     }
   }
 
-  /**
-   * Phone setup is an expedition card, not the desktop New Game column.
-   * WebDist still ships old "break tactics" radio essays and a 225px μ
-   * histogram. Reuse those nodes: short chip labels + one-line μ.
-   */
   var MU_BY_DIFF = { easy: 32, normal: 25, hard: 35, expert: 60 };
   var PROP_WORDS = { methane: "Methane", hydrogen: "Hydrogen" };
   var DIFF_WORDS = { easy: "Easy", normal: "Normal", hard: "Hard", expert: "Expert" };
@@ -334,19 +205,6 @@
     }
   }
 
-  function ensureLaunchReady(setup) {
-    var btn = $("btn-new");
-    if (setup) {
-      compactSetupCopy();
-      compactDurationMeter();
-      observeSetupChrome();
-      if (btn) {
-        btn.style.pointerEvents = "auto";
-        btn.disabled = false;
-      }
-    }
-  }
-
   function ensureSetupHitTargets() {
     var fleet = $("fleet-card");
     var setup = $("setup-body");
@@ -356,12 +214,18 @@
     }
     if (setup) {
       setup.style.pointerEvents = "auto";
-      // Setup mode must show the New Game form (stock uses [hidden] toggle).
       setup.hidden = false;
     }
     var standings = $("standings-panel");
     if (standings) standings.hidden = true;
-    ensureLaunchReady(true);
+    compactSetupCopy();
+    compactDurationMeter();
+    observeSetupChrome();
+    var btn = $("btn-new");
+    if (btn) {
+      btn.style.pointerEvents = "auto";
+      btn.disabled = false;
+    }
   }
 
   function layout() {
@@ -370,96 +234,15 @@
     html.classList.toggle("phone-play", play);
     html.classList.toggle("phone-setup", !play);
     html.classList.toggle("phone-modal-open", modal);
-
-    setHeaderHeight();
+    html.classList.remove("phone-sheet-open");
 
     if (!play) {
-      html.classList.remove("phone-sheet-open");
-      setSheetWidth(SHEET_CLOSED);
-      ensureSheetMeta(false);
-      restorePrimaryRowToStock();
+      ensureThumbBar(false);
       ensureSetupHitTargets();
       return;
     }
 
-    if (modal) {
-      // Keep sheet closed under Ops Manual / Lab so topics stay tappable.
-      html.classList.remove("phone-sheet-open");
-      setSheetWidth(SHEET_CLOSED);
-    }
-
-    ensureGrab();
-    ensurePrimaryRow();
-    var open = sheetOpen();
-    setSheetWidth(open ? SHEET_OPEN : SHEET_CLOSED);
-    ensureSheetMeta(open);
-  }
-
-  function onBoardTap(e) {
-    if (!isPlay() || !sheetOpen() || isModalOpen()) return;
-    closeSheet();
-  }
-
-  function bindBoardClose() {
-    var panel = document.querySelector(".board-panel");
-    if (!panel || panel.__phoneBoardBound) return;
-    panel.__phoneBoardBound = true;
-    panel.addEventListener("click", onBoardTap);
-  }
-
-  function onTouchStart(e) {
-    if (!isPlay() || isModalOpen() || !e.touches || !e.touches.length) {
-      touch.tracking = false;
-      return;
-    }
-    var t = e.touches[0];
-    var w = window.innerWidth;
-    var headerH = 48;
-    var top = document.querySelector("header.top");
-    if (top) {
-      var rh = top.getBoundingClientRect().height;
-      if (rh > 0) headerH = rh;
-    }
-    // Ignore gestures that start in the header (New game / Lab / Ops).
-    if (t.clientY <= headerH) {
-      touch.tracking = false;
-      return;
-    }
-    touch.tracking = true;
-    touch.startX = t.clientX;
-    touch.startY = t.clientY;
-    touch.fromEdge = t.clientX >= w - Math.max(EDGE_PX, w * SHEET_CLOSED);
-    touch.fromSheet = sheetOpen() && t.clientX >= w * (1 - SHEET_OPEN);
-  }
-
-  function onTouchMove(e) {
-    if (!touch.tracking || isModalOpen() || !e.touches || !e.touches.length) return;
-    var t = e.touches[0];
-    var dx = t.clientX - touch.startX;
-    var dy = t.clientY - touch.startY;
-    if (Math.abs(dx) < 12 || Math.abs(dx) < Math.abs(dy)) return;
-    if (touch.fromEdge || touch.fromSheet) {
-      e.preventDefault();
-    }
-  }
-
-  function onTouchEnd(e) {
-    if (!touch.tracking) return;
-    touch.tracking = false;
-    if (!isPlay() || isModalOpen()) return;
-    var t = e.changedTouches && e.changedTouches[0];
-    if (!t) return;
-    var dx = t.clientX - touch.startX;
-    var dy = t.clientY - touch.startY;
-    if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) * 1.1) return;
-
-    if (dx < 0 && touch.fromEdge && !sheetOpen()) {
-      openSheet();
-      return;
-    }
-    if (dx > 0 && touch.fromSheet && sheetOpen()) {
-      closeSheet();
-    }
+    ensureThumbBar(true);
   }
 
   function ensureBadge() {
@@ -487,7 +270,6 @@
     html.classList.remove("native-shell");
     ensureBadge();
     layout();
-    bindBoardClose();
     observeModals();
 
     var fc = $("fleet-card");
@@ -498,11 +280,6 @@
       });
     }
 
-    // Capture=false so handbook/lab handlers run normally; we only preventDefault
-    // on edge sheet pans when no modal is open.
-    document.addEventListener("touchstart", onTouchStart, { passive: true });
-    document.addEventListener("touchmove", onTouchMove, { passive: false });
-    document.addEventListener("touchend", onTouchEnd, { passive: true });
     window.addEventListener("resize", layout);
     window.addEventListener("orientationchange", layout);
     if (window.visualViewport) {

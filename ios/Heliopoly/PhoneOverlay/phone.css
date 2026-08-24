@@ -1,8 +1,8 @@
-/* HeliopolyPhone overlay (#148 / #133).
+/* HeliopolyPhone overlay (#150 rewrite).
    Injected only by the phone target. Never lock 100dvh to a 0-height first layout.
-   Setup: welcome / fleet / Launch stay tappable — Pilot does not cover them.
-   Play: board is the page; ~10% right grab handle; swipe opens Pilot 70–90%.
-   Modals (Ops Manual / Lab): must keep their own hit targets. */
+   Setup: expedition card — Launch on the first screen, Pilot off.
+   Play: board is the page. Bottom thumbs: Roll, cash, fuel, Book.
+   No right-edge handle. Modals keep their own hit targets. */
 
 html.phone-proto,
 html.phone-proto.native-shell,
@@ -328,7 +328,9 @@ html.phone-proto.phone-setup #phone-primary-row {
   left: -9999px !important;
 }
 
-/* ========== PLAY: board is the page; right-edge sheet below header ========== */
+/* ========== PLAY: circle is the page; thumbs at the bottom (#150) ==========
+   Not a side sheet. Roll, cash, fuel, Book in the thumb zone.
+   Extra actions (Buy / End / Break) stay in the same bottom dock when live. */
 html.phone-proto.phone-play,
 html.phone-proto.phone-play body {
   height: 100% !important;
@@ -342,20 +344,18 @@ html.phone-proto.phone-play #app {
   overflow: hidden !important;
   padding: 0 !important;
   position: relative;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
-/* Full-width header ABOVE the grab strip so New game / Lab / Ops stay tappable. */
 html.phone-proto.phone-play header.top {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
+  position: relative;
+  flex: 0 0 auto;
   z-index: 60;
   min-height: 44px;
-  padding: max(4px, env(safe-area-inset-top, 0px)) 8px 4px;
-  background: rgba(12, 18, 32, 0.94);
+  padding: 4px 8px;
+  background: rgba(12, 18, 32, 0.96);
   border-bottom: 1px solid #2a3555;
-  box-sizing: border-box;
   pointer-events: auto !important;
 }
 
@@ -366,19 +366,6 @@ html.phone-proto.phone-play .top-row {
   gap: 6px;
 }
 
-html.phone-proto.phone-play .top-actions {
-  pointer-events: auto !important;
-  position: relative;
-  z-index: 61;
-}
-
-html.phone-proto.phone-play .top-actions button,
-html.phone-proto.phone-play .top-actions .setup-toggle {
-  pointer-events: auto !important;
-  position: relative;
-  z-index: 62;
-}
-
 html.phone-proto.phone-play .top h1 {
   font-size: 0.85rem;
   white-space: nowrap;
@@ -386,24 +373,24 @@ html.phone-proto.phone-play .top h1 {
 }
 
 html.phone-proto.phone-play .title-tagline,
-html.phone-proto.phone-play .badge {
+html.phone-proto.phone-play .badge,
+html.phone-proto.phone-play .anim-speed-field {
   display: none !important;
 }
 
 html.phone-proto.phone-play .layout {
-  position: absolute;
-  inset: 0;
-  display: block;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex !important;
+  flex-direction: column !important;
   gap: 0;
+  position: relative;
 }
 
-/* Board fills everything left of the sheet, below the header. */
 html.phone-proto.phone-play .board-panel {
-  position: absolute;
-  top: var(--phone-header-h, 48px);
-  left: 0;
-  bottom: 0;
-  right: var(--phone-sheet-w, 10%);
+  flex: 1 1 auto;
+  min-height: 0;
+  position: relative;
   margin: 0;
   border: none;
   border-radius: 0;
@@ -412,7 +399,6 @@ html.phone-proto.phone-play .board-panel {
   justify-content: center;
   background: #0b1020;
   z-index: 1;
-  transition: right 0.22s ease;
   pointer-events: auto;
 }
 
@@ -431,322 +417,199 @@ html.phone-proto.phone-play #welcome-card {
 }
 
 html.phone-proto.phone-play .side {
-  position: static;
+  flex: 0 0 auto;
+  position: relative;
   max-height: none !important;
   overflow: visible !important;
   gap: 0;
   pointer-events: none;
+  z-index: 50;
 }
 
-/* "On the ledger" is the desktop standings card — not the phone chrome.
-   Cash/fuel are reused as chips inside the controls sheet (#150). */
 html.phone-proto.phone-play .side > #fleet-card,
-html.phone-proto.phone-play .side > .log-card {
+html.phone-proto.phone-play .side > .log-card,
+html.phone-proto.phone-play #phone-grab,
+html.phone-proto.phone-play #phone-primary-row,
+html.phone-proto.phone-play #phone-sheet-meta {
   display: none !important;
 }
 
-/* Right-edge Pilot sheet starts BELOW header so it never covers New game. */
 html.phone-proto.phone-play #pilot-controls {
-  position: fixed !important;
-  top: var(--phone-header-h, 48px);
-  right: 0;
-  bottom: 0;
-  width: var(--phone-sheet-w, 10%);
+  position: relative !important;
+  inset: auto !important;
+  width: 100% !important;
   z-index: 50;
   margin: 0 !important;
-  border-radius: 14px 0 0 14px;
+  border-radius: 16px 16px 0 0;
   border: 1px solid #3d5080;
-  border-right: none;
-  background: linear-gradient(180deg, #1a2440 0%, #141b2f 45%);
-  box-shadow: -6px 0 24px rgba(0, 0, 0, 0.35);
-  padding: 8px
-    max(8px, env(safe-area-inset-right, 0px))
-    max(10px, env(safe-area-inset-bottom, 0px))
-    12px;
+  border-bottom: none;
+  background: linear-gradient(180deg, #1a2440 0%, #141b2f 60%);
+  padding: 8px 10px max(10px, env(safe-area-inset-bottom, 0px));
   box-sizing: border-box;
-  overflow: hidden;
-  display: flex !important;
-  flex-direction: column;
-  gap: 8px;
-  pointer-events: auto;
-  transition: width 0.22s ease;
-  -webkit-overflow-scrolling: touch;
-}
-
-html.phone-proto.phone-play:not(.phone-sheet-open) #pilot-controls {
-  padding-left: 0;
-  padding-right: 0;
-  align-items: center;
-  justify-content: center;
-}
-
-html.phone-proto.phone-play:not(.phone-sheet-open) #pilot-controls > *:not(#phone-grab) {
-  display: none !important;
-}
-
-html.phone-proto.phone-play:not(.phone-sheet-open) #phone-grab {
-  display: flex !important;
-}
-
-html.phone-proto.phone-play.phone-sheet-open #pilot-controls {
-  overflow-y: auto;
-}
-
-/* Grab handle — vertical pill + chevron, ~10% strip when closed. */
-#phone-grab {
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  width: 100%;
-  min-height: 120px;
-  padding: 12px 0;
-  border: none;
-  background: transparent;
-  color: #ffc857;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-
-html.phone-proto.phone-play.phone-sheet-open #phone-grab {
-  display: flex !important;
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 28px;
-  min-height: 72px;
-  padding: 0;
-  z-index: 2;
-}
-
-.phone-grab-pill {
-  width: 6px;
-  height: 56px;
-  border-radius: 999px;
-  background: linear-gradient(180deg, #ffc857 0%, #e0a830 100%);
-  box-shadow: 0 0 0 3px rgba(255, 200, 87, 0.22);
-}
-
-.phone-grab-chevron {
-  font-size: 1.1rem;
-  font-weight: 700;
-  line-height: 1;
-  color: #ffc857;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-}
-
-html.phone-proto.phone-play:not(.phone-sheet-open) .phone-grab-chevron {
-  font-size: 1.35rem;
-}
-
-html.phone-proto.phone-play:not(.phone-sheet-open) .phone-grab-pill {
-  width: 8px;
-  height: 72px;
-}
-
-html.phone-proto.phone-play.phone-sheet-open .phone-grab-chevron {
-  display: none;
-}
-
-html.phone-proto.phone-play.phone-sheet-open .phone-grab-pill {
-  width: 5px;
-  height: 48px;
-  background: #7a8bb0;
-  box-shadow: none;
-}
-
-/* Sheet open: first row = Roll, Break, End. */
-html.phone-proto.phone-play.phone-sheet-open #phone-primary-row {
-  display: grid !important;
-  grid-template-columns: 1fr auto 1fr;
-  gap: 8px;
-  align-items: stretch;
-  flex: 0 0 auto;
-  order: 1;
-}
-
-html.phone-proto.phone-play.phone-sheet-open #phone-primary-row #btn-roll,
-html.phone-proto.phone-play.phone-sheet-open #phone-primary-row #btn-end {
-  min-height: 48px !important;
-  font-size: 1rem !important;
-  font-weight: 700;
-}
-
-html.phone-proto.phone-play.phone-sheet-open #phone-primary-row #break-row {
-  display: flex !important;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  margin: 0;
-  min-height: 48px;
-  visibility: visible !important;
-}
-
-html.phone-proto.phone-play.phone-sheet-open #phone-primary-row #break-row.hidden-vis {
-  visibility: visible !important;
-  opacity: 0.45;
-}
-
-html.phone-proto.phone-play.phone-sheet-open .pilot-controls-head {
-  order: 0;
-  flex: 0 0 auto;
-}
-
-html.phone-proto.phone-play.phone-sheet-open .pilot-controls-head h2 {
-  font-size: 0.95rem;
-  margin: 0;
-}
-
-/* Rings / course / head wait — sheet chrome is Roll + vitals + Book (#150). */
-html.phone-proto.phone-play.phone-sheet-open #dir-row,
-html.phone-proto.phone-play.phone-sheet-open .ring-opacity-field,
-html.phone-proto.phone-play.phone-sheet-open .pilot-controls-head {
-  display: none !important;
-}
-
-/* Sheet is Pilot controls. Vitals are chips, not a transplanted ledger. */
-html.phone-proto.phone-play.phone-sheet-open #phone-sheet-meta {
+  overflow: visible;
   display: flex !important;
   flex-direction: column;
   gap: 6px;
-  order: 2;
-  flex: 0 0 auto;
-  margin: 0;
-  padding: 6px 0 4px;
-  border-top: 1px solid #2a3555;
-  pointer-events: auto !important;
+  pointer-events: auto;
 }
 
-html.phone-proto.phone-play:not(.phone-sheet-open) #phone-sheet-meta {
+html.phone-proto.phone-play .pilot-controls-head,
+html.phone-proto.phone-play #dir-row,
+html.phone-proto.phone-play .ring-opacity-field,
+html.phone-proto.phone-play #telemetry {
   display: none !important;
 }
 
-html.phone-proto.phone-play.phone-sheet-open #phone-sheet-meta #telemetry {
-  display: block !important;
-  margin: 0 !important;
-  padding: 4px 8px !important;
-  font-size: 0.72rem !important;
-  line-height: 1.25 !important;
-  max-height: 2.6em;
-  overflow: hidden;
-  pointer-events: none;
-  order: 2;
-}
-
-html.phone-proto.phone-play.phone-sheet-open #phone-sheet-meta #rankings {
-  display: flex !important;
-  flex-direction: column;
-  gap: 0;
-  margin: 0 !important;
+html.phone-proto.phone-play #break-row {
+  display: none;
   order: 1;
-  pointer-events: auto !important;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  min-height: 40px;
 }
 
-/* Active row only — strip standings chrome so this is not "On the ledger". */
-html.phone-proto.phone-play.phone-sheet-open #phone-sheet-meta #rankings .rank-row {
+html.phone-proto.phone-play #break-row:not(.hidden-vis) {
+  display: flex !important;
+}
+
+html.phone-proto.phone-play .actions {
+  display: flex !important;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  order: 2;
+}
+
+html.phone-proto.phone-play .actions #btn-roll {
   display: none !important;
 }
 
-html.phone-proto.phone-play.phone-sheet-open #phone-sheet-meta #rankings .rank-row.active,
-html.phone-proto.phone-play.phone-sheet-open #phone-sheet-meta #rankings:not(:has(.rank-row.active)) .rank-row:first-child {
+html.phone-proto.phone-play .actions button:disabled {
+  display: none !important;
+}
+
+html.phone-proto.phone-play .actions button:not(:disabled) {
+  flex: 1 1 auto;
+  min-height: 40px !important;
+  font-size: 0.85rem !important;
+}
+
+#phone-thumb-bar,
+html.phone-proto.phone-play #phone-thumb-bar {
+  display: flex !important;
+  align-items: stretch;
+  gap: 8px;
+  order: 3;
+  width: 100%;
+}
+
+html.phone-proto.phone-play #phone-thumb-bar #btn-roll {
+  display: inline-flex !important;
+  flex: 1.4 1 0;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px !important;
+  font-size: 1.15rem !important;
+  font-weight: 800 !important;
+  margin: 0 !important;
+}
+
+html.phone-proto.phone-play #phone-thumb-bar #rankings {
+  display: flex !important;
+  flex: 1.2 1 0;
+  min-width: 0;
+  margin: 0 !important;
+  align-items: center;
+}
+
+html.phone-proto.phone-play #phone-thumb-bar #rankings .rank-row {
+  display: none !important;
+}
+
+html.phone-proto.phone-play #phone-thumb-bar #rankings .rank-row.active,
+html.phone-proto.phone-play #phone-thumb-bar #rankings:not(:has(.rank-row.active)) .rank-row:first-child {
   display: flex !important;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
-  padding: 8px 10px !important;
+  gap: 6px 10px;
+  width: 100%;
+  padding: 6px 8px !important;
   margin: 0 !important;
   border: 1px solid #3d5080;
   border-radius: 10px;
   background: #152038;
 }
 
-html.phone-proto.phone-play.phone-sheet-open #phone-sheet-meta #rankings .rank-row.active .swatch,
-html.phone-proto.phone-play.phone-sheet-open #phone-sheet-meta #rankings .rank-row.active .rank-id,
-html.phone-proto.phone-play.phone-sheet-open #phone-sheet-meta #rankings .rank-row.active .rank-prop {
+html.phone-proto.phone-play #phone-thumb-bar #rankings .rank-row.active .swatch,
+html.phone-proto.phone-play #phone-thumb-bar #rankings .rank-row.active .rank-id,
+html.phone-proto.phone-play #phone-thumb-bar #rankings .rank-row.active .rank-prop {
   display: none !important;
 }
 
-html.phone-proto.phone-play.phone-sheet-open #phone-sheet-meta #rankings .rank-row.active .rank-body,
-html.phone-proto.phone-play.phone-sheet-open #phone-sheet-meta #rankings .rank-row.active .rank-top {
+html.phone-proto.phone-play #phone-thumb-bar #rankings .rank-row.active .rank-body,
+html.phone-proto.phone-play #phone-thumb-bar #rankings .rank-row.active .rank-top {
   display: flex !important;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   width: 100%;
 }
 
-html.phone-proto.phone-play.phone-sheet-open #phone-sheet-meta #rankings .rank-row.active .rank-detail {
+html.phone-proto.phone-play #phone-thumb-bar #rankings .rank-row.active .rank-detail {
   font-size: 0 !important;
   letter-spacing: 0;
 }
 
-html.phone-proto.phone-play.phone-sheet-open #phone-sheet-meta #rankings .rank-row.active .cash {
+html.phone-proto.phone-play #phone-thumb-bar #rankings .rank-row.active .cash {
   display: inline !important;
-  font-size: 1rem !important;
+  font-size: 0.95rem !important;
   font-weight: 700;
   color: #ffc857;
 }
 
-html.phone-proto.phone-play.phone-sheet-open #phone-sheet-meta #rankings .rank-row.active .fuel-bar,
-html.phone-proto.phone-play.phone-sheet-open #phone-sheet-meta #rankings .rank-row.active .fuel-n {
+html.phone-proto.phone-play #phone-thumb-bar #rankings .rank-row.active .fuel-bar,
+html.phone-proto.phone-play #phone-thumb-bar #rankings .rank-row.active .fuel-n {
   display: inline !important;
-  font-size: 0.9rem !important;
+  font-size: 0.85rem !important;
   letter-spacing: normal;
 }
 
-/* Hide net-worth tail; keep .cash (not ROI%). */
-html.phone-proto.phone-play.phone-sheet-open #phone-sheet-meta #rankings .rank-row.active .rank-money {
+html.phone-proto.phone-play #phone-thumb-bar #rankings .rank-row.active .rank-money {
   font-size: 0 !important;
   letter-spacing: 0;
 }
 
-html.phone-proto.phone-play.phone-sheet-open #phone-sheet-meta #rankings .rank-row.active .rank-money .cash {
-  font-size: 1rem !important;
+html.phone-proto.phone-play #phone-thumb-bar #rankings .rank-row.active .rank-money .cash {
+  font-size: 0.95rem !important;
 }
 
-html.phone-proto.phone-play.phone-sheet-open #phone-sheet-meta #btn-handbook-header,
-html.phone-proto.phone-play.phone-sheet-open #phone-sheet-meta #btn-handbook-header.phone-sheet-book {
+html.phone-proto.phone-play #phone-thumb-bar #btn-handbook-header,
+html.phone-proto.phone-play #phone-thumb-bar #btn-handbook-header.phone-thumb-book {
   display: inline-flex !important;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  width: 100%;
-  min-height: 48px !important;
-  margin: 4px 0 0 !important;
-  flex: 0 0 auto;
-  order: 99;
-  pointer-events: auto !important;
+  gap: 6px;
+  min-width: 64px;
+  min-height: 56px !important;
+  margin: 0 !important;
+  padding: 6px 10px !important;
   background: #1e2a48 !important;
   border: 1px solid #3d5080 !important;
   border-radius: 10px;
   font-weight: 700 !important;
-  font-size: 1rem !important;
+  font-size: 0.9rem !important;
   color: #ffc857 !important;
 }
 
-html.phone-proto.phone-play.phone-sheet-open #phone-sheet-meta #btn-handbook-header .ops-manual-icon {
-  width: 28px;
-  height: 28px;
+html.phone-proto.phone-play #phone-thumb-bar #btn-handbook-header .ops-manual-icon {
+  width: 22px;
+  height: 22px;
 }
 
-/* While Book is in the sheet, header must not look like Ops is still there. */
-html.phone-proto.phone-play.phone-sheet-open header.top #btn-handbook-header {
-  display: none !important;
-}
-
-html.phone-proto.phone-play.phone-sheet-open .actions {
-  order: 3;
-  display: grid !important;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-top: 4px;
-}
-
-html.phone-proto.phone-play.phone-sheet-open .actions #btn-roll,
-html.phone-proto.phone-play.phone-sheet-open .actions #btn-end {
+html.phone-proto.phone-play header.top #btn-handbook-header {
   display: none !important;
 }
 
@@ -767,10 +630,6 @@ html.phone-proto #phone-proto-badge {
   padding: 3px 7px;
   border-radius: 999px;
   pointer-events: none !important;
-}
-
-html.phone-proto.phone-play.phone-sheet-open .board-panel {
-  cursor: pointer;
 }
 
 /* ========== Ops Manual / Lab / overlays: hit-test above Pilot ========== */
