@@ -51,12 +51,15 @@ struct GameWebView: UIViewRepresentable {
         }
 
         if injectPhoneOverlay {
-            // Tiny loader only — do not inline phone.css/js into the script
-            // (large string interpolation has blanked WKWebView before).
+            // Class only at parse time. CSS/JS are injected after navigation
+            // from bundle files — relative heliopoly:// URLs never loaded on device.
             config.userContentController.addUserScript(
                 WKUserScript(
-                    source: Self.phoneOverlayLoaderJS,
-                    injectionTime: .atDocumentEnd,
+                    source: """
+                    document.documentElement.classList.remove('native-shell');
+                    document.documentElement.classList.add('touch-ui','phone-proto');
+                    """,
+                    injectionTime: .atDocumentStart,
                     forMainFrameOnly: true
                 )
             )
@@ -68,10 +71,10 @@ struct GameWebView: UIViewRepresentable {
         webView.isOpaque = false
         webView.backgroundColor = Self.spaceBackground
         webView.scrollView.backgroundColor = Self.spaceBackground
-        // Phone: allow page scroll (native-shell lock blanked portrait).
-        webView.scrollView.contentInsetAdjustmentBehavior = .automatic
-        webView.scrollView.bounces = true
-        webView.scrollView.alwaysBounceVertical = true
+        // Overlay owns layout. WKWebView rubber-band was the scroll-fight in HITL.
+        webView.scrollView.contentInsetAdjustmentBehavior = .never
+        webView.scrollView.bounces = false
+        webView.scrollView.alwaysBounceVertical = false
         webView.scrollView.alwaysBounceHorizontal = false
         webView.scrollView.bouncesZoom = false
         webView.allowsBackForwardNavigationGestures = false
@@ -105,20 +108,17 @@ struct GameWebView: UIViewRepresentable {
         UIColor(red: 0.043, green: 0.063, blue: 0.125, alpha: 1) // #0b1020
     }
 
-    /// Served from bundled `WebDist/phone-overlay/` via heliopoly:// (#148).
-    private static let phoneOverlayLoaderJS = """
-    (function () {
-      if (document.getElementById('phone-overlay-js')) return;
-      var l = document.createElement('link');
-      l.rel = 'stylesheet';
-      l.href = 'phone-overlay/phone.css';
-      (document.head || document.documentElement).appendChild(l);
-      var s = document.createElement('script');
-      s.id = 'phone-overlay-js';
-      s.src = 'phone-overlay/phone.js';
-      (document.head || document.documentElement).appendChild(s);
-    })();
-    """
+    /// Read PhoneOverlay files from the app bundle (Copy PhoneOverlay → WebDist/phone-overlay).
+    fileprivate static func overlayResource(name: String, ext: String) -> String? {
+        let bundle = Bundle.main
+        let url =
+            bundle.url(forResource: name, withExtension: ext, subdirectory: "WebDist/phone-overlay")
+            ?? bundle.url(forResource: name, withExtension: ext, subdirectory: "PhoneOverlay")
+        guard let url, let text = try? String(contentsOf: url, encoding: .utf8) else {
+            return nil
+        }
+        return text
+    }
 
     final class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         var onLoadFailed: ((String) -> Void)?
@@ -137,6 +137,43 @@ struct GameWebView: UIViewRepresentable {
             guard !didStartLoad else { return }
             didStartLoad = true
             loadBundledGame(into: webView)
+        }
+
+        func injectOverlay(into webView: WKWebView) {
+            guard
+                let css = GameWebView.overlayResource(name: "phone", ext: "css"),
+                let js = GameWebView.overlayResource(name: "phone", ext: "js"),
+                let cssJSON = try? String(data: JSONEncoder().encode(css), encoding: .utf8),
+                let jsJSON = try? String(data: JSONEncoder().encode(js), encoding: .utf8)
+            else {
+                onLoadFailed?(
+                    "PhoneOverlay missing from the phone bundle. Clean Build HeliopolyPhone."
+                )
+                return
+            }
+            let source = """
+            (function () {
+              document.documentElement.classList.remove('native-shell');
+              document.documentElement.classList.add('touch-ui', 'phone-proto');
+              if (!document.getElementById('phone-overlay-css')) {
+                var st = document.createElement('style');
+                st.id = 'phone-overlay-css';
+                st.textContent = \(cssJSON);
+                (document.head || document.documentElement).appendChild(st);
+              }
+              if (!window.__heliopolyPhoneProto) {
+                var s = document.createElement('script');
+                s.id = 'phone-overlay-js';
+                s.textContent = \(jsJSON);
+                (document.documentElement).appendChild(s);
+              }
+            })();
+            """
+            webView.evaluateJavaScript(source) { _, error in
+                if let error {
+                    self.onLoadFailed?("PhoneOverlay inject failed: \(error.localizedDescription)")
+                }
+            }
         }
 
         func loadBundledGame(into webView: WKWebView) {
@@ -176,14 +213,8 @@ struct GameWebView: UIViewRepresentable {
             webView.scrollView.contentOffset = .zero
 
             // Phone: never apply iPad native-shell (100dvh lock blanks portrait).
-            // Overlay loader adds phone-proto; keep a class nudge here too.
             if injectPhoneOverlay {
-                webView.evaluateJavaScript(
-                    """
-                    document.documentElement.classList.remove('native-shell');
-                    document.documentElement.classList.add('touch-ui', 'phone-proto');
-                    """
-                )
+                injectOverlay(into: webView)
             } else {
                 webView.evaluateJavaScript(
                     """
