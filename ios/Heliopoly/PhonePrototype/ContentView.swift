@@ -35,6 +35,7 @@ struct PhoneContentView: View {
             }
         }
         .ignoresSafeArea(edges: .top)
+        .preferredColorScheme(.dark)
     }
 
     @ViewBuilder

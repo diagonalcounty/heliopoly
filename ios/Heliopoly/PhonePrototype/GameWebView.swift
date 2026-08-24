@@ -111,6 +111,18 @@ struct GameWebView: UIViewRepresentable {
     /// CSS that does not depend on PhoneOverlay files or phone.js.
     /// Uses :has(#fleet-card.mode-standings) so play restacks even if JS never runs.
     private static let criticalOverlayCSS = """
+    html.phone-proto{color-scheme:dark!important;background:#0b1020!important;color:#e8eefc!important}
+    html.phone-proto body,html.phone-proto #app{background:#0b1020!important;color:#e8eefc!important}
+    html.phone-proto.phone-setup .board-panel,html.phone-proto.phone-setup .board-stage,html.phone-proto.phone-setup #board{max-width:56px!important;max-height:56px!important;width:56px!important;height:56px!important;overflow:hidden!important;margin:0 auto!important}
+    html.phone-proto.phone-setup #fleet-card,html.phone-proto.phone-setup #setup-body{display:flex!important;visibility:visible!important;background:#141b2f!important;color:#e8eefc!important}
+    html.phone-proto.phone-setup #btn-new{display:block!important;color:#e8eefc!important}
+    html.phone-proto.phone-setup #setup-body .check:has([value="methane"])::after{content:"Methane"}
+    html.phone-proto.phone-setup #setup-body .check:has([value="hydrogen"])::after{content:"Hydrogen"}
+    html.phone-proto.phone-setup #setup-body .check:has([value="easy"])::after{content:"Easy"}
+    html.phone-proto.phone-setup #setup-body .check:has([value="normal"])::after{content:"Normal"}
+    html.phone-proto.phone-setup #setup-body .check:has([value="hard"])::after{content:"Hard"}
+    html.phone-proto.phone-setup #setup-body .check:has([value="expert"])::after{content:"Expert"}
+    html.phone-proto.phone-setup #setup-body .check::after{font-size:.9rem;font-weight:600;color:#e8eefc}
     html.phone-proto #btn-selfplay,html.phone-proto .anim-speed-field{display:none!important}
     html.phone-proto #handbook-root.hidden,html.phone-proto #lab-root.hidden,html.phone-proto #duel-root.hidden,html.phone-proto #announce-root.hidden,html.phone-proto #auction-root.hidden,html.phone-proto #dossier-root.hidden,html.phone-proto #eac-root.hidden{display:none!important;pointer-events:none!important;z-index:-1!important}
     html.phone-proto.phone-setup #welcome-card,html.phone-proto.phone-setup #pilot-controls,html.phone-proto.phone-setup .log-card{display:none!important;pointer-events:none!important}
@@ -152,6 +164,9 @@ struct GameWebView: UIViewRepresentable {
             var h=document.documentElement;
             h.classList.remove('native-shell');
             h.classList.add('touch-ui','phone-proto','phone-setup');
+            h.style.colorScheme='dark';
+            h.style.background='#0b1020';
+            h.style.color='#e8eefc';
             if(!document.getElementById('phone-critical-css')){
               var s=document.createElement('style');
               s.id='phone-critical-css';
@@ -195,10 +210,9 @@ struct GameWebView: UIViewRepresentable {
             loadBundledGame(into: webView)
         }
 
-        func injectOverlay(into webView: WKWebView) {
+        func injectOverlay(into webView: WKWebView, js: Bool) {
             guard
                 let css = GameWebView.overlayResource(name: "phone", ext: "css"),
-                let js = GameWebView.overlayResource(name: "phone", ext: "js"),
                 let cssJSON = try? String(data: JSONEncoder().encode(css), encoding: .utf8)
             else {
                 onLoadFailed?(
@@ -210,13 +224,21 @@ struct GameWebView: UIViewRepresentable {
             // inserted from here does not run in WKWebView (Book/thumbs never appeared).
             let cssSource = """
             (function () {
-              document.documentElement.classList.remove('native-shell');
-              document.documentElement.classList.add('touch-ui', 'phone-proto', 'phone-setup');
+              var h = document.documentElement;
+              h.classList.remove('native-shell');
+              h.classList.add('touch-ui', 'phone-proto', 'phone-setup');
+              h.style.colorScheme = 'dark';
+              h.style.background = '#0b1020';
+              h.style.color = '#e8eefc';
+              if (document.body) {
+                document.body.style.background = '#0b1020';
+                document.body.style.color = '#e8eefc';
+              }
               if (!document.getElementById('phone-overlay-css')) {
                 var st = document.createElement('style');
                 st.id = 'phone-overlay-css';
                 st.textContent = \(cssJSON);
-                (document.head || document.documentElement).appendChild(st);
+                (document.head || h).appendChild(st);
               }
             })();
             """
@@ -225,7 +247,10 @@ struct GameWebView: UIViewRepresentable {
                     self.onLoadFailed?("PhoneOverlay CSS inject failed: \(error.localizedDescription)")
                     return
                 }
-                webView.evaluateJavaScript(js) { _, jsError in
+                guard js, let overlayJS = GameWebView.overlayResource(name: "phone", ext: "js") else {
+                    return
+                }
+                webView.evaluateJavaScript(overlayJS) { _, jsError in
                     if let jsError {
                         self.onLoadFailed?(
                             "PhoneOverlay JS inject failed: \(jsError.localizedDescription)"
@@ -260,9 +285,21 @@ struct GameWebView: UIViewRepresentable {
             webView.loadFileURL(indexURL, allowingReadAccessTo: accessDir)
         }
 
+        func webView(
+            _ webView: WKWebView,
+            didStartProvisionalNavigation navigation: WKNavigation!
+        ) {
+            webView.backgroundColor = GameWebView.spaceBackground
+            webView.scrollView.backgroundColor = GameWebView.spaceBackground
+        }
+
         func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
             webView.backgroundColor = GameWebView.spaceBackground
             webView.scrollView.backgroundColor = GameWebView.spaceBackground
+            // Don't wait for images/fonts — that's a white scrollable empty page.
+            if injectPhoneOverlay {
+                injectOverlay(into: webView, js: false)
+            }
         }
 
         func webView(
@@ -280,7 +317,7 @@ struct GameWebView: UIViewRepresentable {
 
             // Phone: never apply iPad native-shell (100dvh lock blanks portrait).
             if injectPhoneOverlay {
-                injectOverlay(into: webView)
+                injectOverlay(into: webView, js: true)
             } else {
                 webView.evaluateJavaScript(
                     """
@@ -551,12 +588,21 @@ final class WebDistSchemeHandler: NSObject, WKURLSchemeHandler {
             return
         }
 
+        var body = data
+        let ext = fileURL.pathExtension.lowercased()
+        // Vite stamps crossorigin on module/CSS. WKWebView custom schemes treat
+        // that as CORS and can drop both — unstyled HTML, white empty scroll.
+        if ext == "html" || ext == "htm", var html = String(data: data, encoding: .utf8) {
+            html = html.replacingOccurrences(of: " crossorigin", with: "")
+            body = Data(html.utf8)
+        }
+
         let mime = Self.mimeType(for: fileURL)
         let headers: [String: String] = [
             "Content-Type": mime,
-            "Content-Length": "\(data.count)",
-            // Harmless for same-origin scheme loads; helps if anything still CORS-checks.
+            "Content-Length": "\(body.count)",
             "Access-Control-Allow-Origin": "*",
+            "Cross-Origin-Resource-Policy": "cross-origin",
             "Cache-Control": "no-cache",
         ]
 
@@ -573,7 +619,7 @@ final class WebDistSchemeHandler: NSObject, WKURLSchemeHandler {
         }
 
         urlSchemeTask.didReceive(response)
-        urlSchemeTask.didReceive(data)
+        urlSchemeTask.didReceive(body)
         urlSchemeTask.didFinish()
     }
 
