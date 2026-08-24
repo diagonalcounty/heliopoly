@@ -3,6 +3,7 @@
  * Run: npx tsx src/handbook/legendCanvases.test.ts
  */
 import { createV0Board, getNode } from "../core/board";
+import { liveTopicLegend } from "./legendCanvases";
 
 let failed = 0;
 function assert(cond: unknown, msg: string): void {
@@ -42,6 +43,8 @@ for (const id of LEGEND_BODY_NODES) {
 }
 
 assert(LEGEND_BODY_NODES.length >= 12, "legend samples every body family");
+assert(liveTopicLegend("depots") === "depot", "Fuel depots topic uses live tank badge");
+assert(liveTopicLegend("legend") === null, "Board legend title icon stays static");
 
 if (failed) {
   console.error(`\n${failed} legend-canvas check(s) failed.`);

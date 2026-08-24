@@ -127,6 +127,17 @@ function paintRocket(
   drawRocketToken(ctx, w / 2, h / 2, EXAMPLE_COLOR, moving);
 }
 
+/** Same tank badge as the board, scaled to fill a legend tile. */
+function paintDepot(ctx: CanvasRenderingContext2D, w: number, h: number): void {
+  paintStars(ctx, w, h);
+  const scale = Math.min(w, h) / 26;
+  ctx.save();
+  ctx.translate(w / 2, h / 2);
+  ctx.scale(scale, scale);
+  drawFuelDepotIcon(ctx, 0, 0);
+  ctx.restore();
+}
+
 function paintRings(ctx: CanvasRenderingContext2D, w: number, h: number): void {
   paintStars(ctx, w, h);
   const cx = w / 2;
@@ -168,6 +179,12 @@ function paintRings(ctx: CanvasRenderingContext2D, w: number, h: number): void {
   ctx.fill();
 }
 
+/** Topics whose TOC / title icon is live board paint (not a static PNG). */
+export function liveTopicLegend(topicId: string): string | null {
+  if (topicId === "depots") return "depot";
+  return null;
+}
+
 /** Fill every `canvas[data-legend]` under `root` (the handbook article). */
 export function paintHandbookLegend(root: HTMLElement): void {
   const canvases = root.querySelectorAll<HTMLCanvasElement>("canvas[data-legend]");
@@ -182,6 +199,10 @@ export function paintHandbookLegend(root: HTMLElement): void {
 
     if (kind === "rocket") {
       paintRocket(ctx, w, h, canvas.dataset.moving === "1");
+      continue;
+    }
+    if (kind === "depot") {
+      paintDepot(ctx, w, h);
       continue;
     }
     if (kind === "rings") {

@@ -1394,6 +1394,12 @@ body.handbook-open {
   border: 1px solid rgba(201, 162, 39, 0.35);
 }
 
+canvas.handbook-toc-icon,
+canvas.handbook-article-icon {
+  image-rendering: auto;
+  display: block;
+}
+
 .handbook-toc-item:hover {
   background: rgba(110, 200, 255, 0.08);
   color: var(--text);
