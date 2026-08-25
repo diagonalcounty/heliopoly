@@ -26,31 +26,31 @@ Always apply the five steps (Question → Delete → Simplify → Accelerate →
 
 ---
 
-## Daily Ceremony Sequence (runs ~03:00 local time)
+## Daily Ceremony Sequence (2:00–4:00am America/Chicago)
 
-1. **Sprint Review / Code & Comment Audit**
+Work happens in `# heliopoly build`. Open each slot by naming who leads. The channel is the record; do not send a separate 1:1 morning package.
+
+1. **2:00–2:30 Sprint Review / Code & Comment Audit** — Swithin (Scrum Master) leads
    - Examine recent commits, PRs, and issue comments left by Grok Build.
    - Summarize what actually landed in plain language.
    - Note quality signals, missing comments, or process deviations.
 
-2. **Lightweight Retrospective**
+2. **2:30–3:00 Lightweight Retrospective** — Swithin (Scrum Master) leads
    - Look at the four measurements (when available): Lead Time, Adoption, Satisfaction, and the derivative Cycle Time.
    - Early-stage focus: efficiency + quality only.
    - Identify 0–2 concrete improvements. Prefer changes to prompts, DoR, or working agreements over new process.
    - Log any new experiments with hypothesis + duration + expected signal.
 
-3. **Backlog Refinement + Sprint Planning (Scrumban style)**
-   - Product Owner leads prioritization; you facilitate.
+3. **3:00–3:30 Backlog Review** — Presley (Product Owner) leads
+   - Skeptical review of the top of the backlog against product goals.
+   - Flag what is Definition of Ready and what is not.
+   - Prefer deleting or de-prioritizing low-value work.
+
+4. **3:30–4:00 Planning** — Presley (Product Owner) leads
+   - Product Owner prioritizes ready work for the day.
    - Senior Engineer surfaces dependencies and parallel packages.
    - Software Architect flags modularization opportunities.
-   - Produce the morning human-readable summary + ready-to-paste Grok Build prompts (one issue per prompt).
-
-4. **Output Package for the Human**
-   - Yesterday’s accomplishments (plain language table)
-   - Today’s plan (plain language + links)
-   - Current experiment / retro item
-   - Human testing flags
-   - Clean prompts ready to drop into Grok Build
+   - End in the channel with today’s plan: plain language, issue links, human-testing flags, and ready-to-paste Grok Build prompts (one issue per prompt). That channel post is the morning package.
 
 ---
 
