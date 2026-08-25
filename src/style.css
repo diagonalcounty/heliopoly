@@ -3724,6 +3724,8 @@ button:not(:disabled):active {
 /**
  * #157 — stacked / phone play: the board is the page.
  * Bottom thumbs: Roll (or Buy / Move), cash, fuel, Book, End.
+ * Legal extras (Refuel, Fuel depot, Break, Course) sit above the thumbs
+ * when JS enables them — do not blanket-hide .actions buttons.
  * Setup (:has(.mode-setup)) stays #158 — this block never covers Launch.
  * Wide two-column play is unchanged.
  */
@@ -3733,7 +3735,8 @@ button:not(:disabled):active {
 
 @media (max-width: 900px), ((max-width: 1180px) and (orientation: portrait)) {
   #app:has(.fleet-card.mode-standings) {
-    --play-thumbs-h: calc(56px + 10px + env(safe-area-inset-bottom, 0px));
+    --play-thumbs-h: calc(56px + env(safe-area-inset-bottom, 0px));
+    --play-header-h: 52px;
     max-width: none;
     width: 100%;
     min-height: 100dvh;
@@ -3743,6 +3746,41 @@ button:not(:disabled):active {
     overflow: hidden;
     display: flex;
     flex-direction: column;
+  }
+
+  /* Extra legal rows grow the reserved chrome so the circle stays above it. */
+  #app:has(.fleet-card.mode-standings):has(#break-row:not(.hidden-vis)),
+  #app:has(.fleet-card.mode-standings):has(#dir-row:not(.hidden-vis)),
+  #app:has(.fleet-card.mode-standings):has(#btn-refuel:not(:disabled)),
+  #app:has(.fleet-card.mode-standings):has(#btn-station:not(:disabled)) {
+    --play-thumbs-h: calc(56px + 48px + env(safe-area-inset-bottom, 0px));
+  }
+
+  #app:has(.fleet-card.mode-standings):has(#break-row:not(.hidden-vis)):has(
+      #dir-row:not(.hidden-vis)
+    ),
+  #app:has(.fleet-card.mode-standings):has(#btn-refuel:not(:disabled)):has(
+      #break-row:not(.hidden-vis)
+    ),
+  #app:has(.fleet-card.mode-standings):has(#btn-refuel:not(:disabled)):has(
+      #dir-row:not(.hidden-vis)
+    ),
+  #app:has(.fleet-card.mode-standings):has(#btn-station:not(:disabled)):has(
+      #break-row:not(.hidden-vis)
+    ),
+  #app:has(.fleet-card.mode-standings):has(#btn-station:not(:disabled)):has(
+      #dir-row:not(.hidden-vis)
+    ) {
+    --play-thumbs-h: calc(56px + 96px + env(safe-area-inset-bottom, 0px));
+  }
+
+  #app:has(.fleet-card.mode-standings):has(#btn-refuel:not(:disabled)):has(
+      #break-row:not(.hidden-vis)
+    ):has(#dir-row:not(.hidden-vis)),
+  #app:has(.fleet-card.mode-standings):has(#btn-station:not(:disabled)):has(
+      #break-row:not(.hidden-vis)
+    ):has(#dir-row:not(.hidden-vis)) {
+    --play-thumbs-h: calc(56px + 144px + env(safe-area-inset-bottom, 0px));
   }
 
   html:has(.fleet-card.mode-standings),
@@ -3830,18 +3868,25 @@ button:not(:disabled):active {
     border: none;
     border-radius: 0;
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: center;
     pointer-events: auto;
     z-index: 1;
   }
 
+  /* Square fits the leftover column above the chrome — never under the bar. */
   #app:has(.fleet-card.mode-standings) .board-stage,
   #app:has(.fleet-card.mode-standings) #board {
-    width: min(100%, calc(100dvh - var(--play-thumbs-h) - 48px)) !important;
+    width: min(
+      100%,
+      calc(100dvh - var(--play-thumbs-h) - var(--play-header-h))
+    ) !important;
     height: auto !important;
     max-width: 100% !important;
-    max-height: calc(100dvh - var(--play-thumbs-h) - 48px) !important;
+    max-height: min(
+      100%,
+      calc(100dvh - var(--play-thumbs-h) - var(--play-header-h))
+    ) !important;
     aspect-ratio: 1 / 1;
     pointer-events: auto;
   }
@@ -3868,13 +3913,11 @@ button:not(:disabled):active {
 
   #app:has(.fleet-card.mode-standings) #standings-panel h2,
   #app:has(.fleet-card.mode-standings) .charter-choice-hint,
-  #app:has(.fleet-card.mode-standings) .pilot-controls-head,
-  #app:has(.fleet-card.mode-standings) #dir-row,
-  #app:has(.fleet-card.mode-standings) #break-row {
+  #app:has(.fleet-card.mode-standings) .pilot-controls-head {
     display: none !important;
   }
 
-  /* Five thumb slots: cash · fuel · Roll/Buy · Book · End */
+  /* Four thumb slots: cash+fuel vitals · Roll/Buy · Book · End */
   #app:has(.fleet-card.mode-standings) .fleet-card.mode-standings,
   #app:has(.fleet-card.mode-standings) #btn-handbook-header {
     position: fixed;
@@ -3887,8 +3930,8 @@ button:not(:disabled):active {
   }
 
   #app:has(.fleet-card.mode-standings) .fleet-card.mode-standings {
-    left: 1%;
-    width: 20%;
+    left: 6px;
+    width: 22%;
     padding: 0 4px;
     border: none;
     background: transparent;
@@ -4003,61 +4046,77 @@ button:not(:disabled):active {
     height: var(--play-thumbs-h);
     min-height: var(--play-thumbs-h);
     margin: 0;
-    padding: 0 4px env(safe-area-inset-bottom, 0px);
+    padding: 0 6px env(safe-area-inset-bottom, 0px);
     border: none;
     border-radius: 0;
     background: transparent;
     box-shadow: none;
-    display: grid;
-    grid-template-columns: 18% 16% 22% 18% 22%;
-    align-items: start;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
     overflow: visible;
   }
 
+  /* Fuel already sits under cash from standings. Do not steal a thumb slot. */
   #app:has(.fleet-card.mode-standings) #telemetry {
-    grid-column: 2;
-    width: auto;
-    height: 56px !important;
-    min-height: 56px;
-    padding: 4px 6px;
-    border-radius: 8px;
-    font-size: 0.68rem;
-    line-height: 1.2;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    pointer-events: none;
-    background: #0a0f1a;
+    display: none !important;
   }
 
-  #app:has(.fleet-card.mode-standings) #telemetry::after {
-    display: none;
+  #app:has(.fleet-card.mode-standings) #dir-row.hidden-vis,
+  #app:has(.fleet-card.mode-standings) #break-row.hidden-vis {
+    display: none !important;
   }
 
-  #app:has(.fleet-card.mode-standings) #telemetry div {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  #app:has(.fleet-card.mode-standings) #dir-row:not(.hidden-vis),
+  #app:has(.fleet-card.mode-standings) #break-row:not(.hidden-vis) {
+    display: flex !important;
+    visibility: visible;
+    position: relative;
+    z-index: 43;
+    height: 44px;
+    min-height: 44px;
+    margin: 0 0 4px;
+    padding: 0 4px;
+    background: transparent;
+    pointer-events: auto;
   }
 
   #app:has(.fleet-card.mode-standings) .pilot-controls .actions {
-    display: contents;
+    display: grid;
+    grid-template-columns: 22% 1fr 1fr 1fr;
+    grid-template-rows: 56px;
+    column-gap: 6px;
     margin: 0;
-    min-height: 0;
-    grid-template-columns: none;
+    height: 56px;
+    min-height: 56px;
   }
 
-  #app:has(.fleet-card.mode-standings) .pilot-controls .actions button {
+  #app:has(.fleet-card.mode-standings):has(#btn-refuel:not(:disabled))
+    .pilot-controls
+    .actions,
+  #app:has(.fleet-card.mode-standings):has(#btn-station:not(:disabled))
+    .pilot-controls
+    .actions {
+    grid-template-rows: 44px 56px;
+    row-gap: 4px;
+    height: calc(56px + 48px);
+    min-height: calc(56px + 48px);
+  }
+
+  /* Sell / dump / ROI stay off the bar. Buy only appears in the Roll slot. */
+  #app:has(.fleet-card.mode-standings) #btn-sell,
+  #app:has(.fleet-card.mode-standings) #btn-buy,
+  #app:has(.fleet-card.mode-standings) #btn-refuel:disabled,
+  #app:has(.fleet-card.mode-standings) #btn-station:disabled {
     display: none;
   }
 
   #app:has(.fleet-card.mode-standings) #btn-roll,
-  #app:has(.fleet-card.mode-standings) #btn-end,
-  #app:has(.fleet-card.mode-standings) #btn-roll:disabled ~ #btn-buy:not(:disabled) {
-    display: inline-flex !important;
+  #app:has(.fleet-card.mode-standings) #btn-end {
+    display: inline-flex;
     align-items: center;
     justify-content: center;
+    grid-row: -2 / -1;
     height: 56px;
     min-height: 56px;
     width: auto;
@@ -4067,8 +4126,28 @@ button:not(:disabled):active {
     border-radius: 10px;
   }
 
+  /* Legal extra — full-width row above the thumbs, not a squeezed fourth thumb. */
+  #app:has(.fleet-card.mode-standings) #btn-refuel:not(:disabled),
+  #app:has(.fleet-card.mode-standings) #btn-station:not(:disabled) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    grid-column: 1 / -1;
+    grid-row: 1;
+    height: 44px;
+    min-height: 44px;
+    width: auto;
+    padding: 0 10px;
+    font-size: 0.88rem;
+    font-weight: 800;
+    border-radius: 10px;
+    background: linear-gradient(180deg, #ca8a04, #a16207);
+    border-color: #ffc857;
+    color: #fff;
+  }
+
   #app:has(.fleet-card.mode-standings) #btn-roll {
-    grid-column: 3;
+    grid-column: 2;
     background: linear-gradient(180deg, #0891b2, #0e7490);
     border-color: #22d3ee;
     color: #fff;
@@ -4076,19 +4155,30 @@ button:not(:disabled):active {
 
   /* Buy shares the Roll slot when Roll is not the legal action. */
   #app:has(.fleet-card.mode-standings) #btn-roll:disabled:has(~ #btn-buy:not(:disabled)) {
-    display: none !important;
+    display: none;
   }
 
   #app:has(.fleet-card.mode-standings) #btn-roll:disabled ~ #btn-buy:not(:disabled) {
-    grid-column: 3;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    grid-column: 2;
+    grid-row: -2 / -1;
+    height: 56px;
+    min-height: 56px;
+    width: auto;
+    padding: 0 6px;
+    font-size: 0.92rem;
+    font-weight: 800;
+    border-radius: 10px;
     background: linear-gradient(180deg, #0891b2, #0e7490);
     border-color: #22d3ee;
     color: #fff;
   }
 
   #app:has(.fleet-card.mode-standings) #btn-handbook-header {
-    left: 56%;
-    width: 18%;
+    left: calc(6px + 22% + 6px + (78% - 18px) / 3 + 6px);
+    width: calc((78% - 18px) / 3);
     padding: 0 6px;
     border-radius: 10px;
     display: inline-flex;
@@ -4098,7 +4188,7 @@ button:not(:disabled):active {
   }
 
   #app:has(.fleet-card.mode-standings) #btn-end {
-    grid-column: 5;
+    grid-column: 4;
     font-size: 0;
   }
 
