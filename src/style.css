@@ -4258,10 +4258,32 @@ button:not(:disabled):active {
   #announce-root:not(.hidden),
   #end-root:not(.hidden) {
     z-index: 2000 !important;
+    isolation: isolate;
     padding: 0;
     align-items: stretch;
     justify-content: stretch;
     pointer-events: auto;
+  }
+
+  /* After #157, thumbs / Refuel / Break sit at z 40–43. A full-bleed sheet
+     must own taps; close returns this to auto via :not(.hidden). */
+  body:has(
+      #handbook-root:not(.hidden),
+      #dossier-root:not(.hidden),
+      #duel-root:not(.hidden),
+      #auction-root:not(.hidden),
+      #announce-root:not(.hidden),
+      #end-root:not(.hidden)
+    )
+    #app:has(.fleet-card.mode-standings)
+    :is(
+      .play-thumbs,
+      #pilot-controls,
+      #btn-handbook-header,
+      .fleet-card.mode-standings
+    ) {
+    pointer-events: none !important;
+    z-index: 1;
   }
 
   #handbook-root:not(.hidden) .handbook-panel,
@@ -4362,7 +4384,8 @@ button:not(:disabled):active {
   #auction-root:not(.hidden) #auction-pass,
   #end-root:not(.hidden) #end-again,
   #end-root:not(.hidden) #end-close,
-  #duel-root:not(.hidden) .duel-btn {
+  #duel-root:not(.hidden) .duel-btn,
+  #duel-root:not(.hidden) #duel-result-ok {
     min-height: 56px;
     pointer-events: auto;
     position: relative;
