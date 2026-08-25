@@ -112,9 +112,18 @@ An issue is Done when:
 
 ---
 
-## 9. Daily Morning Output (Sprint Planning Report)
+## 9. Overnight Ceremonies and Daily Output (2:00–4:00am America/Chicago)
 
-Every morning the human receives a single, human-readable summary containing:
+Ceremonies run every night in `# heliopoly build` while the human sleeps. Each slot has a named lead. The channel is the record.
+
+| Time (America/Chicago) | Ceremony | Lead |
+|------|----------|------|
+| 2:00–2:30am | Sprint review / code & comment audit | Swithin (Scrum Master) |
+| 2:30–3:00am | Lightweight retro (0–2 changes) | Swithin (Scrum Master) |
+| 3:00–3:30am | Backlog review | Presley (Product Owner) |
+| 3:30–4:00am | Planning | Presley (Product Owner) |
+
+The planning slot ends with today’s package in the channel:
 
 1. **Yesterday’s Accomplishments** (table, plain language)
 2. **Today’s Planned Work** (table, plain language + issue links)
@@ -122,7 +131,9 @@ Every morning the human receives a single, human-readable summary containing:
 4. **Human Testing Flags**
 5. **Ready-to-paste prompts** for Grok Build (one issue per prompt)
 
-**Why**: The human needs situational awareness without having to dig through technical issue descriptions.
+Do not send a separate 1:1 morning package. Incomplete work carries forward (Scrumban default). Stop at 4:00am even if a slot is unfinished.
+
+**Why**: The human needs situational awareness without having to dig through technical issue descriptions, and each ceremony needs its own time to be thorough.
 
 ---
 
