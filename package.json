@@ -12,9 +12,15 @@
     "sim-lab": "tsx src/sim/lab-server.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "tsx src/core/claimLedger.test.ts && tsx src/core/turnClock.test.ts",
-    "ios:sync": "bash scripts/ios-sync-web.sh"
+    "test:phone": "playwright test --project=phone-chromium --reporter=line",
+    "test:phone:webkit": "playwright test --project=phone-webkit --reporter=line",
+    "test:phone:wide": "playwright test --project=wide-chromium --reporter=line",
+    "test:phone:all": "playwright test --reporter=line",
+    "ios:sync": "bash scripts/ios-sync-web.sh",
+    "ios:phone-build": "bash scripts/ios-phone-build.sh"
   },
   "devDependencies": {
+    "@playwright/test": "^1.55.0",
     "@types/node": "^26.2.0",
     "tsx": "^4.20.3",
     "typescript": "^5.8.3",
