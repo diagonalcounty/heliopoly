@@ -3733,7 +3733,7 @@ button:not(:disabled):active {
 
 @media (max-width: 900px), ((max-width: 1180px) and (orientation: portrait)) {
   #app:has(.fleet-card.mode-standings) {
-    --play-thumbs-h: calc(56px + 10px + env(safe-area-inset-bottom, 0px));
+    --play-thumbs-h: calc(36px + 56px + 12px + env(safe-area-inset-bottom, 0px));
     max-width: none;
     width: 100%;
     min-height: 100dvh;
@@ -3874,42 +3874,44 @@ button:not(:disabled):active {
     display: none !important;
   }
 
-  /* Five thumb slots: cash · fuel · Roll/Buy · Book · End */
+  /* #166 — vitals strip above three real thumbs. Telemetry is not a button. */
   #app:has(.fleet-card.mode-standings) .fleet-card.mode-standings,
   #app:has(.fleet-card.mode-standings) #btn-handbook-header {
     position: fixed;
-    bottom: env(safe-area-inset-bottom, 0px);
     z-index: 43;
-    height: 56px;
-    min-height: 56px;
     margin: 0;
     box-sizing: border-box;
   }
 
   #app:has(.fleet-card.mode-standings) .fleet-card.mode-standings {
-    left: 1%;
-    width: 20%;
-    padding: 0 4px;
+    left: 8px;
+    right: 8px;
+    width: auto;
+    bottom: calc(56px + 8px + env(safe-area-inset-bottom, 0px));
+    height: 36px;
+    min-height: 36px;
+    padding: 0 8px;
     border: none;
     background: transparent;
     box-shadow: none;
-    min-height: 56px;
     display: flex;
     align-items: center;
-    overflow: hidden;
+    overflow: visible;
+    pointer-events: none;
   }
 
   #app:has(.fleet-card.mode-standings) #standings-panel,
   #app:has(.fleet-card.mode-standings) #rankings {
     display: flex;
-    flex-direction: column;
-    justify-content: center;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
     width: 100%;
-    height: 56px;
-    min-height: 56px;
+    height: 36px;
+    min-height: 36px;
     margin: 0;
-    gap: 0;
-    overflow: hidden;
+    gap: 16px;
+    overflow: visible;
     pointer-events: none;
   }
 
@@ -3943,15 +3945,10 @@ button:not(:disabled):active {
   }
 
   #app:has(.fleet-card.mode-standings) .rank-row .rank-detail {
-    display: block !important;
+    display: flex !important;
+    align-items: center;
     font-size: 0;
-    line-height: 1.15;
-  }
-
-  #app:has(.fleet-card.mode-standings) .rank-row .fuel-n {
-    font-size: 0.68rem;
-    font-weight: 700;
-    color: #7dd3fc;
+    line-height: 1;
   }
 
   #app:has(.fleet-card.mode-standings) .rank-row .fuel-n::after {
@@ -3973,25 +3970,32 @@ button:not(:disabled):active {
   }
 
   #app:has(.fleet-card.mode-standings) .rank-body {
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: center;
-    gap: 1px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 16px;
+    overflow: visible;
   }
 
   #app:has(.fleet-card.mode-standings) .rank-money {
     font-size: 0;
-    line-height: 1.1;
+    line-height: 1;
   }
 
   #app:has(.fleet-card.mode-standings) .rank-row .cash {
-    font-size: 0.7rem;
+    font-size: 0.9rem;
     font-weight: 700;
     color: var(--ok);
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100%;
+    overflow: visible;
+    text-overflow: clip;
+    max-width: none;
+  }
+
+  #app:has(.fleet-card.mode-standings) .rank-row .fuel-n {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #7dd3fc;
   }
 
   #app:has(.fleet-card.mode-standings) #pilot-controls {
@@ -4000,45 +4004,23 @@ button:not(:disabled):active {
     right: 0;
     bottom: 0;
     z-index: 42;
-    height: var(--play-thumbs-h);
-    min-height: var(--play-thumbs-h);
+    height: calc(56px + env(safe-area-inset-bottom, 0px));
+    min-height: calc(56px + env(safe-area-inset-bottom, 0px));
     margin: 0;
-    padding: 0 4px env(safe-area-inset-bottom, 0px);
+    padding: 0 8px env(safe-area-inset-bottom, 0px);
     border: none;
     border-radius: 0;
     background: transparent;
     box-shadow: none;
     display: grid;
-    grid-template-columns: 18% 16% 22% 18% 22%;
+    grid-template-columns: 1fr 1fr 1fr;
+    column-gap: 8px;
     align-items: start;
     overflow: visible;
   }
 
   #app:has(.fleet-card.mode-standings) #telemetry {
-    grid-column: 2;
-    width: auto;
-    height: 56px !important;
-    min-height: 56px;
-    padding: 4px 6px;
-    border-radius: 8px;
-    font-size: 0.68rem;
-    line-height: 1.2;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    pointer-events: none;
-    background: #0a0f1a;
-  }
-
-  #app:has(.fleet-card.mode-standings) #telemetry::after {
-    display: none;
-  }
-
-  #app:has(.fleet-card.mode-standings) #telemetry div {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    display: none !important;
   }
 
   #app:has(.fleet-card.mode-standings) .pilot-controls .actions {
@@ -4068,7 +4050,7 @@ button:not(:disabled):active {
   }
 
   #app:has(.fleet-card.mode-standings) #btn-roll {
-    grid-column: 3;
+    grid-column: 1;
     background: linear-gradient(180deg, #0891b2, #0e7490);
     border-color: #22d3ee;
     color: #fff;
@@ -4080,25 +4062,28 @@ button:not(:disabled):active {
   }
 
   #app:has(.fleet-card.mode-standings) #btn-roll:disabled ~ #btn-buy:not(:disabled) {
-    grid-column: 3;
+    grid-column: 1;
     background: linear-gradient(180deg, #0891b2, #0e7490);
     border-color: #22d3ee;
     color: #fff;
   }
 
   #app:has(.fleet-card.mode-standings) #btn-handbook-header {
-    left: 56%;
-    width: 18%;
+    left: calc(8px + (100% - 32px) / 3 + 8px);
+    width: calc((100% - 32px) / 3);
+    bottom: env(safe-area-inset-bottom, 0px);
+    height: 56px;
+    min-height: 56px;
     padding: 0 6px;
     border-radius: 10px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 4px;
+    gap: 6px;
   }
 
   #app:has(.fleet-card.mode-standings) #btn-end {
-    grid-column: 5;
+    grid-column: 3;
     font-size: 0;
   }
 
