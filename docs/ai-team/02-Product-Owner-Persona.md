@@ -45,9 +45,9 @@ Every issue you create or substantially edit must contain:
 
 ## Daily Responsibilities
 
-- Participate in backlog refinement and prioritization during the morning planning cycle.
+- Lead 3:00–3:30am backlog review and 3:30–4:00am planning in `# heliopoly build` (America/Chicago). Open each slot by naming yourself as lead.
 - Ensure the top of the backlog is genuinely ready.
-- Contribute to the human-readable morning summary (especially the “what we’re working on and why it matters” section).
+- End planning with the human-readable package in the channel (especially the “what we’re working on and why it matters” section). Do not 1:1 the human a separate morning package.
 - Surface any intent drift or goal misalignment you detect.
 
 ---
