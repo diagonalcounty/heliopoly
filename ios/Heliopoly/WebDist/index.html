@@ -8,21 +8,21 @@
     />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="theme-color" content="#0b1020" />
-    <title>Heliopoly 1.0.0</title>
+    <title>Heliopoly 1.1.0</title>
     <link rel="icon" href="./favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" href="./favicon.png" sizes="32x32" />
     <link rel="icon" type="image/png" href="./favicon-32.png" sizes="32x32" />
     <link rel="icon" type="image/png" href="./favicon-16.png" sizes="16x16" />
     <link rel="apple-touch-icon" href="./apple-touch-icon.png" sizes="180x180" />
-    <script type="module" crossorigin src="./assets/index-DgsWt_N1.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-ipkVGtO6.css">
+    <script type="module" crossorigin src="./assets/index-BOciTAhA.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-nEDZkuWh.css">
   </head>
   <body>
     <div id="app">
       <header class="top">
         <div class="top-row">
           <h1>
-            Heliopoly <span class="badge">1.0.0</span
+            Heliopoly <span class="badge">1.1.0</span>
             ><span class="title-tagline"> · Orbital Economics</span>
           </h1>
           <div class="top-actions">
@@ -169,10 +169,10 @@ Name your rocket. Then Launch.</p>
               </fieldset>
               <div class="ai-difficulty-row">
                 <fieldset class="propellant-field ai-difficulty-field">
-                  <legend>AI difficulty</legend>
+                  <legend>Game difficulty</legend>
                   <label class="check">
                     <input type="radio" name="ai-difficulty" value="easy" />
-                    Easy — no break; always prograde
+                    Easy — shorter games; ledger events won’t hurt you
                   </label>
                   <label class="check">
                     <input
@@ -181,16 +181,15 @@ Name your rocket. Then Launch.</p>
                       value="normal"
                       checked
                     />
-                    Normal — small break only to afford leave
+                    Normal — standard length
                   </label>
                   <label class="check">
                     <input type="radio" name="ai-difficulty" value="hard" />
-                    Hard — break for buys, hubs, Earth landings
+                    Hard — longer games
                   </label>
                   <label class="check">
                     <input type="radio" name="ai-difficulty" value="expert" />
-                    Expert — deep break (even 1-space grabs), monopoly &amp; Earth
-                    focus
+                    Expert — long games
                   </label>
                 </fieldset>
                 <div
@@ -200,8 +199,8 @@ Name your rocket. Then Launch.</p>
                 ></div>
               </div>
               <p class="hint" style="margin-top:4px">
-                Meter: estimated rounds vs a strong (hard/expert) pilot.
-                Locked after Launch. Details: Ops Manual → AI difficulty.
+                Meter: estimated expedition length. Locked after Launch.
+                Details: Ops Manual → Game difficulty.
               </p>
               <button id="btn-new" type="button" class="primary">Launch</button>
               <button id="btn-selfplay" type="button">Self-play burst</button>
@@ -287,9 +286,31 @@ Name your rocket. Then Launch.</p>
           </section>
         </aside>
       </div>
+      <!-- #157: chrome only. Nodes stay in place; CSS pins them onto this bar. -->
+      <nav id="play-thumbs" class="play-thumbs" aria-label="Play"></nav>
     </div>
 
     <div id="handbook-root" class="handbook hidden" aria-hidden="true"></div>
+    <div id="dossier-root" class="handbook hidden" aria-hidden="true"></div>
+
+    <!-- Claim auction: human must bid or pass -->
+    <div id="auction-root" class="announce-screen hidden" aria-live="assertive">
+      <div class="announce-card auction-card">
+        <div class="announce-copy">
+          <p class="announce-kicker">Claim auction</p>
+          <h2 id="auction-title">Auction</h2>
+          <p id="auction-body" class="announce-body"></p>
+          <div class="auction-actions">
+            <button type="button" id="auction-pass">Pass</button>
+            <label class="auction-bid-field">
+              Bid
+              <input id="auction-amount" type="number" min="0" step="1" />
+            </label>
+            <button type="button" id="auction-bid" class="primary">Bid</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Lab: scenario testing (minigames / end screens) -->
     <div id="lab-root" class="handbook hidden" aria-hidden="true">
