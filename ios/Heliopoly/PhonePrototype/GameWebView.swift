@@ -31,7 +31,8 @@ struct GameWebView: UIViewRepresentable {
         config.defaultWebpagePreferences.allowsContentJavaScript = true
         config.allowsInlineMediaPlayback = true
         config.mediaTypesRequiringUserActionForPlayback = []
-        config.websiteDataStore = .nonPersistent()
+        // Persistent store + a stable loopback origin so static files can cache
+        // across launches. nonPersistent + a random port made every open cold.
         config.userContentController.addUserScript(Self.navyPaintUserScript)
 
         let webView = WKWebView(frame: .zero, configuration: config)
@@ -133,9 +134,7 @@ struct GameWebView: UIViewRepresentable {
                 return
             }
             httpServer = server
-            var req = URLRequest(url: server.indexURL)
-            req.cachePolicy = .reloadIgnoringLocalCacheData
-            webView.load(req)
+            webView.load(URLRequest(url: server.indexURL))
         }
 
         func webView(
@@ -396,6 +395,9 @@ final class LoopbackWebServer {
 
     deinit { stop() }
 
+    /// Stable origin so WKWebView can reuse HTTP cache across launches.
+    private static let preferredPort: UInt16 = 18765
+
     func start() throws {
         let fd = Darwin.socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)
         guard fd >= 0 else { throw URLError(.cannotConnectToHost) }
@@ -407,17 +409,34 @@ final class LoopbackWebServer {
             &yes,
             socklen_t(MemoryLayout.size(ofValue: yes))
         )
-        var addr = sockaddr_in()
-        addr.sin_len = UInt8(MemoryLayout<sockaddr_in>.size)
-        addr.sin_family = sa_family_t(AF_INET)
-        addr.sin_port = 0
-        addr.sin_addr = in_addr(s_addr: inet_addr("127.0.0.1"))
-        let bound = withUnsafePointer(to: &addr) { ptr in
-            ptr.withMemoryRebound(to: sockaddr.self, capacity: 1) { sock in
-                Darwin.bind(fd, sock, socklen_t(MemoryLayout<sockaddr_in>.size)) == 0
+        Darwin.setsockopt(
+            fd,
+            SOL_SOCKET,
+            SO_NOSIGPIPE,
+            &yes,
+            socklen_t(MemoryLayout.size(ofValue: yes))
+        )
+        func bindPort(_ p: UInt16) -> Bool {
+            var addr = sockaddr_in()
+            addr.sin_len = UInt8(MemoryLayout<sockaddr_in>.size)
+            addr.sin_family = sa_family_t(AF_INET)
+            addr.sin_port = p.bigEndian
+            addr.sin_addr = in_addr(s_addr: inet_addr("127.0.0.1"))
+            return withUnsafePointer(to: &addr) { ptr in
+                ptr.withMemoryRebound(to: sockaddr.self, capacity: 1) { sock in
+                    Darwin.bind(fd, sock, socklen_t(MemoryLayout<sockaddr_in>.size)) == 0
+                }
             }
         }
-        guard bound, Darwin.listen(fd, 16) == 0 else {
+        if !bindPort(Self.preferredPort), !bindPort(0) {
+            Darwin.close(fd)
+            throw URLError(.cannotConnectToHost)
+        }
+        let flags = Darwin.fcntl(fd, F_GETFL)
+        if flags >= 0 {
+            _ = Darwin.fcntl(fd, F_SETFL, flags | O_NONBLOCK)
+        }
+        guard Darwin.listen(fd, 128) == 0 else {
             Darwin.close(fd)
             throw URLError(.cannotConnectToHost)
         }
@@ -438,7 +457,7 @@ final class LoopbackWebServer {
             fileDescriptor: fd,
             queue: DispatchQueue.global(qos: .userInitiated)
         )
-        src.setEventHandler { [weak self] in self?.acceptClient() }
+        src.setEventHandler { [weak self] in self?.acceptClients() }
         src.setCancelHandler { Darwin.close(fd) }
         src.resume()
         acceptSource = src
@@ -451,12 +470,27 @@ final class LoopbackWebServer {
         listenFD = -1
     }
 
-    private func acceptClient() {
-        let client = Darwin.accept(listenFD, nil, nil)
-        guard client >= 0 else { return }
-        DispatchQueue.global(qos: .userInitiated).async {
-            self.serve(client)
-            Darwin.close(client)
+    /// Drain the listen queue. One accept per source event left WKWebView
+    /// SYNs waiting until a ~30s timeout (HITL ~35s to Launch).
+    private func acceptClients() {
+        while true {
+            let client = Darwin.accept(listenFD, nil, nil)
+            if client < 0 {
+                if Darwin.errno == EAGAIN || Darwin.errno == EWOULDBLOCK { return }
+                return
+            }
+            var yes: Int32 = 1
+            Darwin.setsockopt(
+                client,
+                SOL_SOCKET,
+                SO_NOSIGPIPE,
+                &yes,
+                socklen_t(MemoryLayout.size(ofValue: yes))
+            )
+            DispatchQueue.global(qos: .userInitiated).async {
+                self.serve(client)
+                Darwin.close(client)
+            }
         }
     }
 
@@ -515,7 +549,7 @@ final class LoopbackWebServer {
         header += "Content-Type: \(type)\r\n"
         header += "Content-Length: \(body.count)\r\n"
         header += "Access-Control-Allow-Origin: *\r\n"
-        header += "Cache-Control: no-store\r\n"
+        header += "Cache-Control: public, max-age=86400\r\n"
         header += "Connection: close\r\n\r\n"
         var packet = Data(header.utf8)
         packet.append(body)
