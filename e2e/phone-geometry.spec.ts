@@ -253,6 +253,9 @@ test.describe("phone Refuel #172", () => {
   }) => {
     await launch(page);
 
+    const boardBefore = await boxOf(page, "#board");
+    const rollBefore = await boxOf(page, "#btn-roll");
+
     await page.evaluate(() => {
       const el = document.getElementById("btn-refuel") as HTMLButtonElement | null;
       if (el) el.disabled = false;
@@ -261,6 +264,7 @@ test.describe("phone Refuel #172", () => {
     const refuel = await boxOf(page, "#btn-refuel");
     const roll = await boxOf(page, "#btn-roll");
     const end = await boxOf(page, "#btn-end");
+    const board = await boxOf(page, "#board");
     expect(refuel.display, "do not hide Refuel when legal").not.toBe("none");
     expect(refuel.height, "Refuel ≥44px").toBeGreaterThanOrEqual(44);
     expect(refuel.width, "full-width extra, not a fourth thumb").toBeGreaterThan(
@@ -273,6 +277,14 @@ test.describe("phone Refuel #172", () => {
     expect(end.height, "End stays ≥56px").toBeGreaterThanOrEqual(56);
     expect(roll.top + roll.height).toBeLessThanOrEqual(PHONE.h + 2);
     expect(refuel.onControl, "Refuel tappable").toBe(true);
+    expect(
+      Math.abs(board.height - boardBefore.height),
+      "circle does not rescale when Refuel arms",
+    ).toBeLessThanOrEqual(2);
+    expect(
+      Math.abs(roll.top - rollBefore.top),
+      "thumbs do not jump when Refuel arms",
+    ).toBeLessThanOrEqual(2);
 
     const sell = await cssOf(page, "#btn-sell");
     expect(sell.display, "Sell stays off the bar").toBe("none");

@@ -3799,9 +3799,10 @@ button:not(:disabled):active {
     /* 9 compact name+cash rows (The Ada … The von Braun) without 28dvh scroll. */
     --play-roster-h: 176px;
     --play-header-h: 52px;
-    /* Break row is always 48px (gray when idle) so the roster does not jump. */
+    /* Break 48px + Refuel/depot slot 48px always — circle must not rescale
+       when those rows arm. Course still grows when legal. */
     --play-thumbs-h: calc(
-      var(--play-roster-h) + 8px + 56px + 48px + env(safe-area-inset-bottom, 0px)
+      var(--play-roster-h) + 8px + 56px + 96px + env(safe-area-inset-bottom, 0px)
     );
     max-width: none;
     width: 100%;
@@ -3814,21 +3815,8 @@ button:not(:disabled):active {
     flex-direction: column;
   }
 
-  /* Course / Refuel / depot still grow; Break is already in the base chrome. */
-  #app:has(.fleet-card.mode-standings):has(#dir-row:not(.hidden-vis)),
-  #app:has(.fleet-card.mode-standings):has(#btn-refuel:not(:disabled)),
-  #app:has(.fleet-card.mode-standings):has(#btn-station:not(:disabled)) {
-    --play-thumbs-h: calc(
-      var(--play-roster-h) + 8px + 56px + 96px + env(safe-area-inset-bottom, 0px)
-    );
-  }
-
-  #app:has(.fleet-card.mode-standings):has(#btn-refuel:not(:disabled)):has(
-      #dir-row:not(.hidden-vis)
-    ),
-  #app:has(.fleet-card.mode-standings):has(#btn-station:not(:disabled)):has(
-      #dir-row:not(.hidden-vis)
-    ) {
+  /* Course still grows; Refuel/depot use the parked extra slot. */
+  #app:has(.fleet-card.mode-standings):has(#dir-row:not(.hidden-vis)) {
     --play-thumbs-h: calc(
       var(--play-roster-h) + 8px + 56px + 144px +
         env(safe-area-inset-bottom, 0px)
@@ -4176,21 +4164,10 @@ button:not(:disabled):active {
   #app:has(.fleet-card.mode-standings) .pilot-controls .actions {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    grid-template-rows: 56px;
-    column-gap: 8px;
-    margin: 0;
-    height: 56px;
-    min-height: 56px;
-  }
-
-  #app:has(.fleet-card.mode-standings):has(#btn-refuel:not(:disabled))
-    .pilot-controls
-    .actions,
-  #app:has(.fleet-card.mode-standings):has(#btn-station:not(:disabled))
-    .pilot-controls
-    .actions {
     grid-template-rows: 44px 56px;
     row-gap: 4px;
+    column-gap: 8px;
+    margin: 0;
     height: calc(56px + 48px);
     min-height: calc(56px + 48px);
   }
