@@ -245,6 +245,40 @@ test.describe("phone roster #168", () => {
   });
 });
 
+test.describe("phone Refuel #172", () => {
+  test.skip(({ viewport }) => (viewport?.width ?? 0) >= 900, "phone only");
+
+  test("legal Refuel is a full-width row above Roll; thumbs stay three", async ({
+    page,
+  }) => {
+    await launch(page);
+
+    await page.evaluate(() => {
+      const el = document.getElementById("btn-refuel") as HTMLButtonElement | null;
+      if (el) el.disabled = false;
+    });
+
+    const refuel = await boxOf(page, "#btn-refuel");
+    const roll = await boxOf(page, "#btn-roll");
+    const end = await boxOf(page, "#btn-end");
+    expect(refuel.display, "do not hide Refuel when legal").not.toBe("none");
+    expect(refuel.height, "Refuel ≥44px").toBeGreaterThanOrEqual(44);
+    expect(refuel.width, "full-width extra, not a fourth thumb").toBeGreaterThan(
+      PHONE.w * 0.7,
+    );
+    expect(refuel.top + refuel.height, "Refuel above Roll").toBeLessThanOrEqual(
+      roll.top + 2,
+    );
+    expect(roll.height, "Roll stays ≥56px").toBeGreaterThanOrEqual(56);
+    expect(end.height, "End stays ≥56px").toBeGreaterThanOrEqual(56);
+    expect(roll.top + roll.height).toBeLessThanOrEqual(PHONE.h + 2);
+    expect(refuel.onControl, "Refuel tappable").toBe(true);
+
+    const sell = await cssOf(page, "#btn-sell");
+    expect(sell.display, "Sell stays off the bar").toBe("none");
+  });
+});
+
 test.describe("phone Book sheet #160", () => {
   test.skip(({ viewport }) => (viewport?.width ?? 0) >= 900, "phone only");
 

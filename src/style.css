@@ -4218,10 +4218,11 @@ button:not(:disabled):active {
     border-radius: 10px;
   }
 
-  /* Legal extra — full-width row above the thumbs, not a squeezed fourth thumb. */
+  /* #172 — legal Refuel / Fuel depot: full-width row above thumbs, not a fourth slot.
+     Last explicit thumb row is -2 / -1 so Roll · End do not spawn under the bar. */
   #app:has(.fleet-card.mode-standings) #btn-refuel:not(:disabled),
   #app:has(.fleet-card.mode-standings) #btn-station:not(:disabled) {
-    display: inline-flex;
+    display: inline-flex !important;
     align-items: center;
     justify-content: center;
     grid-column: 1 / -1;
@@ -4236,6 +4237,8 @@ button:not(:disabled):active {
     background: linear-gradient(180deg, #ca8a04, #a16207);
     border-color: #ffc857;
     color: #fff;
+    pointer-events: auto;
+    z-index: 43;
   }
 
   #app:has(.fleet-card.mode-standings) #btn-roll {
