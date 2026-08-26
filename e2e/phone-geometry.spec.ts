@@ -551,3 +551,140 @@ test.describe("wide Gravity Duel #179", () => {
     }
   });
 });
+
+async function openAuction(page: Page) {
+  await page.evaluate(() => {
+    const root = document.getElementById("auction-root");
+    if (!root) return;
+    root.classList.remove("hidden");
+    const title = document.getElementById("auction-title");
+    if (title) title.textContent = "Phobos";
+    const body = document.getElementById("auction-body");
+    if (body) {
+      body.textContent =
+        "The Ada is auctioning Phobos. Reserve ⍺120. You have ⍺1000.";
+    }
+    const amount = document.getElementById(
+      "auction-amount",
+    ) as HTMLInputElement | null;
+    if (amount) {
+      amount.min = "120";
+      amount.value = "120";
+    }
+  });
+  await expect(page.locator("#auction-root")).not.toHaveClass(/hidden/);
+}
+
+async function closeAuction(page: Page) {
+  await page.evaluate(() => {
+    document.getElementById("auction-root")?.classList.add("hidden");
+  });
+  await expect(page.locator("#auction-root")).toHaveClass(/hidden/);
+}
+
+test.describe("phone Claim auction #183", () => {
+  test.skip(({ viewport }) => (viewport?.width ?? 0) >= 900, "phone only");
+
+  test("Bid and Pass are on-screen and receive the tap", async ({ page }) => {
+    await launch(page);
+    const rollThumb = await centerOf(page, "#btn-roll");
+
+    await openAuction(page);
+
+    const root = await boxOf(page, "#auction-root");
+    expect(Number(root.zIndex), "auction sheet z-index").toBeGreaterThanOrEqual(
+      2000,
+    );
+    expect(root.width, "full-bleed width").toBeGreaterThanOrEqual(PHONE.w - 1);
+    expect(root.height, "full-bleed height").toBeGreaterThanOrEqual(PHONE.h - 2);
+
+    for (const sel of ["#auction-pass", "#auction-bid"]) {
+      const b = await boxOf(page, sel);
+      assertOnScreen(b, sel, PHONE.h);
+      expect(b.pointerEvents).not.toBe("none");
+      expect(b.onControl, `elementFromPoint ${sel}`).toBe(true);
+    }
+
+    const pass = await boxOf(page, "#auction-pass");
+    expect(pass.center?.id, "Pass hit is the button").toBe("auction-pass");
+    const bid = await boxOf(page, "#auction-bid");
+    expect(bid.center?.id, "Bid hit is the button").toBe("auction-bid");
+
+    const overRoll = await hitAt(page, rollThumb.x, rollThumb.y);
+    expect(overRoll?.id, "thumbs must not win while auction is open").not.toBe(
+      "btn-roll",
+    );
+    expect(overRoll?.id, "Book must not win while auction is open").not.toBe(
+      "btn-handbook-header",
+    );
+    expect(overRoll?.id, "End must not win while auction is open").not.toBe(
+      "btn-end",
+    );
+
+    const copy = await page.evaluate(() => {
+      const title = document.getElementById("auction-title");
+      const body = document.getElementById("auction-body");
+      const cs = (el: HTMLElement | null) => (el ? getComputedStyle(el) : null);
+      const titleCs = cs(title);
+      const bodyCs = cs(body);
+      return {
+        title: title?.textContent ?? "",
+        body: body?.textContent ?? "",
+        titleOverflow: titleCs?.textOverflow,
+        titleWhiteSpace: titleCs?.whiteSpace,
+        bodyOverflow: bodyCs?.textOverflow,
+        bodyWhiteSpace: bodyCs?.whiteSpace,
+      };
+    });
+    expect(copy.title).toContain("Phobos");
+    expect(copy.body).toContain("⍺120");
+    expect(copy.body).toContain("The Ada");
+    expect(copy.bodyOverflow, "reserve number is not ellipsized").not.toBe(
+      "ellipsis",
+    );
+    expect(copy.titleOverflow, "claim name is not ellipsized").not.toBe(
+      "ellipsis",
+    );
+    expect(copy.bodyWhiteSpace).not.toBe("nowrap");
+  });
+
+  test("close returns Roll · Book · End; hidden auction does not steal taps", async ({
+    page,
+  }) => {
+    await launch(page);
+    await openAuction(page);
+    await closeAuction(page);
+
+    for (const sel of ["#btn-roll", "#btn-handbook-header", "#btn-end"]) {
+      const b = await boxOf(page, sel);
+      expect(b.height, `${sel} thumb after auction`).toBeGreaterThanOrEqual(44);
+      expect(b.top + b.height).toBeLessThanOrEqual(PHONE.h + 2);
+      expect(b.onControl, `${sel} tappable after auction`).toBe(true);
+    }
+
+    const roll = await centerOf(page, "#btn-roll");
+    const overRoll = await hitAt(page, roll.x, roll.y);
+    expect(overRoll?.id, "hidden auction does not steal Roll").toBe("btn-roll");
+
+    const hidden = await cssOf(page, "#auction-root");
+    expect(
+      hidden.pointerEvents === "none" || hidden.display === "none",
+      "#auction-root must not steal taps when hidden",
+    ).toBe(true);
+  });
+});
+
+test.describe("wide Claim auction #183", () => {
+  test.skip(({ viewport }) => (viewport?.width ?? 0) < 1100, "wide only");
+
+  test("desktop auction still has Bid / Pass", async ({ page }) => {
+    await launch(page);
+    await openAuction(page);
+    for (const sel of ["#auction-pass", "#auction-bid"]) {
+      const b = await boxOf(page, sel);
+      expect(b.display, `${sel} visible on wide`).not.toBe("none");
+      expect(b.height, `${sel} tappable on wide`).toBeGreaterThanOrEqual(36);
+      expect(b.onControl, `${sel} elementFromPoint on wide`).toBe(true);
+    }
+  });
+});
