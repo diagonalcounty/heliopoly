@@ -3799,8 +3799,9 @@ button:not(:disabled):active {
     /* 9 compact name+cash rows (The Ada … The von Braun) without 28dvh scroll. */
     --play-roster-h: 176px;
     --play-header-h: 52px;
+    /* Break row is always 48px (gray when idle) so the roster does not jump. */
     --play-thumbs-h: calc(
-      var(--play-roster-h) + 8px + 56px + env(safe-area-inset-bottom, 0px)
+      var(--play-roster-h) + 8px + 56px + 48px + env(safe-area-inset-bottom, 0px)
     );
     max-width: none;
     width: 100%;
@@ -3813,42 +3814,21 @@ button:not(:disabled):active {
     flex-direction: column;
   }
 
-  /* Extra legal rows grow the reserved chrome so the circle stays above it. */
-  #app:has(.fleet-card.mode-standings):has(#break-row:not(.hidden-vis)),
+  /* Course / Refuel / depot still grow; Break is already in the base chrome. */
   #app:has(.fleet-card.mode-standings):has(#dir-row:not(.hidden-vis)),
   #app:has(.fleet-card.mode-standings):has(#btn-refuel:not(:disabled)),
   #app:has(.fleet-card.mode-standings):has(#btn-station:not(:disabled)) {
-    --play-thumbs-h: calc(
-      var(--play-roster-h) + 8px + 56px + 48px + env(safe-area-inset-bottom, 0px)
-    );
-  }
-
-  #app:has(.fleet-card.mode-standings):has(#break-row:not(.hidden-vis)):has(
-      #dir-row:not(.hidden-vis)
-    ),
-  #app:has(.fleet-card.mode-standings):has(#btn-refuel:not(:disabled)):has(
-      #break-row:not(.hidden-vis)
-    ),
-  #app:has(.fleet-card.mode-standings):has(#btn-refuel:not(:disabled)):has(
-      #dir-row:not(.hidden-vis)
-    ),
-  #app:has(.fleet-card.mode-standings):has(#btn-station:not(:disabled)):has(
-      #break-row:not(.hidden-vis)
-    ),
-  #app:has(.fleet-card.mode-standings):has(#btn-station:not(:disabled)):has(
-      #dir-row:not(.hidden-vis)
-    ) {
     --play-thumbs-h: calc(
       var(--play-roster-h) + 8px + 56px + 96px + env(safe-area-inset-bottom, 0px)
     );
   }
 
   #app:has(.fleet-card.mode-standings):has(#btn-refuel:not(:disabled)):has(
-      #break-row:not(.hidden-vis)
-    ):has(#dir-row:not(.hidden-vis)),
+      #dir-row:not(.hidden-vis)
+    ),
   #app:has(.fleet-card.mode-standings):has(#btn-station:not(:disabled)):has(
-      #break-row:not(.hidden-vis)
-    ):has(#dir-row:not(.hidden-vis)) {
+      #dir-row:not(.hidden-vis)
+    ) {
     --play-thumbs-h: calc(
       var(--play-roster-h) + 8px + 56px + 144px +
         env(safe-area-inset-bottom, 0px)
@@ -4167,13 +4147,12 @@ button:not(:disabled):active {
     display: none !important;
   }
 
-  #app:has(.fleet-card.mode-standings) #dir-row.hidden-vis,
-  #app:has(.fleet-card.mode-standings) #break-row.hidden-vis {
+  #app:has(.fleet-card.mode-standings) #dir-row.hidden-vis {
     display: none !important;
   }
 
-  #app:has(.fleet-card.mode-standings) #dir-row:not(.hidden-vis),
-  #app:has(.fleet-card.mode-standings) #break-row:not(.hidden-vis) {
+  #app:has(.fleet-card.mode-standings) #break-row,
+  #app:has(.fleet-card.mode-standings) #dir-row:not(.hidden-vis) {
     display: flex !important;
     visibility: visible;
     position: relative;
@@ -4184,6 +4163,14 @@ button:not(:disabled):active {
     padding: 0 4px;
     background: transparent;
     pointer-events: auto;
+  }
+
+  /* Idle / other seats: keep the row so the roster does not jump. */
+  #app:has(.fleet-card.mode-standings) #break-row.hidden-vis {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 0.4;
+    pointer-events: none;
   }
 
   #app:has(.fleet-card.mode-standings) .pilot-controls .actions {

@@ -223,6 +223,10 @@ test.describe("phone roster #168", () => {
   test("Break / course sit above the 56px thumbs when legal", async ({ page }) => {
     await launch(page);
 
+    const idle = await boxOf(page, "#break-row");
+    expect(idle.display, "Break stays in layout when idle").not.toBe("none");
+    expect(idle.height, "idle Break still ≥44px").toBeGreaterThanOrEqual(44);
+
     await page.evaluate(() => {
       document.getElementById("break-row")?.classList.remove("hidden-vis");
     });
@@ -231,6 +235,9 @@ test.describe("phone roster #168", () => {
     const roll = await boxOf(page, "#btn-roll");
     expect(br.display, "do not display:none Break when legal").not.toBe("none");
     expect(br.height, "Break ≥44px").toBeGreaterThanOrEqual(44);
+    expect(Math.abs(br.top - idle.top), "roster does not jump when Break arms").toBeLessThanOrEqual(
+      2,
+    );
     expect(roll.height, "Roll stays ≥56px").toBeGreaterThanOrEqual(56);
     expect(br.top + br.height, "Break above Roll").toBeLessThanOrEqual(roll.top + 2);
     expect(br.top + br.height).toBeLessThanOrEqual(PHONE.h + 2);
