@@ -2376,6 +2376,10 @@ button:not(:disabled):active {
   font-variant-numeric: tabular-nums;
 }
 
+.pilot-count-chips {
+  display: none;
+}
+
 .rank-row .swatch {
   width: 10px;
   height: 10px;
@@ -3629,7 +3633,7 @@ button:not(:disabled):active {
 
   #app:has(.fleet-card.mode-setup) #btn-new {
     display: block;
-    order: 4;
+    order: 5;
     width: 100%;
     min-height: 56px;
     margin: 8px 0 0;
@@ -3642,11 +3646,11 @@ button:not(:disabled):active {
   }
 
   #app:has(.fleet-card.mode-setup) #btn-selfplay {
-    order: 5;
+    order: 6;
   }
 
   #app:has(.fleet-card.mode-setup) #setup-body > label:has(#player-count) {
-    order: 6;
+    order: 4;
     margin: 0;
   }
 
@@ -3694,7 +3698,62 @@ button:not(:disabled):active {
     font-weight: 600;
   }
 
-  #app:has(.fleet-card.mode-setup) #setup-body > label:has(#player-count),
+  /* #170 — Pilots 2–6 stay on the first viewport; human seat stays implied. */
+  #app:has(.fleet-card.mode-setup) #setup-body > label:has(#player-count) {
+    display: flex !important;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    order: 4;
+    margin: 0;
+    font-size: 0;
+    min-height: 44px;
+    pointer-events: auto;
+    position: relative;
+    z-index: 2;
+  }
+
+  #app:has(.fleet-card.mode-setup) #setup-body > label:has(#player-count)::before {
+    content: "Pilots";
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  #app:has(.fleet-card.mode-setup) #player-count {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+  }
+
+  #app:has(.fleet-card.mode-setup) .pilot-count-chips {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    width: min(100%, 220px);
+  }
+
+  #app:has(.fleet-card.mode-setup) .pilot-count-chips button {
+    min-height: 44px;
+    margin: 0;
+    padding: 0;
+    border-radius: 10px;
+    border: 1px solid #3d5080;
+    background: #152038;
+    color: var(--text);
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  #app:has(.fleet-card.mode-setup) .pilot-count-chips button.selected {
+    border-color: var(--accent-2);
+    box-shadow: inset 0 0 0 1px var(--accent-2);
+    color: var(--accent-2);
+  }
+
   #app:has(.fleet-card.mode-setup) #setup-body > label.check:has(#include-human),
   #app:has(.fleet-card.mode-setup) #setup-body > .hint,
   #app:has(.fleet-card.mode-setup) #btn-selfplay {
@@ -3959,18 +4018,25 @@ button:not(:disabled):active {
     pointer-events: auto;
   }
 
-  #app:has(.fleet-card.mode-standings) #standings-panel,
+  #app:has(.fleet-card.mode-standings) #standings-panel {
+    display: block;
+    width: 100%;
+    min-height: 0;
+    max-height: var(--play-roster-h);
+    overflow: hidden;
+  }
+
   #app:has(.fleet-card.mode-standings) #rankings {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    justify-content: flex-start;
+    display: grid;
+    grid-template-columns: 8px minmax(0, 1fr) 10.5ch max-content;
+    align-items: center;
     width: 100%;
     height: auto;
     max-height: var(--play-roster-h);
     min-height: 0;
     margin: 0;
-    gap: 0;
+    column-gap: 6px;
+    row-gap: 0;
     overflow-x: hidden;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
@@ -3978,7 +4044,9 @@ button:not(:disabled):active {
   }
 
   #app:has(.fleet-card.mode-standings) .rank-row {
-    display: flex !important;
+    display: grid !important;
+    grid-template-columns: subgrid;
+    grid-column: 1 / -1;
     height: 18px;
     min-height: 18px;
     max-height: 18px;
@@ -3996,7 +4064,7 @@ button:not(:disabled):active {
 
   #app:has(.fleet-card.mode-standings) .rank-row .rank-prop,
   #app:has(.fleet-card.mode-standings) .rank-row .at-risk-badge,
-  #app:has(.fleet-card.mode-standings) .rank-row .fuel-bar {
+  #app:has(.fleet-card.mode-standings) .rank-row .fuel-n {
     display: none !important;
   }
 
@@ -4004,12 +4072,26 @@ button:not(:disabled):active {
     display: block;
     width: 8px;
     height: 8px;
-    margin-top: 0;
-    flex-shrink: 0;
+    margin: 0;
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: center;
+  }
+
+  #app:has(.fleet-card.mode-standings) .rank-body,
+  #app:has(.fleet-card.mode-standings) .rank-top {
+    display: contents;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
   }
 
   #app:has(.fleet-card.mode-standings) .rank-row .rank-id {
     display: block;
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
     font-size: 0.72rem;
     font-weight: 600;
     line-height: 18px;
@@ -4017,69 +4099,36 @@ button:not(:disabled):active {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    min-width: 0;
   }
 
+  /* ●◐○ tanks on a shared column so names cannot shove them. */
   #app:has(.fleet-card.mode-standings) .rank-row .rank-detail {
-    display: none;
-    align-items: center;
+    display: block;
+    grid-column: 3;
+    grid-row: 1;
+    text-align: center;
     font-size: 0;
     line-height: 1;
     overflow: hidden;
-    flex-shrink: 0;
+    white-space: nowrap;
+    color: transparent;
   }
 
-  #app:has(.fleet-card.mode-standings) .rank-row.active .rank-detail {
-    display: flex;
-  }
-
-  #app:has(.fleet-card.mode-standings) .rank-row .fuel-n::after {
-    content: " fuel";
-  }
-
-  #app:has(.fleet-card.mode-standings) .rank-row,
-  #app:has(.fleet-card.mode-standings) .rank-body,
-  #app:has(.fleet-card.mode-standings) .rank-top {
-    margin: 0;
-    border: none;
-    box-shadow: none;
-    grid-template-columns: 8px minmax(0, 1fr);
-  }
-
-  #app:has(.fleet-card.mode-standings) .rank-body,
-  #app:has(.fleet-card.mode-standings) .rank-top {
-    display: flex;
-    padding: 0;
-    min-height: 0;
-    height: 18px;
-    background: transparent;
-  }
-
-  #app:has(.fleet-card.mode-standings) .rank-body {
-    flex: 1;
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 6px;
-    min-width: 0;
-    overflow: hidden;
-  }
-
-  #app:has(.fleet-card.mode-standings) .rank-top {
-    flex: 1;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    gap: 6px;
-    width: auto;
-    min-width: 0;
-    overflow: hidden;
+  #app:has(.fleet-card.mode-standings) .rank-row .fuel-bar {
+    display: inline !important;
+    font-size: 0.62rem;
+    letter-spacing: 0.02em;
+    line-height: 1;
   }
 
   #app:has(.fleet-card.mode-standings) .rank-money {
+    grid-column: 4;
+    grid-row: 1;
+    margin: 0;
+    padding: 0;
     font-size: 0;
     line-height: 1;
-    flex-shrink: 0;
+    justify-self: end;
   }
 
   #app:has(.fleet-card.mode-standings) .rank-row .cash {
@@ -4091,18 +4140,6 @@ button:not(:disabled):active {
     overflow: hidden;
     text-overflow: clip;
     max-width: none;
-  }
-
-  #app:has(.fleet-card.mode-standings) .rank-row.active .cash,
-  #app:has(.fleet-card.mode-standings) .rank-row .fuel-n {
-    font-size: 0.72rem;
-    font-weight: 700;
-  }
-
-  #app:has(.fleet-card.mode-standings) .rank-row .fuel-n {
-    color: #7dd3fc;
-    white-space: nowrap;
-    overflow: hidden;
   }
 
   #app:has(.fleet-card.mode-standings) #pilot-controls {

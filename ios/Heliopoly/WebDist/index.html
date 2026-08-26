@@ -14,8 +14,8 @@
     <link rel="icon" type="image/png" href="./favicon-32.png" sizes="32x32" />
     <link rel="icon" type="image/png" href="./favicon-16.png" sizes="16x16" />
     <link rel="apple-touch-icon" href="./apple-touch-icon.png" sizes="180x180" />
-    <script type="module" crossorigin src="./assets/index-B0wPb2u-.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-BgfeYWEa.css">
+    <script type="module" crossorigin src="./assets/index-CzlCdqpb.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-Cm2wi9QS.css">
   </head>
   <body>
     <div id="app">
@@ -127,7 +127,7 @@ Name your rocket. Then Launch.</p>
             </div>
             <div id="setup-body" class="fleet-panel">
               <h2>New game</h2>
-              <label>
+              <label class="player-count-field">
                 Total pilots (2–6)
                 <input
                   id="player-count"
@@ -136,6 +136,18 @@ Name your rocket. Then Launch.</p>
                   max="6"
                   value="4"
                 />
+                <div
+                  id="pilot-count-chips"
+                  class="pilot-count-chips"
+                  role="group"
+                  aria-label="Number of rockets"
+                >
+                  <button type="button" data-players="2" aria-pressed="false">2</button>
+                  <button type="button" data-players="3" aria-pressed="false">3</button>
+                  <button type="button" data-players="4" aria-pressed="true">4</button>
+                  <button type="button" data-players="5" aria-pressed="false">5</button>
+                  <button type="button" data-players="6" aria-pressed="false">6</button>
+                </div>
               </label>
               <label class="check">
                 <input id="include-human" type="checkbox" checked />

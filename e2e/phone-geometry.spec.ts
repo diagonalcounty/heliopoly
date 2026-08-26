@@ -37,6 +37,52 @@ test.describe("phone setup #158", () => {
   });
 });
 
+test.describe("phone setup pilots #170", () => {
+  test.skip(({ viewport }) => (viewport?.width ?? 0) >= 900, "phone only");
+
+  test("Pilots chips are on the first viewport; Launch still receives the tap", async ({
+    page,
+  }) => {
+    await bootSetup(page);
+
+    const chips = page.locator("#pilot-count-chips button");
+    await expect(chips).toHaveCount(5);
+    const six = await boxOf(page, '#pilot-count-chips [data-players="6"]');
+    expect(six.height, "chip ≥44px").toBeGreaterThanOrEqual(44);
+    expect(six.top + six.height).toBeLessThanOrEqual(PHONE.h + 1);
+    expect(six.onControl, "chip tappable").toBe(true);
+
+    const launchBtn = await boxOf(page, "#btn-new");
+    expect(launchBtn.top + launchBtn.height).toBeLessThanOrEqual(PHONE.h + 1);
+    expect(launchBtn.onControl, "Launch still tappable").toBe(true);
+
+    const scrollH = await page.evaluate(() => document.documentElement.scrollHeight);
+    expect(scrollH, "no page scroll with Pilots chips").toBeLessThanOrEqual(
+      PHONE.h + 2,
+    );
+  });
+
+  test("chip 6 launches a six-rocket roster with tanks", async ({ page }) => {
+    await bootSetup(page);
+    await page.locator('#pilot-count-chips [data-players="6"]').click();
+    await page.locator("#btn-new").click();
+    await expect(page.locator("#fleet-card")).toHaveClass(/mode-standings/);
+
+    const rows = page.locator("#rankings .rank-row");
+    await expect(rows).toHaveCount(6);
+
+    const bar = await cssOf(page, "#rankings .rank-row .fuel-bar");
+    expect(bar.display, "tanks visible after Launch").not.toBe("none");
+
+    const board = await boxOf(page, "#board");
+    const roster = await boxOf(page, ".fleet-card.mode-standings");
+    expect(board.height, "circle stays on the board with 6 rows").toBeGreaterThanOrEqual(
+      240,
+    );
+    expect(board.top + board.height).toBeLessThanOrEqual(roster.top + 2);
+  });
+});
+
 test.describe("phone play thumbs #157 #166", () => {
   test.skip(({ viewport }) => (viewport?.width ?? 0) >= 900, "phone only");
 
@@ -159,16 +205,12 @@ test.describe("phone roster #168", () => {
       expect(Number.parseFloat(g.cashFont ?? "0"), `row ${i} cash readable`).toBeGreaterThan(
         8,
       );
-      expect(g.barDisplay, "no fuel-bar glyphs").toBe("none");
+      expect(g.barDisplay, "fuel tanks on every row").not.toBe("none");
       expect(g.propDisplay, "no propellant chip").toBe("none");
+      expect(g.fuelDisplay, "numeric fuel-n hidden; tanks carry fuel").toBe(
+        "none",
+      );
     }
-
-    const activeFuel = geom[0];
-    expect(activeFuel.fuelDisplay, "active fuel readable").not.toBe("none");
-    expect(
-      Number.parseFloat(activeFuel.fuelFont ?? "0"),
-      "active fuel readable",
-    ).toBeGreaterThan(8);
 
     const tel = await cssOf(page, "#telemetry");
     expect(tel.display, "#telemetry hidden").toBe("none");
