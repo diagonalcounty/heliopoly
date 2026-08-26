@@ -383,6 +383,28 @@ const btnDirBack = document.getElementById("btn-dir-back") as HTMLButtonElement;
 const playerCountInput = document.getElementById(
   "player-count",
 ) as HTMLInputElement;
+const pilotCountChips = document.getElementById("pilot-count-chips");
+
+function syncPilotCountChips(): void {
+  const n = String(
+    Math.min(6, Math.max(2, Number(playerCountInput.value) || 4)),
+  );
+  if (playerCountInput.value !== n) playerCountInput.value = n;
+  pilotCountChips?.querySelectorAll("[data-players]").forEach((el) => {
+    const on = el.getAttribute("data-players") === n;
+    el.classList.toggle("selected", on);
+    el.setAttribute("aria-pressed", on ? "true" : "false");
+  });
+}
+
+pilotCountChips?.addEventListener("click", (e) => {
+  const btn = (e.target as HTMLElement).closest("[data-players]");
+  if (!(btn instanceof HTMLElement)) return;
+  playerCountInput.value = btn.getAttribute("data-players") ?? "4";
+  syncPilotCountChips();
+});
+playerCountInput.addEventListener("change", syncPilotCountChips);
+syncPilotCountChips();
 const includeHuman = document.getElementById(
   "include-human",
 ) as HTMLInputElement;

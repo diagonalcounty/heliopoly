@@ -2,8 +2,8 @@
 //  ContentView.swift
 //  HeliopolyPhone
 //
-//  iPhone prototype root. Injects PhoneOverlay into the shared WebDist
-//  game. The iPad target never sets injectPhoneOverlay.
+//  iPhone prototype root (#156). Gold bar + WebDist over loopback HTTP.
+//  No PhoneOverlay costume. iPad uses Heliopoly/GameWebView.swift.
 //
 
 import SwiftUI
@@ -13,7 +13,7 @@ struct PhoneContentView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Text("HELIOPOLY PHONE")
+            Text("HELIOPOLY PHONE · WEB")
                 .font(.system(size: 13, weight: .bold, design: .rounded))
                 .tracking(1.2)
                 .foregroundStyle(Color(red: 0.043, green: 0.063, blue: 0.125))
@@ -24,16 +24,19 @@ struct PhoneContentView: View {
 
             ZStack {
                 Color(red: 0.043, green: 0.063, blue: 0.125)
+                    .allowsHitTesting(false)
                 if let loadError {
                     errorPanel(message: loadError)
                 } else {
-                    GameWebView(injectPhoneOverlay: true) { message in
+                    GameWebView { message in
                         loadError = message
                     }
+                    .allowsHitTesting(true)
                 }
             }
         }
         .ignoresSafeArea(edges: .top)
+        .preferredColorScheme(.dark)
     }
 
     @ViewBuilder
@@ -44,7 +47,7 @@ struct PhoneContentView: View {
                 .foregroundStyle(Color(red: 1, green: 0.784, blue: 0.341))
                 .tracking(2)
 
-            Text("Prototype overlay · iPad app is unchanged")
+            Text("Same WebDist a skinny browser sees · iPad app is unchanged")
                 .font(.subheadline)
                 .foregroundStyle(Color(red: 0.604, green: 0.659, blue: 0.78))
 

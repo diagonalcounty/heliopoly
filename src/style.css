@@ -2376,6 +2376,10 @@ button:not(:disabled):active {
   font-variant-numeric: tabular-nums;
 }
 
+.pilot-count-chips {
+  display: none;
+}
+
 .rank-row .swatch {
   width: 10px;
   height: 10px;
@@ -3325,4 +3329,1407 @@ button:not(:disabled):active {
 .rank-row .cash {
   color: var(--ok);
   font-size: 0.75rem;
+}
+
+/**
+ * #158 — stacked / phone setup: first viewport is the expedition.
+ * Board is a stamp; welcome + Pilot + Log wait until after Launch.
+ * Fuel / Table are chips (essay copy hidden visually, still in the DOM).
+ * Launch stays in-flow, full-width, pointer-events auto — do not cover it.
+ * Wide / two-column New Game is unchanged. Play thumbs are #157.
+ */
+@media (max-width: 900px), ((max-width: 1180px) and (orientation: portrait)) {
+  .top-row {
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .top h1 {
+    font-size: 0.95rem;
+    line-height: 1.2;
+    min-width: 0;
+  }
+
+  .badge {
+    font-size: 0.62rem;
+    padding: 0.1rem 0.35rem;
+  }
+
+  /* Setup only — :has(.mode-setup) drops when standings take the slot. */
+  #app:has(.fleet-card.mode-setup) {
+    padding-top: max(8px, env(safe-area-inset-top, 0px));
+    padding-right: max(10px, env(safe-area-inset-right, 0px));
+    padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
+    padding-left: max(10px, env(safe-area-inset-left, 0px));
+  }
+
+  html.native-shell:has(.fleet-card.mode-setup),
+  html.native-shell:has(.fleet-card.mode-setup) body {
+    height: auto;
+    max-height: none;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  html.native-shell:has(.fleet-card.mode-setup) #app {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+
+  #app:has(.fleet-card.mode-setup) .layout {
+    gap: 6px;
+  }
+
+  #app:has(.fleet-card.mode-setup) #welcome-card {
+    display: none !important;
+  }
+
+  /* Stamp, not the page. Clicks pass through so Launch stays tappable. */
+  #app:has(.fleet-card.mode-setup) .board-panel {
+    max-width: min(28vw, 120px);
+    width: min(28vw, 120px);
+    margin: 0 auto;
+    padding: 0;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  #app:has(.fleet-card.mode-setup) .board-stage,
+  #app:has(.fleet-card.mode-setup) #board {
+    width: 100% !important;
+    height: auto !important;
+    max-width: 100% !important;
+    max-height: min(28vw, 120px) !important;
+    aspect-ratio: 1 / 1;
+    pointer-events: none;
+  }
+
+  #app:has(.fleet-card.mode-setup) .side {
+    position: static;
+    z-index: 30;
+    max-height: none;
+    overflow: visible;
+    gap: 6px;
+    pointer-events: auto;
+  }
+
+  /* Sticky Pilot on stacked play was covering Launch. Hide until after Launch. */
+  #app:has(.fleet-card.mode-setup) .pilot-controls,
+  #app:has(.fleet-card.mode-setup) .log-card {
+    display: none !important;
+    pointer-events: none !important;
+    position: static !important;
+    visibility: hidden;
+  }
+
+  #app:has(.fleet-card.mode-setup) .fleet-card.mode-setup {
+    min-height: 0;
+    padding: 8px 10px 10px;
+    pointer-events: auto;
+  }
+
+  #app:has(.fleet-card.mode-setup) #setup-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: auto;
+  }
+
+  #app:has(.fleet-card.mode-setup) #setup-body h2 {
+    margin: 0;
+    font-size: 1rem;
+    order: 0;
+  }
+
+  #app:has(.fleet-card.mode-setup) #pilot-name-label {
+    order: 1;
+    margin: 0;
+    font-size: 0.82rem;
+  }
+
+  #app:has(.fleet-card.mode-setup) #pilot-name {
+    display: block;
+    width: 100%;
+    min-height: 44px;
+    margin-top: 4px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #0d1426;
+    color: var(--text);
+    font-size: 1.05rem;
+  }
+
+  #app:has(.fleet-card.mode-setup) #setup-body > .propellant-field:not(.ai-difficulty-field) {
+    order: 2;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    border: none;
+  }
+
+  #app:has(.fleet-card.mode-setup) #setup-body > .propellant-field:not(.ai-difficulty-field) legend {
+    grid-column: 1 / -1;
+    font-size: 0;
+    padding: 0;
+  }
+
+  #app:has(.fleet-card.mode-setup) #setup-body > .propellant-field:not(.ai-difficulty-field) legend::after {
+    content: "Fuel";
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  #app:has(.fleet-card.mode-setup) .ai-difficulty-row {
+    order: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    margin: 0;
+  }
+
+  #app:has(.fleet-card.mode-setup) .ai-difficulty-field {
+    min-height: 0 !important;
+    height: auto !important;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    border: none;
+    justify-content: flex-start;
+  }
+
+  #app:has(.fleet-card.mode-setup) .ai-difficulty-field legend {
+    grid-column: 1 / -1;
+    font-size: 0;
+    padding: 0;
+  }
+
+  #app:has(.fleet-card.mode-setup) .ai-difficulty-field legend::after {
+    content: "Table";
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* Isolate each chip so an absolute radio cannot cover Launch. */
+  #app:has(.fleet-card.mode-setup) #setup-body .propellant-field .check,
+  #app:has(.fleet-card.mode-setup) #setup-body .ai-difficulty-field .check {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    margin: 0;
+    min-height: 44px;
+    padding: 8px 10px;
+    border: 1px solid #3d5080;
+    border-radius: 10px;
+    background: #152038;
+    font-size: 0;
+    color: transparent;
+    text-align: center;
+    cursor: pointer;
+    touch-action: manipulation;
+    z-index: 2;
+  }
+
+  #app:has(.fleet-card.mode-setup) #setup-body .propellant-field .check:has(input:checked),
+  #app:has(.fleet-card.mode-setup) #setup-body .ai-difficulty-field .check:has(input:checked) {
+    border-color: var(--accent-2);
+    box-shadow: inset 0 0 0 1px var(--accent-2);
+    color: var(--accent-2);
+  }
+
+  #app:has(.fleet-card.mode-setup) #setup-body .propellant-field .check input,
+  #app:has(.fleet-card.mode-setup) #setup-body .ai-difficulty-field .check input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    margin: 0;
+    opacity: 0.02;
+    -webkit-appearance: none;
+    appearance: none;
+    pointer-events: auto;
+    z-index: 2;
+  }
+
+  #app:has(.fleet-card.mode-setup) #setup-body .propellant-field .check::after,
+  #app:has(.fleet-card.mode-setup) #setup-body .ai-difficulty-field .check::after {
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--text);
+    pointer-events: none;
+    position: relative;
+    z-index: 1;
+  }
+
+  #app:has(.fleet-card.mode-setup) #setup-body .check:has(input:checked)::after {
+    color: var(--accent-2);
+  }
+
+  #app:has(.fleet-card.mode-setup) #setup-body .check:has([value="methane"])::after {
+    content: "Methane";
+  }
+  #app:has(.fleet-card.mode-setup) #setup-body .check:has([value="hydrogen"])::after {
+    content: "Hydrogen";
+  }
+  #app:has(.fleet-card.mode-setup) #setup-body .check:has([value="easy"])::after {
+    content: "Easy";
+  }
+  #app:has(.fleet-card.mode-setup) #setup-body .check:has([value="normal"])::after {
+    content: "Normal";
+  }
+  #app:has(.fleet-card.mode-setup) #setup-body .check:has([value="hard"])::after {
+    content: "Hard";
+  }
+  #app:has(.fleet-card.mode-setup) #setup-body .check:has([value="expert"])::after {
+    content: "Expert";
+  }
+
+  /* JS still writes 72×225 inline — kill the tower. */
+  #app:has(.fleet-card.mode-setup) #duration-meter,
+  #app:has(.fleet-card.mode-setup) .duration-meter {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    align-self: flex-start !important;
+    width: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 4px 10px !important;
+    border-radius: 999px !important;
+  }
+
+  #app:has(.fleet-card.mode-setup) .duration-meter-title {
+    padding: 0 !important;
+    border: none !important;
+    font-size: 0.78rem !important;
+    color: #7dd3fc !important;
+    text-align: left;
+  }
+
+  #app:has(.fleet-card.mode-setup) .duration-meter-body {
+    display: none !important;
+    height: 0 !important;
+  }
+
+  #app:has(.fleet-card.mode-setup) #btn-new {
+    display: block;
+    order: 5;
+    width: 100%;
+    min-height: 56px;
+    margin: 8px 0 0;
+    font-size: 1.15rem;
+    font-weight: 800;
+    pointer-events: auto;
+    position: relative;
+    z-index: 80;
+    touch-action: manipulation;
+  }
+
+  #app:has(.fleet-card.mode-setup) #btn-selfplay {
+    order: 6;
+  }
+
+  #app:has(.fleet-card.mode-setup) #setup-body > label:has(#player-count) {
+    order: 4;
+    margin: 0;
+  }
+
+  #app:has(.fleet-card.mode-setup) #setup-body > label.check:has(#include-human) {
+    order: 7;
+    margin: 0;
+  }
+
+  #app:has(.fleet-card.mode-setup) #setup-body > .hint {
+    order: 8;
+    margin: 0;
+  }
+}
+
+/* Phone width: kid path is name / Fuel / Table / Launch. Lab knobs stay on tablet+. */
+@media (max-width: 560px) {
+  .anim-speed-field {
+    display: none;
+  }
+
+  .lab-launch {
+    min-height: 36px;
+    padding: 4px 8px;
+    font-size: 0.75rem;
+  }
+
+  .handbook-launch {
+    min-height: 36px;
+    padding: 4px 8px 4px 4px;
+    gap: 6px;
+  }
+
+  .handbook-launch .ops-manual-icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .handbook-launch span {
+    font-size: 0;
+  }
+
+  .handbook-launch span::after {
+    content: "Book";
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+
+  /* #170 — Pilots 2–6 stay on the first viewport; human seat stays implied. */
+  #app:has(.fleet-card.mode-setup) #setup-body > label:has(#player-count) {
+    display: flex !important;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    order: 4;
+    margin: 0;
+    font-size: 0;
+    min-height: 44px;
+    pointer-events: auto;
+    position: relative;
+    z-index: 2;
+  }
+
+  #app:has(.fleet-card.mode-setup) #setup-body > label:has(#player-count)::before {
+    content: "Pilots";
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  #app:has(.fleet-card.mode-setup) #player-count {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+  }
+
+  #app:has(.fleet-card.mode-setup) .pilot-count-chips {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    width: min(100%, 220px);
+  }
+
+  #app:has(.fleet-card.mode-setup) .pilot-count-chips button {
+    min-height: 44px;
+    margin: 0;
+    padding: 0;
+    border-radius: 10px;
+    border: 1px solid #3d5080;
+    background: #152038;
+    color: var(--text);
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  #app:has(.fleet-card.mode-setup) .pilot-count-chips button.selected {
+    border-color: var(--accent-2);
+    box-shadow: inset 0 0 0 1px var(--accent-2);
+    color: var(--accent-2);
+  }
+
+  #app:has(.fleet-card.mode-setup) #setup-body > label.check:has(#include-human),
+  #app:has(.fleet-card.mode-setup) #setup-body > .hint,
+  #app:has(.fleet-card.mode-setup) #btn-selfplay {
+    display: none !important;
+  }
+}
+
+@media (max-width: 900px) and (max-height: 500px) {
+  #app:has(.fleet-card.mode-setup) .board-panel,
+  #app:has(.fleet-card.mode-setup) #board {
+    max-width: 56px;
+    max-height: 56px !important;
+    width: 56px;
+  }
+
+  #app:has(.fleet-card.mode-setup) #setup-body .propellant-field .check,
+  #app:has(.fleet-card.mode-setup) #setup-body .ai-difficulty-field .check {
+    min-height: 40px;
+    padding: 6px 8px;
+  }
+
+  #app:has(.fleet-card.mode-setup) #setup-body h2 {
+    display: none;
+  }
+}
+
+/**
+ * #157 — stacked / phone play: the board is the page.
+ * #166 — three thumbs (Roll / Buy / Move, Book, End). #telemetry is hidden.
+ * #168 — compact roster of every .rank-row in leftover navy (not a 28dvh
+ * hunt). Circle stays above the roster the same way it stays above thumbs.
+ * Legal extras (Refuel, Fuel depot, Break, Course) sit above the thumbs
+ * when JS enables them — do not blanket-hide .actions buttons.
+ * Setup (:has(.mode-setup)) stays #158 — this block never covers Launch.
+ * Wide two-column play is unchanged.
+ */
+.play-thumbs {
+  display: none;
+}
+
+@media (max-width: 900px), ((max-width: 1180px) and (orientation: portrait)) {
+  #app:has(.fleet-card.mode-standings) {
+    /* 9 compact name+cash rows (The Ada … The von Braun) without 28dvh scroll. */
+    --play-roster-h: 176px;
+    --play-header-h: 52px;
+    /* Break 48px + Refuel/depot slot 48px always — circle must not rescale
+       when those rows arm. Course still grows when legal. */
+    --play-thumbs-h: calc(
+      var(--play-roster-h) + 8px + 56px + 96px + env(safe-area-inset-bottom, 0px)
+    );
+    max-width: none;
+    width: 100%;
+    min-height: 100dvh;
+    height: 100dvh;
+    padding: 0;
+    padding-bottom: var(--play-thumbs-h);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Course still grows; Refuel/depot use the parked extra slot. */
+  #app:has(.fleet-card.mode-standings):has(#dir-row:not(.hidden-vis)) {
+    --play-thumbs-h: calc(
+      var(--play-roster-h) + 8px + 56px + 144px +
+        env(safe-area-inset-bottom, 0px)
+    );
+  }
+
+  html:has(.fleet-card.mode-standings),
+  html:has(.fleet-card.mode-standings) body {
+    height: 100%;
+    min-height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+  }
+
+  html.native-shell:has(.fleet-card.mode-standings),
+  html.native-shell:has(.fleet-card.mode-standings) body,
+  html.native-shell:has(.fleet-card.mode-standings) #app {
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+  }
+
+  #app:has(.fleet-card.mode-standings) .play-thumbs {
+    display: block;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: var(--play-thumbs-h);
+    z-index: 40;
+    pointer-events: none;
+    background: linear-gradient(180deg, #1a2440 0%, #10182c 55%);
+    border-top: 1px solid #3d5080;
+    box-shadow: 0 -10px 28px rgba(0, 0, 0, 0.45);
+  }
+
+  #app:has(.fleet-card.mode-standings) #welcome-card,
+  #app:has(.fleet-card.mode-standings) .log-card,
+  #app:has(.fleet-card.mode-standings) .anim-speed-field,
+  #app:has(.fleet-card.mode-standings) #btn-lab,
+  #app:has(.fleet-card.mode-standings) #setup-toggle,
+  #app:has(.fleet-card.mode-standings) .title-tagline,
+  #app:has(.fleet-card.mode-standings) .badge {
+    display: none !important;
+  }
+
+  #app:has(.fleet-card.mode-standings) header.top {
+    position: relative;
+    z-index: 45;
+    flex: 0 0 auto;
+    min-height: 0;
+    padding: 4px 8px 0;
+    background: transparent;
+    border: none;
+  }
+
+  #app:has(.fleet-card.mode-standings) .top-row {
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  #app:has(.fleet-card.mode-standings) .top h1 {
+    font-size: 0.9rem;
+    margin: 0;
+  }
+
+  #app:has(.fleet-card.mode-standings) #btn-quit {
+    min-height: 36px;
+    padding: 4px 10px;
+    font-size: 0.78rem;
+  }
+
+  #app:has(.fleet-card.mode-standings) .layout {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    overflow: hidden;
+  }
+
+  #app:has(.fleet-card.mode-standings) .board-panel {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-width: none !important;
+    width: 100% !important;
+    margin: 0;
+    padding: 4px 0 0;
+    border: none;
+    border-radius: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+    z-index: 1;
+  }
+
+  /* Square fits the leftover column above the chrome — never under the bar. */
+  #app:has(.fleet-card.mode-standings) .board-stage,
+  #app:has(.fleet-card.mode-standings) #board {
+    width: min(
+      100%,
+      calc(100dvh - var(--play-thumbs-h) - var(--play-header-h))
+    ) !important;
+    height: auto !important;
+    max-width: 100% !important;
+    max-height: min(
+      100%,
+      calc(100dvh - var(--play-thumbs-h) - var(--play-header-h))
+    ) !important;
+    aspect-ratio: 1 / 1;
+    pointer-events: auto;
+  }
+
+  #app:has(.fleet-card.mode-standings) .side {
+    position: static;
+    height: 0;
+    min-height: 0;
+    max-height: none;
+    overflow: visible;
+    margin: 0;
+    padding: 0;
+    gap: 0;
+    pointer-events: none;
+  }
+
+  #app:has(.fleet-card.mode-standings) #pilot-controls {
+    pointer-events: auto;
+  }
+
+  #app:has(.fleet-card.mode-standings) .fleet-card {
+    pointer-events: auto;
+  }
+
+  #app:has(.fleet-card.mode-standings) #standings-panel h2,
+  #app:has(.fleet-card.mode-standings) .charter-choice-hint,
+  #app:has(.fleet-card.mode-standings) .pilot-controls-head {
+    display: none !important;
+  }
+
+  /* #168 — compact roster in leftover navy. Thumbs stay the three buttons. */
+  #app:has(.fleet-card.mode-standings) .fleet-card.mode-standings,
+  #app:has(.fleet-card.mode-standings) #btn-handbook-header {
+    position: fixed;
+    z-index: 43;
+    margin: 0;
+    box-sizing: border-box;
+  }
+
+  #app:has(.fleet-card.mode-standings) .fleet-card.mode-standings {
+    left: 8px;
+    right: 8px;
+    width: auto;
+    bottom: calc(var(--play-thumbs-h) - var(--play-roster-h));
+    top: auto;
+    height: auto;
+    max-height: var(--play-roster-h);
+    min-height: 0;
+    padding: 4px 6px;
+    border: 1px solid #2a3555;
+    border-radius: 12px;
+    background: rgba(16, 24, 44, 0.94);
+    box-shadow: none;
+    display: flex;
+    align-items: stretch;
+    overflow: hidden;
+    pointer-events: auto;
+  }
+
+  #app:has(.fleet-card.mode-standings) #standings-panel {
+    display: block;
+    width: 100%;
+    min-height: 0;
+    max-height: var(--play-roster-h);
+    overflow: hidden;
+  }
+
+  #app:has(.fleet-card.mode-standings) #rankings {
+    display: grid;
+    grid-template-columns: 8px minmax(0, 1fr) 10.5ch max-content;
+    align-items: center;
+    width: 100%;
+    height: auto;
+    max-height: var(--play-roster-h);
+    min-height: 0;
+    margin: 0;
+    column-gap: 6px;
+    row-gap: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    pointer-events: auto;
+  }
+
+  #app:has(.fleet-card.mode-standings) .rank-row {
+    display: grid !important;
+    grid-template-columns: subgrid;
+    grid-column: 1 / -1;
+    height: 18px;
+    min-height: 18px;
+    max-height: 18px;
+    padding: 0 4px;
+    border-radius: 6px;
+    align-items: center;
+    overflow: hidden;
+  }
+
+  #app:has(.fleet-card.mode-standings) .rank-row.active {
+    outline: 1px solid var(--accent-2);
+    outline-offset: -1px;
+    background: rgba(255, 200, 87, 0.08);
+  }
+
+  #app:has(.fleet-card.mode-standings) .rank-row .rank-prop,
+  #app:has(.fleet-card.mode-standings) .rank-row .at-risk-badge,
+  #app:has(.fleet-card.mode-standings) .rank-row .fuel-n {
+    display: none !important;
+  }
+
+  #app:has(.fleet-card.mode-standings) .rank-row .swatch {
+    display: block;
+    width: 8px;
+    height: 8px;
+    margin: 0;
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: center;
+  }
+
+  #app:has(.fleet-card.mode-standings) .rank-body,
+  #app:has(.fleet-card.mode-standings) .rank-top {
+    display: contents;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+  }
+
+  #app:has(.fleet-card.mode-standings) .rank-row .rank-id {
+    display: block;
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 18px;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ●◐○ tanks on a shared column so names cannot shove them. */
+  #app:has(.fleet-card.mode-standings) .rank-row .rank-detail {
+    display: block;
+    grid-column: 3;
+    grid-row: 1;
+    text-align: center;
+    font-size: 0;
+    line-height: 1;
+    overflow: hidden;
+    white-space: nowrap;
+    color: transparent;
+  }
+
+  #app:has(.fleet-card.mode-standings) .rank-row .fuel-bar {
+    display: inline !important;
+    font-size: 0.62rem;
+    letter-spacing: 0.02em;
+    line-height: 1;
+  }
+
+  #app:has(.fleet-card.mode-standings) .rank-money {
+    grid-column: 4;
+    grid-row: 1;
+    margin: 0;
+    padding: 0;
+    font-size: 0;
+    line-height: 1;
+    justify-self: end;
+  }
+
+  #app:has(.fleet-card.mode-standings) .rank-row .cash {
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 18px;
+    color: var(--ok);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: clip;
+    max-width: none;
+  }
+
+  #app:has(.fleet-card.mode-standings) #pilot-controls {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 42;
+    height: calc(var(--play-thumbs-h) - var(--play-roster-h) - 8px);
+    min-height: calc(var(--play-thumbs-h) - var(--play-roster-h) - 8px);
+    margin: 0;
+    padding: 0 8px env(safe-area-inset-bottom, 0px);
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    overflow: visible;
+  }
+
+  /* Fuel already sits next to cash from standings. Do not steal a thumb slot. */
+  #app:has(.fleet-card.mode-standings) #telemetry {
+    display: none !important;
+  }
+
+  #app:has(.fleet-card.mode-standings) #dir-row.hidden-vis {
+    display: none !important;
+  }
+
+  #app:has(.fleet-card.mode-standings) #break-row,
+  #app:has(.fleet-card.mode-standings) #dir-row:not(.hidden-vis) {
+    display: flex !important;
+    visibility: visible;
+    position: relative;
+    z-index: 43;
+    height: 44px;
+    min-height: 44px;
+    margin: 0 0 4px;
+    padding: 0 4px;
+    background: transparent;
+    pointer-events: auto;
+  }
+
+  /* Idle / other seats: keep the row so the roster does not jump. */
+  #app:has(.fleet-card.mode-standings) #break-row.hidden-vis {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  #app:has(.fleet-card.mode-standings) .pilot-controls .actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 44px 56px;
+    row-gap: 4px;
+    column-gap: 8px;
+    margin: 0;
+    height: calc(56px + 48px);
+    min-height: calc(56px + 48px);
+  }
+
+  /* Sell / dump / ROI stay off the bar. Buy only appears in the Roll slot. */
+  #app:has(.fleet-card.mode-standings) #btn-sell,
+  #app:has(.fleet-card.mode-standings) #btn-buy,
+  #app:has(.fleet-card.mode-standings) #btn-refuel:disabled,
+  #app:has(.fleet-card.mode-standings) #btn-station:disabled {
+    display: none;
+  }
+
+  #app:has(.fleet-card.mode-standings) #btn-roll,
+  #app:has(.fleet-card.mode-standings) #btn-end {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    grid-row: -2 / -1;
+    height: 56px;
+    min-height: 56px;
+    width: auto;
+    padding: 0 6px;
+    font-size: 0.92rem;
+    font-weight: 800;
+    border-radius: 10px;
+  }
+
+  /* #172 — legal Refuel / Fuel depot: full-width row above thumbs, not a fourth slot.
+     Last explicit thumb row is -2 / -1 so Roll · End do not spawn under the bar. */
+  #app:has(.fleet-card.mode-standings) #btn-refuel:not(:disabled),
+  #app:has(.fleet-card.mode-standings) #btn-station:not(:disabled) {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    grid-column: 1 / -1;
+    grid-row: 1;
+    height: 44px;
+    min-height: 44px;
+    width: auto;
+    padding: 0 10px;
+    font-size: 0.88rem;
+    font-weight: 800;
+    border-radius: 10px;
+    background: linear-gradient(180deg, #ca8a04, #a16207);
+    border-color: #ffc857;
+    color: #fff;
+    pointer-events: auto;
+    z-index: 43;
+  }
+
+  #app:has(.fleet-card.mode-standings) #btn-roll {
+    grid-column: 1;
+    background: linear-gradient(180deg, #0891b2, #0e7490);
+    border-color: #22d3ee;
+    color: #fff;
+  }
+
+  /* Buy shares the Roll slot when Roll is not the legal action. */
+  #app:has(.fleet-card.mode-standings) #btn-roll:disabled:has(~ #btn-buy:not(:disabled)) {
+    display: none;
+  }
+
+  #app:has(.fleet-card.mode-standings) #btn-roll:disabled ~ #btn-buy:not(:disabled) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    grid-column: 1;
+    grid-row: -2 / -1;
+    height: 56px;
+    min-height: 56px;
+    width: auto;
+    padding: 0 6px;
+    font-size: 0.92rem;
+    font-weight: 800;
+    border-radius: 10px;
+    background: linear-gradient(180deg, #0891b2, #0e7490);
+    border-color: #22d3ee;
+    color: #fff;
+  }
+
+  #app:has(.fleet-card.mode-standings) #btn-handbook-header {
+    left: calc(8px + (100% - 32px) / 3 + 8px);
+    width: calc((100% - 32px) / 3);
+    bottom: env(safe-area-inset-bottom, 0px);
+    height: 56px;
+    min-height: 56px;
+    padding: 0 6px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  #app:has(.fleet-card.mode-standings) #btn-end {
+    grid-column: 3;
+    font-size: 0;
+  }
+
+  #app:has(.fleet-card.mode-standings) #btn-end::after {
+    content: "End";
+    font-size: 0.92rem;
+    font-weight: 800;
+  }
+
+  #app:has(.fleet-card.mode-standings) .handbook-launch .ops-manual-icon {
+    width: 22px;
+    height: 22px;
+  }
+
+  #app:has(.fleet-card.mode-standings) .handbook-launch span {
+    font-size: 0;
+  }
+
+  #app:has(.fleet-card.mode-standings) .handbook-launch span::after {
+    content: "Book";
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+
+  #app:has(.fleet-card.mode-standings) .body-tooltip {
+    left: 8px !important;
+    right: 8px !important;
+    top: auto !important;
+    bottom: calc(var(--play-thumbs-h) + 8px) !important;
+    max-width: none;
+    max-height: 22vw;
+    overflow: hidden;
+    padding: 6px 10px;
+    font-size: 0.75rem;
+  }
+
+  #app:has(.fleet-card.mode-standings) .body-tooltip h4 {
+    margin: 0 2px 0 0;
+    display: inline;
+    font-size: 0.82rem;
+  }
+
+  #app:has(.fleet-card.mode-standings) .path-flash {
+    bottom: calc(var(--play-thumbs-h) + 8px);
+  }
+}
+
+/**
+ * #160 — stacked / phone sheets: full-bleed and tappable above the thumbs.
+ * Hidden sheets must not steal taps. Do not restyle duel/auction art.
+ */
+@media (max-width: 900px), ((max-width: 1180px) and (orientation: portrait)) {
+  #handbook-root.hidden,
+  #dossier-root.hidden,
+  #duel-root.hidden,
+  #auction-root.hidden,
+  #announce-root.hidden,
+  #end-root.hidden,
+  #lab-root.hidden {
+    pointer-events: none !important;
+  }
+
+  #handbook-root:not(.hidden),
+  #dossier-root:not(.hidden),
+  #duel-root:not(.hidden),
+  #auction-root:not(.hidden),
+  #announce-root:not(.hidden),
+  #end-root:not(.hidden) {
+    z-index: 2000 !important;
+    isolation: isolate;
+    padding: 0;
+    align-items: stretch;
+    justify-content: stretch;
+    pointer-events: auto;
+  }
+
+  /* After #157, thumbs / Refuel / Break sit at z 40–43. A full-bleed sheet
+     must own taps; close returns this to auto via :not(.hidden). */
+  body:has(
+      #handbook-root:not(.hidden),
+      #dossier-root:not(.hidden),
+      #duel-root:not(.hidden),
+      #auction-root:not(.hidden),
+      #announce-root:not(.hidden),
+      #end-root:not(.hidden)
+    )
+    #app:has(.fleet-card.mode-standings)
+    :is(
+      .play-thumbs,
+      #pilot-controls,
+      #btn-handbook-header,
+      .fleet-card.mode-standings
+    ) {
+    pointer-events: none !important;
+    z-index: 1;
+  }
+
+  #handbook-root:not(.hidden) .handbook-panel,
+  #dossier-root:not(.hidden) .handbook-panel,
+  #duel-root:not(.hidden) .handbook-panel {
+    width: 100%;
+    max-width: none;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+
+  #handbook-root:not(.hidden) .handbook-header,
+  #dossier-root:not(.hidden) .handbook-header,
+  #duel-root:not(.hidden) .handbook-header {
+    padding-top: max(10px, env(safe-area-inset-top, 0px));
+    padding-left: max(12px, env(safe-area-inset-left, 0px));
+    padding-right: max(12px, env(safe-area-inset-right, 0px));
+  }
+
+  #handbook-root:not(.hidden) .handbook-close,
+  #dossier-root:not(.hidden) .handbook-close {
+    min-width: 44px;
+    min-height: 44px;
+    pointer-events: auto;
+  }
+
+  #handbook-root:not(.hidden) .handbook-body {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  /* Desktop toc items are width:100% in a column. On a nowrap row that
+     made every topic a full-screen-wide chip — only Overview was visible. */
+  #handbook-root:not(.hidden) .handbook-toc {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    overflow-x: hidden;
+    overflow-y: auto;
+    height: auto;
+    max-height: 28dvh;
+    width: 100%;
+    gap: 6px;
+    padding: 8px max(10px, env(safe-area-inset-right, 0px)) 8px
+      max(10px, env(safe-area-inset-left, 0px));
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #handbook-root:not(.hidden) .handbook-toc-item {
+    width: auto;
+    max-width: 100%;
+    flex: 0 0 auto;
+    margin-bottom: 0;
+    pointer-events: auto;
+  }
+
+  #handbook-root:not(.hidden) .handbook-article {
+    min-height: 0;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
+  }
+
+  #dossier-root:not(.hidden) .dossier-body,
+  #duel-root:not(.hidden) .duel-body {
+    min-height: 0;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
+  }
+
+  #dossier-root:not(.hidden) .dossier-row-roi {
+    display: none;
+  }
+
+  #announce-root:not(.hidden) .announce-card,
+  #auction-root:not(.hidden) .announce-card {
+    width: 100%;
+    max-width: none;
+    min-height: 100dvh;
+    margin: 0;
+    border-radius: 0;
+    transform: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
+  }
+
+  #announce-root:not(.hidden) #announce-ok,
+  #auction-root:not(.hidden) #auction-bid,
+  #auction-root:not(.hidden) #auction-pass,
+  #end-root:not(.hidden) #end-again,
+  #end-root:not(.hidden) #end-close,
+  #duel-root:not(.hidden) .duel-btn,
+  #duel-root:not(.hidden) #duel-result-ok {
+    min-height: 56px;
+    pointer-events: auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  #end-root:not(.hidden) .end-inner {
+    width: 100%;
+    max-width: none;
+    min-height: 100dvh;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: max(16px, env(safe-area-inset-top, 0px)) 16px
+      max(16px, env(safe-area-inset-bottom, 0px));
+  }
+
+  /**
+   * #179 — Gravity Duel: High / Low / Roll / Continue in the first sheet.
+   * Same dice art. Opponent name + dice stay. Human controls do not scroll away.
+   */
+  #duel-root:not(.hidden) .duel-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+  }
+
+  #duel-root:not(.hidden) .duel-panel .handbook-header {
+    padding-top: max(8px, env(safe-area-inset-top, 0px));
+    padding-bottom: 8px;
+    gap: 8px;
+  }
+
+  #duel-root:not(.hidden) .handbook-kicker {
+    display: none;
+  }
+
+  #duel-root:not(.hidden) .duel-panel .handbook-header h2 {
+    font-size: 1.05rem;
+  }
+
+  #duel-root:not(.hidden) .duel-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    padding: 8px max(12px, env(safe-area-inset-right, 0px))
+      max(12px, env(safe-area-inset-bottom, 0px))
+      max(12px, env(safe-area-inset-left, 0px));
+    gap: 6px;
+  }
+
+  #duel-root:not(.hidden) .duel-matchup {
+    font-size: 0.85rem;
+    margin: 0;
+    flex-shrink: 0;
+  }
+
+  #duel-root:not(.hidden) #duel-status {
+    margin: 0;
+    font-size: 0.72rem;
+    line-height: 1.25;
+    max-height: 2.6em;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  #duel-root:not(.hidden) .duel-body > .hint {
+    margin: 0;
+    font-size: 0.72rem;
+    line-height: 1.25;
+    flex-shrink: 0;
+  }
+
+  #duel-root:not(.hidden) .duel-dice {
+    margin: 0;
+    font-size: 0.72rem;
+    max-height: 2.5em;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  #duel-root:not(.hidden) .dice-stage {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    align-items: center;
+    justify-items: center;
+    align-content: start;
+    column-gap: 8px;
+    row-gap: 6px;
+    margin: 0;
+    flex: 1 1 auto;
+    min-height: 0;
+    flex-wrap: nowrap;
+  }
+
+  #duel-root:not(.hidden) #duel-side-left,
+  #duel-root:not(.hidden) #duel-side-right {
+    display: contents;
+  }
+
+  #duel-root:not(.hidden) #duel-side-left .dice-label {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  #duel-root:not(.hidden) #duel-side-left .dice-pair {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  #duel-root:not(.hidden) .dice-vs {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    padding-top: 0;
+  }
+
+  #duel-root:not(.hidden) #duel-side-right .dice-label {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  #duel-root:not(.hidden) #duel-side-right .dice-pair {
+    grid-column: 3;
+    grid-row: 2;
+  }
+
+  /* AI / opponent chrome stays in the DOM; kid taps the right-side row. */
+  #duel-root:not(.hidden) #duel-actions-left {
+    display: none !important;
+  }
+
+  #duel-root:not(.hidden) #duel-actions-right {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    width: 100%;
+    max-width: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  #duel-root:not(.hidden) #duel-actions-right .duel-btn {
+    min-height: 56px;
+    min-width: 44px;
+    font-size: 0.95rem;
+  }
+
+  #duel-root:not(.hidden) #duel-actions-right .duel-roll-btn {
+    grid-column: 1 / -1;
+  }
+
+  #duel-root:not(.hidden) .duel-result-footer {
+    flex-shrink: 0;
+    margin-top: 4px;
+    padding-top: 8px;
+  }
+
+  #duel-root:not(.hidden) .duel-result-headline {
+    font-size: 1.05rem;
+    margin: 0 0 4px;
+  }
+
+  #duel-root:not(.hidden) .duel-punchy {
+    font-size: 0.85rem;
+    margin: 0 0 4px;
+  }
+
+  #duel-root:not(.hidden) .duel-result-summary {
+    font-size: 0.72rem;
+    margin: 0 0 8px;
+    max-height: 4.2em;
+    overflow: hidden;
+  }
+
+  #duel-root:not(.hidden) #duel-result-ok {
+    min-height: 56px;
+    width: 100%;
+  }
+
+  /**
+   * #183 — Claim auction: Bid / Pass in the first-sheet thumb zone.
+   * Same card. Reserve and whose bid stay readable. No new art.
+   */
+  #auction-root:not(.hidden) .announce-card {
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+    justify-content: flex-start;
+    padding: max(12px, env(safe-area-inset-top, 0px))
+      max(16px, env(safe-area-inset-right, 0px))
+      max(12px, env(safe-area-inset-bottom, 0px))
+      max(16px, env(safe-area-inset-left, 0px));
+  }
+
+  #auction-root:not(.hidden) .announce-copy {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+    padding: 8px 0 0;
+  }
+
+  #auction-root:not(.hidden) #auction-title {
+    font-size: 1.35rem;
+    margin: 8px 0 10px;
+    overflow: visible;
+    text-overflow: unset;
+    white-space: normal;
+    flex-shrink: 0;
+  }
+
+  #auction-root:not(.hidden) #auction-body {
+    margin: 0 0 12px;
+    overflow: auto;
+    text-overflow: unset;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  #auction-root:not(.hidden) .auction-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    align-items: stretch;
+    width: 100%;
+    margin-top: auto;
+    flex-shrink: 0;
+  }
+
+  #auction-root:not(.hidden) .auction-bid-field {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    width: 100%;
+    font-size: 0.95rem;
+  }
+
+  #auction-root:not(.hidden) .auction-bid-field input {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+    min-height: 44px;
+    font-size: 1rem;
+  }
+
+  #auction-root:not(.hidden) #auction-pass {
+    grid-column: 1;
+    grid-row: 2;
+    min-height: 56px;
+    min-width: 44px;
+    width: 100%;
+  }
+
+  #auction-root:not(.hidden) #auction-bid {
+    grid-column: 2;
+    grid-row: 2;
+    min-height: 56px;
+    min-width: 44px;
+    width: 100%;
+  }
 }
