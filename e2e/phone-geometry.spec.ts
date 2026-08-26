@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import {
   PHONE,
   boxOf,
@@ -353,6 +353,176 @@ test.describe("phone Book sheet #160", () => {
   });
 });
 
+const HUMAN_DUEL = {
+  high: '#duel-side-right [data-stance="high"]',
+  low: '#duel-side-right [data-stance="low"]',
+  roll: "#duel-side-right [data-roll]",
+} as const;
+
+async function openDuelPlay(page: Page) {
+  await page.evaluate(() => {
+    const root = document.getElementById("duel-root");
+    if (!root) return;
+    root.classList.remove("hidden");
+    root.setAttribute("aria-hidden", "false");
+    document.body.classList.add("handbook-open");
+    const matchup = document.getElementById("duel-matchup");
+    if (matchup) matchup.textContent = "The Ada vs You · belt 2";
+    const status = document.getElementById("duel-status");
+    if (status) {
+      status.textContent = [
+        "Mean of game 2d6 totals: 7.00",
+        "Stances hidden until both have rolled",
+        "Choose High or Low on your side",
+      ].join("\n");
+    }
+    const left = document.getElementById("dice-label-l");
+    const right = document.getElementById("dice-label-r");
+    if (left) left.textContent = "The Ada";
+    if (right) right.textContent = "You";
+    document.getElementById("duel-actions-left")?.classList.remove("hidden");
+    document.getElementById("duel-actions-right")?.classList.remove("hidden");
+    document.getElementById("duel-result-footer")?.classList.add("hidden");
+  });
+  await expect(page.locator("#duel-root")).not.toHaveClass(/hidden/);
+}
+
+async function openDuelResult(page: Page) {
+  await page.evaluate(() => {
+    const root = document.getElementById("duel-root");
+    if (!root) return;
+    root.classList.remove("hidden");
+    root.setAttribute("aria-hidden", "false");
+    document.body.classList.add("handbook-open");
+    const matchup = document.getElementById("duel-matchup");
+    if (matchup) matchup.textContent = "The Ada vs You · belt 2";
+    const left = document.getElementById("dice-label-l");
+    const right = document.getElementById("dice-label-r");
+    if (left) left.textContent = "The Ada";
+    if (right) right.textContent = "You";
+    document.getElementById("duel-actions-left")?.classList.add("hidden");
+    document.getElementById("duel-actions-right")?.classList.add("hidden");
+    const footer = document.getElementById("duel-result-footer");
+    footer?.classList.remove("hidden");
+    const headline = document.getElementById("duel-result-headline");
+    if (headline) headline.textContent = "You win!";
+    const punchy = document.getElementById("duel-result-punchy");
+    if (punchy) punchy.textContent = "The lane is yours.";
+    const summary = document.getElementById("duel-result-summary");
+    if (summary) {
+      summary.textContent = [
+        "The Ada [HIGH] 9 · You [LOW] 11",
+        "You hold the blank. Ada skips next seat.",
+      ].join("\n");
+    }
+  });
+  await expect(page.locator("#duel-root")).not.toHaveClass(/hidden/);
+  await expect(page.locator("#duel-result-footer")).not.toHaveClass(/hidden/);
+}
+
+function assertOnScreen(
+  b: { top: number; height: number },
+  sel: string,
+  h: number,
+) {
+  expect(b.height, `${sel} ≥56px`).toBeGreaterThanOrEqual(56);
+  expect(b.top, `${sel} on screen`).toBeGreaterThanOrEqual(0);
+  expect(b.top + b.height, `${sel} in first sheet`).toBeLessThanOrEqual(h + 2);
+}
+
+test.describe("phone Gravity Duel #179", () => {
+  test.skip(({ viewport }) => (viewport?.width ?? 0) >= 900, "phone only");
+
+  test("human High / Low / Roll are on-screen and receive the tap", async ({
+    page,
+  }) => {
+    await launch(page);
+    const rollThumb = await centerOf(page, "#btn-roll");
+
+    await openDuelPlay(page);
+
+    const root = await boxOf(page, "#duel-root");
+    expect(Number(root.zIndex), "duel sheet z-index").toBeGreaterThanOrEqual(
+      2000,
+    );
+
+    for (const sel of [HUMAN_DUEL.high, HUMAN_DUEL.low, HUMAN_DUEL.roll]) {
+      const b = await boxOf(page, sel);
+      assertOnScreen(b, sel, PHONE.h);
+      expect(b.pointerEvents).not.toBe("none");
+      expect(b.onControl, `elementFromPoint ${sel}`).toBe(true);
+    }
+
+    const overRoll = await hitAt(page, rollThumb.x, rollThumb.y);
+    expect(overRoll?.id, "thumbs must not win while duel is open").not.toBe(
+      "btn-roll",
+    );
+    expect(overRoll?.id, "Book must not win while duel is open").not.toBe(
+      "btn-handbook-header",
+    );
+    expect(overRoll?.id, "End must not win while duel is open").not.toBe(
+      "btn-end",
+    );
+
+    const opp = await cssOf(page, "#duel-side-left .dice-label");
+    expect(opp.display, "opponent name stays").not.toBe("none");
+    const oppDice = await cssOf(page, "#die-l1");
+    expect(oppDice.display, "opponent dice stay").not.toBe("none");
+  });
+
+  test("spot-check 360 and 430: High / Low / Roll stay in the first sheet", async ({
+    page,
+  }) => {
+    await launch(page);
+
+    for (const size of [
+      { w: 360, h: 800 },
+      { w: 430, h: 932 },
+    ]) {
+      await page.setViewportSize({ width: size.w, height: size.h });
+      await openDuelPlay(page);
+      for (const sel of [HUMAN_DUEL.high, HUMAN_DUEL.low, HUMAN_DUEL.roll]) {
+        const b = await boxOf(page, sel);
+        expect(b.height, `${size.w} ${sel} ≥44px`).toBeGreaterThanOrEqual(44);
+        expect(b.top + b.height, `${size.w} ${sel} in view`).toBeLessThanOrEqual(
+          size.h + 2,
+        );
+        expect(b.onControl, `${size.w} ${sel} tappable`).toBe(true);
+      }
+      await page.evaluate(() => {
+        document.getElementById("duel-root")?.classList.add("hidden");
+        document.body.classList.remove("handbook-open");
+      });
+    }
+  });
+
+  test("Continue is in view; close returns Roll · Book · End", async ({
+    page,
+  }) => {
+    await launch(page);
+    await openDuelResult(page);
+
+    const ok = await boxOf(page, "#duel-result-ok");
+    assertOnScreen(ok, "#duel-result-ok", PHONE.h);
+    expect(ok.onControl, "elementFromPoint Continue").toBe(true);
+    expect(ok.center?.id).toBe("duel-result-ok");
+
+    await page.locator("#duel-result-ok").click();
+    await expect(page.locator("#duel-root")).toHaveClass(/hidden/);
+
+    for (const sel of ["#btn-roll", "#btn-handbook-header", "#btn-end"]) {
+      const b = await boxOf(page, sel);
+      expect(b.height, `${sel} thumb after Continue`).toBeGreaterThanOrEqual(44);
+      expect(b.top + b.height).toBeLessThanOrEqual(PHONE.h + 2);
+      expect(b.onControl, `${sel} tappable after Continue`).toBe(true);
+    }
+
+    const roll = await centerOf(page, "#btn-roll");
+    const overRoll = await hitAt(page, roll.x, roll.y);
+    expect(overRoll?.id, "hidden duel does not steal Roll").toBe("btn-roll");
+  });
+});
+
 test.describe("wide handbook", () => {
   test.skip(({ viewport }) => (viewport?.width ?? 0) < 1100, "wide only");
 
@@ -364,5 +534,20 @@ test.describe("wide handbook", () => {
     expect(panel.width, "framed width ~860").toBeLessThanOrEqual(880);
     expect(panel.width).toBeGreaterThan(600);
     expect(panel.height, "framed height ~704 at 800px").toBeLessThan(800);
+  });
+});
+
+test.describe("wide Gravity Duel #179", () => {
+  test.skip(({ viewport }) => (viewport?.width ?? 0) < 1100, "wide only");
+
+  test("desktop duel still has High / Low / Roll", async ({ page }) => {
+    await launch(page);
+    await openDuelPlay(page);
+    for (const sel of [HUMAN_DUEL.high, HUMAN_DUEL.low, HUMAN_DUEL.roll]) {
+      const b = await boxOf(page, sel);
+      expect(b.display, `${sel} visible on wide`).not.toBe("none");
+      expect(b.height, `${sel} tappable on wide`).toBeGreaterThanOrEqual(36);
+      expect(b.onControl, `${sel} elementFromPoint on wide`).toBe(true);
+    }
   });
 });

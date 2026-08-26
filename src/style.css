@@ -4478,4 +4478,172 @@ button:not(:disabled):active {
     padding: max(16px, env(safe-area-inset-top, 0px)) 16px
       max(16px, env(safe-area-inset-bottom, 0px));
   }
+
+  /**
+   * #179 — Gravity Duel: High / Low / Roll / Continue in the first sheet.
+   * Same dice art. Opponent name + dice stay. Human controls do not scroll away.
+   */
+  #duel-root:not(.hidden) .duel-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+  }
+
+  #duel-root:not(.hidden) .duel-panel .handbook-header {
+    padding-top: max(8px, env(safe-area-inset-top, 0px));
+    padding-bottom: 8px;
+    gap: 8px;
+  }
+
+  #duel-root:not(.hidden) .handbook-kicker {
+    display: none;
+  }
+
+  #duel-root:not(.hidden) .duel-panel .handbook-header h2 {
+    font-size: 1.05rem;
+  }
+
+  #duel-root:not(.hidden) .duel-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    padding: 8px max(12px, env(safe-area-inset-right, 0px))
+      max(12px, env(safe-area-inset-bottom, 0px))
+      max(12px, env(safe-area-inset-left, 0px));
+    gap: 6px;
+  }
+
+  #duel-root:not(.hidden) .duel-matchup {
+    font-size: 0.85rem;
+    margin: 0;
+    flex-shrink: 0;
+  }
+
+  #duel-root:not(.hidden) #duel-status {
+    margin: 0;
+    font-size: 0.72rem;
+    line-height: 1.25;
+    max-height: 2.6em;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  #duel-root:not(.hidden) .duel-body > .hint {
+    margin: 0;
+    font-size: 0.72rem;
+    line-height: 1.25;
+    flex-shrink: 0;
+  }
+
+  #duel-root:not(.hidden) .duel-dice {
+    margin: 0;
+    font-size: 0.72rem;
+    max-height: 2.5em;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  #duel-root:not(.hidden) .dice-stage {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    align-items: center;
+    justify-items: center;
+    align-content: start;
+    column-gap: 8px;
+    row-gap: 6px;
+    margin: 0;
+    flex: 1 1 auto;
+    min-height: 0;
+    flex-wrap: nowrap;
+  }
+
+  #duel-root:not(.hidden) #duel-side-left,
+  #duel-root:not(.hidden) #duel-side-right {
+    display: contents;
+  }
+
+  #duel-root:not(.hidden) #duel-side-left .dice-label {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  #duel-root:not(.hidden) #duel-side-left .dice-pair {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  #duel-root:not(.hidden) .dice-vs {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    padding-top: 0;
+  }
+
+  #duel-root:not(.hidden) #duel-side-right .dice-label {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  #duel-root:not(.hidden) #duel-side-right .dice-pair {
+    grid-column: 3;
+    grid-row: 2;
+  }
+
+  /* AI / opponent chrome stays in the DOM; kid taps the right-side row. */
+  #duel-root:not(.hidden) #duel-actions-left {
+    display: none !important;
+  }
+
+  #duel-root:not(.hidden) #duel-actions-right {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    width: 100%;
+    max-width: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  #duel-root:not(.hidden) #duel-actions-right .duel-btn {
+    min-height: 56px;
+    min-width: 44px;
+    font-size: 0.95rem;
+  }
+
+  #duel-root:not(.hidden) #duel-actions-right .duel-roll-btn {
+    grid-column: 1 / -1;
+  }
+
+  #duel-root:not(.hidden) .duel-result-footer {
+    flex-shrink: 0;
+    margin-top: 4px;
+    padding-top: 8px;
+  }
+
+  #duel-root:not(.hidden) .duel-result-headline {
+    font-size: 1.05rem;
+    margin: 0 0 4px;
+  }
+
+  #duel-root:not(.hidden) .duel-punchy {
+    font-size: 0.85rem;
+    margin: 0 0 4px;
+  }
+
+  #duel-root:not(.hidden) .duel-result-summary {
+    font-size: 0.72rem;
+    margin: 0 0 8px;
+    max-height: 4.2em;
+    overflow: hidden;
+  }
+
+  #duel-root:not(.hidden) #duel-result-ok {
+    min-height: 56px;
+    width: 100%;
+  }
 }
