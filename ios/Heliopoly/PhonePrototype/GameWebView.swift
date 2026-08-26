@@ -108,6 +108,8 @@ struct GameWebView: UIViewRepresentable {
         var onLoadFailed: ((String) -> Void)?
         var didStartLoad = false
         var httpServer: LoopbackWebServer?
+        private weak var gameWebView: WKWebView?
+        private var loadAttempts = 0
 
         init(onLoadFailed: ((String) -> Void)?) {
             self.onLoadFailed = onLoadFailed
@@ -120,6 +122,7 @@ struct GameWebView: UIViewRepresentable {
         }
 
         func loadBundledGame(into webView: WKWebView) {
+            gameWebView = webView
             guard let root = WebDistRoot(bundle: .main) else {
                 onLoadFailed?(
                     "WebDist/index.html missing. From the repo root run: npm run ios:sync"
@@ -134,7 +137,24 @@ struct GameWebView: UIViewRepresentable {
                 return
             }
             httpServer = server
-            webView.load(URLRequest(url: server.indexURL))
+            // WKWebView connecting before accept is running yields -1005
+            // "The network connection was lost" on first launch (HITL).
+            server.warmup { [weak self] ok in
+                DispatchQueue.main.async {
+                    guard let self else { return }
+                    if ok {
+                        self.loadGameDocument()
+                    } else {
+                        self.onLoadFailed?("Loopback warmup failed")
+                    }
+                }
+            }
+        }
+
+        private func loadGameDocument() {
+            guard let webView = gameWebView, let url = httpServer?.indexURL else { return }
+            loadAttempts += 1
+            webView.load(URLRequest(url: url))
         }
 
         func webView(
@@ -168,7 +188,7 @@ struct GameWebView: UIViewRepresentable {
             didFailProvisionalNavigation navigation: WKNavigation!,
             withError error: Error
         ) {
-            onLoadFailed?(error.localizedDescription)
+            handleLoadError(error)
         }
 
         func webView(
@@ -176,6 +196,30 @@ struct GameWebView: UIViewRepresentable {
             didFail navigation: WKNavigation!,
             withError error: Error
         ) {
+            handleLoadError(error)
+        }
+
+        private func handleLoadError(_ error: Error) {
+            let ns = error as NSError
+            if ns.domain == NSURLErrorDomain, ns.code == NSURLErrorCancelled {
+                return
+            }
+            let retryable =
+                ns.domain == NSURLErrorDomain
+                && (ns.code == NSURLErrorNetworkConnectionLost
+                    || ns.code == NSURLErrorTimedOut
+                    || ns.code == NSURLErrorCannotConnectToHost)
+            if retryable, loadAttempts < 4 {
+                NSLog(
+                    "[heliopoly] load retry %d after %@",
+                    loadAttempts,
+                    ns.localizedDescription
+                )
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+                    self?.loadGameDocument()
+                }
+                return
+            }
             onLoadFailed?(error.localizedDescription)
         }
 
@@ -382,7 +426,7 @@ final class WebDistRoot {
 final class LoopbackWebServer {
     let rootURL: URL
     private var listenFD: Int32 = -1
-    private var acceptSource: DispatchSourceRead?
+    private var running = false
     private(set) var port: UInt16 = 0
 
     var indexURL: URL {
@@ -432,10 +476,6 @@ final class LoopbackWebServer {
             Darwin.close(fd)
             throw URLError(.cannotConnectToHost)
         }
-        let flags = Darwin.fcntl(fd, F_GETFL)
-        if flags >= 0 {
-            _ = Darwin.fcntl(fd, F_SETFL, flags | O_NONBLOCK)
-        }
         guard Darwin.listen(fd, 128) == 0 else {
             Darwin.close(fd)
             throw URLError(.cannotConnectToHost)
@@ -453,31 +493,57 @@ final class LoopbackWebServer {
         }
         port = UInt16(bigEndian: got.sin_port)
         listenFD = fd
-        let src = DispatchSource.makeReadSource(
-            fileDescriptor: fd,
-            queue: DispatchQueue.global(qos: .userInitiated)
-        )
-        src.setEventHandler { [weak self] in self?.acceptClients() }
-        src.setCancelHandler { Darwin.close(fd) }
-        src.resume()
-        acceptSource = src
+        running = true
+        let thread = Thread { [weak self] in
+            self?.acceptLoop()
+        }
+        thread.name = "heliopoly.loopback.accept"
+        thread.qualityOfService = .userInitiated
+        thread.start()
         NSLog("[heliopoly] loopback http://127.0.0.1:%u/", port)
     }
 
-    func stop() {
-        acceptSource?.cancel()
-        acceptSource = nil
-        listenFD = -1
+    func warmup(_ completion: @escaping (Bool) -> Void) {
+        attemptWarmup(left: 10, completion: completion)
     }
 
-    /// Drain the listen queue. One accept per source event left WKWebView
-    /// SYNs waiting until a ~30s timeout (HITL ~35s to Launch).
-    private func acceptClients() {
-        while true {
-            let client = Darwin.accept(listenFD, nil, nil)
-            if client < 0 {
-                if Darwin.errno == EAGAIN || Darwin.errno == EWOULDBLOCK { return }
+    private func attemptWarmup(left: Int, completion: @escaping (Bool) -> Void) {
+        var req = URLRequest(url: indexURL)
+        req.cachePolicy = .reloadIgnoringLocalCacheData
+        req.timeoutInterval = 1
+        URLSession(configuration: .ephemeral).dataTask(with: req) { _, resp, err in
+            let code = (resp as? HTTPURLResponse)?.statusCode ?? -1
+            if err == nil, code == 200 {
+                completion(true)
                 return
+            }
+            if left <= 1 {
+                completion(false)
+                return
+            }
+            DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 0.05) {
+                self.attemptWarmup(left: left - 1, completion: completion)
+            }
+        }.resume()
+    }
+
+    func stop() {
+        running = false
+        let fd = listenFD
+        listenFD = -1
+        if fd >= 0 { Darwin.close(fd) }
+    }
+
+    /// Dedicated blocking accept thread. GCD edge-trigger on a non-blocking
+    /// listen fd raced WKWebView's first SYN → -1005 on cold launch.
+    private func acceptLoop() {
+        while running {
+            let fd = listenFD
+            if fd < 0 { return }
+            let client = Darwin.accept(fd, nil, nil)
+            if client < 0 {
+                if !running { return }
+                continue
             }
             var yes: Int32 = 1
             Darwin.setsockopt(
@@ -549,7 +615,7 @@ final class LoopbackWebServer {
         header += "Content-Type: \(type)\r\n"
         header += "Content-Length: \(body.count)\r\n"
         header += "Access-Control-Allow-Origin: *\r\n"
-        header += "Cache-Control: public, max-age=86400\r\n"
+        header += "Cache-Control: \(Self.cacheControl(for: type))\r\n"
         header += "Connection: close\r\n\r\n"
         var packet = Data(header.utf8)
         packet.append(body)
@@ -562,6 +628,11 @@ final class LoopbackWebServer {
                 sent += n
             }
         }
+    }
+
+    fileprivate static func cacheControl(for mime: String) -> String {
+        if mime.hasPrefix("text/html") { return "no-store" }
+        return "public, max-age=86400"
     }
 
     fileprivate static func contentType(for url: URL) -> String {
