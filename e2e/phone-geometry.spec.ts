@@ -688,3 +688,172 @@ test.describe("wide Claim auction #183", () => {
     }
   });
 });
+
+async function openEndScreen(page: Page) {
+  await page.evaluate(() => {
+    const root = document.getElementById("end-root");
+    if (!root) return;
+    root.classList.remove("hidden");
+    root.setAttribute("aria-hidden", "false");
+    const kicker = root.querySelector(".end-kicker");
+    if (kicker) kicker.textContent = "Greatest of all kind";
+    const title = document.getElementById("end-title");
+    if (title) title.textContent = "The Ada Prevails";
+    const story = document.getElementById("end-story");
+    if (story) {
+      story.textContent = [
+        "The Ada is the last pilot flying.",
+        "The ledger writes The Ada as one of the greatest of all kind.",
+        "The ledger ran 8 rounds.",
+        "Closing books: ⍺2100 net worth · 3 claims · 1 depot.",
+        "Best books: Enceladus 236% · Venus 180% · Elon 91%.",
+      ].join(" ");
+    }
+    const ranks = document.getElementById("end-ranks");
+    if (ranks) {
+      ranks.innerHTML = [
+        "<div>1. The Ada ★ — ⍺2100 · flying</div>",
+        "<div>2. The Recorde — out round 6 · lab elimination</div>",
+        "<div>3. The K-127 — out round 4 · lab elimination</div>",
+        "<div>4. The Turing — out round 2 · lab elimination</div>",
+        "<div>5. The Sagan — out round 2 · lab elimination</div>",
+        "<div>6. The Asimov — out round 1 · lab elimination</div>",
+      ].join("");
+    }
+  });
+  await expect(page.locator("#end-root")).not.toHaveClass(/hidden/);
+}
+
+test.describe("phone end screen #178", () => {
+  test.skip(({ viewport }) => (viewport?.width ?? 0) >= 900, "phone only");
+
+  test("winner and Rematch are on-screen; ROI% is not the hero", async ({
+    page,
+  }) => {
+    await launch(page);
+    const rollThumb = await centerOf(page, "#btn-roll");
+
+    await openEndScreen(page);
+
+    const root = await boxOf(page, "#end-root");
+    expect(Number(root.zIndex), "end sheet z-index").toBeGreaterThanOrEqual(
+      2000,
+    );
+    expect(root.width, "full-bleed width").toBeGreaterThanOrEqual(PHONE.w - 1);
+    expect(root.height, "full-bleed height").toBeGreaterThanOrEqual(PHONE.h - 2);
+
+    const title = await boxOf(page, "#end-title");
+    expect(title.top, "winner on screen").toBeGreaterThanOrEqual(0);
+    expect(title.top + title.height).toBeLessThanOrEqual(PHONE.h + 2);
+    const titleText = await page.locator("#end-title").innerText();
+    expect(titleText).toContain("The Ada");
+    expect(titleText).toContain("Prevails");
+    expect(titleText, "ROI% is not the headline").not.toMatch(/%/);
+
+    const ranksText = await page.locator("#end-ranks").innerText();
+    expect(ranksText).toContain("The Ada");
+    expect(ranksText).toContain("⍺2100");
+    expect(ranksText, "ranks are mark/income books, not ROI%").not.toMatch(/%/);
+
+    const type = await page.evaluate(() => {
+      const titleEl = document.getElementById("end-title");
+      const storyEl = document.getElementById("end-story");
+      const titlePx = titleEl
+        ? Number.parseFloat(getComputedStyle(titleEl).fontSize)
+        : 0;
+      const storyPx = storyEl
+        ? Number.parseFloat(getComputedStyle(storyEl).fontSize)
+        : 0;
+      return { titlePx, storyPx };
+    });
+    expect(type.titlePx, "winner is the hero type").toBeGreaterThan(18);
+    expect(type.titlePx, "story/ROI is not the hero type").toBeGreaterThan(
+      type.storyPx,
+    );
+
+    const again = await boxOf(page, "#end-again");
+    assertOnScreen(again, "#end-again", PHONE.h);
+    expect(again.onControl, "elementFromPoint Rematch").toBe(true);
+    expect(again.center?.id).toBe("end-again");
+    expect((await page.locator("#end-again").innerText()).trim()).toBe(
+      "Rematch",
+    );
+
+    const close = await boxOf(page, "#end-close");
+    expect(close.height, "#end-close ≥44px").toBeGreaterThanOrEqual(44);
+    expect(close.top + close.height, "#end-close in view").toBeLessThanOrEqual(
+      PHONE.h + 2,
+    );
+    expect(close.onControl, "elementFromPoint New Game").toBe(true);
+    expect((await page.locator("#end-close").innerText()).trim()).toBe(
+      "New Game",
+    );
+
+    const overRoll = await hitAt(page, rollThumb.x, rollThumb.y);
+    expect(overRoll?.id, "thumbs must not win while end is open").not.toBe(
+      "btn-roll",
+    );
+    expect(overRoll?.id, "Book must not win while end is open").not.toBe(
+      "btn-handbook-header",
+    );
+    expect(overRoll?.id, "End must not win while end is open").not.toBe(
+      "btn-end",
+    );
+  });
+
+  test("Rematch rematches; New Game goes to Launch to change Pilots", async ({
+    page,
+  }) => {
+    await launch(page);
+    await openEndScreen(page);
+    await page.locator("#end-again").click();
+    await expect(page.locator("#end-root")).toHaveClass(/hidden/);
+    await expect(page.locator("#fleet-card")).toHaveClass(/mode-standings/);
+
+    for (const sel of ["#btn-roll", "#btn-handbook-header", "#btn-end"]) {
+      const b = await boxOf(page, sel);
+      expect(b.height, `${sel} after Rematch`).toBeGreaterThanOrEqual(44);
+      expect(b.top + b.height).toBeLessThanOrEqual(PHONE.h + 2);
+      expect(b.onControl, `${sel} tappable after Rematch`).toBe(true);
+    }
+
+    await openEndScreen(page);
+    await page.locator("#end-close").click();
+    await expect(page.locator("#end-root")).toHaveClass(/hidden/);
+    await expect(page.locator("#fleet-card")).toHaveClass(/mode-setup/);
+
+    const launchBtn = await boxOf(page, "#btn-new");
+    expect(launchBtn.height, "Launch ≥56px").toBeGreaterThanOrEqual(56);
+    expect(launchBtn.top + launchBtn.height).toBeLessThanOrEqual(PHONE.h + 1);
+    expect(launchBtn.onControl, "elementFromPoint Launch").toBe(true);
+    expect(launchBtn.center?.id).toBe("btn-new");
+
+    const six = await boxOf(page, '#pilot-count-chips [data-players="6"]');
+    expect(six.height, "Pilots chip ≥44px").toBeGreaterThanOrEqual(44);
+    expect(six.top + six.height).toBeLessThanOrEqual(PHONE.h + 1);
+    expect(six.onControl, "New Game can pick a bigger roster").toBe(true);
+
+    const hidden = await cssOf(page, "#end-root");
+    expect(
+      hidden.pointerEvents === "none" || hidden.display === "none",
+      "#end-root must not steal taps when hidden",
+    ).toBe(true);
+  });
+});
+
+test.describe("wide end screen #178", () => {
+  test.skip(({ viewport }) => (viewport?.width ?? 0) < 1100, "wide only");
+
+  test("desktop end still has winner + Rematch", async ({ page }) => {
+    await launch(page);
+    await openEndScreen(page);
+    const title = await page.locator("#end-title").innerText();
+    expect(title).toContain("The Ada");
+    const again = await boxOf(page, "#end-again");
+    expect(again.display, "#end-again visible on wide").not.toBe("none");
+    expect(again.height, "#end-again tappable on wide").toBeGreaterThanOrEqual(
+      36,
+    );
+    expect(again.onControl, "#end-again elementFromPoint on wide").toBe(true);
+  });
+});
