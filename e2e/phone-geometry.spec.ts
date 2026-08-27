@@ -795,12 +795,24 @@ test.describe("phone end screen #178", () => {
     );
   });
 
-  test("Play again returns to Launch so the roster can change", async ({
+  test("Play again rematches; Return goes to Launch to change Pilots", async ({
     page,
   }) => {
     await launch(page);
     await openEndScreen(page);
     await page.locator("#end-again").click();
+    await expect(page.locator("#end-root")).toHaveClass(/hidden/);
+    await expect(page.locator("#fleet-card")).toHaveClass(/mode-standings/);
+
+    for (const sel of ["#btn-roll", "#btn-handbook-header", "#btn-end"]) {
+      const b = await boxOf(page, sel);
+      expect(b.height, `${sel} after Play again`).toBeGreaterThanOrEqual(44);
+      expect(b.top + b.height).toBeLessThanOrEqual(PHONE.h + 2);
+      expect(b.onControl, `${sel} tappable after Play again`).toBe(true);
+    }
+
+    await openEndScreen(page);
+    await page.locator("#end-close").click();
     await expect(page.locator("#end-root")).toHaveClass(/hidden/);
     await expect(page.locator("#fleet-card")).toHaveClass(/mode-setup/);
 
@@ -813,25 +825,13 @@ test.describe("phone end screen #178", () => {
     const six = await boxOf(page, '#pilot-count-chips [data-players="6"]');
     expect(six.height, "Pilots chip ≥44px").toBeGreaterThanOrEqual(44);
     expect(six.top + six.height).toBeLessThanOrEqual(PHONE.h + 1);
-    expect(six.onControl, "can pick a bigger roster").toBe(true);
+    expect(six.onControl, "Return can pick a bigger roster").toBe(true);
 
     const hidden = await cssOf(page, "#end-root");
     expect(
       hidden.pointerEvents === "none" || hidden.display === "none",
       "#end-root must not steal taps when hidden",
     ).toBe(true);
-  });
-
-  test("Return also shows Launch in the first viewport", async ({ page }) => {
-    await launch(page);
-    await openEndScreen(page);
-    await page.locator("#end-close").click();
-    await expect(page.locator("#end-root")).toHaveClass(/hidden/);
-    await expect(page.locator("#fleet-card")).toHaveClass(/mode-setup/);
-
-    const launchBtn = await boxOf(page, "#btn-new");
-    expect(launchBtn.onControl, "elementFromPoint Launch").toBe(true);
-    expect(launchBtn.center?.id).toBe("btn-new");
   });
 });
 
