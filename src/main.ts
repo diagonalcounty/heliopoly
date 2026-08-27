@@ -1963,17 +1963,19 @@ btnQuit.addEventListener("click", () => {
   showEndScreen(state);
 });
 
-document.getElementById("end-again")?.addEventListener("click", () => {
-  hideEndScreen();
-  setSetupCollapsed(false);
-  startGame(includeHuman.checked);
-});
-document.getElementById("end-close")?.addEventListener("click", () => {
+function returnToLaunchFromEnd(): void {
   hideEndScreen();
   state = null;
   btnQuit.classList.add("hidden");
   setSetupCollapsed(false);
   render();
+}
+
+document.getElementById("end-again")?.addEventListener("click", () => {
+  returnToLaunchFromEnd();
+});
+document.getElementById("end-close")?.addEventListener("click", () => {
+  returnToLaunchFromEnd();
 });
 
 document.getElementById("duel-result-ok")?.addEventListener("click", () => {

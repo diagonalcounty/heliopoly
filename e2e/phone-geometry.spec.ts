@@ -795,11 +795,14 @@ test.describe("phone end screen #178", () => {
     );
   });
 
-  test("Return shows Launch in the first viewport", async ({ page }) => {
+  test("Play again returns to Launch so the roster can change", async ({
+    page,
+  }) => {
     await launch(page);
     await openEndScreen(page);
-    await page.locator("#end-close").click();
+    await page.locator("#end-again").click();
     await expect(page.locator("#end-root")).toHaveClass(/hidden/);
+    await expect(page.locator("#fleet-card")).toHaveClass(/mode-setup/);
 
     const launchBtn = await boxOf(page, "#btn-new");
     expect(launchBtn.height, "Launch ≥56px").toBeGreaterThanOrEqual(56);
@@ -807,11 +810,28 @@ test.describe("phone end screen #178", () => {
     expect(launchBtn.onControl, "elementFromPoint Launch").toBe(true);
     expect(launchBtn.center?.id).toBe("btn-new");
 
+    const six = await boxOf(page, '#pilot-count-chips [data-players="6"]');
+    expect(six.height, "Pilots chip ≥44px").toBeGreaterThanOrEqual(44);
+    expect(six.top + six.height).toBeLessThanOrEqual(PHONE.h + 1);
+    expect(six.onControl, "can pick a bigger roster").toBe(true);
+
     const hidden = await cssOf(page, "#end-root");
     expect(
       hidden.pointerEvents === "none" || hidden.display === "none",
       "#end-root must not steal taps when hidden",
     ).toBe(true);
+  });
+
+  test("Return also shows Launch in the first viewport", async ({ page }) => {
+    await launch(page);
+    await openEndScreen(page);
+    await page.locator("#end-close").click();
+    await expect(page.locator("#end-root")).toHaveClass(/hidden/);
+    await expect(page.locator("#fleet-card")).toHaveClass(/mode-setup/);
+
+    const launchBtn = await boxOf(page, "#btn-new");
+    expect(launchBtn.onControl, "elementFromPoint Launch").toBe(true);
+    expect(launchBtn.center?.id).toBe("btn-new");
   });
 });
 
