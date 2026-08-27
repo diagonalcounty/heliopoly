@@ -727,7 +727,7 @@ async function openEndScreen(page: Page) {
 test.describe("phone end screen #178", () => {
   test.skip(({ viewport }) => (viewport?.width ?? 0) >= 900, "phone only");
 
-  test("winner and Play again are on-screen; ROI% is not the hero", async ({
+  test("winner and Rematch are on-screen; ROI% is not the hero", async ({
     page,
   }) => {
     await launch(page);
@@ -773,15 +773,21 @@ test.describe("phone end screen #178", () => {
 
     const again = await boxOf(page, "#end-again");
     assertOnScreen(again, "#end-again", PHONE.h);
-    expect(again.onControl, "elementFromPoint Play again").toBe(true);
+    expect(again.onControl, "elementFromPoint Rematch").toBe(true);
     expect(again.center?.id).toBe("end-again");
+    expect((await page.locator("#end-again").innerText()).trim()).toBe(
+      "Rematch",
+    );
 
     const close = await boxOf(page, "#end-close");
     expect(close.height, "#end-close ≥44px").toBeGreaterThanOrEqual(44);
     expect(close.top + close.height, "#end-close in view").toBeLessThanOrEqual(
       PHONE.h + 2,
     );
-    expect(close.onControl, "elementFromPoint Return").toBe(true);
+    expect(close.onControl, "elementFromPoint New Game").toBe(true);
+    expect((await page.locator("#end-close").innerText()).trim()).toBe(
+      "New Game",
+    );
 
     const overRoll = await hitAt(page, rollThumb.x, rollThumb.y);
     expect(overRoll?.id, "thumbs must not win while end is open").not.toBe(
@@ -795,7 +801,7 @@ test.describe("phone end screen #178", () => {
     );
   });
 
-  test("Play again rematches; Return goes to Launch to change Pilots", async ({
+  test("Rematch rematches; New Game goes to Launch to change Pilots", async ({
     page,
   }) => {
     await launch(page);
@@ -806,9 +812,9 @@ test.describe("phone end screen #178", () => {
 
     for (const sel of ["#btn-roll", "#btn-handbook-header", "#btn-end"]) {
       const b = await boxOf(page, sel);
-      expect(b.height, `${sel} after Play again`).toBeGreaterThanOrEqual(44);
+      expect(b.height, `${sel} after Rematch`).toBeGreaterThanOrEqual(44);
       expect(b.top + b.height).toBeLessThanOrEqual(PHONE.h + 2);
-      expect(b.onControl, `${sel} tappable after Play again`).toBe(true);
+      expect(b.onControl, `${sel} tappable after Rematch`).toBe(true);
     }
 
     await openEndScreen(page);
@@ -825,7 +831,7 @@ test.describe("phone end screen #178", () => {
     const six = await boxOf(page, '#pilot-count-chips [data-players="6"]');
     expect(six.height, "Pilots chip ≥44px").toBeGreaterThanOrEqual(44);
     expect(six.top + six.height).toBeLessThanOrEqual(PHONE.h + 1);
-    expect(six.onControl, "Return can pick a bigger roster").toBe(true);
+    expect(six.onControl, "New Game can pick a bigger roster").toBe(true);
 
     const hidden = await cssOf(page, "#end-root");
     expect(
@@ -838,7 +844,7 @@ test.describe("phone end screen #178", () => {
 test.describe("wide end screen #178", () => {
   test.skip(({ viewport }) => (viewport?.width ?? 0) < 1100, "wide only");
 
-  test("desktop end still has winner + Play again", async ({ page }) => {
+  test("desktop end still has winner + Rematch", async ({ page }) => {
     await launch(page);
     await openEndScreen(page);
     const title = await page.locator("#end-title").innerText();

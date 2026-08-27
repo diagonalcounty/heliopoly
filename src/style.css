@@ -4734,7 +4734,7 @@ button:not(:disabled):active {
   }
 
   /**
-   * #178 — End screen: winner + Play again in the first sheet.
+   * #178 — End screen: winner + Rematch in the first sheet.
    * Name and closing books stay. ROI% is not the hero. No new art.
    */
   #end-root:not(.hidden) .end-inner {
