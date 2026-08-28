@@ -406,10 +406,12 @@ html.native-shell #app {
 
 .eac-choices {
   display: flex;
-  align-items: center;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: stretch;
   justify-content: center;
   gap: 12px;
-  flex-wrap: wrap;
+  width: 100%;
   margin: 8px 0 4px;
 }
 
@@ -419,9 +421,10 @@ html.native-shell #app {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  min-width: min(42vw, 160px);
+  flex: 1 1 0;
+  min-width: 0;
   min-height: 96px;
-  padding: 16px 20px;
+  padding: 16px 12px;
   border-radius: 14px;
   border: 1px solid #5a4a20;
   background: linear-gradient(180deg, #1e2a48 0%, #141c32 100%);
@@ -513,6 +516,8 @@ html.native-shell #app {
 }
 
 .eac-vs {
+  flex: 0 0 auto;
+  align-self: center;
   font-size: 0.85rem;
   color: var(--muted);
   text-transform: lowercase;
@@ -4439,6 +4444,20 @@ button:not(:disabled):active {
   #lab-root:not(.hidden) .lab-scenario {
     min-height: 44px;
     pointer-events: auto;
+  }
+
+  /* #193 HITL — left vs right, not a stacked column. */
+  #eac-root:not(.hidden) .eac-choices {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    width: 100%;
+  }
+
+  #eac-root:not(.hidden) .eac-num {
+    flex: 1 1 0;
+    min-width: 0;
+    width: auto;
+    max-width: none;
   }
 
   #handbook-root:not(.hidden) .handbook-body {

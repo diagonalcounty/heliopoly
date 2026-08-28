@@ -411,6 +411,16 @@ test.describe("phone Lab sheet #193", () => {
     expect(eac.width).toBeGreaterThanOrEqual(PHONE.w - 1);
     expect(eac.height).toBeGreaterThanOrEqual(PHONE.h - 2);
 
+    const leftNum = await boxOf(page, "#eac-left");
+    const rightNum = await boxOf(page, "#eac-right");
+    expect(leftNum.onControl, "left number tappable").toBe(true);
+    expect(rightNum.onControl, "right number tappable").toBe(true);
+    expect(
+      Math.abs(leftNum.top - rightNum.top),
+      "numbers share a row, not stacked",
+    ).toBeLessThan(12);
+    expect(leftNum.x, "left is left of right").toBeLessThan(rightNum.x);
+
     const eacClose = await boxOf(page, "#eac-root .handbook-close");
     expect(eacClose.height).toBeGreaterThanOrEqual(44);
     expect(eacClose.onControl, "elementFromPoint drill close").toBe(true);
