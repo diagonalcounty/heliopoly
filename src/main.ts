@@ -85,8 +85,9 @@ import {
 } from "./lab/numberScripts";
 import {
   applyUrpChoice,
+  gradePads,
   startUrpDrill,
-  URP_ROUNDS,
+  URP_ACTS,
   type UrpChoice,
   type UrpState,
 } from "./lab/urpGrader";
@@ -347,8 +348,10 @@ const labScenariosEl = document.getElementById("lab-scenarios")!;
 const eacRoot = document.getElementById("eac-root")!;
 const urpRoot = document.getElementById("urp-root")!;
 const urpPadsEl = document.getElementById("urp-pads")!;
+const urpApronEl = document.getElementById("urp-apron") as unknown as SVGSVGElement;
 const urpRoundEl = document.getElementById("urp-round")!;
 const urpGoBtn = document.getElementById("urp-go-around") as HTMLButtonElement;
+const urpHatchEl = document.querySelector("#urp-root .urp-hatch") as HTMLElement | null;
 const eacRoundEl = document.getElementById("eac-round")!;
 const eacAttemptsEl = document.getElementById("eac-attempts")!;
 const eacPlayEl = document.getElementById("eac-play")!;
@@ -1782,15 +1785,48 @@ function urpRocketSvg(color: string): string {
   </svg>`;
 }
 
+function urpFieldEl(): HTMLElement {
+  return urpPadsEl.parentElement as HTMLElement;
+}
+
+function layoutUrpApron(pads: NodeListOf<HTMLElement>): void {
+  const field = urpFieldEl();
+  const w = field.clientWidth;
+  const h = field.clientHeight;
+  const fr = field.getBoundingClientRect();
+  urpApronEl.setAttribute("viewBox", `0 0 ${w} ${h}`);
+  urpApronEl.setAttribute("width", String(w));
+  urpApronEl.setAttribute("height", String(h));
+  const pts = [...pads].map((el) => {
+    const r = el.getBoundingClientRect();
+    return { x: r.x + r.width / 2 - fr.x, y: r.y + r.height / 2 - fr.y };
+  });
+  let path = urpApronEl.querySelector("path");
+  if (!path) {
+    path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    urpApronEl.appendChild(path);
+  }
+  if (pts.length < 2) {
+    path.setAttribute("d", "");
+    return;
+  }
+  let d = `M ${pts[0]!.x} ${pts[0]!.y}`;
+  for (let i = 1; i < pts.length; i++) {
+    d += ` L ${pts[i]!.x} ${pts[i]!.y}`;
+  }
+  path.setAttribute("d", d);
+}
+
 function layoutUrpPads(): void {
   if (!urpState) return;
+  const field = urpFieldEl();
   const n = urpState.padCount;
-  const w = urpPadsEl.clientWidth;
-  const h = urpPadsEl.clientHeight;
+  const w = field.clientWidth;
+  const h = field.clientHeight;
   if (w < 8 || h < 8) return;
   const landscape = urpLandscape();
   const chord = landscape ? h * 0.84 : w * 0.86;
-  const size = Math.max(44, Math.min(56, Math.floor(chord / n) - 6));
+  const size = Math.max(44, Math.min(64, Math.floor(chord / n) - 4));
   const pads = urpPadsEl.querySelectorAll<HTMLElement>(".urp-pad");
   pads.forEach((el, i) => {
     const t = n <= 1 ? 0.5 : i / (n - 1);
@@ -1809,30 +1845,35 @@ function layoutUrpPads(): void {
     el.style.left = `${Math.round(x)}px`;
     el.style.top = `${Math.round(y)}px`;
   });
+  layoutUrpApron(pads);
 }
 
 function renderUrp(): void {
   if (!urpState) return;
-  urpRoundEl.textContent = `${urpState.round}/${URP_ROUNDS}`;
+  urpRoundEl.textContent = `${urpState.act}/${URP_ACTS}`;
   const occ = new Set(urpState.occupied);
   const playing = urpState.phase === "playing";
+  const legal = gradePads(urpState.padCount, urpState.occupied);
   urpPadsEl.replaceChildren();
   for (let i = 0; i < urpState.padCount; i++) {
     const occupied = occ.has(i);
     const el = document.createElement(occupied ? "div" : "button");
     if (!occupied) (el as HTMLButtonElement).type = "button";
     el.className = "urp-pad" + (occupied ? " is-occupied" : " is-empty");
+    if (occupied && urpState.lastLanded === i) el.classList.add("urp-just-landed");
     el.dataset.index = String(i);
     el.setAttribute("aria-label", occupied ? `Pad ${i + 1}, occupied` : `Pad ${i + 1}, empty`);
     if (occupied) {
-      const color = URP_ROCKET_COLORS[i % URP_ROCKET_COLORS.length]!;
+      const colorIdx = Math.max(0, urpState.occupied.indexOf(i));
+      const color = URP_ROCKET_COLORS[colorIdx % URP_ROCKET_COLORS.length]!;
       el.innerHTML = urpRocketSvg(color);
     } else if (playing) {
       el.addEventListener("click", () => urpChoose({ kind: "pad", index: i }));
     }
     urpPadsEl.appendChild(el);
   }
-  urpGoBtn.disabled = !playing;
+  urpGoBtn.disabled = false;
+  urpGoBtn.classList.toggle("is-legal", playing && legal.kind === "go-around");
   urpGoBtn.setAttribute("aria-disabled", playing ? "false" : "true");
   layoutUrpPads();
 }
@@ -1853,15 +1894,38 @@ function urpFlashLegal(choice: UrpChoice): void {
   }, 700);
 }
 
+function urpWhoosh(): void {
+  if (!urpHatchEl) return;
+  urpHatchEl.classList.remove("urp-whoosh");
+  void urpHatchEl.offsetWidth;
+  urpHatchEl.classList.add("urp-whoosh");
+}
+
 function urpChoose(choice: UrpChoice): void {
-  if (!urpState || urpState.phase !== "playing") return;
+  if (!urpState) return;
+  if (urpState.phase === "done") {
+    if (choice.kind === "go-around") {
+      urpState = startUrpDrill();
+      renderUrp();
+    }
+    return;
+  }
   const next = applyUrpChoice(urpState, choice);
   if (!next.ok) {
+    if (choice.kind === "pad") {
+      const miss = urpPadsEl.querySelector(`[data-index="${choice.index}"]`);
+      miss?.classList.remove("urp-miss");
+      void (miss as HTMLElement | null)?.offsetWidth;
+      miss?.classList.add("urp-miss");
+    }
     urpFlashLegal(next.legal);
     return;
   }
+  const changedAct = next.state.act !== urpState.act || next.state.phase === "done";
   urpState = next.state;
+  if (choice.kind === "go-around") urpWhoosh();
   renderUrp();
+  if (changedAct) layoutUrpPads();
 }
 
 function openUrp(): void {
@@ -1873,7 +1937,7 @@ function openUrp(): void {
   layoutUrpPads();
   if (!urpPadRo) {
     urpPadRo = new ResizeObserver(() => layoutUrpPads());
-    urpPadRo.observe(urpPadsEl);
+    urpPadRo.observe(urpFieldEl());
   }
 }
 

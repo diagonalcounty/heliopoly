@@ -6,35 +6,26 @@
  * vacant buffered pad that maximizes min-distance to the nearest occupied
  * (ties → highest index, furthest from hatch). Empty row → highest index.
  * If every vacant pad is adjacent to an occupied pad, Go around.
+ *
+ * Play is one accumulating apron, then a bigger one: 5-pad fill until jam,
+ * Go around, 7-pad fill until jam. Landings stay; the jam is the punchline.
  */
 
-export const URP_ROUNDS = 6;
+export const URP_ACTS = 2;
 
 export type UrpChoice = { kind: "pad"; index: number } | { kind: "go-around" };
 
 export type UrpPhase = "playing" | "done";
 
-export interface UrpRound {
-  padCount: 5 | 7;
-  occupied: readonly number[];
-}
+export type UrpAct = 1 | 2;
 
 export interface UrpState {
-  round: number;
+  act: UrpAct;
   padCount: 5 | 7;
   occupied: readonly number[];
+  lastLanded: number | null;
   phase: UrpPhase;
 }
-
-/** v1 ladder: 5-pad empty/buffer, then 7-pad buffer, punchline jam-7. */
-export const URP_LADDER: readonly UrpRound[] = [
-  { padCount: 5, occupied: [] },
-  { padCount: 5, occupied: [4] },
-  { padCount: 5, occupied: [0] },
-  { padCount: 7, occupied: [0, 6] },
-  { padCount: 7, occupied: [3] },
-  { padCount: 7, occupied: [1, 3, 5] },
-];
 
 function occupiedSet(occupied: readonly number[]): Set<number> {
   return new Set(occupied);
@@ -85,22 +76,20 @@ export function choicesEqual(a: UrpChoice, b: UrpChoice): boolean {
   return a.index === b.index;
 }
 
-function stateForRound(round: number): UrpState {
-  const idx = Math.min(Math.max(round, 1), URP_ROUNDS) - 1;
-  const spec = URP_LADDER[idx]!;
+export function startUrpDrill(): UrpState {
   return {
-    round,
-    padCount: spec.padCount,
-    occupied: spec.occupied,
+    act: 1,
+    padCount: 5,
+    occupied: [],
+    lastLanded: null,
     phase: "playing",
   };
 }
 
-export function startUrpDrill(): UrpState {
-  return stateForRound(1);
-}
-
-export function applyUrpChoice(state: UrpState, choice: UrpChoice): {
+export function applyUrpChoice(
+  state: UrpState,
+  choice: UrpChoice,
+): {
   state: UrpState;
   ok: boolean;
   legal: UrpChoice;
@@ -112,8 +101,33 @@ export function applyUrpChoice(state: UrpState, choice: UrpChoice): {
   if (!choicesEqual(choice, legal)) {
     return { state, ok: false, legal };
   }
-  if (state.round >= URP_ROUNDS) {
-    return { state: { ...state, phase: "done" }, ok: true, legal };
+  if (choice.kind === "pad") {
+    return {
+      state: {
+        ...state,
+        occupied: [...state.occupied, choice.index],
+        lastLanded: choice.index,
+      },
+      ok: true,
+      legal,
+    };
   }
-  return { state: stateForRound(state.round + 1), ok: true, legal };
+  if (state.act === 1) {
+    return {
+      state: {
+        act: 2,
+        padCount: 7,
+        occupied: [],
+        lastLanded: null,
+        phase: "playing",
+      },
+      ok: true,
+      legal,
+    };
+  }
+  return {
+    state: { ...state, phase: "done", lastLanded: null },
+    ok: true,
+    legal,
+  };
 }

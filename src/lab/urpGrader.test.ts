@@ -2,7 +2,7 @@
  * urinal-rule-parking grader (#188).
  * Run: npx tsx src/lab/urpGrader.test.ts
  */
-import { applyUrpChoice, gradePads, startUrpDrill, URP_LADDER, URP_ROUNDS } from "./urpGrader";
+import { applyUrpChoice, gradePads, startUrpDrill } from "./urpGrader";
 
 let failed = 0;
 function assert(cond: unknown, msg: string): void {
@@ -69,36 +69,50 @@ function assert(cond: unknown, msg: string): void {
   assert(c.kind === "pad" && c.index === 4, "occupied is illegal; buffered far pad wins");
 }
 
-assert(URP_LADDER.length === URP_ROUNDS, "ladder is 6 rounds");
-assert(URP_LADDER[0]?.padCount === 5 && URP_LADDER[0].occupied.length === 0, "round 1 empty 5");
-assert(URP_LADDER[5]?.padCount === 7, "round 6 is 7 pads");
-assert(gradePads(7, URP_LADDER[5]!.occupied).kind === "go-around", "round 6 is jam-7");
-
 {
-  let s = startUrpDrill();
-  assert(s.round === 1 && s.padCount === 5, "start on round 1 / 5 pads");
-  const wrong = applyUrpChoice(s, { kind: "go-around" });
-  assert(!wrong.ok && wrong.state.round === 1, "wrong Go around does not advance");
-  const ok = applyUrpChoice(s, { kind: "pad", index: 4 });
-  assert(ok.ok && ok.state.round === 2, "correct empty-row pad advances");
+  const afterEnds = gradePads(5, [4, 0]);
+  assert(afterEnds.kind === "pad" && afterEnds.index === 2, "5-pad fill: after ends, middle");
+  assert(gradePads(5, [4, 0, 2]).kind === "go-around", "5-pad fill jam");
+  assert(gradePads(7, [6, 0, 3]).kind === "go-around", "7-pad fill jam");
 }
 
 {
   let s = startUrpDrill();
-  const steps: Parameters<typeof applyUrpChoice>[1][] = [
+  assert(s.act === 1 && s.padCount === 5 && s.occupied.length === 0, "start empty 5-pad apron");
+  const wrong = applyUrpChoice(s, { kind: "go-around" });
+  assert(!wrong.ok && wrong.state.act === 1 && wrong.state.occupied.length === 0, "wrong Go around does not start the 7");
+  const land = applyUrpChoice(s, { kind: "pad", index: 4 });
+  assert(land.ok && land.state.occupied.length === 1 && land.state.occupied[0] === 4, "landing stays on the apron");
+  assert(land.state.act === 1 && land.state.padCount === 5, "same apron after a land");
+}
+
+{
+  let s = startUrpDrill();
+  const five: Parameters<typeof applyUrpChoice>[1][] = [
     { kind: "pad", index: 4 },
     { kind: "pad", index: 0 },
-    { kind: "pad", index: 4 },
-    { kind: "pad", index: 3 },
-    { kind: "pad", index: 6 },
+    { kind: "pad", index: 2 },
     { kind: "go-around" },
   ];
-  for (const choice of steps) {
+  for (const choice of five) {
     const next = applyUrpChoice(s, choice);
-    assert(next.ok, `ladder step round ${s.round} accepted`);
+    assert(next.ok, `5-pad step ${choice.kind} ${"index" in choice ? choice.index : ""}`);
     s = next.state;
   }
-  assert(s.phase === "done" && s.round === 6, "sixth correct ends the ladder");
+  assert(s.act === 2 && s.padCount === 7 && s.occupied.length === 0, "Go around opens the 7-pad apron");
+
+  const seven: Parameters<typeof applyUrpChoice>[1][] = [
+    { kind: "pad", index: 6 },
+    { kind: "pad", index: 0 },
+    { kind: "pad", index: 3 },
+    { kind: "go-around" },
+  ];
+  for (const choice of seven) {
+    const next = applyUrpChoice(s, choice);
+    assert(next.ok, `7-pad step ${choice.kind} ${"index" in choice ? choice.index : ""}`);
+    s = next.state;
+  }
+  assert(s.phase === "done" && s.padCount === 7, "second Go around ends the drill");
 }
 
 if (failed) {
