@@ -59,7 +59,12 @@ test.describe("phone setup expedition #195", () => {
         return getComputedStyle(el, "::after").content.replace(/"/g, "");
       });
     });
-    expect(labels).toEqual(["Insight", "Curiosity", "Voyager", "Opportunity"]);
+    expect(labels).toEqual([
+      "1. Insight",
+      "2. Curiosity",
+      "3. Voyager",
+      "4. Opportunity",
+    ]);
 
     const curiosity = page.locator(
       '.ai-difficulty-field input[name="ai-difficulty"][value="normal"]',

@@ -3596,16 +3596,16 @@ button:not(:disabled):active {
     content: "Hydrogen";
   }
   #app:has(.fleet-card.mode-setup) #setup-body .check:has([value="easy"])::after {
-    content: "Insight";
+    content: "1. Insight";
   }
   #app:has(.fleet-card.mode-setup) #setup-body .check:has([value="normal"])::after {
-    content: "Curiosity";
+    content: "2. Curiosity";
   }
   #app:has(.fleet-card.mode-setup) #setup-body .check:has([value="hard"])::after {
-    content: "Voyager";
+    content: "3. Voyager";
   }
   #app:has(.fleet-card.mode-setup) #setup-body .check:has([value="expert"])::after {
-    content: "Opportunity";
+    content: "4. Opportunity";
   }
 
   #app:has(.fleet-card.mode-setup) #btn-new {

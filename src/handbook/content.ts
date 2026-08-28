@@ -479,25 +479,25 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
   </thead>
   <tbody>
     <tr>
-      <td><strong>Insight</strong></td>
+      <td><strong>1. Insight</strong></td>
       <td>A look</td>
       <td>− events never hit you (Tesla, Karen, hot mic, Error 47). Rivals cannot steal your deeds.</td>
       <td>Soft. They land where the dice put them.</td>
     </tr>
     <tr>
-      <td><strong>Curiosity</strong></td>
+      <td><strong>2. Curiosity</strong></td>
       <td>Stay and poke (default)</td>
       <td>Full pool. Prize cards go to one random rocket each fire.</td>
       <td>Default table.</td>
     </tr>
     <tr>
-      <td><strong>Voyager</strong></td>
+      <td><strong>3. Voyager</strong></td>
       <td>The long haul</td>
       <td>Full pool.</td>
       <td>Sharper — they play for deeds, hubs, and Earth.</td>
     </tr>
     <tr>
-      <td><strong>Opportunity</strong></td>
+      <td><strong>4. Opportunity</strong></td>
       <td>The long game</td>
       <td>Full pool.</td>
       <td>The table hunts monopolies and Earth landings.</td>
