@@ -351,6 +351,7 @@ const urpPadsEl = document.getElementById("urp-pads")!;
 const urpApronEl = document.getElementById("urp-apron") as unknown as SVGSVGElement;
 const urpRoundEl = document.getElementById("urp-round")!;
 const urpGoBtn = document.getElementById("urp-go-around") as HTMLButtonElement;
+const urpStatusEl = document.getElementById("urp-status")!;
 const urpHatchEl = document.querySelector("#urp-root .urp-hatch") as HTMLElement | null;
 const eacRoundEl = document.getElementById("eac-round")!;
 const eacAttemptsEl = document.getElementById("eac-attempts")!;
@@ -1778,11 +1779,15 @@ function urpLandscape(): boolean {
 
 function urpRocketSvg(color: string): string {
   return `<svg viewBox="0 0 32 32" aria-hidden="true">
-    <path fill="${color}" d="M16 2c3.2 6.2 4.2 10.4 4.2 16.4h-8.4C11.8 12.4 12.8 8.2 16 2z"/>
-    <circle cx="16" cy="13" r="2.1" fill="#0b1020"/>
-    <path fill="${color}" d="M11.2 18.2 6 26h6.4l2-7.8zm9.6 0L26 26h-6.4l-2-7.8z"/>
-    <path fill="#f0c14a" d="M14.2 26h3.6l-.8 4h-2z"/>
+    <path fill="${color}" d="M16 1.2c4 7.2 5.4 11.6 5.4 17.6h-10.8C10.6 12.8 12 8.4 16 1.2z"/>
+    <circle cx="16" cy="12.5" r="2.4" fill="#0b1020"/>
+    <path fill="${color}" d="M10.4 18.2 4.6 27.2h7.2L14 18.2zm11.2 0 5.8 9H20L18 18.2z"/>
+    <path fill="#f4d36a" d="M13.6 26.4h4.8l-1 4.2h-2.8z"/>
   </svg>`;
+}
+
+function urpSetStatus(text: string): void {
+  urpStatusEl.textContent = text;
 }
 
 function urpFieldEl(): HTMLElement {
@@ -1873,8 +1878,10 @@ function renderUrp(): void {
     urpPadsEl.appendChild(el);
   }
   urpGoBtn.disabled = false;
-  urpGoBtn.classList.toggle("is-legal", playing && legal.kind === "go-around");
+  const jam = playing && legal.kind === "go-around";
+  urpGoBtn.classList.toggle("is-legal", jam);
   urpGoBtn.setAttribute("aria-disabled", playing ? "false" : "true");
+  if (jam) urpSetStatus("No pad. Fly past.");
   layoutUrpPads();
 }
 
@@ -1891,7 +1898,7 @@ function urpFlashLegal(choice: UrpChoice): void {
   urpFlashTimer = window.setTimeout(() => {
     urpPadsEl.querySelectorAll(".urp-flash").forEach((el) => el.classList.remove("urp-flash"));
     urpGoBtn.classList.remove("urp-flash");
-  }, 700);
+  }, 1200);
 }
 
 function urpWhoosh(): void {
@@ -1906,12 +1913,14 @@ function urpChoose(choice: UrpChoice): void {
   if (urpState.phase === "done") {
     if (choice.kind === "go-around") {
       urpState = startUrpDrill();
+      urpSetStatus("");
       renderUrp();
     }
     return;
   }
   const next = applyUrpChoice(urpState, choice);
   if (!next.ok) {
+    urpSetStatus("Not that one.");
     if (choice.kind === "pad") {
       const miss = urpPadsEl.querySelector(`[data-index="${choice.index}"]`);
       miss?.classList.remove("urp-miss");
@@ -1923,13 +1932,19 @@ function urpChoose(choice: UrpChoice): void {
   }
   const changedAct = next.state.act !== urpState.act || next.state.phase === "done";
   urpState = next.state;
-  if (choice.kind === "go-around") urpWhoosh();
+  if (choice.kind === "go-around") {
+    urpWhoosh();
+    urpSetStatus("Went around.");
+  } else {
+    urpSetStatus("Landed.");
+  }
   renderUrp();
   if (changedAct) layoutUrpPads();
 }
 
 function openUrp(): void {
   urpState = startUrpDrill();
+  urpSetStatus("");
   renderUrp();
   urpRoot.classList.remove("hidden");
   urpRoot.setAttribute("aria-hidden", "false");

@@ -14,8 +14,8 @@
     <link rel="icon" type="image/png" href="./favicon-32.png" sizes="32x32" />
     <link rel="icon" type="image/png" href="./favicon-16.png" sizes="16x16" />
     <link rel="apple-touch-icon" href="./apple-touch-icon.png" sizes="180x180" />
-    <script type="module" crossorigin src="./assets/index-BUUOTQ0R.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-D6OGlZYh.css">
+    <script type="module" crossorigin src="./assets/index-BGWIX-If.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-BUJkdU6H.css">
   </head>
   <body>
     <div id="app">
@@ -368,7 +368,12 @@ Name your rocket. Then Launch.</p>
             <svg id="urp-apron" class="urp-apron" aria-hidden="true"></svg>
             <div id="urp-pads" class="urp-pads" role="group" aria-label="Pads"></div>
           </div>
-          <button type="button" id="urp-go-around" class="urp-go">Go around</button>
+          <div class="urp-go-wrap">
+            <p id="urp-status" class="urp-status" aria-live="polite"></p>
+            <button type="button" id="urp-go-around" class="urp-go" aria-label="Go around, skip the apron">
+              Go around
+            </button>
+          </div>
         </div>
       </div>
     </div>
