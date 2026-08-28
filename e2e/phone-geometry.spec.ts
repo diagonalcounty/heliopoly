@@ -39,6 +39,39 @@ test.describe("phone setup #158", () => {
   });
 });
 
+test.describe("phone setup expedition #195", () => {
+  test.skip(({ viewport }) => (viewport?.width ?? 0) >= 900, "phone only");
+
+  test("Insight / Curiosity / Voyager / Opportunity; no μ meter; Launch stays", async ({
+    page,
+  }) => {
+    await bootSetup(page);
+
+    expect(await page.locator("#duration-meter").count(), "μ meter gone").toBe(0);
+
+    const labels = await page.evaluate(() => {
+      const names = ["easy", "normal", "hard", "expert"] as const;
+      return names.map((value) => {
+        const el = document.querySelector(
+          `.ai-difficulty-field .check:has([value="${value}"])`,
+        );
+        if (!el) return `${value}:missing`;
+        return getComputedStyle(el, "::after").content.replace(/"/g, "");
+      });
+    });
+    expect(labels).toEqual(["Insight", "Curiosity", "Voyager", "Opportunity"]);
+
+    const curiosity = page.locator(
+      '.ai-difficulty-field input[name="ai-difficulty"][value="normal"]',
+    );
+    await expect(curiosity).toBeChecked();
+
+    const launchBtn = await boxOf(page, "#btn-new");
+    expect(launchBtn.top + launchBtn.height).toBeLessThanOrEqual(PHONE.h + 1);
+    expect(launchBtn.onControl, "Launch still tappable").toBe(true);
+  });
+});
+
 test.describe("phone setup pilots #170", () => {
   test.skip(({ viewport }) => (viewport?.width ?? 0) >= 900, "phone only");
 

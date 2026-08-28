@@ -7,7 +7,6 @@ import {
   sampleLaneCurve,
   sampleLanePolyline,
 } from "./core/laneCurve";
-import { renderDurationMeter } from "./setup/durationMeter";
 import {
   RING_BAND_INNER_ALPHA,
   RING_BAND_OUTER_ALPHA,
@@ -290,8 +289,7 @@ ringOpacityInput?.addEventListener("input", () => {
   drawBoard();
 });
 
-// Game difficulty: setup only (locked once a game starts — #87)
-// Duration meter (#94) updates with pack difficulty selection.
+// Expedition length: setup only (locked once a game starts — #87 / #195)
 (() => {
   const stored = loadStoredAiDifficulty();
   syncAiDifficultyUi(stored);
@@ -309,8 +307,6 @@ ringOpacityInput?.addEventListener("input", () => {
       }
     });
   });
-  // Initial paint (sync already calls refresh; call again after DOM settle)
-  requestAnimationFrame(() => refreshDurationMeter());
 })();
 const duelRoot = document.getElementById("duel-root")!;
 const duelMatchup = document.getElementById("duel-matchup")!;
@@ -484,13 +480,6 @@ function syncAiDifficultyUi(level: AiDifficulty): void {
   } catch {
     /* ignore */
   }
-  refreshDurationMeter(level);
-}
-
-function refreshDurationMeter(level?: AiDifficulty): void {
-  const el = document.getElementById("duration-meter");
-  if (!el) return;
-  renderDurationMeter(el, level ?? selectedAiDifficulty());
 }
 
 function loadStoredAiDifficulty(): AiDifficulty {
