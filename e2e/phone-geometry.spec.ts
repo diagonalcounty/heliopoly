@@ -16,6 +16,8 @@ const HIDDEN_SHEETS = [
   "#auction-root",
   "#announce-root",
   "#end-root",
+  "#lab-root",
+  "#eac-root",
 ];
 
 test.describe("phone setup #158", () => {
@@ -350,6 +352,88 @@ test.describe("phone Book sheet #160", () => {
         `${sel} must not steal taps`,
       ).toBe(true);
     }
+  });
+});
+
+test.describe("phone Lab sheet #193", () => {
+  test.skip(({ viewport }) => (viewport?.width ?? 0) >= 900, "phone only");
+
+  test("setup: Lab is tappable; Launch stays in the first viewport", async ({
+    page,
+  }) => {
+    await bootSetup(page);
+
+    const lab = await boxOf(page, "#btn-lab");
+    expect(lab.height, "Lab ≥44px").toBeGreaterThanOrEqual(44);
+    expect(lab.top + lab.height).toBeLessThanOrEqual(PHONE.h + 1);
+    expect(lab.onControl, "elementFromPoint Lab center").toBe(true);
+    expect(lab.center?.id).toBe("btn-lab");
+
+    const launchBtn = await boxOf(page, "#btn-new");
+    expect(launchBtn.top + launchBtn.height).toBeLessThanOrEqual(PHONE.h + 1);
+    expect(launchBtn.onControl, "Launch still tappable").toBe(true);
+  });
+
+  test("play: Lab opens full-bleed; drill then close returns Roll", async ({
+    page,
+  }) => {
+    await launch(page);
+
+    const labBtn = await boxOf(page, "#btn-lab");
+    expect(labBtn.height, "play Lab ≥44px").toBeGreaterThanOrEqual(44);
+    expect(labBtn.top + labBtn.height).toBeLessThanOrEqual(PHONE.h + 2);
+    expect(labBtn.onControl, "elementFromPoint Lab on play").toBe(true);
+
+    const roll = await centerOf(page, "#btn-roll");
+
+    await page.locator("#btn-lab").click();
+    await expect(page.locator("#lab-root")).not.toHaveClass(/hidden/);
+
+    const root = await boxOf(page, "#lab-root");
+    expect(Number(root.zIndex), "Lab z-index").toBeGreaterThanOrEqual(2000);
+    expect(root.width, "Lab full-bleed width").toBeGreaterThanOrEqual(PHONE.w - 1);
+    expect(root.height, "Lab full-bleed height").toBeGreaterThanOrEqual(PHONE.h - 2);
+
+    const close = await boxOf(page, "#lab-root .handbook-close");
+    expect(close.width, "Lab close width").toBeGreaterThanOrEqual(44);
+    expect(close.height, "Lab close height").toBeGreaterThanOrEqual(44);
+    expect(close.onControl, "elementFromPoint Lab close").toBe(true);
+
+    const overRoll = await hitAt(page, roll.x, roll.y);
+    expect(overRoll?.id, "Roll must not win under open Lab").not.toBe("btn-roll");
+
+    await page.locator('.lab-group-toggle[aria-controls="lab-group-items-which-is-larger"]').click();
+    await page.locator('.lab-scenario[data-scenario="eastern-arabic-compare"]').click();
+    await expect(page.locator("#eac-root")).not.toHaveClass(/hidden/);
+
+    const eac = await boxOf(page, "#eac-root");
+    expect(Number(eac.zIndex), "drill above Lab").toBeGreaterThanOrEqual(2000);
+    expect(eac.width).toBeGreaterThanOrEqual(PHONE.w - 1);
+    expect(eac.height).toBeGreaterThanOrEqual(PHONE.h - 2);
+
+    const leftNum = await boxOf(page, "#eac-left");
+    const rightNum = await boxOf(page, "#eac-right");
+    expect(leftNum.onControl, "left number tappable").toBe(true);
+    expect(rightNum.onControl, "right number tappable").toBe(true);
+    expect(
+      Math.abs(leftNum.top - rightNum.top),
+      "numbers share a row, not stacked",
+    ).toBeLessThan(12);
+    expect(leftNum.x, "left is left of right").toBeLessThan(rightNum.x);
+
+    const eacClose = await boxOf(page, "#eac-root .handbook-close");
+    expect(eacClose.height).toBeGreaterThanOrEqual(44);
+    expect(eacClose.onControl, "elementFromPoint drill close").toBe(true);
+
+    await page.locator("#eac-root .handbook-close").click();
+    await expect(page.locator("#eac-root")).toHaveClass(/hidden/);
+    await expect(page.locator("#lab-root")).not.toHaveClass(/hidden/);
+
+    await page.locator("#lab-root .handbook-close").click();
+    await expect(page.locator("#lab-root")).toHaveClass(/hidden/);
+
+    const rollAfter = await hitAt(page, roll.x, roll.y);
+    expect(rollAfter?.id, "Roll tappable after Lab close").toBe("btn-roll");
   });
 });
 

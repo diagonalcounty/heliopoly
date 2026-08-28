@@ -405,11 +405,11 @@ html.native-shell #app {
 }
 
 .eac-choices {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: stretch;
   gap: 12px;
-  flex-wrap: wrap;
+  width: 100%;
   margin: 8px 0 4px;
 }
 
@@ -419,9 +419,10 @@ html.native-shell #app {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  min-width: min(42vw, 160px);
+  width: 100%;
+  min-width: 0;
   min-height: 96px;
-  padding: 16px 20px;
+  padding: 16px 12px;
   border-radius: 14px;
   border: 1px solid #5a4a20;
   background: linear-gradient(180deg, #1e2a48 0%, #141c32 100%);
@@ -513,6 +514,8 @@ html.native-shell #app {
 }
 
 .eac-vs {
+  flex: 0 0 auto;
+  align-self: center;
   font-size: 0.85rem;
   color: var(--muted);
   text-transform: lowercase;
@@ -1762,7 +1765,12 @@ body.handbook-open {
     font-size: 0.98rem;
   }
 
-  .top-actions .lab-launch,
+  .top-actions .lab-launch {
+    min-height: 44px;
+    padding-inline: 10px;
+    font-size: 0.82rem;
+  }
+
   .top-actions .handbook-launch {
     min-height: 40px;
     padding-inline: 10px;
@@ -3665,15 +3673,15 @@ button:not(:disabled):active {
   }
 }
 
-/* Phone width: kid path is name / Fuel / Table / Launch. Lab knobs stay on tablet+. */
+/* Phone width: kid path is name / Fuel / Table / Launch. Speed stays on tablet+. */
 @media (max-width: 560px) {
   .anim-speed-field {
     display: none;
   }
 
   .lab-launch {
-    min-height: 36px;
-    padding: 4px 8px;
+    min-height: 44px;
+    padding: 4px 10px;
     font-size: 0.75rem;
   }
 
@@ -3856,11 +3864,24 @@ button:not(:disabled):active {
   #app:has(.fleet-card.mode-standings) #welcome-card,
   #app:has(.fleet-card.mode-standings) .log-card,
   #app:has(.fleet-card.mode-standings) .anim-speed-field,
-  #app:has(.fleet-card.mode-standings) #btn-lab,
   #app:has(.fleet-card.mode-standings) #setup-toggle,
   #app:has(.fleet-card.mode-standings) .title-tagline,
   #app:has(.fleet-card.mode-standings) .badge {
     display: none !important;
+  }
+
+  /* #193 — Lab stays in the play header (Book is the thumb). */
+  #app:has(.fleet-card.mode-standings) #btn-lab {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    min-width: 44px;
+    padding: 4px 10px;
+    font-size: 0.78rem;
+    pointer-events: auto;
+    position: relative;
+    z-index: 46;
   }
 
   #app:has(.fleet-card.mode-standings) header.top {
@@ -4322,7 +4343,8 @@ button:not(:disabled):active {
   #auction-root.hidden,
   #announce-root.hidden,
   #end-root.hidden,
-  #lab-root.hidden {
+  #lab-root.hidden,
+  #eac-root.hidden {
     pointer-events: none !important;
   }
 
@@ -4331,13 +4353,20 @@ button:not(:disabled):active {
   #duel-root:not(.hidden),
   #auction-root:not(.hidden),
   #announce-root:not(.hidden),
-  #end-root:not(.hidden) {
+  #end-root:not(.hidden),
+  #lab-root:not(.hidden),
+  #eac-root:not(.hidden) {
     z-index: 2000 !important;
     isolation: isolate;
     padding: 0;
     align-items: stretch;
     justify-content: stretch;
     pointer-events: auto;
+  }
+
+  /* Drill sits above the Lab list when both are open. */
+  #eac-root:not(.hidden) {
+    z-index: 2010 !important;
   }
 
   /* After #157, thumbs / Refuel / Break sit at z 40–43. A full-bleed sheet
@@ -4348,13 +4377,16 @@ button:not(:disabled):active {
       #duel-root:not(.hidden),
       #auction-root:not(.hidden),
       #announce-root:not(.hidden),
-      #end-root:not(.hidden)
+      #end-root:not(.hidden),
+      #lab-root:not(.hidden),
+      #eac-root:not(.hidden)
     )
     #app:has(.fleet-card.mode-standings)
     :is(
       .play-thumbs,
       #pilot-controls,
       #btn-handbook-header,
+      #btn-lab,
       .fleet-card.mode-standings
     ) {
     pointer-events: none !important;
@@ -4363,7 +4395,9 @@ button:not(:disabled):active {
 
   #handbook-root:not(.hidden) .handbook-panel,
   #dossier-root:not(.hidden) .handbook-panel,
-  #duel-root:not(.hidden) .handbook-panel {
+  #duel-root:not(.hidden) .handbook-panel,
+  #lab-root:not(.hidden) .handbook-panel,
+  #eac-root:not(.hidden) .handbook-panel {
     width: 100%;
     max-width: none;
     height: 100dvh;
@@ -4375,17 +4409,52 @@ button:not(:disabled):active {
 
   #handbook-root:not(.hidden) .handbook-header,
   #dossier-root:not(.hidden) .handbook-header,
-  #duel-root:not(.hidden) .handbook-header {
+  #duel-root:not(.hidden) .handbook-header,
+  #lab-root:not(.hidden) .handbook-header,
+  #eac-root:not(.hidden) .handbook-header {
     padding-top: max(10px, env(safe-area-inset-top, 0px));
     padding-left: max(12px, env(safe-area-inset-left, 0px));
     padding-right: max(12px, env(safe-area-inset-right, 0px));
   }
 
   #handbook-root:not(.hidden) .handbook-close,
-  #dossier-root:not(.hidden) .handbook-close {
+  #dossier-root:not(.hidden) .handbook-close,
+  #lab-root:not(.hidden) .handbook-close,
+  #eac-root:not(.hidden) .handbook-close {
     min-width: 44px;
     min-height: 44px;
     pointer-events: auto;
+  }
+
+  #lab-root:not(.hidden) .lab-body,
+  #eac-root:not(.hidden) .eac-body {
+    min-height: 0;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
+  }
+
+  #lab-root:not(.hidden) .lab-scenarios {
+    max-height: none;
+  }
+
+  #lab-root:not(.hidden) .lab-group-toggle,
+  #lab-root:not(.hidden) .lab-scenario {
+    min-height: 44px;
+    pointer-events: auto;
+  }
+
+  /* #193 HITL — left vs right. Grid cannot wrap to a column. */
+  #eac-root:not(.hidden) .eac-choices {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) !important;
+    width: 100%;
+  }
+
+  #eac-root:not(.hidden) .eac-num {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
   }
 
   #handbook-root:not(.hidden) .handbook-body {
