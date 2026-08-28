@@ -360,8 +360,20 @@ Name your rocket. Then Launch.</p>
         </header>
         <p id="urp-round" class="urp-round" aria-live="polite">1/2</p>
         <div class="urp-board">
-          <div class="urp-hatch" aria-hidden="true">
-            <span class="urp-hatch-chevron"></span>
+          <div class="urp-hatch" aria-label="Hatch, approach">
+            <svg class="urp-hatch-mark" viewBox="0 0 80 80" aria-hidden="true">
+              <polygon
+                class="urp-hatch-outer"
+                points="40,4 72,22 72,58 40,76 8,58 8,22"
+              />
+              <polygon
+                class="urp-hatch-inner"
+                points="40,14 62,26 62,54 40,66 18,54 18,26"
+              />
+              <line class="urp-hatch-seam" x1="40" y1="16" x2="40" y2="64" />
+              <polygon class="urp-hatch-chevron" points="40,24 51,44 29,44" />
+            </svg>
+            <span class="urp-hatch-label">Hatch</span>
           </div>
           <div class="urp-field">
             <svg id="urp-apron" class="urp-apron" aria-hidden="true"></svg>
