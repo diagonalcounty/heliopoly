@@ -405,11 +405,9 @@ html.native-shell #app {
 }
 
 .eac-choices {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: stretch;
-  justify-content: center;
   gap: 12px;
   width: 100%;
   margin: 8px 0 4px;
@@ -421,7 +419,7 @@ html.native-shell #app {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  flex: 1 1 0;
+  width: 100%;
   min-width: 0;
   min-height: 96px;
   padding: 16px 12px;
@@ -4446,17 +4444,16 @@ button:not(:disabled):active {
     pointer-events: auto;
   }
 
-  /* #193 HITL — left vs right, not a stacked column. */
+  /* #193 HITL — left vs right. Grid cannot wrap to a column. */
   #eac-root:not(.hidden) .eac-choices {
-    flex-direction: row;
-    flex-wrap: nowrap;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) !important;
     width: 100%;
   }
 
   #eac-root:not(.hidden) .eac-num {
-    flex: 1 1 0;
+    width: 100%;
     min-width: 0;
-    width: auto;
     max-width: none;
   }
 
