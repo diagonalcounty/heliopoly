@@ -140,7 +140,16 @@ export const LAB_SCENARIOS: LabScenario[] = [
     standaloneId: "binary-compare",
   },
 
-  // —— Other minigames (single Gravity Duel entry) ——
+  // —— Other minigames ——
+  {
+    id: "urinal-rule-parking",
+    title: "urinal-rule-parking",
+    blurb: "Circular pads. Tap an empty circle.",
+    group: "minigame",
+    kind: "standalone",
+    available: true,
+    standaloneId: "urinal-rule-parking",
+  },
   {
     id: "duel-you-challenger",
     title: "Gravity Duel",

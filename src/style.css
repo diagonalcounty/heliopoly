@@ -661,6 +661,183 @@ html.native-shell #app {
   border-color: var(--accent);
 }
 
+/* —— Lab: urinal-rule-parking (#188). Full-bleed on every viewport. —— */
+#urp-root.urp-overlay {
+  z-index: 1050;
+  padding: 0;
+  align-items: stretch;
+  justify-content: stretch;
+}
+
+#urp-root:not(.hidden) {
+  z-index: 2010;
+}
+
+.urp-panel {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: none;
+  height: 100dvh;
+  max-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  border-radius: 0;
+  border: none;
+  background: linear-gradient(180deg, #121a2e 0%, #0b1020 100%);
+  overflow: hidden;
+}
+
+.urp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-shrink: 0;
+  padding: max(10px, env(safe-area-inset-top, 0px))
+    max(12px, env(safe-area-inset-right, 0px)) 8px
+    max(12px, env(safe-area-inset-left, 0px));
+}
+
+.urp-header h2 {
+  margin: 0;
+  font-family: Limelight, "SF Pro Text", system-ui, sans-serif;
+  font-size: 1.05rem;
+  font-weight: 400;
+  color: var(--accent-2);
+  letter-spacing: 0.02em;
+}
+
+.urp-round {
+  margin: 0;
+  flex-shrink: 0;
+  text-align: center;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  color: var(--accent-2);
+}
+
+.urp-board {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto auto;
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    "pads"
+    "hatch"
+    "go";
+  padding: 4px max(12px, env(safe-area-inset-right, 0px))
+    max(12px, env(safe-area-inset-bottom, 0px))
+    max(12px, env(safe-area-inset-left, 0px));
+  gap: 8px;
+}
+
+.urp-pads {
+  grid-area: pads;
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.urp-hatch {
+  grid-area: hatch;
+  justify-self: center;
+  width: 64px;
+  height: 56px;
+  border-radius: 12px;
+  border: 1px solid #c9a227;
+  background: #161e32;
+  display: grid;
+  place-items: center;
+}
+
+.urp-hatch-chevron {
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 14px solid var(--accent-2);
+}
+
+.urp-go {
+  grid-area: go;
+  justify-self: stretch;
+  min-height: 44px;
+  border-radius: 999px;
+  border: 1px solid #c9a227;
+  background: #1a2438;
+  color: var(--accent-2);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.urp-go:disabled {
+  opacity: 0.55;
+}
+
+.urp-go.urp-flash,
+.urp-pad.urp-flash {
+  box-shadow: 0 0 0 3px var(--accent-2);
+}
+
+.urp-pad {
+  position: absolute;
+  box-sizing: border-box;
+  padding: 0;
+  border-radius: 50%;
+  border: 2px solid #5a6a82;
+  background: radial-gradient(circle at 38% 32%, #6a7384 0%, #3a4250 55%, #252b36 100%);
+  color: #e8c04a;
+  display: grid;
+  place-items: center;
+}
+
+.urp-pad.is-empty {
+  cursor: pointer;
+  box-shadow: 0 0 0 2px rgba(201, 162, 39, 0.35);
+}
+
+.urp-pad.is-occupied {
+  pointer-events: none;
+  border-color: #8a7a40;
+}
+
+.urp-pad svg {
+  width: 62%;
+  height: 62%;
+}
+
+@media (min-aspect-ratio: 1/1) {
+  .urp-board {
+    grid-template-columns: minmax(140px, 28%) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "hatch pads"
+      "go pads";
+    align-items: center;
+  }
+
+  .urp-hatch {
+    justify-self: center;
+    width: 88px;
+    height: 88px;
+    border-radius: 18px;
+  }
+
+  .urp-hatch-chevron {
+    border-left: 14px solid var(--accent-2);
+    border-right: none;
+    border-bottom: 10px solid transparent;
+    border-top: 10px solid transparent;
+  }
+
+  .urp-go {
+    justify-self: stretch;
+    margin: 0 8px 0 0;
+  }
+}
+
 .hint {
   margin: 8px 0 0;
   font-size: 0.8rem;
@@ -4313,7 +4490,8 @@ button:not(:disabled):active {
   #announce-root.hidden,
   #end-root.hidden,
   #lab-root.hidden,
-  #eac-root.hidden {
+  #eac-root.hidden,
+  #urp-root.hidden {
     pointer-events: none !important;
   }
 
@@ -4324,7 +4502,8 @@ button:not(:disabled):active {
   #announce-root:not(.hidden),
   #end-root:not(.hidden),
   #lab-root:not(.hidden),
-  #eac-root:not(.hidden) {
+  #eac-root:not(.hidden),
+  #urp-root:not(.hidden) {
     z-index: 2000 !important;
     isolation: isolate;
     padding: 0;
@@ -4334,7 +4513,8 @@ button:not(:disabled):active {
   }
 
   /* Drill sits above the Lab list when both are open. */
-  #eac-root:not(.hidden) {
+  #eac-root:not(.hidden),
+  #urp-root:not(.hidden) {
     z-index: 2010 !important;
   }
 
@@ -4348,7 +4528,8 @@ button:not(:disabled):active {
       #announce-root:not(.hidden),
       #end-root:not(.hidden),
       #lab-root:not(.hidden),
-      #eac-root:not(.hidden)
+      #eac-root:not(.hidden),
+      #urp-root:not(.hidden)
     )
     #app:has(.fleet-card.mode-standings)
     :is(
@@ -4389,7 +4570,8 @@ button:not(:disabled):active {
   #handbook-root:not(.hidden) .handbook-close,
   #dossier-root:not(.hidden) .handbook-close,
   #lab-root:not(.hidden) .handbook-close,
-  #eac-root:not(.hidden) .handbook-close {
+  #eac-root:not(.hidden) .handbook-close,
+  #urp-root:not(.hidden) .handbook-close {
     min-width: 44px;
     min-height: 44px;
     pointer-events: auto;

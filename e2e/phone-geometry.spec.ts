@@ -18,6 +18,7 @@ const HIDDEN_SHEETS = [
   "#end-root",
   "#lab-root",
   "#eac-root",
+  "#urp-root",
 ];
 
 test.describe("phone setup #158", () => {
@@ -467,6 +468,73 @@ test.describe("phone Lab sheet #193", () => {
     await expect(page.locator("#eac-root")).toHaveClass(/hidden/);
     await expect(page.locator("#lab-root")).not.toHaveClass(/hidden/);
 
+    await page.locator("#lab-root .handbook-close").click();
+    await expect(page.locator("#lab-root")).toHaveClass(/hidden/);
+
+    const rollAfter = await hitAt(page, roll.x, roll.y);
+    expect(rollAfter?.id, "Roll tappable after Lab close").toBe("btn-roll");
+  });
+});
+
+test.describe("phone Lab urinal-rule-parking #188", () => {
+  test.skip(({ viewport }) => (viewport?.width ?? 0) >= 900, "phone only");
+
+  test("Minigames item opens drill; hatch bottom; empty pad 44px; close returns Roll", async ({
+    page,
+  }) => {
+    await launch(page);
+    const roll = await centerOf(page, "#btn-roll");
+
+    await page.locator("#btn-lab").click();
+    await expect(page.locator("#lab-root")).not.toHaveClass(/hidden/);
+    await page.locator('.lab-group-toggle[aria-controls="lab-group-items-minigame"]').click();
+    const item = page.locator('.lab-scenario[data-scenario="urinal-rule-parking"]');
+    await expect(item).toBeVisible();
+    await expect(item).toContainText("urinal-rule-parking");
+    await item.click();
+    await expect(page.locator("#urp-root")).not.toHaveClass(/hidden/);
+
+    const title = page.locator("#urp-title");
+    await expect(title).toHaveText("urinal-rule-parking");
+
+    const root = await boxOf(page, "#urp-root");
+    expect(Number(root.zIndex), "drill above Lab").toBeGreaterThanOrEqual(2000);
+    expect(root.width).toBeGreaterThanOrEqual(PHONE.w - 1);
+    expect(root.height).toBeGreaterThanOrEqual(PHONE.h - 2);
+
+    const close = await boxOf(page, "#urp-root .handbook-close");
+    expect(close.width).toBeGreaterThanOrEqual(44);
+    expect(close.height).toBeGreaterThanOrEqual(44);
+    expect(close.onControl, "elementFromPoint drill close").toBe(true);
+
+    const hatch = await boxOf(page, "#urp-root .urp-hatch");
+    const go = await boxOf(page, "#urp-go-around");
+    expect(go.height, "Go around ≥44px").toBeGreaterThanOrEqual(44);
+    expect(go.onControl, "Go around tappable").toBe(true);
+    expect(go.top, "Go around above home indicator").toBeLessThan(PHONE.h - 8);
+    expect(hatch.top, "hatch below pads / toward bottom").toBeGreaterThan(PHONE.h * 0.45);
+
+    const empty = page.locator("#urp-pads .urp-pad.is-empty").first();
+    await expect(empty).toBeVisible();
+    const emptyBox = await boxOf(page, "#urp-pads .urp-pad.is-empty");
+    expect(emptyBox.width, "empty pad ≥44px").toBeGreaterThanOrEqual(44);
+    expect(emptyBox.height, "empty pad ≥44px").toBeGreaterThanOrEqual(44);
+    expect(emptyBox.onControl, "elementFromPoint hits empty circle").toBe(true);
+
+    const padCount = await page.locator("#urp-pads .urp-pad").count();
+    expect(padCount, "5 pads on round 1").toBe(5);
+    const ys = await page.locator("#urp-pads .urp-pad").evaluateAll((els) =>
+      els.map((el) => el.getBoundingClientRect().y),
+    );
+    const ySpan = Math.max(...ys) - Math.min(...ys);
+    expect(ySpan, "apron arc, not a trough").toBeGreaterThan(12);
+
+    const overRoll = await hitAt(page, roll.x, roll.y);
+    expect(overRoll?.id, "Roll must not win under open drill").not.toBe("btn-roll");
+
+    await page.locator("#urp-root .handbook-close").click();
+    await expect(page.locator("#urp-root")).toHaveClass(/hidden/);
+    await expect(page.locator("#lab-root")).not.toHaveClass(/hidden/);
     await page.locator("#lab-root .handbook-close").click();
     await expect(page.locator("#lab-root")).toHaveClass(/hidden/);
 

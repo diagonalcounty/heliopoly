@@ -83,6 +83,13 @@ import {
   STANDALONE_TO_SCRIPT,
   type NumberScriptId,
 } from "./lab/numberScripts";
+import {
+  applyUrpChoice,
+  startUrpDrill,
+  URP_ROUNDS,
+  type UrpChoice,
+  type UrpState,
+} from "./lab/urpGrader";
 import type { Board } from "./core/types";
 import { submitGameTelemetry } from "./telemetry";
 
@@ -338,6 +345,10 @@ const endRanks = document.getElementById("end-ranks")!;
 const labRoot = document.getElementById("lab-root")!;
 const labScenariosEl = document.getElementById("lab-scenarios")!;
 const eacRoot = document.getElementById("eac-root")!;
+const urpRoot = document.getElementById("urp-root")!;
+const urpPadsEl = document.getElementById("urp-pads")!;
+const urpRoundEl = document.getElementById("urp-round")!;
+const urpGoBtn = document.getElementById("urp-go-around") as HTMLButtonElement;
 const eacRoundEl = document.getElementById("eac-round")!;
 const eacAttemptsEl = document.getElementById("eac-attempts")!;
 const eacPlayEl = document.getElementById("eac-play")!;
@@ -1586,6 +1597,7 @@ function closeLab(): void {
   if (
     duelRoot.classList.contains("hidden") &&
     eacRoot.classList.contains("hidden") &&
+    urpRoot.classList.contains("hidden") &&
     document.getElementById("handbook-root")?.classList.contains("hidden")
   ) {
     document.body.classList.remove("handbook-open");
@@ -1740,6 +1752,140 @@ function closeEasternArabicCompare(): void {
   if (
     duelRoot.classList.contains("hidden") &&
     labRoot.classList.contains("hidden") &&
+    urpRoot.classList.contains("hidden") &&
+    document.getElementById("handbook-root")?.classList.contains("hidden")
+  ) {
+    document.body.classList.remove("handbook-open");
+  }
+}
+
+/** —— urinal-rule-parking (#188) —— */
+const URP_ROCKET_COLORS = ["#e2b14a", "#3db8c5", "#d46a3a", "#7aa2ff", "#c86bdb"];
+let urpState: UrpState | null = null;
+let urpFlashTimer = 0;
+let urpPadRo: ResizeObserver | null = null;
+
+function isUrpOpen(): boolean {
+  return !urpRoot.classList.contains("hidden");
+}
+
+function urpLandscape(): boolean {
+  return window.matchMedia("(min-aspect-ratio: 1/1)").matches;
+}
+
+function urpRocketSvg(color: string): string {
+  return `<svg viewBox="0 0 32 32" aria-hidden="true">
+    <path fill="${color}" d="M16 2c3.2 6.2 4.2 10.4 4.2 16.4h-8.4C11.8 12.4 12.8 8.2 16 2z"/>
+    <circle cx="16" cy="13" r="2.1" fill="#0b1020"/>
+    <path fill="${color}" d="M11.2 18.2 6 26h6.4l2-7.8zm9.6 0L26 26h-6.4l-2-7.8z"/>
+    <path fill="#f0c14a" d="M14.2 26h3.6l-.8 4h-2z"/>
+  </svg>`;
+}
+
+function layoutUrpPads(): void {
+  if (!urpState) return;
+  const n = urpState.padCount;
+  const w = urpPadsEl.clientWidth;
+  const h = urpPadsEl.clientHeight;
+  if (w < 8 || h < 8) return;
+  const landscape = urpLandscape();
+  const chord = landscape ? h * 0.84 : w * 0.86;
+  const size = Math.max(44, Math.min(56, Math.floor(chord / n) - 6));
+  const pads = urpPadsEl.querySelectorAll<HTMLElement>(".urp-pad");
+  pads.forEach((el, i) => {
+    const t = n <= 1 ? 0.5 : i / (n - 1);
+    const bulge = Math.sin(t * Math.PI);
+    let x: number;
+    let y: number;
+    if (landscape) {
+      x = w * (0.16 + bulge * 0.46) - size / 2;
+      y = h * (0.08 + t * 0.84) - size / 2;
+    } else {
+      x = w * (0.08 + t * 0.84) - size / 2;
+      y = h * (0.58 - bulge * 0.36) - size / 2;
+    }
+    el.style.width = `${size}px`;
+    el.style.height = `${size}px`;
+    el.style.left = `${Math.round(x)}px`;
+    el.style.top = `${Math.round(y)}px`;
+  });
+}
+
+function renderUrp(): void {
+  if (!urpState) return;
+  urpRoundEl.textContent = `${urpState.round}/${URP_ROUNDS}`;
+  const occ = new Set(urpState.occupied);
+  const playing = urpState.phase === "playing";
+  urpPadsEl.replaceChildren();
+  for (let i = 0; i < urpState.padCount; i++) {
+    const occupied = occ.has(i);
+    const el = document.createElement(occupied ? "div" : "button");
+    if (!occupied) (el as HTMLButtonElement).type = "button";
+    el.className = "urp-pad" + (occupied ? " is-occupied" : " is-empty");
+    el.dataset.index = String(i);
+    el.setAttribute("aria-label", occupied ? `Pad ${i + 1}, occupied` : `Pad ${i + 1}, empty`);
+    if (occupied) {
+      const color = URP_ROCKET_COLORS[i % URP_ROCKET_COLORS.length]!;
+      el.innerHTML = urpRocketSvg(color);
+    } else if (playing) {
+      el.addEventListener("click", () => urpChoose({ kind: "pad", index: i }));
+    }
+    urpPadsEl.appendChild(el);
+  }
+  urpGoBtn.disabled = !playing;
+  urpGoBtn.setAttribute("aria-disabled", playing ? "false" : "true");
+  layoutUrpPads();
+}
+
+function urpFlashLegal(choice: UrpChoice): void {
+  window.clearTimeout(urpFlashTimer);
+  urpPadsEl.querySelectorAll(".urp-flash").forEach((el) => el.classList.remove("urp-flash"));
+  urpGoBtn.classList.remove("urp-flash");
+  if (choice.kind === "go-around") {
+    urpGoBtn.classList.add("urp-flash");
+  } else {
+    const pad = urpPadsEl.querySelector(`[data-index="${choice.index}"]`);
+    pad?.classList.add("urp-flash");
+  }
+  urpFlashTimer = window.setTimeout(() => {
+    urpPadsEl.querySelectorAll(".urp-flash").forEach((el) => el.classList.remove("urp-flash"));
+    urpGoBtn.classList.remove("urp-flash");
+  }, 700);
+}
+
+function urpChoose(choice: UrpChoice): void {
+  if (!urpState || urpState.phase !== "playing") return;
+  const next = applyUrpChoice(urpState, choice);
+  if (!next.ok) {
+    urpFlashLegal(next.legal);
+    return;
+  }
+  urpState = next.state;
+  renderUrp();
+}
+
+function openUrp(): void {
+  urpState = startUrpDrill();
+  renderUrp();
+  urpRoot.classList.remove("hidden");
+  urpRoot.setAttribute("aria-hidden", "false");
+  document.body.classList.add("handbook-open");
+  layoutUrpPads();
+  if (!urpPadRo) {
+    urpPadRo = new ResizeObserver(() => layoutUrpPads());
+    urpPadRo.observe(urpPadsEl);
+  }
+}
+
+function closeUrp(): void {
+  urpRoot.classList.add("hidden");
+  urpRoot.setAttribute("aria-hidden", "true");
+  urpState = null;
+  window.clearTimeout(urpFlashTimer);
+  if (
+    duelRoot.classList.contains("hidden") &&
+    eacRoot.classList.contains("hidden") &&
+    labRoot.classList.contains("hidden") &&
     document.getElementById("handbook-root")?.classList.contains("hidden")
   ) {
     document.body.classList.remove("handbook-open");
@@ -1854,6 +2000,10 @@ async function runLabScenario(id: string): Promise<void> {
   const sc = LAB_SCENARIOS.find((x) => x.id === id);
   if (!sc || !labScenarioAvailable(sc)) return;
   if (sc.kind === "standalone") {
+    if (sc.standaloneId === "urinal-rule-parking") {
+      openUrp();
+      return;
+    }
     const script = STANDALONE_TO_SCRIPT[sc.standaloneId];
     if (script) openNumberCompare(script);
     return;
@@ -1872,6 +2022,9 @@ document.getElementById("lab-close")?.addEventListener("click", () => closeLab()
 document.getElementById("lab-backdrop")?.addEventListener("click", () => closeLab());
 document.getElementById("eac-close")?.addEventListener("click", () => closeEasternArabicCompare());
 document.getElementById("eac-backdrop")?.addEventListener("click", () => closeEasternArabicCompare());
+document.getElementById("urp-close")?.addEventListener("click", () => closeUrp());
+document.getElementById("urp-backdrop")?.addEventListener("click", () => closeUrp());
+urpGoBtn.addEventListener("click", () => urpChoose({ kind: "go-around" }));
 document.getElementById("eac-again")?.addEventListener("click", () => eacPlayAgain());
 document.getElementById("eac-done")?.addEventListener("click", () => {
   closeEasternArabicCompare();
@@ -1883,6 +2036,11 @@ eacLeftBtn.addEventListener("click", () => eacChoose("left"));
 eacRightBtn.addEventListener("click", () => eacChoose("right"));
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
+    if (isUrpOpen()) {
+      e.preventDefault();
+      closeUrp();
+      return;
+    }
     if (isEacOpen()) {
       e.preventDefault();
       closeEasternArabicCompare();
