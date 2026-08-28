@@ -685,7 +685,7 @@ html.native-shell #app {
   margin-bottom: 6px;
 }
 
-/* New game: AI difficulty + estimated duration meter (#94) */
+/* New game: expedition length (#195). Meter deleted. */
 .ai-difficulty-row {
   display: flex;
   flex-direction: row;
@@ -698,11 +698,9 @@ html.native-shell #app {
   flex: 1 1 auto;
   min-width: 0;
   margin: 0;
-  /* Match duration meter height; space radios evenly in the column */
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 225px; /* DURATION_METER_VIS.panelH */
   box-sizing: border-box;
 }
 
@@ -3522,7 +3520,7 @@ button:not(:disabled):active {
   }
 
   #app:has(.fleet-card.mode-setup) .ai-difficulty-field legend::after {
-    content: "Table";
+    content: "Expedition";
     font-size: 0.72rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -3598,45 +3596,16 @@ button:not(:disabled):active {
     content: "Hydrogen";
   }
   #app:has(.fleet-card.mode-setup) #setup-body .check:has([value="easy"])::after {
-    content: "Easy";
+    content: "1. Insight";
   }
   #app:has(.fleet-card.mode-setup) #setup-body .check:has([value="normal"])::after {
-    content: "Normal";
+    content: "2. Curiosity";
   }
   #app:has(.fleet-card.mode-setup) #setup-body .check:has([value="hard"])::after {
-    content: "Hard";
+    content: "3. Voyager";
   }
   #app:has(.fleet-card.mode-setup) #setup-body .check:has([value="expert"])::after {
-    content: "Expert";
-  }
-
-  /* JS still writes 72×225 inline — kill the tower. */
-  #app:has(.fleet-card.mode-setup) #duration-meter,
-  #app:has(.fleet-card.mode-setup) .duration-meter {
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    align-self: flex-start !important;
-    width: auto !important;
-    height: auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
-    margin: 0 !important;
-    padding: 4px 10px !important;
-    border-radius: 999px !important;
-  }
-
-  #app:has(.fleet-card.mode-setup) .duration-meter-title {
-    padding: 0 !important;
-    border: none !important;
-    font-size: 0.78rem !important;
-    color: #7dd3fc !important;
-    text-align: left;
-  }
-
-  #app:has(.fleet-card.mode-setup) .duration-meter-body {
-    display: none !important;
-    height: 0 !important;
+    content: "4. Opportunity";
   }
 
   #app:has(.fleet-card.mode-setup) #btn-new {

@@ -154,7 +154,7 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
   <li>Then each round rolls <strong>50%</strong> to fire; each <em>real</em> miss moves the chance halfway toward 100% (50% → 75% → 87.5% …).</li>
   <li>On fire, wait 5 rounds again. Open popups do not burn midpoints without a roll.</li>
 </ol>
-<p><strong>Who</strong> is not always the whole table. The table below is the live rule. <strong>Easy</strong> game difficulty never lets a − event hit the human seat (Tesla and Karen only land on AI).</p>
+<p><strong>Who</strong> is not always the whole table. The table below is the live rule. <strong>Insight</strong> never lets a − event hit the human seat (Tesla and Karen only land on AI).</p>
 
 <h3>Standard pool</h3>
 <table class="glossary">
@@ -226,7 +226,7 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     <tr>
       <td><strong>Rogue Tesla Roadster</strong></td>
       <td>−</td>
-      <td>Pool, only if a Jupiter or Saturn planetoid is owned (not hubs, not Mars, not inner system). Easy: only AI-owned planetoids count.</td>
+      <td>Pool, only if a Jupiter or Saturn planetoid is owned (not hubs, not Mars, not inner system). Insight: only AI-owned planetoids count.</td>
       <td>One random matching owner</td>
       <td>That deed is gone, and any fuel depot on it.</td>
     </tr>
@@ -240,22 +240,22 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     <tr>
       <td><strong>Karen in the comments</strong></td>
       <td>−</td>
-      <td>Pool from <strong>round 30</strong>. Easy: only if an AI is still flying.</td>
-      <td>One random active rocket (Easy: AI only)</td>
+      <td>Pool from <strong>round 30</strong>. Insight: only if an AI is still flying.</td>
+      <td>One random active rocket (Insight: AI only)</td>
       <td>That rocket <strong>loses one full seat turn</strong>.</td>
     </tr>
     <tr>
       <td><strong>Invalid claim on the ledger</strong></td>
       <td>+ / −</td>
       <td>Pool, only if an opponent still holds a deed</td>
-      <td>One random rocket this round (chooser). Victim is the previous owner. Easy: cannot steal from the human.</td>
+      <td>One random rocket this round (chooser). Victim is the previous owner. Insight: cannot steal from the human.</td>
       <td>Chooser takes one opponent claim. Planet/moon: free fuel depot. Hubs: deed only — no depot (hubs cannot host pods).</td>
     </tr>
     <tr>
       <td><strong>Hot microphone</strong></td>
       <td>−</td>
-      <td>Pool. Easy: only if an AI is still flying.</td>
-      <td>One rocket (Easy: AI only)</td>
+      <td>Pool. Insight: only if an AI is still flying.</td>
+      <td>One rocket (Insight: AI only)</td>
       <td>Sings a Disney song into a live mic. Pay <strong>50</strong> and <strong>miss the next seat turn</strong>.</td>
     </tr>
     <tr>
@@ -268,8 +268,8 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     <tr>
       <td><strong>Error 47: not an object</strong></td>
       <td>−</td>
-      <td>Pool. Easy: only if an AI is still flying.</td>
-      <td>One rocket (Easy: AI only)</td>
+      <td>Pool. Insight: only if an AI is still flying.</td>
+      <td>One rocket (Insight: AI only)</td>
       <td>The terminal dumps <strong>2 fuel</strong>.</td>
     </tr>
   </tbody>
@@ -465,47 +465,47 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
   },
   {
     id: "ai-difficulty",
-    title: "Game difficulty",
+    title: "Expedition",
     html: `
-<p>This is the <strong>table</strong> setting, chosen at <strong>New game</strong> and locked for the expedition. It sets how long the game tends to run, how kind the ledger is, and how hard rivals play.</p>
+<p>This is the <strong>expedition</strong> setting, chosen at <strong>New game</strong> and locked at Launch. It sets how involved the table is, how kind the ledger is, and how hard rivals play.</p>
 <table class="glossary">
   <thead>
     <tr>
-      <th>Level</th>
       <th>Expedition</th>
+      <th>Session</th>
       <th>Ledger</th>
       <th>Rivals</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td><strong>Easy</strong></td>
-      <td>Shorter</td>
+      <td><strong>1. Insight</strong></td>
+      <td>A look</td>
       <td>− events never hit you (Tesla, Karen, hot mic, Error 47). Rivals cannot steal your deeds.</td>
       <td>Soft. They land where the dice put them.</td>
     </tr>
     <tr>
-      <td><strong>Normal</strong></td>
-      <td>Standard</td>
+      <td><strong>2. Curiosity</strong></td>
+      <td>Stay and poke (default)</td>
       <td>Full pool. Prize cards go to one random rocket each fire.</td>
       <td>Default table.</td>
     </tr>
     <tr>
-      <td><strong>Hard</strong></td>
-      <td>Longer</td>
+      <td><strong>3. Voyager</strong></td>
+      <td>The long haul</td>
       <td>Full pool.</td>
       <td>Sharper — they play for deeds, hubs, and Earth.</td>
     </tr>
     <tr>
-      <td><strong>Expert</strong></td>
-      <td>Long</td>
+      <td><strong>4. Opportunity</strong></td>
+      <td>The long game</td>
       <td>Full pool.</td>
       <td>The table hunts monopolies and Earth landings.</td>
     </tr>
   </tbody>
 </table>
 <p>Prize cards — King’s Quest, M&amp;Ms, Strong Bad, Belt ice, Tuesday boy, Olbers, steal — go to <strong>one random rocket that round</strong>, not the lead seat. See <strong>Ledger events</strong> for Who / Effect.</p>
-<p>The meter on New game is estimated length, not a timer. Header <strong>Speed</strong> is animation only.</p>
+<p>Header <strong>Speed</strong> is animation only. Minigames in the charter come later; practice them in the <strong>Lab</strong>.</p>
 `,
   },
   {
@@ -527,7 +527,7 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     id: "lab",
     title: "The Lab",
     html: `
-<p><strong>The Lab</strong> (header button) is a playground on every build, including the live site. Use it to try drills and canned setups without flying a full expedition.</p>
+<p><strong>The Lab</strong> (header button) is the minigame and drill bay — practice and testing, not the live charter. It is on every build, including the live site and the iPhone header next to Book.</p>
 <ul>
   <li>Tap a <strong>category</strong> (Which is larger?, Minigames, End screens, Economy) to expand it; tap again to collapse.</li>
   <li><strong>Which is larger?</strong> — one line per numbering system (Western, Eastern Arabic, Chinese, Korean, Hebrew, binary…). Only shipped packs run; others show <em>Soon</em>. Closing a drill returns you to the Lab. Your expedition is untouched.</li>
@@ -535,7 +535,7 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
   <li><strong>End screens / economy</strong> — canned board states for UI and balance checks.</li>
 </ul>
 <p>Game scenarios that replace the board (duel, end screens, economy) swap out the current expedition. Pure drills (Which is larger?) do not.</p>
-<p>We keep Lab visible on <strong>heliopoly.live</strong> on purpose — it is part of the product, not a dev-only cheat panel.</p>
+<p>We keep Lab visible on purpose — it is part of the product, not a dev-only cheat panel. Putting drills into Opportunity (and the shorter expeditions) is a later charter change; until then, Lab is how you try them.</p>
 `,
   },
   {
