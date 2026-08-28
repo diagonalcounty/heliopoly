@@ -1737,7 +1737,7 @@ function openNumberCompare(script: NumberScriptId): void {
   eacState = startCompareDrill();
   eacSyncChrome();
   renderEac();
-  closeLab();
+  // #193 — keep Lab under the drill so ✕ returns to the list, not the board.
   eacRoot.classList.remove("hidden");
   eacRoot.setAttribute("aria-hidden", "false");
   document.body.classList.add("handbook-open");
