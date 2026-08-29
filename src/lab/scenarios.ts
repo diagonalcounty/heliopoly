@@ -34,7 +34,7 @@ export const LAB_GROUP_LABELS: Record<LabScenarioGroup, string> = {
 export const LAB_GROUP_BLURBS: Record<LabScenarioGroup, string> = {
   "which-is-larger":
     "Literacy drills: pick the larger of two numbers in a target numbering system.",
-  minigame: "Standalone practice modes (e.g. Gravity Duel).",
+  minigame: "Standalone practice modes (Backup fuel, Gravity Duel).",
   end: "Canned end screens for UI / copy checks.",
   economy: "Economy and risk edge cases.",
 };
@@ -140,7 +140,17 @@ export const LAB_SCENARIOS: LabScenario[] = [
     standaloneId: "binary-compare",
   },
 
-  // —— Other minigames (single Gravity Duel entry) ——
+  // —— Other minigames ——
+  {
+    id: "backup-fuel-pipes",
+    title: "Backup fuel",
+    blurb:
+      "Reroute backup fuel: rotate pipe segments on a 5×5 until tank feeds the engine. Untimed Lab practice; expedition stays put.",
+    group: "minigame",
+    kind: "standalone",
+    available: true,
+    standaloneId: "backup-fuel-pipes",
+  },
   {
     id: "duel-you-challenger",
     title: "Gravity Duel",

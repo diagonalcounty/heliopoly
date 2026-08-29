@@ -83,6 +83,19 @@ import {
   STANDALONE_TO_SCRIPT,
   type NumberScriptId,
 } from "./lab/numberScripts";
+import {
+  DIR_E,
+  DIR_N,
+  DIR_S,
+  DIR_W,
+  PIPE_GRID,
+  cellKind,
+  flowFromTank,
+  playAgainPipes,
+  rotateTile,
+  startPipes,
+  type PipeState,
+} from "./lab/backupFuelPipes";
 import type { Board } from "./core/types";
 import { submitGameTelemetry } from "./telemetry";
 
@@ -353,6 +366,12 @@ const eacRightWest = document.getElementById("eac-right-west")!;
 const eacHintBtn = document.getElementById("eac-hint") as HTMLButtonElement;
 const eacResetBtn = document.getElementById("eac-reset") as HTMLButtonElement;
 const eacRecapEl = document.getElementById("eac-recap")!;
+const pipesRoot = document.getElementById("pipes-root")!;
+const pipesGridEl = document.getElementById("pipes-grid")!;
+const pipesStatusEl = document.getElementById("pipes-status")!;
+const pipesRotatesEl = document.getElementById("pipes-rotates")!;
+const pipesEndEl = document.getElementById("pipes-end")!;
+const pipesEndBlurb = document.getElementById("pipes-end-blurb")!;
 
 const btnNew = document.getElementById("btn-new") as HTMLButtonElement;
 const btnSelf = document.getElementById("btn-selfplay") as HTMLButtonElement;
@@ -1586,6 +1605,7 @@ function closeLab(): void {
   if (
     duelRoot.classList.contains("hidden") &&
     eacRoot.classList.contains("hidden") &&
+    pipesRoot.classList.contains("hidden") &&
     document.getElementById("handbook-root")?.classList.contains("hidden")
   ) {
     document.body.classList.remove("handbook-open");
@@ -1740,6 +1760,7 @@ function closeEasternArabicCompare(): void {
   if (
     duelRoot.classList.contains("hidden") &&
     labRoot.classList.contains("hidden") &&
+    pipesRoot.classList.contains("hidden") &&
     document.getElementById("handbook-root")?.classList.contains("hidden")
   ) {
     document.body.classList.remove("handbook-open");
@@ -1768,10 +1789,128 @@ function eacReset(): void {
   eacLeftBtn.focus();
 }
 
+
 function eacPlayAgain(): void {
   eacState = playAgainCompareDrill();
   renderEac();
   eacLeftBtn.focus();
+}
+
+/** —— Backup fuel pipe routing (#77) —— */
+let pipesState: PipeState | null = null;
+
+function isPipesOpen(): boolean {
+  return !pipesRoot.classList.contains("hidden");
+}
+
+function renderPipes(): void {
+  if (!pipesState) return;
+  const won = pipesState.phase === "won";
+  const flow = flowFromTank(pipesState);
+  pipesStatusEl.textContent = won ? "Flow restored" : "Tank → engine";
+  pipesRotatesEl.textContent =
+    pipesState.rotates === 1 ? "1 rotate" : `${pipesState.rotates} rotates`;
+  pipesEndEl.classList.toggle("hidden", !won);
+  if (won) {
+    const n = pipesState.rotates;
+    pipesEndBlurb.textContent =
+      n === 1
+        ? "Backup fuel reaches the engine in 1 rotate."
+        : `Backup fuel reaches the engine in ${n} rotates.`;
+  }
+  pipesGridEl.replaceChildren();
+  for (let r = 0; r < PIPE_GRID; r++) {
+    for (let c = 0; c < PIPE_GRID; c++) {
+      const kind = cellKind(r, c);
+      const mask = pipesState.tiles[r][c];
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "pipe-cell";
+      btn.dataset.r = String(r);
+      btn.dataset.c = String(c);
+      if (kind === "tank") btn.classList.add("is-tank");
+      if (kind === "engine") btn.classList.add("is-engine");
+      if (flow.has(`${r},${c}`)) btn.classList.add("is-flow");
+      const fixture = kind !== "pipe";
+      btn.disabled = fixture || won;
+      const label =
+        kind === "tank"
+          ? "Fuel tank"
+          : kind === "engine"
+            ? "Engine"
+            : `Pipe ${r + 1},${c + 1}`;
+      btn.setAttribute("aria-label", won ? `${label}, locked` : `${label}, tap to rotate`);
+      btn.setAttribute("role", "gridcell");
+      const glyph = document.createElement("span");
+      glyph.className = "pipe-glyph";
+      glyph.setAttribute("aria-hidden", "true");
+      const hub = document.createElement("span");
+      hub.className = "pipe-hub";
+      glyph.appendChild(hub);
+      const arms: Array<[number, string]> = [
+        [DIR_N, "n"],
+        [DIR_E, "e"],
+        [DIR_S, "s"],
+        [DIR_W, "w"],
+      ];
+      for (const [bit, name] of arms) {
+        if (mask & bit) {
+          const arm = document.createElement("span");
+          arm.className = `pipe-arm ${name}`;
+          glyph.appendChild(arm);
+        }
+      }
+      btn.appendChild(glyph);
+      if (kind === "tank" || kind === "engine") {
+        const badge = document.createElement("span");
+        badge.className = "pipe-badge";
+        badge.textContent = kind === "tank" ? "Tnk" : "Eng";
+        btn.appendChild(badge);
+      }
+      if (!fixture && !won) {
+        const rr = r;
+        const cc = c;
+        btn.addEventListener("click", () => {
+          if (!pipesState || pipesState.phase !== "playing") return;
+          pipesState = rotateTile(pipesState, rr, cc);
+          renderPipes();
+        });
+      }
+      pipesGridEl.appendChild(btn);
+    }
+  }
+}
+
+function openPipes(): void {
+  pipesState = startPipes();
+  renderPipes();
+  // Keep Lab under the drill so ✕ returns to the list, not the board.
+  pipesRoot.classList.remove("hidden");
+  pipesRoot.setAttribute("aria-hidden", "false");
+  document.body.classList.add("handbook-open");
+  const first = pipesGridEl.querySelector("button:not(:disabled)") as HTMLButtonElement | null;
+  first?.focus();
+}
+
+function closePipes(): void {
+  pipesRoot.classList.add("hidden");
+  pipesRoot.setAttribute("aria-hidden", "true");
+  pipesState = null;
+  if (
+    duelRoot.classList.contains("hidden") &&
+    labRoot.classList.contains("hidden") &&
+    eacRoot.classList.contains("hidden") &&
+    document.getElementById("handbook-root")?.classList.contains("hidden")
+  ) {
+    document.body.classList.remove("handbook-open");
+  }
+}
+
+function pipesPlayAgain(): void {
+  pipesState = playAgainPipes();
+  renderPipes();
+  const first = pipesGridEl.querySelector("button:not(:disabled)") as HTMLButtonElement | null;
+  first?.focus();
 }
 
 /** Which Lab accordion category is open (null = all collapsed). */
@@ -1854,6 +1993,10 @@ async function runLabScenario(id: string): Promise<void> {
   const sc = LAB_SCENARIOS.find((x) => x.id === id);
   if (!sc || !labScenarioAvailable(sc)) return;
   if (sc.kind === "standalone") {
+    if (sc.standaloneId === "backup-fuel-pipes") {
+      openPipes();
+      return;
+    }
     const script = STANDALONE_TO_SCRIPT[sc.standaloneId];
     if (script) openNumberCompare(script);
     return;
@@ -1877,12 +2020,24 @@ document.getElementById("eac-done")?.addEventListener("click", () => {
   closeEasternArabicCompare();
   openLab();
 });
+document.getElementById("pipes-close")?.addEventListener("click", () => closePipes());
+document.getElementById("pipes-backdrop")?.addEventListener("click", () => closePipes());
+document.getElementById("pipes-again")?.addEventListener("click", () => pipesPlayAgain());
+document.getElementById("pipes-done")?.addEventListener("click", () => {
+  closePipes();
+  openLab();
+});
 eacHintBtn.addEventListener("click", () => eacHint());
 eacResetBtn.addEventListener("click", () => eacReset());
 eacLeftBtn.addEventListener("click", () => eacChoose("left"));
 eacRightBtn.addEventListener("click", () => eacChoose("right"));
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
+    if (isPipesOpen()) {
+      e.preventDefault();
+      closePipes();
+      return;
+    }
     if (isEacOpen()) {
       e.preventDefault();
       closeEasternArabicCompare();

@@ -334,9 +334,9 @@ Name your rocket. Then Launch.</p>
         </header>
         <div class="lab-body">
           <p class="hint lab-intro">
-            Tap a category to expand it, then pick an item. Drills under
-            <strong>Which is larger?</strong> leave your expedition alone;
-            scenarios under Minigames / End / Economy replace the current game.
+            Tap a category to expand it, then pick an item. Literacy drills and
+            standalone Minigames (Backup fuel) leave your expedition alone;
+            Gravity Duel / End / Economy replace the current game.
           </p>
           <div id="lab-scenarios" class="lab-scenarios"></div>
         </div>
@@ -404,6 +404,53 @@ Name your rocket. Then Launch.</p>
             <div class="eac-win-actions">
               <button type="button" id="eac-again" class="eac-primary">Play again</button>
               <button type="button" id="eac-done" class="eac-secondary">Back to Lab</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lab drill: backup-fuel pipe routing (#77) -->
+    <div id="pipes-root" class="handbook pipes-overlay hidden" aria-hidden="true">
+      <div class="handbook-backdrop" id="pipes-backdrop"></div>
+      <div
+        class="handbook-panel pipes-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="pipes-title"
+      >
+        <header class="handbook-header">
+          <div>
+            <p class="handbook-kicker">Lab · minigame</p>
+            <h2 id="pipes-title">Backup fuel</h2>
+          </div>
+          <button type="button" id="pipes-close" class="handbook-close" aria-label="Close drill">
+            ✕
+          </button>
+        </header>
+        <div class="pipes-body">
+          <div class="pipes-status-row">
+            <p id="pipes-status" class="pipes-status mono" aria-live="polite">Tank → engine</p>
+            <p id="pipes-rotates" class="pipes-rotates mono" aria-live="polite">0 rotates</p>
+          </div>
+          <p class="hint pipes-hint">
+            Tap a segment to rotate it. Complete a continuous path from the tank
+            to the engine. Untimed; expedition stays put.
+          </p>
+          <div id="pipes-play" class="pipes-play">
+            <div class="pipes-legend" aria-hidden="true">
+              <span class="pipes-legend-item pipes-legend-tank">Tank</span>
+              <span class="pipes-legend-arrow">→</span>
+              <span class="pipes-legend-item pipes-legend-engine">Engine</span>
+            </div>
+            <div id="pipes-grid" class="pipes-grid" role="grid" aria-label="Backup fuel pipes"></div>
+          </div>
+          <div id="pipes-end" class="eac-win hidden" aria-live="polite">
+            <p class="eac-win-title">Flow restored</p>
+            <p id="pipes-end-blurb" class="hint">Backup fuel reaches the engine.</p>
+            <div class="eac-win-actions">
+              <button type="button" id="pipes-again" class="eac-primary">Play again</button>
+              <button type="button" id="pipes-done" class="eac-secondary">Back to Lab</button>
             </div>
           </div>
         </div>

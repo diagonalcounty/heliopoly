@@ -657,8 +657,240 @@ html.native-shell #app {
   color: var(--text);
 }
 
+
 .eac-secondary:hover {
   border-color: var(--accent);
+}
+
+/* —— Lab: backup-fuel pipe routing (#77) —— */
+#pipes-root.pipes-overlay {
+  z-index: 1050;
+}
+
+.pipes-panel {
+  width: min(560px, calc(100vw - 32px));
+  height: auto;
+  max-height: min(92vh, 760px);
+}
+
+.pipes-body {
+  padding: 16px 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+}
+
+.pipes-status-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.pipes-status {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--accent-2);
+  letter-spacing: 0.04em;
+}
+
+.pipes-rotates {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.pipes-hint {
+  margin: 0;
+}
+
+.pipes-legend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.pipes-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pipes-legend-tank::before,
+.pipes-legend-engine::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.pipes-legend-tank::before {
+  background: #c9a227;
+  box-shadow: 0 0 6px rgba(201, 162, 39, 0.55);
+}
+
+.pipes-legend-engine::before {
+  background: #6ec8ff;
+  box-shadow: 0 0 6px rgba(110, 200, 255, 0.55);
+}
+
+.pipes-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(44px, 1fr));
+  grid-template-rows: repeat(5, minmax(44px, 1fr));
+  gap: 4px;
+  width: min(100%, 420px);
+  aspect-ratio: 1 / 1;
+  margin: 0 auto;
+  padding: 8px;
+  border-radius: 14px;
+  border: 1px solid #3d5a80;
+  background: linear-gradient(180deg, #10182c 0%, #0a1020 100%);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+
+.pipe-cell {
+  position: relative;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid #2a3555;
+  background: linear-gradient(180deg, #1a2438 0%, #121a2c 100%);
+  cursor: pointer;
+  touch-action: manipulation;
+  overflow: hidden;
+}
+
+.pipe-cell:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.pipe-cell:focus-visible {
+  border-color: var(--accent-2);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(201, 162, 39, 0.35);
+}
+
+.pipe-cell:focus:not(:focus-visible) {
+  box-shadow: none;
+  outline: none;
+}
+
+.pipe-cell:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.pipe-cell:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+.pipe-cell.is-flow {
+  border-color: #3d7ec7;
+  background: linear-gradient(180deg, #1a3050 0%, #122038 100%);
+}
+
+.pipe-cell.is-flow .pipe-arm,
+.pipe-cell.is-flow .pipe-hub {
+  background: #5ddea0;
+  box-shadow: 0 0 8px rgba(93, 222, 160, 0.55);
+}
+
+.pipe-cell.is-tank {
+  border-color: #c9a227;
+}
+
+.pipe-cell.is-engine {
+  border-color: #6ec8ff;
+}
+
+.pipe-cell.is-tank .pipe-hub {
+  background: #c9a227;
+  box-shadow: 0 0 10px rgba(201, 162, 39, 0.7);
+}
+
+.pipe-cell.is-engine .pipe-hub {
+  background: #6ec8ff;
+  box-shadow: 0 0 10px rgba(110, 200, 255, 0.7);
+}
+
+.pipe-glyph {
+  position: absolute;
+  inset: 0;
+}
+
+.pipe-hub {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 28%;
+  height: 28%;
+  transform: translate(-50%, -50%);
+  border-radius: 3px;
+  background: #4a5a78;
+}
+
+.pipe-arm {
+  position: absolute;
+  background: #4a5a78;
+  border-radius: 2px;
+}
+
+.pipe-arm.n {
+  left: 38%;
+  width: 24%;
+  top: 0;
+  height: 52%;
+}
+
+.pipe-arm.e {
+  top: 38%;
+  height: 24%;
+  right: 0;
+  width: 52%;
+}
+
+.pipe-arm.s {
+  left: 38%;
+  width: 24%;
+  bottom: 0;
+  height: 52%;
+}
+
+.pipe-arm.w {
+  top: 38%;
+  height: 24%;
+  left: 0;
+  width: 52%;
+}
+
+.pipe-badge {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #0b1020;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.pipes-end-blurb {
+  margin: 0;
 }
 
 .hint {
@@ -4313,7 +4545,8 @@ button:not(:disabled):active {
   #announce-root.hidden,
   #end-root.hidden,
   #lab-root.hidden,
-  #eac-root.hidden {
+  #eac-root.hidden,
+  #pipes-root.hidden {
     pointer-events: none !important;
   }
 
@@ -4324,7 +4557,8 @@ button:not(:disabled):active {
   #announce-root:not(.hidden),
   #end-root:not(.hidden),
   #lab-root:not(.hidden),
-  #eac-root:not(.hidden) {
+  #eac-root:not(.hidden),
+  #pipes-root:not(.hidden) {
     z-index: 2000 !important;
     isolation: isolate;
     padding: 0;
@@ -4334,7 +4568,8 @@ button:not(:disabled):active {
   }
 
   /* Drill sits above the Lab list when both are open. */
-  #eac-root:not(.hidden) {
+  #eac-root:not(.hidden),
+  #pipes-root:not(.hidden) {
     z-index: 2010 !important;
   }
 
@@ -4348,7 +4583,8 @@ button:not(:disabled):active {
       #announce-root:not(.hidden),
       #end-root:not(.hidden),
       #lab-root:not(.hidden),
-      #eac-root:not(.hidden)
+      #eac-root:not(.hidden),
+      #pipes-root:not(.hidden)
     )
     #app:has(.fleet-card.mode-standings)
     :is(
@@ -4366,7 +4602,8 @@ button:not(:disabled):active {
   #dossier-root:not(.hidden) .handbook-panel,
   #duel-root:not(.hidden) .handbook-panel,
   #lab-root:not(.hidden) .handbook-panel,
-  #eac-root:not(.hidden) .handbook-panel {
+  #eac-root:not(.hidden) .handbook-panel,
+  #pipes-root:not(.hidden) .handbook-panel {
     width: 100%;
     max-width: none;
     height: 100dvh;
@@ -4380,7 +4617,8 @@ button:not(:disabled):active {
   #dossier-root:not(.hidden) .handbook-header,
   #duel-root:not(.hidden) .handbook-header,
   #lab-root:not(.hidden) .handbook-header,
-  #eac-root:not(.hidden) .handbook-header {
+  #eac-root:not(.hidden) .handbook-header,
+  #pipes-root:not(.hidden) .handbook-header {
     padding-top: max(10px, env(safe-area-inset-top, 0px));
     padding-left: max(12px, env(safe-area-inset-left, 0px));
     padding-right: max(12px, env(safe-area-inset-right, 0px));
@@ -4389,14 +4627,16 @@ button:not(:disabled):active {
   #handbook-root:not(.hidden) .handbook-close,
   #dossier-root:not(.hidden) .handbook-close,
   #lab-root:not(.hidden) .handbook-close,
-  #eac-root:not(.hidden) .handbook-close {
+  #eac-root:not(.hidden) .handbook-close,
+  #pipes-root:not(.hidden) .handbook-close {
     min-width: 44px;
     min-height: 44px;
     pointer-events: auto;
   }
 
   #lab-root:not(.hidden) .lab-body,
-  #eac-root:not(.hidden) .eac-body {
+  #eac-root:not(.hidden) .eac-body,
+  #pipes-root:not(.hidden) .pipes-body {
     min-height: 0;
     overflow: auto;
     -webkit-overflow-scrolling: touch;
