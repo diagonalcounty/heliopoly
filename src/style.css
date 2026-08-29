@@ -13,6 +13,15 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: "Noto Sans Deseret";
+  src: url("/fonts/NotoSansDeseret-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+10400-1044F;
+}
+
 :root {
   color-scheme: dark;
   --bg: #0b1020;
@@ -392,6 +401,19 @@ html.native-shell #app {
 .eac-hint {
   margin: 0;
 }
+
+.eac-place-hint {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--accent-2);
+  letter-spacing: 0.02em;
+}
+
+.eac-place-hint.hidden {
+  display: none;
+}
+
+
 
 .eac-hint kbd {
   display: inline-block;
@@ -1005,6 +1027,128 @@ html.native-shell #app {
 
 .tile-cell:disabled {
   opacity: 1;
+}
+
+
+/* —— Lab: Deseret alphabet matching (#79) —— */
+#deseret-root.deseret-overlay {
+  z-index: 1050;
+}
+
+.deseret-panel {
+  width: min(520px, calc(100vw - 32px));
+  height: auto;
+  max-height: min(92vh, 720px);
+}
+
+.deseret-body {
+  padding: 16px 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+}
+
+.deseret-status-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.deseret-status {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--accent-2);
+  letter-spacing: 0.04em;
+}
+
+.deseret-score {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.deseret-hint {
+  margin: 0;
+}
+
+.deseret-play {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.deseret-glyph {
+  margin: 8px 0 4px;
+  min-height: 1.1em;
+  font-family: "Noto Sans Deseret", "Noto Sans", sans-serif;
+  font-size: clamp(4.2rem, 18vw, 6.5rem);
+  line-height: 1;
+  color: var(--accent-2);
+  font-weight: 400;
+  text-align: center;
+}
+
+.deseret-glyph.is-reveal {
+  color: var(--ok);
+}
+
+.deseret-choices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+}
+
+.deseret-choice {
+  min-height: 56px;
+  padding: 12px 10px;
+  border-radius: 12px;
+  border: 1px solid #5a4a20;
+  background: linear-gradient(180deg, #1e2a48 0%, #141c32 100%);
+  color: var(--text);
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.deseret-choice:hover:not(:disabled) {
+  border-color: var(--accent-2);
+}
+
+.deseret-choice:focus-visible {
+  border-color: var(--accent-2);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(201, 162, 39, 0.35);
+}
+
+.deseret-choice:focus:not(:focus-visible) {
+  box-shadow: none;
+  outline: none;
+}
+
+.deseret-choice:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.deseret-choice:disabled {
+  cursor: default;
+}
+
+.deseret-choice.is-correct {
+  border-color: var(--ok);
+  color: var(--ok);
+  box-shadow: 0 0 0 2px rgba(93, 222, 160, 0.35);
+}
+
+.deseret-choice.is-wrong {
+  border-color: var(--danger);
+  color: var(--danger);
 }
 
 /* —— Lab: urinal-rule-parking (#188). Full-bleed on every viewport. —— */
@@ -5151,6 +5295,7 @@ button:not(:disabled):active {
   #eac-root.hidden,
   #pipes-root.hidden,
   #tiles-root.hidden,
+  #deseret-root.hidden,
   #urp-root.hidden {
     pointer-events: none !important;
   }
@@ -5165,6 +5310,7 @@ button:not(:disabled):active {
   #eac-root:not(.hidden),
   #pipes-root:not(.hidden),
   #tiles-root:not(.hidden),
+  #deseret-root:not(.hidden),
   #urp-root:not(.hidden) {
     z-index: 2000 !important;
     isolation: isolate;
@@ -5178,6 +5324,7 @@ button:not(:disabled):active {
   #eac-root:not(.hidden),
   #pipes-root:not(.hidden),
   #tiles-root:not(.hidden),
+  #deseret-root:not(.hidden),
   #urp-root:not(.hidden) {
     z-index: 2010 !important;
   }
@@ -5195,6 +5342,7 @@ button:not(:disabled):active {
       #eac-root:not(.hidden),
       #pipes-root:not(.hidden),
       #tiles-root:not(.hidden),
+      #deseret-root:not(.hidden),
       #urp-root:not(.hidden)
     )
     #app:has(.fleet-card.mode-standings)
@@ -5215,7 +5363,8 @@ button:not(:disabled):active {
   #lab-root:not(.hidden) .handbook-panel,
   #eac-root:not(.hidden) .handbook-panel,
   #pipes-root:not(.hidden) .handbook-panel,
-  #tiles-root:not(.hidden) .handbook-panel {
+  #tiles-root:not(.hidden) .handbook-panel,
+  #deseret-root:not(.hidden) .handbook-panel {
     width: 100%;
     max-width: none;
     height: 100dvh;
@@ -5231,7 +5380,8 @@ button:not(:disabled):active {
   #lab-root:not(.hidden) .handbook-header,
   #eac-root:not(.hidden) .handbook-header,
   #pipes-root:not(.hidden) .handbook-header,
-  #tiles-root:not(.hidden) .handbook-header {
+  #tiles-root:not(.hidden) .handbook-header,
+  #deseret-root:not(.hidden) .handbook-header {
     padding-top: max(10px, env(safe-area-inset-top, 0px));
     padding-left: max(12px, env(safe-area-inset-left, 0px));
     padding-right: max(12px, env(safe-area-inset-right, 0px));
@@ -5243,6 +5393,7 @@ button:not(:disabled):active {
   #eac-root:not(.hidden) .handbook-close,
   #pipes-root:not(.hidden) .handbook-close,
   #tiles-root:not(.hidden) .handbook-close,
+  #deseret-root:not(.hidden) .handbook-close,
   #urp-root:not(.hidden) .handbook-close {
     min-width: 44px;
     min-height: 44px;
@@ -5252,7 +5403,8 @@ button:not(:disabled):active {
   #lab-root:not(.hidden) .lab-body,
   #eac-root:not(.hidden) .eac-body,
   #pipes-root:not(.hidden) .pipes-body,
-  #tiles-root:not(.hidden) .tiles-body {
+  #tiles-root:not(.hidden) .tiles-body,
+  #deseret-root:not(.hidden) .deseret-body {
     min-height: 0;
     overflow: auto;
     -webkit-overflow-scrolling: touch;

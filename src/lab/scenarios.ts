@@ -34,7 +34,7 @@ export const LAB_GROUP_LABELS: Record<LabScenarioGroup, string> = {
 export const LAB_GROUP_BLURBS: Record<LabScenarioGroup, string> = {
   "which-is-larger":
     "Literacy drills: pick the larger of two numbers in a target numbering system.",
-  minigame: "Standalone practice modes (urinal-rule-parking, Backup fuel, Hull panel, Gravity Duel).",
+  minigame: "Standalone practice modes (urinal-rule-parking, Backup fuel, Hull panel, Deseret letters, Gravity Duel).",
   end: "Canned end screens for UI / copy checks.",
   economy: "Economy and risk edge cases.",
 };
@@ -169,6 +169,16 @@ export const LAB_SCENARIOS: LabScenario[] = [
     kind: "standalone",
     available: true,
     standaloneId: "hull-panel",
+  },
+  {
+    id: "deseret-match",
+    title: "Deseret letters",
+    blurb:
+      "Twelve Deseret capitals. Match the glyph to its Latin letter. Eight of ten wins; misses show the answer.",
+    group: "minigame",
+    kind: "standalone",
+    available: true,
+    standaloneId: "deseret-match",
   },
   {
     id: "duel-you-challenger",

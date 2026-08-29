@@ -11,7 +11,7 @@
     "sim": "tsx src/sim/run.ts",
     "sim-lab": "tsx src/sim/lab-server.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "tsx src/core/claimLedger.test.ts && tsx src/core/turnClock.test.ts && tsx src/lab/backupFuelPipes.test.ts && tsx src/lab/slidingTiles.test.ts && tsx src/lab/urpGrader.test.ts",
+    "test": "tsx src/core/claimLedger.test.ts && tsx src/core/turnClock.test.ts && tsx src/lab/backupFuelPipes.test.ts && tsx src/lab/slidingTiles.test.ts && tsx src/lab/urpGrader.test.ts && tsx src/lab/deseretMatch.test.ts && tsx src/lab/easternArabicCompare.test.ts",
     "test:phone": "playwright test --project=phone-chromium --reporter=line",
     "test:phone:webkit": "playwright test --project=phone-webkit --reporter=line",
     "test:phone:wide": "playwright test --project=wide-chromium --reporter=line",

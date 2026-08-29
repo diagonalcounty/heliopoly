@@ -70,6 +70,7 @@ import {
 import {
   applyCompareChoice,
   MAX_COMPARE_ROUNDS,
+  SAME_LEAD_HINT,
   playAgainCompareDrill,
   resetCompareDrill,
   startCompareDrill,
@@ -119,6 +120,16 @@ import {
   type UrpArea,
   type UrpState,
 } from "./lab/urpGrader";
+import {
+  ROUND_LENGTH as DESERET_ROUND,
+  WIN_CORRECT as DESERET_WIN,
+  advanceDeseret,
+  applyDeseretChoice,
+  glyphChar,
+  playAgainDeseret,
+  startDeseretMatch,
+  type DeseretState,
+} from "./lab/deseretMatch";
 import type { Board } from "./core/types";
 import { submitGameTelemetry } from "./telemetry";
 
@@ -411,6 +422,16 @@ const tilesStatusEl = document.getElementById("tiles-status")!;
 const tilesMovesEl = document.getElementById("tiles-moves")!;
 const tilesEndEl = document.getElementById("tiles-end")!;
 const tilesEndBlurb = document.getElementById("tiles-end-blurb")!;
+const deseretRoot = document.getElementById("deseret-root")!;
+const deseretGlyphEl = document.getElementById("deseret-glyph")!;
+const deseretChoicesEl = document.getElementById("deseret-choices")!;
+const deseretStatusEl = document.getElementById("deseret-status")!;
+const deseretScoreEl = document.getElementById("deseret-score")!;
+const deseretPlayEl = document.getElementById("deseret-play")!;
+const deseretEndEl = document.getElementById("deseret-end")!;
+const deseretEndTitle = document.getElementById("deseret-end-title")!;
+const deseretEndBlurb = document.getElementById("deseret-end-blurb")!;
+const eacPlaceHintEl = document.getElementById("eac-place-hint");
 
 const btnNew = document.getElementById("btn-new") as HTMLButtonElement;
 const btnSelf = document.getElementById("btn-selfplay") as HTMLButtonElement;
@@ -1647,6 +1668,7 @@ function closeLab(): void {
     pipesRoot.classList.contains("hidden") &&
     tilesRoot.classList.contains("hidden") &&
     urpRoot.classList.contains("hidden") &&
+    deseretRoot.classList.contains("hidden") &&
     document.getElementById("handbook-root")?.classList.contains("hidden")
   ) {
     document.body.classList.remove("handbook-open");
@@ -1686,6 +1708,7 @@ function eacSyncChrome(): void {
   if (eacHintEl) {
     eacHintEl.innerHTML = `${pack.hintLead}
       You win by finishing three levels in a row without help on those steps.
+      ${SAME_LEAD_HINT}
       Need a hand? <strong>Hint</strong> reveals one number in familiar
       Western digits, but that try won’t advance you; you’ll need to clear
       the level again without a hint.
@@ -1780,6 +1803,11 @@ function renderEac(): void {
       : `Right number ${rightGlyph}`,
   );
   eacHintBtn.disabled = eacState.hintUsed;
+  if (eacPlaceHintEl) {
+    const show = eacState.lastMissSameLead;
+    eacPlaceHintEl.classList.toggle("hidden", !show);
+    eacPlaceHintEl.textContent = show ? SAME_LEAD_HINT : "";
+  }
 }
 
 function openNumberCompare(script: NumberScriptId): void {
@@ -1804,6 +1832,7 @@ function closeEasternArabicCompare(): void {
     pipesRoot.classList.contains("hidden") &&
     tilesRoot.classList.contains("hidden") &&
     urpRoot.classList.contains("hidden") &&
+    deseretRoot.classList.contains("hidden") &&
     document.getElementById("handbook-root")?.classList.contains("hidden")
   ) {
     document.body.classList.remove("handbook-open");
@@ -2056,6 +2085,7 @@ function closeUrp(): void {
     labRoot.classList.contains("hidden") &&
     pipesRoot.classList.contains("hidden") &&
     tilesRoot.classList.contains("hidden") &&
+    deseretRoot.classList.contains("hidden") &&
     document.getElementById("handbook-root")?.classList.contains("hidden")
   ) {
     document.body.classList.remove("handbook-open");
@@ -2197,6 +2227,7 @@ function closePipes(): void {
     eacRoot.classList.contains("hidden") &&
     tilesRoot.classList.contains("hidden") &&
     urpRoot.classList.contains("hidden") &&
+    deseretRoot.classList.contains("hidden") &&
     document.getElementById("handbook-root")?.classList.contains("hidden")
   ) {
     document.body.classList.remove("handbook-open");
@@ -2285,6 +2316,7 @@ function closeTiles(): void {
     eacRoot.classList.contains("hidden") &&
     pipesRoot.classList.contains("hidden") &&
     urpRoot.classList.contains("hidden") &&
+    deseretRoot.classList.contains("hidden") &&
     document.getElementById("handbook-root")?.classList.contains("hidden")
   ) {
     document.body.classList.remove("handbook-open");
@@ -2295,6 +2327,133 @@ function tilesPlayAgain(): void {
   tilesState = playAgainTiles();
   renderTiles();
   const first = tilesGridEl.querySelector("button.is-slidable") as HTMLButtonElement | null;
+  first?.focus();
+}
+
+/** —— Deseret alphabet matching (#79) —— */
+let deseretState: DeseretState | null = null;
+let deseretRevealTimer = 0;
+
+function isDeseretOpen(): boolean {
+  return !deseretRoot.classList.contains("hidden");
+}
+
+function deseretScoreLine(state: DeseretState): string {
+  const shown =
+    state.phase === "won" || state.phase === "lost"
+      ? state.asked
+      : Math.min(state.asked + 1, DESERET_ROUND);
+  return `${shown} / ${DESERET_ROUND} · ${state.correct} correct`;
+}
+
+function renderDeseret(): void {
+  if (!deseretState) return;
+  const ended = deseretState.phase === "won" || deseretState.phase === "lost";
+  const revealing = deseretState.phase === "reveal";
+  deseretPlayEl.classList.toggle("hidden", ended);
+  deseretEndEl.classList.toggle("hidden", !ended);
+  deseretScoreEl.textContent = deseretScoreLine(deseretState);
+  deseretGlyphEl.classList.toggle("is-reveal", revealing);
+
+  if (deseretState.phase === "won") {
+    deseretStatusEl.textContent = "Round complete";
+    deseretEndTitle.textContent = "Nice work";
+    deseretEndBlurb.textContent = `You matched ${deseretState.correct} of ${DESERET_ROUND} (need ${DESERET_WIN}).`;
+    return;
+  }
+  if (deseretState.phase === "lost") {
+    deseretStatusEl.textContent = "Round over";
+    deseretEndTitle.textContent = "That’s all for this run";
+    deseretEndBlurb.textContent = `You matched ${deseretState.correct} of ${DESERET_ROUND}. Eight wins the round — play again when you’re ready.`;
+    return;
+  }
+
+  const g = deseretState.prompt.glyph;
+  const ch = glyphChar(g);
+  deseretGlyphEl.textContent = ch;
+  deseretGlyphEl.setAttribute("aria-label", `Deseret capital ${g.name}`);
+  if (revealing && deseretState.revealedLatin) {
+    deseretStatusEl.textContent = `That was ${deseretState.revealedLatin}`;
+  } else {
+    deseretStatusEl.textContent = "Match the letter";
+  }
+
+  deseretChoicesEl.replaceChildren();
+  for (const latin of deseretState.prompt.choices) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "deseret-choice";
+    btn.textContent = latin;
+    btn.setAttribute("aria-label", `Latin ${latin}`);
+    if (revealing) {
+      btn.disabled = true;
+      if (latin === deseretState.revealedLatin) btn.classList.add("is-correct");
+    }
+    const pick = latin;
+    btn.addEventListener("click", () => deseretChoose(pick));
+    deseretChoicesEl.appendChild(btn);
+  }
+}
+
+function deseretChoose(latin: string): void {
+  if (!deseretState || deseretState.phase !== "playing") return;
+  const next = applyDeseretChoice(deseretState, latin);
+  deseretState = next;
+  if (next.phase === "reveal") {
+    renderDeseret();
+    deseretChoicesEl.querySelectorAll(".deseret-choice").forEach((el) => {
+      if (el instanceof HTMLButtonElement && el.textContent === latin) {
+        el.classList.add("is-wrong");
+      }
+    });
+    window.clearTimeout(deseretRevealTimer);
+    deseretRevealTimer = window.setTimeout(() => {
+      if (!deseretState || deseretState.phase !== "reveal") return;
+      deseretState = advanceDeseret(deseretState);
+      renderDeseret();
+    }, 900);
+    return;
+  }
+  if (document.activeElement instanceof HTMLElement) {
+    document.activeElement.blur();
+  }
+  renderDeseret();
+}
+
+function openDeseret(): void {
+  window.clearTimeout(deseretRevealTimer);
+  deseretState = startDeseretMatch();
+  renderDeseret();
+  deseretRoot.classList.remove("hidden");
+  deseretRoot.setAttribute("aria-hidden", "false");
+  document.body.classList.add("handbook-open");
+  const first = deseretChoicesEl.querySelector("button") as HTMLButtonElement | null;
+  first?.focus();
+}
+
+function closeDeseret(): void {
+  deseretRoot.classList.add("hidden");
+  deseretRoot.setAttribute("aria-hidden", "true");
+  deseretState = null;
+  window.clearTimeout(deseretRevealTimer);
+  if (
+    duelRoot.classList.contains("hidden") &&
+    labRoot.classList.contains("hidden") &&
+    eacRoot.classList.contains("hidden") &&
+    pipesRoot.classList.contains("hidden") &&
+    tilesRoot.classList.contains("hidden") &&
+    urpRoot.classList.contains("hidden") &&
+    document.getElementById("handbook-root")?.classList.contains("hidden")
+  ) {
+    document.body.classList.remove("handbook-open");
+  }
+}
+
+function deseretPlayAgain(): void {
+  window.clearTimeout(deseretRevealTimer);
+  deseretState = playAgainDeseret();
+  renderDeseret();
+  const first = deseretChoicesEl.querySelector("button") as HTMLButtonElement | null;
   first?.focus();
 }
 
@@ -2390,6 +2549,10 @@ async function runLabScenario(id: string): Promise<void> {
       openTiles();
       return;
     }
+    if (sc.standaloneId === "deseret-match") {
+      openDeseret();
+      return;
+    }
     const script = STANDALONE_TO_SCRIPT[sc.standaloneId];
     if (script) openNumberCompare(script);
     return;
@@ -2437,6 +2600,13 @@ document.getElementById("tiles-done")?.addEventListener("click", () => {
   closeTiles();
   openLab();
 });
+document.getElementById("deseret-close")?.addEventListener("click", () => closeDeseret());
+document.getElementById("deseret-backdrop")?.addEventListener("click", () => closeDeseret());
+document.getElementById("deseret-again")?.addEventListener("click", () => deseretPlayAgain());
+document.getElementById("deseret-done")?.addEventListener("click", () => {
+  closeDeseret();
+  openLab();
+});
 eacHintBtn.addEventListener("click", () => eacHint());
 eacResetBtn.addEventListener("click", () => eacReset());
 eacLeftBtn.addEventListener("click", () => eacChoose("left"));
@@ -2446,6 +2616,11 @@ document.addEventListener("keydown", (e) => {
     if (isUrpOpen()) {
       e.preventDefault();
       closeUrp();
+      return;
+    }
+    if (isDeseretOpen()) {
+      e.preventDefault();
+      closeDeseret();
       return;
     }
     if (isTilesOpen()) {

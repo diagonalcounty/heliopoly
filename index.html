@@ -434,12 +434,14 @@ Name your rocket. Then Launch.</p>
             <p id="eac-round" class="eac-round mono" aria-live="polite">Level 1 · one digit</p>
             <p id="eac-attempts" class="eac-attempts mono" aria-live="polite">0 / 12</p>
           </div>
+          <p id="eac-place-hint" class="eac-place-hint hidden" aria-live="polite">Same first digit — check the next place.</p>
           <p class="hint eac-hint">
             Two numbers appear in Eastern Arabic digits. Choose the larger one by
             tapping it, or use the arrow keys / <kbd>&lt;</kbd> <kbd>&gt;</kbd>
             to point at that side.
             You win by finishing three levels in a row—one-digit, then two-digit,
             then three-digit—without help on those steps.
+            Same first digit — check the next place.
             Need a hand? <strong>Hint</strong> reveals one number in familiar
             Western digits, but that try won’t advance you; you’ll need to clear
             the level again without a hint.
@@ -561,6 +563,51 @@ Name your rocket. Then Launch.</p>
             <div class="eac-win-actions">
               <button type="button" id="tiles-again" class="eac-primary">Play again</button>
               <button type="button" id="tiles-done" class="eac-secondary">Back to Lab</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Lab drill: Deseret alphabet matching (#79) -->
+    <div id="deseret-root" class="handbook deseret-overlay hidden" aria-hidden="true">
+      <div class="handbook-backdrop" id="deseret-backdrop"></div>
+      <div
+        class="handbook-panel deseret-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="deseret-title"
+      >
+        <header class="handbook-header">
+          <div>
+            <p class="handbook-kicker">Lab · minigame</p>
+            <h2 id="deseret-title">Deseret letters</h2>
+          </div>
+          <button type="button" id="deseret-close" class="handbook-close" aria-label="Close drill">
+            ✕
+          </button>
+        </header>
+        <div class="deseret-body">
+          <div class="deseret-status-row">
+            <p id="deseret-status" class="deseret-status mono" aria-live="polite">Match the letter</p>
+            <p id="deseret-score" class="deseret-score mono" aria-live="polite">0 / 10 · 0 correct</p>
+          </div>
+          <p class="hint deseret-hint">
+            A Deseret capital appears. Tap the Latin letter it matches. Eight of
+            ten wins the round. On a miss the answer flashes, then the next glyph.
+            Untimed Lab practice; expedition stays put.
+          </p>
+          <div id="deseret-play" class="deseret-play">
+            <p id="deseret-glyph" class="deseret-glyph" aria-live="polite">—</p>
+            <div id="deseret-choices" class="deseret-choices" role="group" aria-label="Latin letters"></div>
+          </div>
+          <div id="deseret-end" class="eac-win hidden" aria-live="polite">
+            <p id="deseret-end-title" class="eac-win-title">Nice work</p>
+            <p id="deseret-end-blurb" class="hint">You matched eight of ten Deseret capitals.</p>
+            <div class="eac-win-actions">
+              <button type="button" id="deseret-again" class="eac-primary">Play again</button>
+              <button type="button" id="deseret-done" class="eac-secondary">Back to Lab</button>
             </div>
           </div>
         </div>
