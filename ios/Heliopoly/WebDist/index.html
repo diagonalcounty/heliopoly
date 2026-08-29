@@ -14,8 +14,8 @@
     <link rel="icon" type="image/png" href="./favicon-32.png" sizes="32x32" />
     <link rel="icon" type="image/png" href="./favicon-16.png" sizes="16x16" />
     <link rel="apple-touch-icon" href="./apple-touch-icon.png" sizes="180x180" />
-    <script type="module" crossorigin src="./assets/index-BpgpDcOR.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-COPbgZch.css">
+    <script type="module" crossorigin src="./assets/index-CrXW3w5-.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-DbxmHZya.css">
   </head>
   <body>
     <div id="app">
@@ -335,11 +335,79 @@ Name your rocket. Then Launch.</p>
         </header>
         <div class="lab-body">
           <p class="hint lab-intro">
-            Tap a category to expand it, then pick an item. Drills under
-            <strong>Which is larger?</strong> leave your expedition alone;
-            scenarios under Minigames / End / Economy replace the current game.
+            Tap a category to expand it, then pick an item. Literacy drills and
+            standalone Minigames (urinal-rule-parking, Backup fuel, Hull panel) leave your expedition alone;
+            Gravity Duel / End / Economy replace the current game.
           </p>
           <div id="lab-scenarios" class="lab-scenarios"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lab drill: urinal-rule-parking (#188) -->
+    <div id="urp-root" class="handbook urp-overlay hidden" aria-hidden="true">
+      <div class="handbook-backdrop" id="urp-backdrop"></div>
+      <div
+        class="urp-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="urp-title"
+      >
+        <header class="urp-header">
+          <h2 id="urp-title">urinal-rule-parking</h2>
+          <button type="button" id="urp-close" class="handbook-close" aria-label="Close">
+            ✕
+          </button>
+        </header>
+        <p class="urp-sign">urinal parking enforced or pay a fine</p>
+        <div class="urp-meters">
+          <p id="urp-orbits" class="urp-orbits" aria-live="polite">3/3</p>
+          <div class="urp-hint-wrap">
+            <button type="button" id="urp-hint" class="urp-hint" aria-label="Hint, 2 remaining">
+              Hint
+            </button>
+            <span id="urp-hint-pips" class="urp-hint-pips" aria-hidden="true">
+              <span class="urp-hint-pip is-charged"></span>
+              <span class="urp-hint-pip is-charged"></span>
+            </span>
+          </div>
+        </div>
+        <div class="urp-board">
+          <div id="urp-areas" class="urp-areas" role="group" aria-label="Pad areas">
+            <button type="button" class="urp-area is-selected" data-area="0" aria-pressed="true">
+              <span class="urp-area-label">Area 1</span>
+              <span class="urp-area-dots" aria-hidden="true"></span>
+            </button>
+            <button type="button" class="urp-area" data-area="1" aria-pressed="false">
+              <span class="urp-area-label">Area 2</span>
+              <span class="urp-area-dots" aria-hidden="true"></span>
+            </button>
+          </div>
+          <div class="urp-hatch" aria-label="Hatch, approach">
+            <svg class="urp-hatch-mark" viewBox="0 0 80 80" aria-hidden="true">
+              <polygon
+                class="urp-hatch-outer"
+                points="40,4 72,22 72,58 40,76 8,58 8,22"
+              />
+              <polygon
+                class="urp-hatch-inner"
+                points="40,14 62,26 62,54 40,66 18,54 18,26"
+              />
+              <line class="urp-hatch-seam" x1="40" y1="16" x2="40" y2="64" />
+              <polygon class="urp-hatch-chevron" points="40,24 51,44 29,44" />
+            </svg>
+            <span class="urp-hatch-label">Hatch</span>
+          </div>
+          <div class="urp-field">
+            <svg id="urp-apron" class="urp-apron" aria-hidden="true"></svg>
+            <div id="urp-pads" class="urp-pads" role="group" aria-label="Pads"></div>
+          </div>
+          <div class="urp-go-wrap">
+            <p id="urp-status" class="urp-status" aria-live="polite"></p>
+            <button type="button" id="urp-orbit" class="urp-go" aria-label="Orbit, next occupancy">
+              Orbit
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -367,12 +435,14 @@ Name your rocket. Then Launch.</p>
             <p id="eac-round" class="eac-round mono" aria-live="polite">Level 1 · one digit</p>
             <p id="eac-attempts" class="eac-attempts mono" aria-live="polite">0 / 12</p>
           </div>
+          <p id="eac-place-hint" class="eac-place-hint hidden" aria-live="polite">Same first digit — check the next place.</p>
           <p class="hint eac-hint">
             Two numbers appear in Eastern Arabic digits. Choose the larger one by
             tapping it, or use the arrow keys / <kbd>&lt;</kbd> <kbd>&gt;</kbd>
             to point at that side.
             You win by finishing three levels in a row—one-digit, then two-digit,
             then three-digit—without help on those steps.
+            Same first digit — check the next place.
             Need a hand? <strong>Hint</strong> reveals one number in familiar
             Western digits, but that try won’t advance you; you’ll need to clear
             the level again without a hint.
@@ -405,6 +475,140 @@ Name your rocket. Then Launch.</p>
             <div class="eac-win-actions">
               <button type="button" id="eac-again" class="eac-primary">Play again</button>
               <button type="button" id="eac-done" class="eac-secondary">Back to Lab</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lab drill: backup-fuel pipe routing (#77) -->
+    <div id="pipes-root" class="handbook pipes-overlay hidden" aria-hidden="true">
+      <div class="handbook-backdrop" id="pipes-backdrop"></div>
+      <div
+        class="handbook-panel pipes-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="pipes-title"
+      >
+        <header class="handbook-header">
+          <div>
+            <p class="handbook-kicker">Lab · minigame</p>
+            <h2 id="pipes-title">Backup fuel</h2>
+          </div>
+          <button type="button" id="pipes-close" class="handbook-close" aria-label="Close drill">
+            ✕
+          </button>
+        </header>
+        <div class="pipes-body">
+          <div class="pipes-status-row">
+            <p id="pipes-status" class="pipes-status mono" aria-live="polite">Tank → engine</p>
+            <p id="pipes-rotates" class="pipes-rotates mono" aria-live="polite">0 rotates</p>
+          </div>
+          <p class="hint pipes-hint">
+            Tap a segment to rotate it. Complete a continuous path from the tank
+            to the engine. Untimed; expedition stays put.
+          </p>
+          <div id="pipes-play" class="pipes-play">
+            <div class="pipes-legend" aria-hidden="true">
+              <span class="pipes-legend-item pipes-legend-tank">Tank</span>
+              <span class="pipes-legend-arrow">→</span>
+              <span class="pipes-legend-item pipes-legend-engine">Engine</span>
+            </div>
+            <div id="pipes-grid" class="pipes-grid" role="grid" aria-label="Backup fuel pipes"></div>
+          </div>
+          <div id="pipes-end" class="eac-win hidden" aria-live="polite">
+            <p class="eac-win-title">Flow restored</p>
+            <p id="pipes-end-blurb" class="hint">Backup fuel reaches the engine.</p>
+            <div class="eac-win-actions">
+              <button type="button" id="pipes-again" class="eac-primary">Play again</button>
+              <button type="button" id="pipes-done" class="eac-secondary">Back to Lab</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lab drill: hull-panel 8-puzzle (#78) -->
+    <div id="tiles-root" class="handbook tiles-overlay hidden" aria-hidden="true">
+      <div class="handbook-backdrop" id="tiles-backdrop"></div>
+      <div
+        class="handbook-panel tiles-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="tiles-title"
+      >
+        <header class="handbook-header">
+          <div>
+            <p class="handbook-kicker">Lab · minigame</p>
+            <h2 id="tiles-title">Hull panel</h2>
+          </div>
+          <button type="button" id="tiles-close" class="handbook-close" aria-label="Close drill">
+            ✕
+          </button>
+        </header>
+        <div class="tiles-body">
+          <div class="tiles-status-row">
+            <p id="tiles-status" class="tiles-status mono" aria-live="polite">Slide plates into order</p>
+            <p id="tiles-moves" class="tiles-moves mono" aria-live="polite">0 moves</p>
+          </div>
+          <p class="hint tiles-hint">
+            Tap a plate next to the gap to slide it. Restore 1–8 with the empty
+            corner last. Untimed; expedition stays put.
+          </p>
+          <div id="tiles-play" class="tiles-play">
+            <div id="tiles-grid" class="tiles-grid" role="grid" aria-label="Hull panel"></div>
+          </div>
+          <div id="tiles-end" class="eac-win hidden" aria-live="polite">
+            <p class="eac-win-title">Panel seated</p>
+            <p id="tiles-end-blurb" class="hint">Hull plates are back in order.</p>
+            <div class="eac-win-actions">
+              <button type="button" id="tiles-again" class="eac-primary">Play again</button>
+              <button type="button" id="tiles-done" class="eac-secondary">Back to Lab</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Lab drill: Deseret alphabet matching (#79) -->
+    <div id="deseret-root" class="handbook deseret-overlay hidden" aria-hidden="true">
+      <div class="handbook-backdrop" id="deseret-backdrop"></div>
+      <div
+        class="handbook-panel deseret-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="deseret-title"
+      >
+        <header class="handbook-header">
+          <div>
+            <p class="handbook-kicker">Lab · minigame</p>
+            <h2 id="deseret-title">Deseret letters</h2>
+          </div>
+          <button type="button" id="deseret-close" class="handbook-close" aria-label="Close drill">
+            ✕
+          </button>
+        </header>
+        <div class="deseret-body">
+          <div class="deseret-status-row">
+            <p id="deseret-status" class="deseret-status mono" aria-live="polite">Match the letter</p>
+            <p id="deseret-score" class="deseret-score mono" aria-live="polite">0 / 10 · 0 correct</p>
+          </div>
+          <p class="hint deseret-hint">
+            A Deseret capital appears. Tap the Latin letter it matches. Eight of
+            ten wins the round. On a miss the answer flashes, then the next glyph.
+            Untimed Lab practice; expedition stays put.
+          </p>
+          <div id="deseret-play" class="deseret-play">
+            <p id="deseret-glyph" class="deseret-glyph" aria-live="polite">—</p>
+            <div id="deseret-choices" class="deseret-choices" role="group" aria-label="Latin letters"></div>
+          </div>
+          <div id="deseret-end" class="eac-win hidden" aria-live="polite">
+            <p id="deseret-end-title" class="eac-win-title">Nice work</p>
+            <p id="deseret-end-blurb" class="hint">You matched eight of ten Deseret capitals.</p>
+            <div class="eac-win-actions">
+              <button type="button" id="deseret-again" class="eac-primary">Play again</button>
+              <button type="button" id="deseret-done" class="eac-secondary">Back to Lab</button>
             </div>
           </div>
         </div>
