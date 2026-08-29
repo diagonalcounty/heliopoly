@@ -154,7 +154,7 @@ export const LAB_SCENARIOS: LabScenario[] = [
     id: "backup-fuel-pipes",
     title: "Backup fuel",
     blurb:
-      "Reroute backup fuel: rotate pipe segments on a 5×5 until tank feeds the engine. Untimed Lab practice; expedition stays put.",
+      "Reroute backup fuel: rotate pipe segments on a 6×6 until tank feeds the engine. Untimed Lab practice; expedition stays put.",
     group: "minigame",
     kind: "standalone",
     available: true,

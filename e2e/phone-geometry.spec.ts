@@ -478,6 +478,33 @@ test.describe("phone Lab sheet #193", () => {
   });
 });
 
+test.describe("phone Lab Backup fuel #201", () => {
+  test.skip(({ viewport }) => (viewport?.width ?? 0) >= 900, "phone only");
+
+  test("6×6 grid; cells ≥44px; Close returns Roll", async ({ page }) => {
+    await launch(page);
+    const roll = await centerOf(page, "#btn-roll");
+    await page.locator("#btn-lab").click();
+    await expect(page.locator("#lab-root")).not.toHaveClass(/hidden/);
+    await page.locator('.lab-group-toggle[aria-controls="lab-group-items-minigame"]').click();
+    await page.locator('.lab-scenario[data-scenario="backup-fuel-pipes"]').click();
+    await expect(page.locator("#pipes-root")).not.toHaveClass(/hidden/);
+
+    const cells = page.locator("#pipes-grid .pipe-cell");
+    await expect(cells).toHaveCount(36);
+    const first = await boxOf(page, "#pipes-grid .pipe-cell");
+    expect(first.width, "pipe cell ≥44px").toBeGreaterThanOrEqual(44);
+    expect(first.height, "pipe cell ≥44px").toBeGreaterThanOrEqual(44);
+    expect(first.onControl, "elementFromPoint pipe cell").toBe(true);
+
+    await page.locator("#pipes-root .handbook-close").click();
+    await expect(page.locator("#pipes-root")).toHaveClass(/hidden/);
+    await page.locator("#lab-root .handbook-close").click();
+    const rollAfter = await hitAt(page, roll.x, roll.y);
+    expect(rollAfter?.id, "Roll tappable after Lab close").toBe("btn-roll");
+  });
+});
+
 const HUMAN_DUEL = {
   high: '#duel-side-right [data-stance="high"]',
   low: '#duel-side-right [data-stance="low"]',

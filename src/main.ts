@@ -2157,7 +2157,7 @@ function renderPipes(): void {
   pipesGridEl.replaceChildren();
   for (let r = 0; r < PIPE_GRID; r++) {
     for (let c = 0; c < PIPE_GRID; c++) {
-      const kind = cellKind(r, c);
+      const kind = cellKind(r, c, pipesState.tank, pipesState.engine);
       const mask = pipesState.tiles[r][c];
       const btn = document.createElement("button");
       btn.type = "button";

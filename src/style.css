@@ -767,8 +767,8 @@ html.native-shell #app {
 
 .pipes-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(44px, 1fr));
-  grid-template-rows: repeat(5, minmax(44px, 1fr));
+  grid-template-columns: repeat(6, minmax(44px, 1fr));
+  grid-template-rows: repeat(6, minmax(44px, 1fr));
   gap: 4px;
   width: min(100%, 420px);
   aspect-ratio: 1 / 1;
