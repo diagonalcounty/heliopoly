@@ -326,16 +326,78 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     id: "legend",
     title: "Board legend",
     html: `
+<p>Every picture below is the <em>same paint</em> the board uses — not a separate clip-art set. When you buy a world, the picture itself changes.</p>
+
+<h4>Bodies</h4>
 <div class="legend-grid">
-  <div class="legend-item"><img src="/handbook/legend-planet.svg" alt="" width="48" height="48"/><div><strong>Painted planets</strong><br/>Earth, Mars, Venus, Mercury (distinct surface art)</div></div>
-  <div class="legend-item"><img src="/handbook/legend-moon-orange.svg" alt="" width="48" height="48"/><div><strong>Orange moons</strong><br/>Jupiter system (Io, Europa, Ganymede, Callisto)</div></div>
-  <div class="legend-item"><img src="/handbook/legend-moon-yellow.svg" alt="" width="48" height="48"/><div><strong>Yellow moons</strong><br/>Saturn system (Titan, Enceladus, …)</div></div>
-  <div class="legend-item"><img src="/handbook/legend-station.svg" alt="" width="48" height="48"/><div><strong>Ring stations</strong><br/>Elon, Holst, Daktulios — hub habitats, not plain circles</div></div>
-  <div class="legend-item"><img src="/handbook/legend-blank.svg" alt="" width="48" height="48"/><div><strong>Diamond pips</strong><br/>Blank belt/transit (red-tint = Gravity Duel lanes)</div></div>
-  <div class="legend-item"><img src="/handbook/legend-claim.svg" alt="" width="48" height="48"/><div><strong>Colored halo</strong><br/>Your claim (rocket color)</div></div>
-  <div class="legend-item"><img src="/handbook/fuel-depot.png" alt="" width="48" height="48"/><div><strong>Fuel depot</strong><br/>Player-built tank badge on a body you own</div></div>
-  <div class="legend-item"><img src="/handbook/legend-ship.svg" alt="" width="48" height="48"/><div><strong>Rocket</strong><br/>Your ship (gold outline while hopping)</div></div>
-  <div class="legend-item"><img src="/handbook/legend-rings.svg" alt="" width="48" height="48"/><div><strong>Dashed circles</strong><br/>Orbital rings from the Sun</div></div>
+  <div class="legend-item">
+    <div class="legend-icons">
+      <canvas data-legend="body" data-node="earth" data-w="48" data-h="48" aria-hidden="true"></canvas>
+      <canvas data-legend="body" data-node="mars" data-w="48" data-h="48" aria-hidden="true"></canvas>
+      <canvas data-legend="body" data-node="venus" data-w="48" data-h="48" aria-hidden="true"></canvas>
+      <canvas data-legend="body" data-node="mercury" data-w="48" data-h="48" aria-hidden="true"></canvas>
+    </div>
+    <div><strong>Painted planets</strong><br/>Earth, Mars, Venus, Mercury — each has its own surface.</div>
+  </div>
+  <div class="legend-item">
+    <div class="legend-icons">
+      <canvas data-legend="body" data-node="io" data-w="48" data-h="48" aria-hidden="true"></canvas>
+      <canvas data-legend="body" data-node="titan" data-w="48" data-h="48" aria-hidden="true"></canvas>
+      <canvas data-legend="body" data-node="phobos" data-w="48" data-h="48" aria-hidden="true"></canvas>
+    </div>
+    <div><strong>Moons by system</strong><br/>Orange = Jupiter (Io, Europa, Ganymede, Callisto). Yellow = Saturn (Titan, Enceladus, …). Grey = Mars (Phobos, Deimos).</div>
+  </div>
+  <div class="legend-item">
+    <div class="legend-icons">
+      <canvas data-legend="body" data-node="elon" data-w="48" data-h="48" aria-hidden="true"></canvas>
+      <canvas data-legend="body" data-node="holst" data-w="48" data-h="48" aria-hidden="true"></canvas>
+      <canvas data-legend="body" data-node="daktulios" data-w="48" data-h="48" aria-hidden="true"></canvas>
+    </div>
+    <div><strong>Ring stations</strong><br/>Elon (Mars, rust), Holst (Jupiter, amber), Daktulios (Saturn, gold). Hubs, not worlds.</div>
+  </div>
+  <div class="legend-item">
+    <div class="legend-icons">
+      <canvas data-legend="body" data-node="t_ev" data-w="48" data-h="48" aria-hidden="true"></canvas>
+      <canvas data-legend="body" data-node="belt1" data-w="48" data-h="48" aria-hidden="true"></canvas>
+    </div>
+    <div><strong>Diamond pips</strong><br/>Cool blue = quiet transit. Red-tint = Gravity Duel country (belt / empty lanes).</div>
+  </div>
+</div>
+
+<h4>Unowned vs claimed</h4>
+<p>The body stays the same. The <em>frame and name</em> tell you who holds the deed.</p>
+<div class="legend-grid">
+  <div class="legend-item">
+    <canvas class="legend-scene" data-legend="scene" data-node="mars" data-w="140" data-h="88" aria-hidden="true"></canvas>
+    <div><strong>Unowned</strong><br/>Pale name, no halo. Anybody may buy it.</div>
+  </div>
+  <div class="legend-item">
+    <canvas class="legend-scene" data-legend="scene" data-node="mars" data-owner="1" data-w="140" data-h="88" aria-hidden="true"></canvas>
+    <div><strong>Your claim</strong><br/>Halo in your rocket color. Label becomes “Mars · Venture”.</div>
+  </div>
+  <div class="legend-item">
+    <canvas class="legend-scene" data-legend="scene" data-node="mars" data-owner="1" data-depot="1" data-w="140" data-h="88" aria-hidden="true"></canvas>
+    <div><strong>Claim + fuel depot</strong><br/>Same tank badge, parked on the body. Hubs cannot host pods.</div>
+  </div>
+  <div class="legend-item">
+    <canvas data-legend="depot" data-w="48" data-h="48" aria-hidden="true"></canvas>
+    <div><strong>Fuel depot</strong><br/>Cyan tank with a gold band — the same badge the board paints on the body.</div>
+  </div>
+</div>
+
+<h4>Rockets &amp; rings</h4>
+<div class="legend-grid">
+  <div class="legend-item">
+    <div class="legend-icons">
+      <canvas data-legend="rocket" data-w="48" data-h="48" aria-hidden="true"></canvas>
+      <canvas data-legend="rocket" data-moving="1" data-w="48" data-h="48" aria-hidden="true"></canvas>
+    </div>
+    <div><strong>Rocket</strong><br/>Seat color. White outline when parked; gold outline while hopping.</div>
+  </div>
+  <div class="legend-item">
+    <canvas data-legend="rings" data-w="48" data-h="48" aria-hidden="true"></canvas>
+    <div><strong>Dashed circles</strong><br/>Orbital rings from the Sun, tinted by system. Dim them with the Rings slider.</div>
+  </div>
 </div>
 `,
   },
@@ -365,7 +427,7 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     html: `
 <p>Click a rocket on <strong>On the ledger</strong> — name, cash, fuel, claims, anywhere on that seat’s row — to open its <strong>dossier</strong>. You get cash, fuel, claims grouped by system, current rent, and how much each claim has earned this owner (rent + fuel strikes vs cash you put in).</p>
 <p>Rival dossiers are public. The board already shows who owns what; the dossier is the books.</p>
-<p>When the ledger closes, the winning story names up to three held claims by ROI (“Best books”) — claims sold, lost, or taken without cash down are not ranked.</p>
+<p>When the ledger closes, the winning story names up to three held claims by <strong>mark + income</strong> (bank half plus rent and strikes this owner). Sold or lost books drop off. Gifts and steals still count — they have a mark even with no cash in.</p>
 <h3>Sell</h3>
 <p>Sell for <strong>half the deed price</strong>. The claim goes unowned. Any <strong>depot is scrapped</strong>. Use this when you would rather the body sit empty than go to a rival.</p>
 <h3>Auction</h3>
