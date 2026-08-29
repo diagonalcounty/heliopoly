@@ -530,11 +530,11 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
 <p><strong>The Lab</strong> (header button) is the minigame and drill bay — practice and testing, not the live charter. It is on every build, including the live site and the iPhone header next to Book.</p>
 <ul>
   <li>Tap a <strong>category</strong> (Which is larger?, Minigames, End screens, Economy) to expand it; tap again to collapse.</li>
-  <li><strong>Which is larger?</strong> — one line per numbering system (Western, Eastern Arabic, Chinese, Korean, Hebrew, binary…). Only shipped packs run; others show <em>Soon</em>. Closing a drill returns you to the Lab. Your expedition is untouched.</li>
-  <li><strong>Minigames</strong> — e.g. a single <strong>Gravity Duel</strong> practice setup.</li>
+  <li><strong>Which is larger?</strong> — one line per numbering system (Eastern Arabic, Chinese, Korean, Hebrew, binary…). Same first digit — check the next place. Closing a drill returns you to the Lab. Your expedition is untouched.</li>
+  <li><strong>Minigames</strong> — urinal-rule-parking, Backup fuel, Hull panel, Deseret letters, Gravity Duel.</li>
   <li><strong>End screens / economy</strong> — canned board states for UI and balance checks.</li>
 </ul>
-<p>Game scenarios that replace the board (duel, end screens, economy) swap out the current expedition. Pure drills (Which is larger?) do not.</p>
+<p>Game scenarios that replace the board (duel, end screens, economy) swap out the current expedition. Pure drills (Which is larger?, Deseret letters, Backup fuel, Hull panel) do not.</p>
 <p>We keep Lab visible on purpose — it is part of the product, not a dev-only cheat panel. Putting drills into Opportunity (and the shorter expeditions) is a later charter change; until then, Lab is how you try them.</p>
 `,
   },
