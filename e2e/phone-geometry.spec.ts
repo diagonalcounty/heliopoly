@@ -20,6 +20,7 @@ const HIDDEN_SHEETS = [
   "#eac-root",
   "#pipes-root",
   "#tiles-root",
+  "#urp-root",
 ];
 
 test.describe("phone setup #158", () => {

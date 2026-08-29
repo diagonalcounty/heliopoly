@@ -335,10 +335,78 @@ Name your rocket. Then Launch.</p>
         <div class="lab-body">
           <p class="hint lab-intro">
             Tap a category to expand it, then pick an item. Literacy drills and
-            standalone Minigames (Backup fuel, Hull panel) leave your expedition alone;
+            standalone Minigames (urinal-rule-parking, Backup fuel, Hull panel) leave your expedition alone;
             Gravity Duel / End / Economy replace the current game.
           </p>
           <div id="lab-scenarios" class="lab-scenarios"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lab drill: urinal-rule-parking (#188) -->
+    <div id="urp-root" class="handbook urp-overlay hidden" aria-hidden="true">
+      <div class="handbook-backdrop" id="urp-backdrop"></div>
+      <div
+        class="urp-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="urp-title"
+      >
+        <header class="urp-header">
+          <h2 id="urp-title">urinal-rule-parking</h2>
+          <button type="button" id="urp-close" class="handbook-close" aria-label="Close">
+            ✕
+          </button>
+        </header>
+        <p class="urp-sign">urinal parking enforced or pay a fine</p>
+        <div class="urp-meters">
+          <p id="urp-orbits" class="urp-orbits" aria-live="polite">3/3</p>
+          <div class="urp-hint-wrap">
+            <button type="button" id="urp-hint" class="urp-hint" aria-label="Hint, 2 remaining">
+              Hint
+            </button>
+            <span id="urp-hint-pips" class="urp-hint-pips" aria-hidden="true">
+              <span class="urp-hint-pip is-charged"></span>
+              <span class="urp-hint-pip is-charged"></span>
+            </span>
+          </div>
+        </div>
+        <div class="urp-board">
+          <div id="urp-areas" class="urp-areas" role="group" aria-label="Pad areas">
+            <button type="button" class="urp-area is-selected" data-area="0" aria-pressed="true">
+              <span class="urp-area-label">Area 1</span>
+              <span class="urp-area-dots" aria-hidden="true"></span>
+            </button>
+            <button type="button" class="urp-area" data-area="1" aria-pressed="false">
+              <span class="urp-area-label">Area 2</span>
+              <span class="urp-area-dots" aria-hidden="true"></span>
+            </button>
+          </div>
+          <div class="urp-hatch" aria-label="Hatch, approach">
+            <svg class="urp-hatch-mark" viewBox="0 0 80 80" aria-hidden="true">
+              <polygon
+                class="urp-hatch-outer"
+                points="40,4 72,22 72,58 40,76 8,58 8,22"
+              />
+              <polygon
+                class="urp-hatch-inner"
+                points="40,14 62,26 62,54 40,66 18,54 18,26"
+              />
+              <line class="urp-hatch-seam" x1="40" y1="16" x2="40" y2="64" />
+              <polygon class="urp-hatch-chevron" points="40,24 51,44 29,44" />
+            </svg>
+            <span class="urp-hatch-label">Hatch</span>
+          </div>
+          <div class="urp-field">
+            <svg id="urp-apron" class="urp-apron" aria-hidden="true"></svg>
+            <div id="urp-pads" class="urp-pads" role="group" aria-label="Pads"></div>
+          </div>
+          <div class="urp-go-wrap">
+            <p id="urp-status" class="urp-status" aria-live="polite"></p>
+            <button type="button" id="urp-orbit" class="urp-go" aria-label="Orbit, next occupancy">
+              Orbit
+            </button>
+          </div>
         </div>
       </div>
     </div>

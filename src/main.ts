@@ -106,6 +106,19 @@ import {
   startTiles,
   type TileState,
 } from "./lab/slidingTiles";
+import {
+  canOrbit,
+  currentUrpPair,
+  currentUrpScreen,
+  hintUrp,
+  landUrp,
+  orbitUrp,
+  selectUrpArea,
+  startUrpDrill,
+  urpLooksChrome,
+  type UrpArea,
+  type UrpState,
+} from "./lab/urpGrader";
 import type { Board } from "./core/types";
 import { submitGameTelemetry } from "./telemetry";
 
@@ -361,6 +374,16 @@ const endRanks = document.getElementById("end-ranks")!;
 const labRoot = document.getElementById("lab-root")!;
 const labScenariosEl = document.getElementById("lab-scenarios")!;
 const eacRoot = document.getElementById("eac-root")!;
+const urpRoot = document.getElementById("urp-root")!;
+const urpAreasEl = document.getElementById("urp-areas")!;
+const urpPadsEl = document.getElementById("urp-pads")!;
+const urpApronEl = document.getElementById("urp-apron") as unknown as SVGSVGElement;
+const urpOrbitsEl = document.getElementById("urp-orbits")!;
+const urpOrbitBtn = document.getElementById("urp-orbit") as HTMLButtonElement;
+const urpHintBtn = document.getElementById("urp-hint") as HTMLButtonElement;
+const urpHintPipsEl = document.getElementById("urp-hint-pips")!;
+const urpStatusEl = document.getElementById("urp-status")!;
+const urpHatchEl = document.querySelector("#urp-root .urp-hatch") as HTMLElement | null;
 const eacRoundEl = document.getElementById("eac-round")!;
 const eacAttemptsEl = document.getElementById("eac-attempts")!;
 const eacPlayEl = document.getElementById("eac-play")!;
@@ -1623,6 +1646,7 @@ function closeLab(): void {
     eacRoot.classList.contains("hidden") &&
     pipesRoot.classList.contains("hidden") &&
     tilesRoot.classList.contains("hidden") &&
+    urpRoot.classList.contains("hidden") &&
     document.getElementById("handbook-root")?.classList.contains("hidden")
   ) {
     document.body.classList.remove("handbook-open");
@@ -1779,6 +1803,259 @@ function closeEasternArabicCompare(): void {
     labRoot.classList.contains("hidden") &&
     pipesRoot.classList.contains("hidden") &&
     tilesRoot.classList.contains("hidden") &&
+    urpRoot.classList.contains("hidden") &&
+    document.getElementById("handbook-root")?.classList.contains("hidden")
+  ) {
+    document.body.classList.remove("handbook-open");
+  }
+}
+
+/** —— urinal-rule-parking (#188) —— */
+const URP_ROCKET_COLORS = ["#e2b14a", "#3db8c5", "#d46a3a", "#7aa2ff", "#c86bdb"];
+const URP_PLAYER_COLOR = "#f4f0e0";
+let urpState: UrpState | null = null;
+let urpFlashTimer = 0;
+let urpPadRo: ResizeObserver | null = null;
+
+function isUrpOpen(): boolean {
+  return !urpRoot.classList.contains("hidden");
+}
+
+function urpLandscape(): boolean {
+  return window.matchMedia("(min-aspect-ratio: 1/1)").matches;
+}
+
+function urpRocketSvg(color: string): string {
+  return `<svg viewBox="0 0 32 32" aria-hidden="true">
+    <path fill="${color}" d="M16 1.2c4 7.2 5.4 11.6 5.4 17.6h-10.8C10.6 12.8 12 8.4 16 1.2z"/>
+    <circle cx="16" cy="12.5" r="2.4" fill="#0b1020"/>
+    <path fill="${color}" d="M10.4 18.2 4.6 27.2h7.2L14 18.2zm11.2 0 5.8 9H20L18 18.2z"/>
+    <path fill="#f4d36a" d="M13.6 26.4h4.8l-1 4.2h-2.8z"/>
+  </svg>`;
+}
+
+function urpSetStatus(text: string, kind: "good" | "fine" | "" = ""): void {
+  urpStatusEl.textContent = text;
+  urpStatusEl.classList.toggle("is-good", kind === "good");
+  urpStatusEl.classList.toggle("is-fine", kind === "fine");
+}
+
+function urpFieldEl(): HTMLElement {
+  return urpPadsEl.parentElement as HTMLElement;
+}
+
+function layoutUrpApron(pads: NodeListOf<HTMLElement>): void {
+  const field = urpFieldEl();
+  const w = field.clientWidth;
+  const h = field.clientHeight;
+  const fr = field.getBoundingClientRect();
+  urpApronEl.setAttribute("viewBox", `0 0 ${w} ${h}`);
+  urpApronEl.setAttribute("width", String(w));
+  urpApronEl.setAttribute("height", String(h));
+  const pts = [...pads].map((el) => {
+    const r = el.getBoundingClientRect();
+    return { x: r.x + r.width / 2 - fr.x, y: r.y + r.height / 2 - fr.y };
+  });
+  let path = urpApronEl.querySelector("path");
+  if (!path) {
+    path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    urpApronEl.appendChild(path);
+  }
+  if (pts.length < 2) {
+    path.setAttribute("d", "");
+    return;
+  }
+  let d = `M ${pts[0]!.x} ${pts[0]!.y}`;
+  for (let i = 1; i < pts.length; i++) {
+    d += ` L ${pts[i]!.x} ${pts[i]!.y}`;
+  }
+  path.setAttribute("d", d);
+}
+
+function layoutUrpPads(): void {
+  if (!urpState) return;
+  const field = urpFieldEl();
+  const n = currentUrpScreen(urpState).padCount;
+  const w = field.clientWidth;
+  const h = field.clientHeight;
+  if (w < 8 || h < 8) return;
+  const landscape = urpLandscape();
+  const chord = landscape ? h * 0.84 : w * 0.86;
+  const size = Math.max(44, Math.min(64, Math.floor(chord / n) - 4));
+  const pads = urpPadsEl.querySelectorAll<HTMLElement>(".urp-pad");
+  pads.forEach((el, i) => {
+    const t = n <= 1 ? 0.5 : i / (n - 1);
+    const bulge = Math.sin(t * Math.PI);
+    let x: number;
+    let y: number;
+    if (landscape) {
+      x = w * (0.16 + bulge * 0.46) - size / 2;
+      y = h * (0.08 + t * 0.84) - size / 2;
+    } else {
+      x = w * (0.08 + t * 0.84) - size / 2;
+      y = h * (0.58 - bulge * 0.36) - size / 2;
+    }
+    el.style.width = `${size}px`;
+    el.style.height = `${size}px`;
+    el.style.left = `${Math.round(x)}px`;
+    el.style.top = `${Math.round(y)}px`;
+  });
+  layoutUrpApron(pads);
+}
+
+function renderUrpAreas(): void {
+  if (!urpState) return;
+  const pair = currentUrpPair(urpState);
+  const playing = urpState.phase === "playing";
+  urpAreasEl.querySelectorAll<HTMLButtonElement>("[data-area]").forEach((btn) => {
+    const area = Number(btn.dataset.area) as UrpArea;
+    const selected = urpState!.selectedArea === area;
+    btn.classList.toggle("is-selected", selected);
+    btn.setAttribute("aria-pressed", selected ? "true" : "false");
+    btn.disabled = !playing;
+    const screen = pair[area]!;
+    const dots = btn.querySelector(".urp-area-dots");
+    if (dots) {
+      dots.replaceChildren();
+      const occ = new Set(screen.occupied);
+      for (let i = 0; i < screen.padCount; i++) {
+        const d = document.createElement("span");
+        d.className = "urp-area-dot" + (occ.has(i) ? " is-occupied" : " is-empty");
+        dots.appendChild(d);
+      }
+    }
+  });
+}
+
+function renderUrpHintPips(): void {
+  if (!urpState) return;
+  const charged = urpState.hintsLeft;
+  urpHintPipsEl.replaceChildren();
+  for (let i = 0; i < 2; i++) {
+    const pip = document.createElement("span");
+    pip.className = "urp-hint-pip" + (i < charged ? " is-charged" : "");
+    urpHintPipsEl.appendChild(pip);
+  }
+  urpHintBtn.disabled = urpState.phase !== "playing" || charged <= 0;
+  urpHintBtn.setAttribute("aria-label", `Hint, ${charged} remaining`);
+}
+
+function renderUrp(): void {
+  if (!urpState) return;
+  const screen = currentUrpScreen(urpState);
+  const occ = new Set(screen.occupied);
+  const playing = urpState.phase === "playing";
+  urpOrbitsEl.textContent = urpLooksChrome(urpState);
+  renderUrpAreas();
+  urpPadsEl.replaceChildren();
+  for (let i = 0; i < screen.padCount; i++) {
+    const occupied = occ.has(i);
+    const you = urpState.lastLanded === i;
+    const el = document.createElement(occupied || you || !playing ? "div" : "button");
+    if (!occupied && !you && playing) (el as HTMLButtonElement).type = "button";
+    el.className = "urp-pad" + (occupied || you ? " is-occupied" : " is-empty");
+    if (you) {
+      el.classList.add("urp-just-landed");
+      if (urpState.outcome === "good") el.classList.add("is-good");
+      if (urpState.outcome === "fine") el.classList.add("is-fine");
+    }
+    el.dataset.index = String(i);
+    el.setAttribute(
+      "aria-label",
+      you ? "Your ship" : occupied ? "Occupied pad" : "Empty pad",
+    );
+    if (you) {
+      el.innerHTML = urpRocketSvg(URP_PLAYER_COLOR);
+    } else if (occupied) {
+      const colorIdx = Math.max(0, screen.occupied.indexOf(i));
+      const color = URP_ROCKET_COLORS[colorIdx % URP_ROCKET_COLORS.length]!;
+      el.innerHTML = urpRocketSvg(color);
+    } else if (playing) {
+      el.addEventListener("click", () => urpLand(i));
+    }
+    urpPadsEl.appendChild(el);
+  }
+  const orbitOk = canOrbit(urpState);
+  urpOrbitBtn.disabled = !orbitOk;
+  urpOrbitBtn.setAttribute("aria-disabled", orbitOk ? "false" : "true");
+  renderUrpHintPips();
+  if (urpState.outcome === "good") urpSetStatus("Good job. No fine.", "good");
+  else if (urpState.outcome === "fine") urpSetStatus("Fine.", "fine");
+  layoutUrpPads();
+}
+
+function urpFlashPad(index: number): void {
+  window.clearTimeout(urpFlashTimer);
+  urpPadsEl.querySelectorAll(".urp-flash").forEach((el) => el.classList.remove("urp-flash"));
+  const pad = urpPadsEl.querySelector(`[data-index="${index}"]`);
+  pad?.classList.add("urp-flash");
+  urpFlashTimer = window.setTimeout(() => {
+    urpPadsEl.querySelectorAll(".urp-flash").forEach((el) => el.classList.remove("urp-flash"));
+  }, 1200);
+}
+
+function urpWhoosh(): void {
+  if (!urpHatchEl) return;
+  urpHatchEl.classList.remove("urp-whoosh");
+  void urpHatchEl.offsetWidth;
+  urpHatchEl.classList.add("urp-whoosh");
+}
+
+function urpLand(index: number): void {
+  if (!urpState) return;
+  const next = landUrp(urpState, index);
+  if (!next.ok) return;
+  urpState = next.state;
+  renderUrp();
+}
+
+function urpOrbit(): void {
+  if (!urpState || !canOrbit(urpState)) return;
+  urpState = orbitUrp(urpState);
+  urpSetStatus("");
+  urpWhoosh();
+  renderUrp();
+}
+
+function urpHint(): void {
+  if (!urpState) return;
+  const next = hintUrp(urpState);
+  urpState = next.state;
+  renderUrpHintPips();
+  if (next.flashIndex != null) urpFlashPad(next.flashIndex);
+}
+
+function urpPickArea(area: UrpArea): void {
+  if (!urpState) return;
+  urpState = selectUrpArea(urpState, area);
+  renderUrp();
+}
+
+function openUrp(): void {
+  urpState = startUrpDrill();
+  urpSetStatus("");
+  renderUrp();
+  urpRoot.classList.remove("hidden");
+  urpRoot.setAttribute("aria-hidden", "false");
+  document.body.classList.add("handbook-open");
+  layoutUrpPads();
+  if (!urpPadRo) {
+    urpPadRo = new ResizeObserver(() => layoutUrpPads());
+    urpPadRo.observe(urpFieldEl());
+  }
+}
+
+function closeUrp(): void {
+  urpRoot.classList.add("hidden");
+  urpRoot.setAttribute("aria-hidden", "true");
+  urpState = null;
+  window.clearTimeout(urpFlashTimer);
+  if (
+    duelRoot.classList.contains("hidden") &&
+    eacRoot.classList.contains("hidden") &&
+    labRoot.classList.contains("hidden") &&
+    pipesRoot.classList.contains("hidden") &&
+    tilesRoot.classList.contains("hidden") &&
     document.getElementById("handbook-root")?.classList.contains("hidden")
   ) {
     document.body.classList.remove("handbook-open");
@@ -1919,6 +2196,7 @@ function closePipes(): void {
     labRoot.classList.contains("hidden") &&
     eacRoot.classList.contains("hidden") &&
     tilesRoot.classList.contains("hidden") &&
+    urpRoot.classList.contains("hidden") &&
     document.getElementById("handbook-root")?.classList.contains("hidden")
   ) {
     document.body.classList.remove("handbook-open");
@@ -2006,6 +2284,7 @@ function closeTiles(): void {
     labRoot.classList.contains("hidden") &&
     eacRoot.classList.contains("hidden") &&
     pipesRoot.classList.contains("hidden") &&
+    urpRoot.classList.contains("hidden") &&
     document.getElementById("handbook-root")?.classList.contains("hidden")
   ) {
     document.body.classList.remove("handbook-open");
@@ -2099,6 +2378,10 @@ async function runLabScenario(id: string): Promise<void> {
   const sc = LAB_SCENARIOS.find((x) => x.id === id);
   if (!sc || !labScenarioAvailable(sc)) return;
   if (sc.kind === "standalone") {
+    if (sc.standaloneId === "urinal-rule-parking") {
+      openUrp();
+      return;
+    }
     if (sc.standaloneId === "backup-fuel-pipes") {
       openPipes();
       return;
@@ -2125,6 +2408,16 @@ document.getElementById("lab-close")?.addEventListener("click", () => closeLab()
 document.getElementById("lab-backdrop")?.addEventListener("click", () => closeLab());
 document.getElementById("eac-close")?.addEventListener("click", () => closeEasternArabicCompare());
 document.getElementById("eac-backdrop")?.addEventListener("click", () => closeEasternArabicCompare());
+document.getElementById("urp-close")?.addEventListener("click", () => closeUrp());
+document.getElementById("urp-backdrop")?.addEventListener("click", () => closeUrp());
+urpOrbitBtn.addEventListener("click", () => urpOrbit());
+urpHintBtn.addEventListener("click", () => urpHint());
+urpAreasEl.addEventListener("click", (e) => {
+  const btn = (e.target as HTMLElement).closest("[data-area]");
+  if (!(btn instanceof HTMLElement)) return;
+  const area = Number(btn.getAttribute("data-area"));
+  if (area === 0 || area === 1) urpPickArea(area);
+});
 document.getElementById("eac-again")?.addEventListener("click", () => eacPlayAgain());
 document.getElementById("eac-done")?.addEventListener("click", () => {
   closeEasternArabicCompare();
@@ -2150,6 +2443,11 @@ eacLeftBtn.addEventListener("click", () => eacChoose("left"));
 eacRightBtn.addEventListener("click", () => eacChoose("right"));
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
+    if (isUrpOpen()) {
+      e.preventDefault();
+      closeUrp();
+      return;
+    }
     if (isTilesOpen()) {
       e.preventDefault();
       closeTiles();

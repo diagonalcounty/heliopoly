@@ -34,7 +34,7 @@ export const LAB_GROUP_LABELS: Record<LabScenarioGroup, string> = {
 export const LAB_GROUP_BLURBS: Record<LabScenarioGroup, string> = {
   "which-is-larger":
     "Literacy drills: pick the larger of two numbers in a target numbering system.",
-  minigame: "Standalone practice modes (Backup fuel, Hull panel, Gravity Duel).",
+  minigame: "Standalone practice modes (urinal-rule-parking, Backup fuel, Hull panel, Gravity Duel).",
   end: "Canned end screens for UI / copy checks.",
   economy: "Economy and risk edge cases.",
 };
@@ -141,6 +141,15 @@ export const LAB_SCENARIOS: LabScenario[] = [
   },
 
   // —— Other minigames ——
+  {
+    id: "urinal-rule-parking",
+    title: "urinal-rule-parking",
+    blurb: "Circular pads. Tap an empty circle.",
+    group: "minigame",
+    kind: "standalone",
+    available: true,
+    standaloneId: "urinal-rule-parking",
+  },
   {
     id: "backup-fuel-pipes",
     title: "Backup fuel",

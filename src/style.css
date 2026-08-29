@@ -1007,6 +1007,495 @@ html.native-shell #app {
   opacity: 1;
 }
 
+/* —— Lab: urinal-rule-parking (#188). Full-bleed on every viewport. —— */
+#urp-root.urp-overlay {
+  z-index: 1050;
+  padding: 0;
+  align-items: stretch;
+  justify-content: stretch;
+}
+
+#urp-root:not(.hidden) {
+  z-index: 2010;
+}
+
+.urp-panel {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: none;
+  height: 100dvh;
+  max-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  border-radius: 0;
+  border: none;
+  background:
+    radial-gradient(ellipse at 50% 18%, rgba(80, 110, 170, 0.18) 0%, transparent 55%),
+    linear-gradient(180deg, #121a2e 0%, #0b1020 100%);
+  box-shadow:
+    inset 0 0 0 2px #c9a227,
+    inset 0 0 0 7px #0b1020,
+    inset 0 0 0 8px rgba(201, 162, 39, 0.35);
+  overflow: hidden;
+}
+
+.urp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-shrink: 0;
+  padding: max(10px, env(safe-area-inset-top, 0px))
+    max(12px, env(safe-area-inset-right, 0px)) 8px
+    max(12px, env(safe-area-inset-left, 0px));
+}
+
+.urp-header h2 {
+  margin: 0;
+  font-family: Limelight, "SF Pro Text", system-ui, sans-serif;
+  font-size: 1.05rem;
+  font-weight: 400;
+  color: var(--accent-2);
+  letter-spacing: 0.02em;
+}
+
+.urp-sign {
+  margin: 0;
+  flex-shrink: 0;
+  padding: 0 12px;
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: lowercase;
+  color: var(--accent-2);
+}
+
+.urp-meters {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  flex-shrink: 0;
+  padding: 2px 12px 6px;
+}
+
+.urp-orbits {
+  margin: 0;
+  min-width: 2.4em;
+  text-align: center;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  color: var(--accent-2);
+}
+
+.urp-hint-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.urp-hint {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid #c9a227;
+  background: #1a2438;
+  color: var(--accent-2);
+  font-size: 0.85rem;
+  font-weight: 650;
+}
+
+.urp-hint:disabled {
+  opacity: 0.4;
+}
+
+.urp-hint-pips {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.urp-hint-pip {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid #c9a227;
+  background: transparent;
+  box-sizing: border-box;
+}
+
+.urp-hint-pip.is-charged {
+  background: #c9a227;
+  box-shadow: 0 0 0 1px rgba(201, 162, 39, 0.35);
+}
+
+.urp-board {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    "areas"
+    "pads"
+    "hatch"
+    "go";
+  padding: 4px max(12px, env(safe-area-inset-right, 0px))
+    max(12px, env(safe-area-inset-bottom, 0px))
+    max(12px, env(safe-area-inset-left, 0px));
+  gap: 8px;
+}
+
+.urp-areas {
+  grid-area: areas;
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+  justify-content: center;
+  min-height: 44px;
+}
+
+.urp-area {
+  flex: 1;
+  min-height: 44px;
+  min-width: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(201, 162, 39, 0.4);
+  background: #1a2438;
+  color: var(--accent-2);
+  font-size: 0.82rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+}
+
+.urp-area.is-selected {
+  border-color: #c9a227;
+  background: #2a3a58;
+  box-shadow: 0 0 0 2px rgba(201, 162, 39, 0.5);
+  color: #f4e4a4;
+}
+
+.urp-area:disabled {
+  opacity: 0.55;
+}
+
+.urp-area-dots {
+  display: flex;
+  gap: 3px;
+  height: 6px;
+  align-items: center;
+}
+
+.urp-area-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+
+.urp-area-dot.is-empty {
+  background: transparent;
+  border: 1px solid rgba(201, 162, 39, 0.75);
+}
+
+.urp-area-dot.is-occupied {
+  background: #c9a227;
+  border: 1px solid #c9a227;
+}
+
+.urp-field {
+  grid-area: pads;
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.urp-apron,
+.urp-pads {
+  position: absolute;
+  inset: 0;
+}
+
+.urp-apron {
+  pointer-events: none;
+}
+
+.urp-apron path {
+  fill: none;
+  stroke: rgba(201, 162, 39, 0.35);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.urp-hatch {
+  grid-area: hatch;
+  justify-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.urp-hatch-mark {
+  width: 56px;
+  height: 56px;
+  display: block;
+}
+
+.urp-hatch-outer {
+  fill: #161e32;
+  stroke: #c9a227;
+  stroke-width: 2.5;
+}
+
+.urp-hatch-inner {
+  fill: #0c1220;
+  stroke: rgba(201, 162, 39, 0.45);
+  stroke-width: 1.25;
+}
+
+.urp-hatch-seam {
+  stroke: rgba(201, 162, 39, 0.4);
+  stroke-width: 1.25;
+}
+
+.urp-hatch-chevron {
+  fill: var(--accent-2);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.urp-hatch-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent-2);
+}
+
+.urp-go-wrap {
+  grid-area: go;
+  justify-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  min-width: 0;
+}
+
+.urp-status {
+  margin: 0;
+  min-height: 1.2em;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  color: var(--accent-2);
+}
+
+.urp-status.is-good {
+  color: #7ee0a8;
+}
+
+.urp-status.is-fine {
+  color: #f0a35a;
+}
+
+.urp-status:empty {
+  visibility: hidden;
+}
+
+.urp-go {
+  min-height: 44px;
+  border-radius: 999px;
+  border: 1px solid #c9a227;
+  background: #1a2438;
+  color: var(--accent-2);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.urp-go:disabled {
+  opacity: 0.4;
+}
+
+.urp-pad {
+  position: absolute;
+  box-sizing: border-box;
+  padding: 0;
+  border-radius: 50%;
+  border: 2px solid #5a6a82;
+  background: radial-gradient(circle at 38% 32%, #8a909c 0%, #4a5362 52%, #2a3140 100%);
+  color: #e8c04a;
+  display: grid;
+  place-items: center;
+}
+
+.urp-pad.is-empty {
+  cursor: pointer;
+  box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.28);
+  outline: 2px dashed rgba(234, 196, 80, 0.85);
+  outline-offset: 5px;
+}
+
+.urp-pad.is-empty:active {
+  transform: scale(0.94);
+}
+
+.urp-pad.is-occupied {
+  pointer-events: none;
+  border-color: #c9a227;
+  outline: none;
+}
+
+.urp-pad svg {
+  width: 78%;
+  height: 78%;
+}
+
+.urp-pad.urp-just-landed {
+  outline: none;
+  pointer-events: none;
+}
+
+.urp-pad.urp-just-landed.is-good {
+  animation: urp-ok-ring 0.7s ease-out;
+}
+
+.urp-pad.urp-just-landed.is-fine {
+  box-shadow: 0 0 0 4px rgba(240, 163, 90, 0.55);
+}
+
+.urp-pad.urp-just-landed svg {
+  animation: urp-land 0.42s cubic-bezier(0.2, 1.4, 0.3, 1);
+}
+
+.urp-pad.urp-miss {
+  animation: urp-miss 0.32s ease;
+}
+
+.urp-pad.urp-flash {
+  z-index: 2;
+  outline-color: #f0d078;
+  box-shadow: 0 0 0 8px rgba(240, 208, 120, 0.5);
+  animation: urp-hint 0.4s ease-in-out 3;
+}
+
+.urp-hatch.urp-whoosh .urp-hatch-chevron {
+  animation: urp-whoosh 0.45s ease-out;
+}
+
+@keyframes urp-land {
+  from {
+    transform: translateY(-22px) scale(0.2);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@keyframes urp-miss {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-6px);
+  }
+  75% {
+    transform: translateX(6px);
+  }
+}
+
+@keyframes urp-whoosh {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.2;
+  }
+  40% {
+    transform: scale(1.25);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes urp-legal-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(201, 162, 39, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 0 7px rgba(201, 162, 39, 0.35);
+  }
+}
+
+@keyframes urp-ok-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(93, 222, 160, 0.95);
+  }
+  100% {
+    box-shadow: 0 0 0 18px rgba(93, 222, 160, 0);
+  }
+}
+
+@keyframes urp-hint {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+@media (min-aspect-ratio: 1/1) {
+  .urp-board {
+    grid-template-columns: minmax(140px, 28%) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      "hatch areas"
+      "hatch pads"
+      "go pads";
+    align-items: center;
+  }
+
+  .urp-hatch {
+    justify-self: center;
+    width: auto;
+    height: auto;
+    border-radius: 0;
+  }
+
+  .urp-hatch-mark {
+    width: 80px;
+    height: 80px;
+    transform: rotate(90deg);
+  }
+
+  .urp-go-wrap {
+    justify-self: stretch;
+    margin: 0 8px 0 0;
+  }
+}
+
 .hint {
   margin: 8px 0 0;
   font-size: 0.8rem;
@@ -4661,7 +5150,8 @@ button:not(:disabled):active {
   #lab-root.hidden,
   #eac-root.hidden,
   #pipes-root.hidden,
-  #tiles-root.hidden {
+  #tiles-root.hidden,
+  #urp-root.hidden {
     pointer-events: none !important;
   }
 
@@ -4674,7 +5164,8 @@ button:not(:disabled):active {
   #lab-root:not(.hidden),
   #eac-root:not(.hidden),
   #pipes-root:not(.hidden),
-  #tiles-root:not(.hidden) {
+  #tiles-root:not(.hidden),
+  #urp-root:not(.hidden) {
     z-index: 2000 !important;
     isolation: isolate;
     padding: 0;
@@ -4686,7 +5177,8 @@ button:not(:disabled):active {
   /* Drill sits above the Lab list when both are open. */
   #eac-root:not(.hidden),
   #pipes-root:not(.hidden),
-  #tiles-root:not(.hidden) {
+  #tiles-root:not(.hidden),
+  #urp-root:not(.hidden) {
     z-index: 2010 !important;
   }
 
@@ -4702,7 +5194,8 @@ button:not(:disabled):active {
       #lab-root:not(.hidden),
       #eac-root:not(.hidden),
       #pipes-root:not(.hidden),
-      #tiles-root:not(.hidden)
+      #tiles-root:not(.hidden),
+      #urp-root:not(.hidden)
     )
     #app:has(.fleet-card.mode-standings)
     :is(
@@ -4749,7 +5242,8 @@ button:not(:disabled):active {
   #lab-root:not(.hidden) .handbook-close,
   #eac-root:not(.hidden) .handbook-close,
   #pipes-root:not(.hidden) .handbook-close,
-  #tiles-root:not(.hidden) .handbook-close {
+  #tiles-root:not(.hidden) .handbook-close,
+  #urp-root:not(.hidden) .handbook-close {
     min-width: 44px;
     min-height: 44px;
     pointer-events: auto;

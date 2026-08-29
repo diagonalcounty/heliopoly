@@ -211,13 +211,15 @@ export function mountHandbook(root: HTMLElement): HandbookController {
     const eac = document.getElementById("eac-root");
     const pipes = document.getElementById("pipes-root");
     const tiles = document.getElementById("tiles-root");
+    const urp = document.getElementById("urp-root");
     return (
       (!!duel && !duel.classList.contains("hidden")) ||
       (!!lab && !lab.classList.contains("hidden")) ||
       (!!end && !end.classList.contains("hidden")) ||
       (!!eac && !eac.classList.contains("hidden")) ||
       (!!pipes && !pipes.classList.contains("hidden")) ||
-      (!!tiles && !tiles.classList.contains("hidden"))
+      (!!tiles && !tiles.classList.contains("hidden")) ||
+      (!!urp && !urp.classList.contains("hidden"))
     );
   }
 
