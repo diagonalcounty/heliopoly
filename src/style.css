@@ -889,8 +889,122 @@ html.native-shell #app {
   z-index: 1;
 }
 
+
 .pipes-end-blurb {
   margin: 0;
+}
+
+/* —— Lab: hull-panel 8-puzzle (#78) —— */
+#tiles-root.tiles-overlay {
+  z-index: 1050;
+}
+
+.tiles-panel {
+  width: min(480px, calc(100vw - 32px));
+  height: auto;
+  max-height: min(92vh, 720px);
+}
+
+.tiles-body {
+  padding: 16px 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+}
+
+.tiles-status-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.tiles-status {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--accent-2);
+  letter-spacing: 0.04em;
+}
+
+.tiles-moves {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.tiles-hint {
+  margin: 0;
+}
+
+.tiles-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(64px, 1fr));
+  grid-template-rows: repeat(3, minmax(64px, 1fr));
+  gap: 6px;
+  width: min(100%, 320px);
+  aspect-ratio: 1 / 1;
+  margin: 0 auto;
+  padding: 10px;
+  border-radius: 14px;
+  border: 1px solid #5a4a20;
+  background: linear-gradient(180deg, #141c2c 0%, #0c1220 100%);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+
+.tile-cell {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border-radius: 10px;
+  border: 1px solid #3d5080;
+  background: linear-gradient(180deg, #243656 0%, #1a2844 100%);
+  color: var(--accent-2);
+  font-size: clamp(1.4rem, 6vw, 1.85rem);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  touch-action: manipulation;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.tile-cell:hover:not(:disabled):not(.is-empty) {
+  border-color: var(--accent-2);
+}
+
+.tile-cell:focus-visible {
+  border-color: var(--accent-2);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(201, 162, 39, 0.35);
+}
+
+.tile-cell:focus:not(:focus-visible) {
+  box-shadow: none;
+  outline: none;
+}
+
+.tile-cell:active:not(:disabled):not(.is-empty) {
+  transform: scale(0.96);
+}
+
+.tile-cell.is-empty {
+  border-color: transparent;
+  background: rgba(7, 11, 20, 0.65);
+  cursor: default;
+  box-shadow: inset 0 0 0 1px rgba(42, 53, 85, 0.6);
+}
+
+.tile-cell.is-slidable {
+  border-color: var(--accent);
+}
+
+.tile-cell.is-home {
+  color: var(--ok);
+}
+
+.tile-cell:disabled {
+  opacity: 1;
 }
 
 .hint {
@@ -4546,7 +4660,8 @@ button:not(:disabled):active {
   #end-root.hidden,
   #lab-root.hidden,
   #eac-root.hidden,
-  #pipes-root.hidden {
+  #pipes-root.hidden,
+  #tiles-root.hidden {
     pointer-events: none !important;
   }
 
@@ -4558,7 +4673,8 @@ button:not(:disabled):active {
   #end-root:not(.hidden),
   #lab-root:not(.hidden),
   #eac-root:not(.hidden),
-  #pipes-root:not(.hidden) {
+  #pipes-root:not(.hidden),
+  #tiles-root:not(.hidden) {
     z-index: 2000 !important;
     isolation: isolate;
     padding: 0;
@@ -4569,7 +4685,8 @@ button:not(:disabled):active {
 
   /* Drill sits above the Lab list when both are open. */
   #eac-root:not(.hidden),
-  #pipes-root:not(.hidden) {
+  #pipes-root:not(.hidden),
+  #tiles-root:not(.hidden) {
     z-index: 2010 !important;
   }
 
@@ -4584,7 +4701,8 @@ button:not(:disabled):active {
       #end-root:not(.hidden),
       #lab-root:not(.hidden),
       #eac-root:not(.hidden),
-      #pipes-root:not(.hidden)
+      #pipes-root:not(.hidden),
+      #tiles-root:not(.hidden)
     )
     #app:has(.fleet-card.mode-standings)
     :is(
@@ -4603,7 +4721,8 @@ button:not(:disabled):active {
   #duel-root:not(.hidden) .handbook-panel,
   #lab-root:not(.hidden) .handbook-panel,
   #eac-root:not(.hidden) .handbook-panel,
-  #pipes-root:not(.hidden) .handbook-panel {
+  #pipes-root:not(.hidden) .handbook-panel,
+  #tiles-root:not(.hidden) .handbook-panel {
     width: 100%;
     max-width: none;
     height: 100dvh;
@@ -4618,7 +4737,8 @@ button:not(:disabled):active {
   #duel-root:not(.hidden) .handbook-header,
   #lab-root:not(.hidden) .handbook-header,
   #eac-root:not(.hidden) .handbook-header,
-  #pipes-root:not(.hidden) .handbook-header {
+  #pipes-root:not(.hidden) .handbook-header,
+  #tiles-root:not(.hidden) .handbook-header {
     padding-top: max(10px, env(safe-area-inset-top, 0px));
     padding-left: max(12px, env(safe-area-inset-left, 0px));
     padding-right: max(12px, env(safe-area-inset-right, 0px));
@@ -4628,7 +4748,8 @@ button:not(:disabled):active {
   #dossier-root:not(.hidden) .handbook-close,
   #lab-root:not(.hidden) .handbook-close,
   #eac-root:not(.hidden) .handbook-close,
-  #pipes-root:not(.hidden) .handbook-close {
+  #pipes-root:not(.hidden) .handbook-close,
+  #tiles-root:not(.hidden) .handbook-close {
     min-width: 44px;
     min-height: 44px;
     pointer-events: auto;
@@ -4636,7 +4757,8 @@ button:not(:disabled):active {
 
   #lab-root:not(.hidden) .lab-body,
   #eac-root:not(.hidden) .eac-body,
-  #pipes-root:not(.hidden) .pipes-body {
+  #pipes-root:not(.hidden) .pipes-body,
+  #tiles-root:not(.hidden) .tiles-body {
     min-height: 0;
     overflow: auto;
     -webkit-overflow-scrolling: touch;

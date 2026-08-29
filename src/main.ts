@@ -96,6 +96,16 @@ import {
   startPipes,
   type PipeState,
 } from "./lab/backupFuelPipes";
+import {
+  EMPTY,
+  SOLVED_TILES,
+  TILE_CELLS,
+  isAdjacentToEmpty,
+  playAgainTiles,
+  slideTile,
+  startTiles,
+  type TileState,
+} from "./lab/slidingTiles";
 import type { Board } from "./core/types";
 import { submitGameTelemetry } from "./telemetry";
 
@@ -372,6 +382,12 @@ const pipesStatusEl = document.getElementById("pipes-status")!;
 const pipesRotatesEl = document.getElementById("pipes-rotates")!;
 const pipesEndEl = document.getElementById("pipes-end")!;
 const pipesEndBlurb = document.getElementById("pipes-end-blurb")!;
+const tilesRoot = document.getElementById("tiles-root")!;
+const tilesGridEl = document.getElementById("tiles-grid")!;
+const tilesStatusEl = document.getElementById("tiles-status")!;
+const tilesMovesEl = document.getElementById("tiles-moves")!;
+const tilesEndEl = document.getElementById("tiles-end")!;
+const tilesEndBlurb = document.getElementById("tiles-end-blurb")!;
 
 const btnNew = document.getElementById("btn-new") as HTMLButtonElement;
 const btnSelf = document.getElementById("btn-selfplay") as HTMLButtonElement;
@@ -1606,6 +1622,7 @@ function closeLab(): void {
     duelRoot.classList.contains("hidden") &&
     eacRoot.classList.contains("hidden") &&
     pipesRoot.classList.contains("hidden") &&
+    tilesRoot.classList.contains("hidden") &&
     document.getElementById("handbook-root")?.classList.contains("hidden")
   ) {
     document.body.classList.remove("handbook-open");
@@ -1761,6 +1778,7 @@ function closeEasternArabicCompare(): void {
     duelRoot.classList.contains("hidden") &&
     labRoot.classList.contains("hidden") &&
     pipesRoot.classList.contains("hidden") &&
+    tilesRoot.classList.contains("hidden") &&
     document.getElementById("handbook-root")?.classList.contains("hidden")
   ) {
     document.body.classList.remove("handbook-open");
@@ -1900,16 +1918,104 @@ function closePipes(): void {
     duelRoot.classList.contains("hidden") &&
     labRoot.classList.contains("hidden") &&
     eacRoot.classList.contains("hidden") &&
+    tilesRoot.classList.contains("hidden") &&
     document.getElementById("handbook-root")?.classList.contains("hidden")
   ) {
     document.body.classList.remove("handbook-open");
   }
 }
 
+
 function pipesPlayAgain(): void {
   pipesState = playAgainPipes();
   renderPipes();
   const first = pipesGridEl.querySelector("button:not(:disabled)") as HTMLButtonElement | null;
+  first?.focus();
+}
+
+/** —— Hull panel 8-puzzle (#78) —— */
+let tilesState: TileState | null = null;
+
+function isTilesOpen(): boolean {
+  return !tilesRoot.classList.contains("hidden");
+}
+
+function renderTiles(): void {
+  if (!tilesState) return;
+  const won = tilesState.phase === "won";
+  tilesStatusEl.textContent = won ? "Panel seated" : "Slide plates into order";
+  tilesMovesEl.textContent =
+    tilesState.moves === 1 ? "1 move" : `${tilesState.moves} moves`;
+  tilesEndEl.classList.toggle("hidden", !won);
+  if (won) {
+    const n = tilesState.moves;
+    tilesEndBlurb.textContent =
+      n === 1 ? "Hull plates seated in 1 move." : `Hull plates seated in ${n} moves.`;
+  }
+  tilesGridEl.replaceChildren();
+  for (let i = 0; i < TILE_CELLS; i++) {
+    const value = tilesState.board[i];
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "tile-cell";
+    btn.setAttribute("role", "gridcell");
+    const empty = value === EMPTY;
+    if (empty) {
+      btn.classList.add("is-empty");
+      btn.disabled = true;
+      btn.setAttribute("aria-label", "Empty slot");
+      btn.textContent = "";
+    } else {
+      btn.textContent = String(value);
+      const home = SOLVED_TILES[i] === value;
+      if (home) btn.classList.add("is-home");
+      const slidable = !won && isAdjacentToEmpty(tilesState.board, i);
+      if (slidable) btn.classList.add("is-slidable");
+      btn.disabled = won;
+      btn.setAttribute(
+        "aria-label",
+        won ? `Plate ${value}` : slidable ? `Plate ${value}, tap to slide` : `Plate ${value}`,
+      );
+      const idx = i;
+      btn.addEventListener("click", () => {
+        if (!tilesState || tilesState.phase !== "playing") return;
+        tilesState = slideTile(tilesState, idx);
+        renderTiles();
+      });
+    }
+    tilesGridEl.appendChild(btn);
+  }
+}
+
+function openTiles(): void {
+  tilesState = startTiles();
+  renderTiles();
+  tilesRoot.classList.remove("hidden");
+  tilesRoot.setAttribute("aria-hidden", "false");
+  document.body.classList.add("handbook-open");
+  const first = tilesGridEl.querySelector("button.is-slidable") as HTMLButtonElement | null;
+  first?.focus();
+}
+
+function closeTiles(): void {
+  tilesRoot.classList.add("hidden");
+  tilesRoot.setAttribute("aria-hidden", "true");
+  tilesState = null;
+  if (
+    duelRoot.classList.contains("hidden") &&
+    labRoot.classList.contains("hidden") &&
+    eacRoot.classList.contains("hidden") &&
+    pipesRoot.classList.contains("hidden") &&
+    document.getElementById("handbook-root")?.classList.contains("hidden")
+  ) {
+    document.body.classList.remove("handbook-open");
+  }
+}
+
+function tilesPlayAgain(): void {
+  tilesState = playAgainTiles();
+  renderTiles();
+  const first = tilesGridEl.querySelector("button.is-slidable") as HTMLButtonElement | null;
   first?.focus();
 }
 
@@ -1997,6 +2103,10 @@ async function runLabScenario(id: string): Promise<void> {
       openPipes();
       return;
     }
+    if (sc.standaloneId === "hull-panel") {
+      openTiles();
+      return;
+    }
     const script = STANDALONE_TO_SCRIPT[sc.standaloneId];
     if (script) openNumberCompare(script);
     return;
@@ -2027,12 +2137,24 @@ document.getElementById("pipes-done")?.addEventListener("click", () => {
   closePipes();
   openLab();
 });
+document.getElementById("tiles-close")?.addEventListener("click", () => closeTiles());
+document.getElementById("tiles-backdrop")?.addEventListener("click", () => closeTiles());
+document.getElementById("tiles-again")?.addEventListener("click", () => tilesPlayAgain());
+document.getElementById("tiles-done")?.addEventListener("click", () => {
+  closeTiles();
+  openLab();
+});
 eacHintBtn.addEventListener("click", () => eacHint());
 eacResetBtn.addEventListener("click", () => eacReset());
 eacLeftBtn.addEventListener("click", () => eacChoose("left"));
 eacRightBtn.addEventListener("click", () => eacChoose("right"));
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
+    if (isTilesOpen()) {
+      e.preventDefault();
+      closeTiles();
+      return;
+    }
     if (isPipesOpen()) {
       e.preventDefault();
       closePipes();

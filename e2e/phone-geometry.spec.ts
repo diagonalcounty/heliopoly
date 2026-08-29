@@ -19,6 +19,7 @@ const HIDDEN_SHEETS = [
   "#lab-root",
   "#eac-root",
   "#pipes-root",
+  "#tiles-root",
 ];
 
 test.describe("phone setup #158", () => {

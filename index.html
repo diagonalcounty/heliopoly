@@ -335,7 +335,7 @@ Name your rocket. Then Launch.</p>
         <div class="lab-body">
           <p class="hint lab-intro">
             Tap a category to expand it, then pick an item. Literacy drills and
-            standalone Minigames (Backup fuel) leave your expedition alone;
+            standalone Minigames (Backup fuel, Hull panel) leave your expedition alone;
             Gravity Duel / End / Economy replace the current game.
           </p>
           <div id="lab-scenarios" class="lab-scenarios"></div>
@@ -451,6 +451,48 @@ Name your rocket. Then Launch.</p>
             <div class="eac-win-actions">
               <button type="button" id="pipes-again" class="eac-primary">Play again</button>
               <button type="button" id="pipes-done" class="eac-secondary">Back to Lab</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lab drill: hull-panel 8-puzzle (#78) -->
+    <div id="tiles-root" class="handbook tiles-overlay hidden" aria-hidden="true">
+      <div class="handbook-backdrop" id="tiles-backdrop"></div>
+      <div
+        class="handbook-panel tiles-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="tiles-title"
+      >
+        <header class="handbook-header">
+          <div>
+            <p class="handbook-kicker">Lab · minigame</p>
+            <h2 id="tiles-title">Hull panel</h2>
+          </div>
+          <button type="button" id="tiles-close" class="handbook-close" aria-label="Close drill">
+            ✕
+          </button>
+        </header>
+        <div class="tiles-body">
+          <div class="tiles-status-row">
+            <p id="tiles-status" class="tiles-status mono" aria-live="polite">Slide plates into order</p>
+            <p id="tiles-moves" class="tiles-moves mono" aria-live="polite">0 moves</p>
+          </div>
+          <p class="hint tiles-hint">
+            Tap a plate next to the gap to slide it. Restore 1–8 with the empty
+            corner last. Untimed; expedition stays put.
+          </p>
+          <div id="tiles-play" class="tiles-play">
+            <div id="tiles-grid" class="tiles-grid" role="grid" aria-label="Hull panel"></div>
+          </div>
+          <div id="tiles-end" class="eac-win hidden" aria-live="polite">
+            <p class="eac-win-title">Panel seated</p>
+            <p id="tiles-end-blurb" class="hint">Hull plates are back in order.</p>
+            <div class="eac-win-actions">
+              <button type="button" id="tiles-again" class="eac-primary">Play again</button>
+              <button type="button" id="tiles-done" class="eac-secondary">Back to Lab</button>
             </div>
           </div>
         </div>
