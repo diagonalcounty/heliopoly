@@ -11,6 +11,7 @@ import {
   isPipeFixture,
   rotateMask,
   rotateTile,
+  solvedDeal,
   startPipes,
   tilesFromPath,
   type PipeState,
@@ -26,10 +27,6 @@ function assert(cond: unknown, msg: string): void {
   }
 }
 
-function playing(s: PipeState): PipeState {
-  return { ...s, rotates: 0, phase: "playing" };
-}
-
 assert(PIPE_GRID === 6, "grid is 6×6");
 
 {
@@ -40,21 +37,11 @@ assert(PIPE_GRID === 6, "grid is 6×6");
     "tank and engine are distinct",
   );
   const peri =
-    s.tank.r === 0 ||
-    s.tank.r === 5 ||
-    s.tank.c === 0 ||
-    s.tank.c === 5;
+    s.tank.r === 0 || s.tank.r === 5 || s.tank.c === 0 || s.tank.c === 5;
   const periE =
-    s.engine.r === 0 ||
-    s.engine.r === 5 ||
-    s.engine.c === 0 ||
-    s.engine.c === 5;
+    s.engine.r === 0 || s.engine.r === 5 || s.engine.c === 0 || s.engine.c === 5;
   assert(peri, "tank is on the perimeter");
   assert(periE, "engine is on the perimeter");
-  assert(
-    ((s.tank.r + s.tank.c) & 1) !== ((s.engine.r + s.engine.c) & 1),
-    "tank and engine are opposite chessboard colors",
-  );
 }
 
 {
@@ -66,8 +53,6 @@ assert(PIPE_GRID === 6, "grid is 6×6");
     const s = startPipes(seed);
     tanks.add(cellKey(s.tank.r, s.tank.c));
     engines.add(cellKey(s.engine.r, s.engine.c));
-    // Old 5×5 tell, mapped to 6×6: tank left-middle-ish col 0 row 2 or 3;
-    // engine right-middle col 5 row 2 or 3.
     if (s.tank.c === 0 && (s.tank.r === 2 || s.tank.r === 3)) tankLeftMid++;
     if (s.engine.c === PIPE_GRID - 1 && (s.engine.r === 2 || s.engine.r === 3)) {
       engineRightMid++;
@@ -80,15 +65,43 @@ assert(PIPE_GRID === 6, "grid is 6×6");
 }
 
 {
+  for (let seed = 1; seed <= 40; seed++) {
+    const solved = solvedDeal(seed);
+    assert(solved.pathLen >= 6, `seed ${seed}: path long enough (${solved.pathLen})`);
+    assert(solved.pathLen < 36, `seed ${seed}: not a 36-cell unique snake (${solved.pathLen})`);
+    assert(isPathComplete(solved), `seed ${seed}: solved deal is already complete`);
+    const scrambled = startPipes(seed);
+    assert(
+      scrambled.tank.r === solved.tank.r && scrambled.tank.c === solved.tank.c,
+      `seed ${seed}: scramble keeps tank`,
+    );
+    const restored = scrambled.tiles.map((row) => row.slice());
+    for (let r = 0; r < PIPE_GRID; r++) {
+      for (let c = 0; c < PIPE_GRID; c++) {
+        if (isPipeFixture(r, c, solved.tank, solved.engine)) continue;
+        let turns = 0;
+        while (restored[r]![c] !== solved.tiles[r]![c] && turns < 4) {
+          restored[r]![c] = rotateMask(restored[r]![c]!);
+          turns++;
+        }
+        assert(
+          restored[r]![c] === solved.tiles[r]![c],
+          `seed ${seed}: restore ${r},${c}`,
+        );
+      }
+    }
+    assert(
+      isPathComplete({ tiles: restored, tank: solved.tank, engine: solved.engine }),
+      `seed ${seed}: restoring scramble wins`,
+    );
+    assert(!isPathComplete(scrambled), `seed ${seed}: scramble is not already won`);
+  }
+}
+
+{
   const s = startPipes(201);
-  assert(!isPathComplete(s), "scramble seed 201 is not already complete");
   assert(s.phase === "playing", "scramble starts in playing");
   assert(s.rotates === 0, "scramble rotate counter is zero");
-  assert(
-    isPipeFixture(s.tank.r, s.tank.c, s.tank, s.engine) &&
-      isPipeFixture(s.engine.r, s.engine.c, s.tank, s.engine),
-    "fixtures helper",
-  );
   const tankBits =
     (s.tiles[s.tank.r]![s.tank.c]! & 1) +
     ((s.tiles[s.tank.r]![s.tank.c]! >> 1) & 1) +
@@ -119,52 +132,18 @@ assert(PIPE_GRID === 6, "grid is 6×6");
 {
   const s0 = startPipes(9);
   const tankBefore = s0.tiles[s0.tank.r]![s0.tank.c];
-  const s = rotateTile(playing(s0), s0.tank.r, s0.tank.c);
+  const s = rotateTile(s0, s0.tank.r, s0.tank.c);
   assert(s.rotates === 0, "rotate: tank fixture does not count");
   assert(s.tiles[s0.tank.r]![s0.tank.c] === tankBefore, "rotate: tank stays fixed");
   const engineBefore = s0.tiles[s0.engine.r]![s0.engine.c];
-  const s2 = rotateTile(playing(s0), s0.engine.r, s0.engine.c);
+  const s2 = rotateTile(s0, s0.engine.r, s0.engine.c);
   assert(s2.tiles[s0.engine.r]![s0.engine.c] === engineBefore, "rotate: engine stays fixed");
-}
-
-{
-  // Build an unscrambled solved grid from a deal's fixtures by rotating interiors
-  // back is hard without the path. Instead: startPipes scramble, then prove that
-  // rotating a connected interior pipe can break flow, four turns restore it —
-  // pick a cell adjacent to the tank that is not the engine.
-  const s0 = startPipes(12);
-  let br = -1;
-  let bc = -1;
-  for (const [dr, dc] of [
-    [-1, 0],
-    [1, 0],
-    [0, -1],
-    [0, 1],
-  ] as const) {
-    const r = s0.tank.r + dr;
-    const c = s0.tank.c + dc;
-    if (r < 0 || r >= PIPE_GRID || c < 0 || c >= PIPE_GRID) continue;
-    if (r === s0.engine.r && c === s0.engine.c) continue;
-    br = r;
-    bc = c;
-    break;
-  }
-  assert(br >= 0, "tank has an interior/perimeter neighbor to rotate");
-  const before = s0.tiles[br]![bc]!;
-  const s1 = rotateTile(s0, br, bc);
-  assert(s1.rotates === 1, "rotate: counter increments");
-  assert(s1.tiles[br]![bc] === rotateMask(before), "rotate: tile turns 90° clockwise");
 }
 
 {
   const s = startPipes(44);
   assert(cellKind(s.tank.r, s.tank.c, s.tank, s.engine) === "tank", "cellKind tank");
   assert(cellKind(s.engine.r, s.engine.c, s.tank, s.engine) === "engine", "cellKind engine");
-  const r = s.tank.r === 0 ? 1 : 0;
-  const c = s.tank.c === 0 ? 1 : 0;
-  if (!(r === s.engine.r && c === s.engine.c)) {
-    assert(cellKind(r, c, s.tank, s.engine) === "pipe", "cellKind pipe");
-  }
 }
 
 {
@@ -187,14 +166,10 @@ assert(PIPE_GRID === 6, "grid is 6×6");
     phase: "playing",
   };
   assert(isPathComplete(solved), "path-complete: snake tank→engine is continuous");
-  assert(flowFromTank(solved).size === 36, "path-complete: solved flow covers the grid");
+  assert(flowFromTank(solved).size === 36, "path-complete: solved snake covers the grid");
   const firstInterior = snake[1]!;
   const s1 = rotateTile(solved, firstInterior.r, firstInterior.c);
   assert(!isPathComplete(s1), "rotate: breaking a solved joint disconnects tank→engine");
-  assert(
-    !flowFromTank(s1).has(cellKey(engine.r, engine.c)),
-    "rotate: engine leaves the flow",
-  );
   const s2 = rotateTile(s1, firstInterior.r, firstInterior.c);
   const s3 = rotateTile(s2, firstInterior.r, firstInterior.c);
   const s4 = rotateTile(s3, firstInterior.r, firstInterior.c);

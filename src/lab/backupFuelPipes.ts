@@ -1,8 +1,11 @@
 /**
  * Lab drill: backup-fuel pipe routing (#77 / #201).
- * Rotate-only 6×6; tank and engine on the perimeter (deal-to-deal);
- * Hamiltonian tank→engine so every cell is on the unique solved run.
- * Untimed. No Mainline / src/core.
+ * Rotate-only 6×6; tank and engine on the perimeter (deal-to-deal).
+ * A scrambled tank→engine path of ~8–16 cells is always restorable;
+ * leftover cells are decoy pipes. Untimed. No Mainline / src/core.
+ *
+ * v1 5×5 used a full-grid Hamiltonian snake. On 6×6 that is one 36-cell
+ * unique run — theoretically solvable, practically unwinnable (#201 HITL).
  */
 export const PIPE_GRID = 6;
 
@@ -36,6 +39,9 @@ const OPPOSITE: Record<number, number> = {
   [DIR_S]: DIR_N,
   [DIR_W]: DIR_E,
 };
+
+const ELBOWS = [DIR_N | DIR_E, DIR_E | DIR_S, DIR_S | DIR_W, DIR_W | DIR_N];
+const STRAIGHTS = [DIR_N | DIR_S, DIR_E | DIR_W];
 
 export function isPipeFixture(
   r: number,
@@ -98,131 +104,88 @@ function perimeterCells(): PipeCell[] {
   return cells;
 }
 
-function unusedNeighbors(
-  r: number,
-  c: number,
-  used: boolean[][],
-): PipeCell[] {
+function neighborsOf(r: number, c: number): PipeCell[] {
   const out: PipeCell[] = [];
-  if (r > 0 && !used[r - 1]![c]) out.push({ r: r - 1, c });
-  if (r + 1 < PIPE_GRID && !used[r + 1]![c]) out.push({ r: r + 1, c });
-  if (c > 0 && !used[r]![c - 1]) out.push({ r, c: c - 1 });
-  if (c + 1 < PIPE_GRID && !used[r]![c + 1]) out.push({ r, c: c + 1 });
+  if (r > 0) out.push({ r: r - 1, c });
+  if (r + 1 < PIPE_GRID) out.push({ r: r + 1, c });
+  if (c > 0) out.push({ r, c: c - 1 });
+  if (c + 1 < PIPE_GRID) out.push({ r, c: c + 1 });
   return out;
 }
 
-/** Unused cells reachable from (sr,sc), which itself must be unused. */
-function unusedComponent(
-  sr: number,
-  sc: number,
-  used: boolean[][],
-  engine: PipeCell,
-): { size: number; hitEngine: boolean } {
-  const seen: boolean[][] = Array.from({ length: PIPE_GRID }, () =>
-    Array(PIPE_GRID).fill(false),
-  );
-  const q: PipeCell[] = [{ r: sr, c: sc }];
-  seen[sr]![sc] = true;
-  let size = 0;
-  let hitEngine = false;
+function shortestPath(from: PipeCell, to: PipeCell, blocked: Set<string>): PipeCell[] | null {
+  const startK = cellKey(from.r, from.c);
+  const prev = new Map<string, string | null>();
+  prev.set(startK, null);
+  const q: PipeCell[] = [from];
   while (q.length) {
-    const { r, c } = q.pop()!;
-    size++;
-    if (r === engine.r && c === engine.c) hitEngine = true;
-    for (const n of unusedNeighbors(r, c, used)) {
-      if (seen[n.r]![n.c]) continue;
-      seen[n.r]![n.c] = true;
+    const cur = q.shift()!;
+    if (cur.r === to.r && cur.c === to.c) {
+      const path: PipeCell[] = [];
+      let k: string | null = cellKey(cur.r, cur.c);
+      while (k) {
+        const [rs, cs] = k.split(",");
+        path.push({ r: Number(rs), c: Number(cs) });
+        k = prev.get(k) ?? null;
+      }
+      path.reverse();
+      return path;
+    }
+    for (const n of neighborsOf(cur.r, cur.c)) {
+      const k = cellKey(n.r, n.c);
+      if (prev.has(k)) continue;
+      if (blocked.has(k) && !(n.r === to.r && n.c === to.c)) continue;
+      prev.set(k, cellKey(cur.r, cur.c));
       q.push(n);
     }
   }
-  return { size, hitEngine };
+  return null;
 }
 
-function findHamPath(
-  tank: PipeCell,
-  engine: PipeCell,
-  rng: () => number,
-): PipeCell[] | null {
-  const n = PIPE_GRID * PIPE_GRID;
-  const path: PipeCell[] = [{ ...tank }];
-  const used: boolean[][] = Array.from({ length: PIPE_GRID }, () =>
-    Array(PIPE_GRID).fill(false),
-  );
-  used[tank.r]![tank.c] = true;
-  let visits = 0;
-  const cap = 80_000;
-
-  function dfs(): boolean {
-    visits++;
-    if (visits > cap) return false;
-    if (path.length === n) {
-      const last = path[n - 1]!;
-      return last.r === engine.r && last.c === engine.c;
-    }
-    const cur = path[path.length - 1]!;
-    const remain = n - path.length;
-    let opts = unusedNeighbors(cur.r, cur.c, used);
-    if (remain === 1) {
-      opts = opts.filter((p) => p.r === engine.r && p.c === engine.c);
-    } else {
-      opts = opts.filter((p) => !(p.r === engine.r && p.c === engine.c));
-    }
-    for (let i = opts.length - 1; i > 0; i--) {
-      const j = Math.floor(rng() * (i + 1));
-      const tmp = opts[i]!;
-      opts[i] = opts[j]!;
-      opts[j] = tmp;
-    }
-    opts.sort(
-      (a, b) =>
-        unusedNeighbors(a.r, a.c, used).length -
-        unusedNeighbors(b.r, b.c, used).length,
-    );
-    opts = opts.filter((p) => {
-      const { size, hitEngine } = unusedComponent(p.r, p.c, used, engine);
-      return hitEngine && size === remain;
-    });
-    for (const nxt of opts) {
-      used[nxt.r]![nxt.c] = true;
+function wanderPath(tank: PipeCell, engine: PipeCell, rng: () => number): PipeCell[] {
+  const target = 8 + Math.floor(rng() * 9);
+  for (let attempt = 0; attempt < 36; attempt++) {
+    const path: PipeCell[] = [{ ...tank }];
+    const used = new Set([cellKey(tank.r, tank.c)]);
+    while (path.length < target) {
+      const cur = path[path.length - 1]!;
+      if (cur.r === engine.r && cur.c === engine.c) break;
+      let opts = neighborsOf(cur.r, cur.c).filter((n) => !used.has(cellKey(n.r, n.c)));
+      if (path.length < target - 1) {
+        const withoutEng = opts.filter((n) => n.r !== engine.r || n.c !== engine.c);
+        if (withoutEng.length) opts = withoutEng;
+      }
+      if (!opts.length) break;
+      const nxt = opts[Math.floor(rng() * opts.length)]!;
       path.push(nxt);
-      if (dfs()) return true;
-      path.pop();
-      used[nxt.r]![nxt.c] = false;
+      used.add(cellKey(nxt.r, nxt.c));
     }
-    return false;
-  }
-
-  return dfs() ? path.map((p) => ({ ...p })) : null;
-}
-
-/** Even-row L→R, odd-row R→L snake. Always a Hamiltonian path. */
-function serpentinePath(): PipeCell[] {
-  const path: PipeCell[] = [];
-  for (let r = 0; r < PIPE_GRID; r++) {
-    if (r % 2 === 0) {
-      for (let c = 0; c < PIPE_GRID; c++) path.push({ r, c });
-    } else {
-      for (let c = PIPE_GRID - 1; c >= 0; c--) path.push({ r, c });
+    const last = path[path.length - 1]!;
+    if (last.r === engine.r && last.c === engine.c && path.length >= 6) return path;
+    const blocked = new Set(used);
+    blocked.delete(cellKey(last.r, last.c));
+    const tail = shortestPath(last, engine, blocked);
+    if (tail && tail.length > 1) {
+      const combined = path.concat(tail.slice(1));
+      if (combined.length >= 6) return combined;
     }
   }
-  return path;
+  return shortestPath(tank, engine, new Set()) ?? [tank, engine];
 }
 
-function transformPath(path: PipeCell[], k: number): PipeCell[] {
-  const last = PIPE_GRID - 1;
-  const rot = k % 4;
-  const flip = k >= 4;
-  return path.map(({ r, c }) => {
-    let rr = r;
-    let cc = flip ? last - c : c;
-    for (let i = 0; i < rot; i++) {
-      const tr = cc;
-      const tc = last - rr;
-      rr = tr;
-      cc = tc;
-    }
-    return { r: rr, c: cc };
-  });
+function pickFixtures(rng: () => number): { tank: PipeCell; engine: PipeCell } {
+  const peri = perimeterCells();
+  for (let i = 0; i < 24; i++) {
+    const tank = peri[Math.floor(rng() * peri.length)]!;
+    const cands = peri.filter((p) => {
+      if (p.r === tank.r && p.c === tank.c) return false;
+      const man = Math.abs(p.r - tank.r) + Math.abs(p.c - tank.c);
+      return man >= 3;
+    });
+    if (!cands.length) continue;
+    return { tank, engine: cands[Math.floor(rng() * cands.length)]! };
+  }
+  return { tank: { r: 0, c: 0 }, engine: { r: PIPE_GRID - 1, c: PIPE_GRID - 1 } };
 }
 
 function dealPath(rng: () => number): {
@@ -230,28 +193,9 @@ function dealPath(rng: () => number): {
   engine: PipeCell;
   path: PipeCell[];
 } {
-  const peri = perimeterCells();
-  for (let attempt = 0; attempt < 48; attempt++) {
-    const tank = peri[Math.floor(rng() * peri.length)]!;
-    const cands = peri.filter(
-      (p) =>
-        (p.r !== tank.r || p.c !== tank.c) &&
-        ((p.r + p.c) & 1) !== ((tank.r + tank.c) & 1),
-    );
-    if (!cands.length) continue;
-    const engine = cands[Math.floor(rng() * cands.length)]!;
-    const path = findHamPath(tank, engine, rng);
-    if (path) return { tank, engine, path };
-  }
-  const k = Math.floor(rng() * 8);
-  const rev = rng() < 0.5;
-  let path = transformPath(serpentinePath(), k);
-  if (rev) path = path.slice().reverse();
-  return {
-    tank: path[0]!,
-    engine: path[path.length - 1]!,
-    path,
-  };
+  const { tank, engine } = pickFixtures(rng);
+  const path = wanderPath(tank, engine, rng);
+  return { tank: path[0]!, engine: path[path.length - 1]!, path };
 }
 
 export function tilesFromPath(path: readonly PipeCell[]): number[][] {
@@ -270,6 +214,16 @@ export function tilesFromPath(path: readonly PipeCell[]): number[][] {
     }
   }
   return tiles;
+}
+
+function fillDecoys(tiles: number[][], rng: () => number): void {
+  for (let r = 0; r < PIPE_GRID; r++) {
+    for (let c = 0; c < PIPE_GRID; c++) {
+      if (tiles[r]![c]) continue;
+      const pool = rng() < 0.35 ? STRAIGHTS : ELBOWS;
+      tiles[r]![c] = pool[Math.floor(rng() * pool.length)]!;
+    }
+  }
 }
 
 function cloneTiles(tiles: number[][]): number[][] {
@@ -344,14 +298,26 @@ export function isPathComplete(state: Pick<PipeState, "tiles" | "tank" | "engine
   }).has(cellKey(state.engine.r, state.engine.c));
 }
 
+export function solvedDeal(seed: number): {
+  tiles: number[][];
+  tank: PipeCell;
+  engine: PipeCell;
+  pathLen: number;
+} {
+  const rng = mulberry32(seed);
+  const { tank, engine, path } = dealPath(rng);
+  const tiles = tilesFromPath(path);
+  fillDecoys(tiles, rng);
+  return { tiles, tank, engine, pathLen: path.length };
+}
+
 export function startPipes(seed?: number): PipeState {
   const s = seed ?? (Date.now() ^ 0x7e77) >>> 0;
-  const rng = mulberry32(s);
-  const { tank, engine, path } = dealPath(rng);
+  const solved = solvedDeal(s);
   return {
-    tiles: scrambleTiles(tilesFromPath(path), tank, engine, s),
-    tank,
-    engine,
+    tiles: scrambleTiles(solved.tiles, solved.tank, solved.engine, s),
+    tank: solved.tank,
+    engine: solved.engine,
     rotates: 0,
     phase: "playing",
   };
