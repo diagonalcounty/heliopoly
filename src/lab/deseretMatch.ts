@@ -2,13 +2,19 @@
  * Lab drill: Deseret alphabet flash-match (#79).
  * Show a capital Deseret glyph → pick the Latin letter. 8/10 wins.
  * Practice only — no GameState / src/core.
+ *
+ * Each round starts with a 3s aligned-alphabet preview (capitals over Latin)
+ * before the 4-choice quiz. Preview is once per round (open + Play again).
  */
 
 export const ROUND_LENGTH = 10;
 export const WIN_CORRECT = 8;
 export const CHOICE_COUNT = 4;
+/** Seconds the alignment chart is on screen before the quiz (3, then 2, then 1). */
+export const PREVIEW_TICKS = 3;
 
-export type DeseretPhase = "playing" | "reveal" | "won" | "lost";
+export type DeseretPhase = "preview" | "playing" | "reveal" | "won" | "lost";
+export type PreviewCountdown = 3 | 2 | 1 | 0;
 
 export type Rng = () => number;
 
@@ -58,6 +64,8 @@ export interface DeseretState {
   usedIds: string[];
   /** On reveal: the Latin that should have been picked. */
   revealedLatin: string | null;
+  /** 3 → 2 → 1 while phase is preview; 0 once the quiz is live. */
+  previewCountdown: PreviewCountdown;
 }
 
 export function glyphChar(g: DeseretGlyph): string {
@@ -117,18 +125,33 @@ function finishIfComplete(state: DeseretState): DeseretState {
     ...state,
     phase: state.correct >= WIN_CORRECT ? "won" : "lost",
     revealedLatin: null,
+    previewCountdown: 0,
   };
 }
 
 export function startDeseretMatch(rng: Rng = Math.random): DeseretState {
   return {
-    phase: "playing",
+    phase: "preview",
     asked: 0,
     correct: 0,
     prompt: dealPrompt(rng, []),
     usedIds: [],
     revealedLatin: null,
+    previewCountdown: PREVIEW_TICKS,
   };
+}
+
+/**
+ * Pure one-second tick of the round-start chart.
+ * 3 → 2 → 1 stay in preview; the tick from 1 hides the chart and starts the quiz.
+ */
+export function tickPreview(state: DeseretState): DeseretState {
+  if (state.phase !== "preview") return state;
+  if (state.previewCountdown <= 1) {
+    return { ...state, phase: "playing", previewCountdown: 0 };
+  }
+  const next = (state.previewCountdown - 1) as 2 | 1;
+  return { ...state, previewCountdown: next };
 }
 
 export function isCorrectChoice(state: DeseretState, latin: string): boolean {
@@ -139,6 +162,7 @@ export function isCorrectChoice(state: DeseretState, latin: string): boolean {
  * Apply a Latin pick.
  * - Correct: next prompt (or won at 8/10).
  * - Miss: phase → reveal with the answer; caller advances after the flash.
+ * Preview / ended rounds ignore picks.
  */
 export function applyDeseretChoice(
   state: DeseretState,
@@ -149,12 +173,13 @@ export function applyDeseretChoice(
   const usedIds = [...state.usedIds, state.prompt.glyph.id];
   if (latin === state.prompt.glyph.latin) {
     const next: DeseretState = {
+      ...state,
       phase: "playing",
       asked: state.asked + 1,
       correct: state.correct + 1,
-      prompt: state.prompt,
       usedIds,
       revealedLatin: null,
+      previewCountdown: 0,
     };
     const done = finishIfComplete(next);
     if (done.phase !== "playing") return done;
@@ -175,12 +200,12 @@ export function advanceDeseret(
 ): DeseretState {
   if (state.phase !== "reveal") return state;
   const next: DeseretState = {
+    ...state,
     phase: "playing",
     asked: state.asked + 1,
     correct: state.correct,
-    prompt: state.prompt,
-    usedIds: state.usedIds,
     revealedLatin: null,
+    previewCountdown: 0,
   };
   const done = finishIfComplete(next);
   if (done.phase !== "playing") return done;

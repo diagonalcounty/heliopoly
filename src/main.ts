@@ -121,6 +121,7 @@ import {
   type UrpState,
 } from "./lab/urpGrader";
 import {
+  DESERET_INVENTORY,
   ROUND_LENGTH as DESERET_ROUND,
   WIN_CORRECT as DESERET_WIN,
   advanceDeseret,
@@ -128,6 +129,7 @@ import {
   glyphChar,
   playAgainDeseret,
   startDeseretMatch,
+  tickPreview,
   type DeseretState,
 } from "./lab/deseretMatch";
 import type { Board } from "./core/types";
@@ -428,6 +430,9 @@ const deseretChoicesEl = document.getElementById("deseret-choices")!;
 const deseretStatusEl = document.getElementById("deseret-status")!;
 const deseretScoreEl = document.getElementById("deseret-score")!;
 const deseretPlayEl = document.getElementById("deseret-play")!;
+const deseretPreviewEl = document.getElementById("deseret-preview")!;
+const deseretCountdownEl = document.getElementById("deseret-countdown")!;
+const deseretChartEl = document.getElementById("deseret-chart")!;
 const deseretEndEl = document.getElementById("deseret-end")!;
 const deseretEndTitle = document.getElementById("deseret-end-title")!;
 const deseretEndBlurb = document.getElementById("deseret-end-blurb")!;
@@ -2331,14 +2336,24 @@ function tilesPlayAgain(): void {
 }
 
 /** —— Deseret alphabet matching (#79) —— */
+const DESERET_PREVIEW_MS = 1000;
 let deseretState: DeseretState | null = null;
 let deseretRevealTimer = 0;
+let deseretPreviewTimer = 0;
 
 function isDeseretOpen(): boolean {
   return !deseretRoot.classList.contains("hidden");
 }
 
+function clearDeseretTimers(): void {
+  window.clearTimeout(deseretRevealTimer);
+  window.clearTimeout(deseretPreviewTimer);
+}
+
 function deseretScoreLine(state: DeseretState): string {
+  if (state.phase === "preview") {
+    return `0 / ${DESERET_ROUND} · 0 correct`;
+  }
   const shown =
     state.phase === "won" || state.phase === "lost"
       ? state.asked
@@ -2346,11 +2361,32 @@ function deseretScoreLine(state: DeseretState): string {
   return `${shown} / ${DESERET_ROUND} · ${state.correct} correct`;
 }
 
+function renderDeseretChart(): void {
+  deseretChartEl.replaceChildren();
+  for (const g of DESERET_INVENTORY) {
+    const pair = document.createElement("div");
+    pair.className = "deseret-pair";
+    pair.setAttribute("role", "listitem");
+    pair.setAttribute("aria-label", `${g.name}, ${g.latin}`);
+    const glyph = document.createElement("span");
+    glyph.className = "deseret-pair-glyph";
+    glyph.textContent = glyphChar(g);
+    glyph.setAttribute("aria-hidden", "true");
+    const latin = document.createElement("span");
+    latin.className = "deseret-pair-latin";
+    latin.textContent = g.latin;
+    pair.append(glyph, latin);
+    deseretChartEl.appendChild(pair);
+  }
+}
+
 function renderDeseret(): void {
   if (!deseretState) return;
   const ended = deseretState.phase === "won" || deseretState.phase === "lost";
+  const previewing = deseretState.phase === "preview";
   const revealing = deseretState.phase === "reveal";
-  deseretPlayEl.classList.toggle("hidden", ended);
+  deseretPreviewEl.classList.toggle("hidden", !previewing);
+  deseretPlayEl.classList.toggle("hidden", ended || previewing);
   deseretEndEl.classList.toggle("hidden", !ended);
   deseretScoreEl.textContent = deseretScoreLine(deseretState);
   deseretGlyphEl.classList.toggle("is-reveal", revealing);
@@ -2365,6 +2401,12 @@ function renderDeseret(): void {
     deseretStatusEl.textContent = "Round over";
     deseretEndTitle.textContent = "That’s all for this run";
     deseretEndBlurb.textContent = `You matched ${deseretState.correct} of ${DESERET_ROUND}. Eight wins the round — play again when you’re ready.`;
+    return;
+  }
+  if (previewing) {
+    deseretStatusEl.textContent = "Study the letters";
+    deseretCountdownEl.textContent = String(deseretState.previewCountdown);
+    renderDeseretChart();
     return;
   }
 
@@ -2395,6 +2437,21 @@ function renderDeseret(): void {
   }
 }
 
+function armDeseretPreview(): void {
+  window.clearTimeout(deseretPreviewTimer);
+  deseretPreviewTimer = window.setTimeout(() => {
+    if (!deseretState || deseretState.phase !== "preview") return;
+    deseretState = tickPreview(deseretState);
+    renderDeseret();
+    if (deseretState.phase === "preview") {
+      armDeseretPreview();
+    } else {
+      const first = deseretChoicesEl.querySelector("button") as HTMLButtonElement | null;
+      first?.focus();
+    }
+  }, DESERET_PREVIEW_MS);
+}
+
 function deseretChoose(latin: string): void {
   if (!deseretState || deseretState.phase !== "playing") return;
   const next = applyDeseretChoice(deseretState, latin);
@@ -2421,21 +2478,20 @@ function deseretChoose(latin: string): void {
 }
 
 function openDeseret(): void {
-  window.clearTimeout(deseretRevealTimer);
+  clearDeseretTimers();
   deseretState = startDeseretMatch();
   renderDeseret();
   deseretRoot.classList.remove("hidden");
   deseretRoot.setAttribute("aria-hidden", "false");
   document.body.classList.add("handbook-open");
-  const first = deseretChoicesEl.querySelector("button") as HTMLButtonElement | null;
-  first?.focus();
+  armDeseretPreview();
 }
 
 function closeDeseret(): void {
   deseretRoot.classList.add("hidden");
   deseretRoot.setAttribute("aria-hidden", "true");
   deseretState = null;
-  window.clearTimeout(deseretRevealTimer);
+  clearDeseretTimers();
   if (
     duelRoot.classList.contains("hidden") &&
     labRoot.classList.contains("hidden") &&
@@ -2450,11 +2506,10 @@ function closeDeseret(): void {
 }
 
 function deseretPlayAgain(): void {
-  window.clearTimeout(deseretRevealTimer);
+  clearDeseretTimers();
   deseretState = playAgainDeseret();
   renderDeseret();
-  const first = deseretChoicesEl.querySelector("button") as HTMLButtonElement | null;
-  first?.focus();
+  armDeseretPreview();
 }
 
 /** Which Lab accordion category is open (null = all collapsed). */

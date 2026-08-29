@@ -5,6 +5,7 @@
 import {
   CHOICE_COUNT,
   DESERET_INVENTORY,
+  PREVIEW_TICKS,
   ROUND_LENGTH,
   WIN_CORRECT,
   advanceDeseret,
@@ -13,7 +14,9 @@ import {
   glyphChar,
   isCorrectChoice,
   latinLabels,
+  playAgainDeseret,
   startDeseretMatch,
+  tickPreview,
   type DeseretState,
   type Rng,
 } from "./deseretMatch";
@@ -37,6 +40,13 @@ function mulberry32(seed: number): Rng {
     t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
+}
+
+/** Advance the 3-2-1 chart without a real timer. */
+function skipPreview(s: DeseretState): DeseretState {
+  let next = s;
+  for (let i = 0; i < PREVIEW_TICKS; i++) next = tickPreview(next);
+  return next;
 }
 
 {
@@ -95,15 +105,28 @@ function mulberry32(seed: number): Rng {
 {
   const rng = mulberry32(1);
   const s0 = startDeseretMatch(rng);
-  assert(s0.phase === "playing", "start is playing");
+  assert(s0.phase === "preview", "startDrill begins in preview");
+  assert(s0.previewCountdown === 3, "preview countdown starts at 3");
   assert(s0.asked === 0 && s0.correct === 0, "start counters are zero");
-  assert(isCorrectChoice(s0, s0.prompt.glyph.latin), "grade: correct latin matches glyph");
-  assert(!isCorrectChoice(s0, "ZZ"), "grade: unknown latin is wrong");
+  assert(s0.prompt.choices.length === CHOICE_COUNT, "preview already holds the first deal");
+  const ignored = applyDeseretChoice(s0, s0.prompt.glyph.latin, rng);
+  assert(ignored.phase === "preview" && ignored.asked === 0, "preview ignores latin picks");
+  const s1 = tickPreview(s0);
+  assert(s1.phase === "preview" && s1.previewCountdown === 2, "tick 1 shows 2");
+  const s2 = tickPreview(s1);
+  assert(s2.phase === "preview" && s2.previewCountdown === 1, "tick 2 shows 1");
+  const s3 = tickPreview(s2);
+  assert(s3.phase === "playing" && s3.previewCountdown === 0, "tick 3 starts the quiz");
+  assert(s3.prompt.choices.length === CHOICE_COUNT, "playing has 4 options");
+  assert(s3.prompt.glyph.id === s0.prompt.glyph.id, "first quiz glyph is the deal from start");
+  assert(isCorrectChoice(s3, s3.prompt.glyph.latin), "grade: correct latin matches glyph");
+  assert(!isCorrectChoice(s3, "ZZ"), "grade: unknown latin is wrong");
+  assert(tickPreview(s3).phase === "playing", "tick while playing is a no-op");
 }
 
 {
   const rng = mulberry32(8);
-  let s: DeseretState = startDeseretMatch(rng);
+  let s: DeseretState = skipPreview(startDeseretMatch(rng));
   for (let i = 0; i < ROUND_LENGTH; i++) {
     s = applyDeseretChoice(s, s.prompt.glyph.latin, rng);
   }
@@ -115,7 +138,7 @@ function mulberry32(seed: number): Rng {
 
 {
   const rng = mulberry32(7);
-  let s: DeseretState = startDeseretMatch(rng);
+  let s: DeseretState = skipPreview(startDeseretMatch(rng));
   // 7 correct, then 3 misses → 7/10 lose
   for (let i = 0; i < 7; i++) {
     s = applyDeseretChoice(s, s.prompt.glyph.latin, rng);
@@ -138,7 +161,7 @@ function mulberry32(seed: number): Rng {
 
 {
   const rng = mulberry32(80);
-  let s: DeseretState = startDeseretMatch(rng);
+  let s: DeseretState = skipPreview(startDeseretMatch(rng));
   for (let i = 0; i < 8; i++) {
     s = applyDeseretChoice(s, s.prompt.glyph.latin, rng);
   }
@@ -153,13 +176,29 @@ function mulberry32(seed: number): Rng {
 
 {
   const rng = mulberry32(12);
-  const s0 = startDeseretMatch(rng);
+  const s0 = skipPreview(startDeseretMatch(rng));
   const frozen = applyDeseretChoice(
     { ...s0, phase: "won" },
     s0.prompt.glyph.latin,
     rng,
   );
   assert(frozen.asked === s0.asked, "won state ignores further picks");
+}
+
+{
+  const rng = mulberry32(9);
+  let s: DeseretState = skipPreview(startDeseretMatch(rng));
+  for (let i = 0; i < ROUND_LENGTH; i++) {
+    s = applyDeseretChoice(s, s.prompt.glyph.latin, rng);
+  }
+  assert(s.phase === "won", "setup: won before Play again");
+  s = playAgainDeseret(rng);
+  assert(s.phase === "preview", "Play again returns to preview");
+  assert(s.previewCountdown === 3, "Play again countdown is 3");
+  assert(s.asked === 0 && s.correct === 0, "Play again resets counters");
+  s = skipPreview(s);
+  assert(s.phase === "playing", "after preview ticks, Play again is playing");
+  assert(s.prompt.choices.length === CHOICE_COUNT, "Play again deal has 4 options");
 }
 
 if (failed) {
