@@ -17,6 +17,7 @@ Working title. Not RoboSockets. Lab-only matching / falling-block drill inspired
 - No duds, no bomb, no drill, no battery-extraction lore.
 - Chain of **5** linked eggs morphs into a box that fills the **top horizontal level bar** (save / evolve, not explode).
 - Level bar height is fixed. L1 = 5 segments. Next level adds 20% of the base 5 (6, then 7…).
+- **Speed:** each level promotion multiplies drop/gravity speed by **1.10** (10% faster than the previous level). Compounding. No countdown timer / time-up fail in Lab v1.
 - Next-piece preview required (queue of 3 preferred).
 - Push is **parked** — not in v1 chrome. If revived: shove sideways; off-board recycles into the queue.
 - Open-source Tetris / match / pipe engines are fair to borrow for the grid; art and rules are ours.
