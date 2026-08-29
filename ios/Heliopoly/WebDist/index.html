@@ -14,8 +14,8 @@
     <link rel="icon" type="image/png" href="./favicon-32.png" sizes="32x32" />
     <link rel="icon" type="image/png" href="./favicon-16.png" sizes="16x16" />
     <link rel="apple-touch-icon" href="./apple-touch-icon.png" sizes="180x180" />
-    <script type="module" crossorigin src="./assets/index-BpgpDcOR.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-COPbgZch.css">
+    <script type="module" crossorigin src="./assets/index-CjWB1Ouj.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-bMU6kF9g.css">
   </head>
   <body>
     <div id="app">
@@ -335,9 +335,9 @@ Name your rocket. Then Launch.</p>
         </header>
         <div class="lab-body">
           <p class="hint lab-intro">
-            Tap a category to expand it, then pick an item. Drills under
-            <strong>Which is larger?</strong> leave your expedition alone;
-            scenarios under Minigames / End / Economy replace the current game.
+            Tap a category to expand it, then pick an item. Literacy drills and
+            standalone Minigames (Bot Evolution) leave your expedition alone;
+            Gravity Duel / End / Economy replace the current game.
           </p>
           <div id="lab-scenarios" class="lab-scenarios"></div>
         </div>
@@ -405,6 +405,65 @@ Name your rocket. Then Launch.</p>
             <div class="eac-win-actions">
               <button type="button" id="eac-again" class="eac-primary">Play again</button>
               <button type="button" id="eac-done" class="eac-secondary">Back to Lab</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lab drill: Bot Evolution egg-socket matching (#203) -->
+    <div id="botevo-root" class="handbook botevo-overlay hidden" aria-hidden="true">
+      <div class="handbook-backdrop" id="botevo-backdrop"></div>
+      <div
+        class="handbook-panel botevo-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="botevo-title"
+      >
+        <header class="handbook-header">
+          <div>
+            <p class="handbook-kicker">Lab · minigame</p>
+            <h2 id="botevo-title">Bot Evolution</h2>
+          </div>
+          <button type="button" id="botevo-close" class="handbook-close" aria-label="Close drill">
+            ✕
+          </button>
+        </header>
+        <div class="botevo-body">
+          <div class="botevo-status-row">
+            <p id="botevo-status" class="botevo-status mono" aria-live="polite">Level 1</p>
+            <p id="botevo-score" class="botevo-score mono" aria-live="polite">0 boxes</p>
+          </div>
+          <div
+            id="botevo-bar"
+            class="botevo-bar"
+            role="meter"
+            aria-label="Level bar"
+            aria-valuemin="0"
+            aria-valuenow="0"
+            aria-valuemax="5"
+          ></div>
+          <p class="hint botevo-hint">
+            Tap a column to aim, then <strong>Drop</strong> (or tap again / ↓).
+            Match live pins into a chain of 5; they morph into a box that fills
+            the bar. No timer. Untimed Lab practice; expedition stays put.
+          </p>
+          <div id="botevo-play" class="botevo-play">
+            <div id="botevo-grid" class="botevo-grid" role="grid" aria-label="Bot Evolution field"></div>
+            <div class="botevo-queue-wrap">
+              <p class="botevo-queue-label">Next</p>
+              <div id="botevo-queue" class="botevo-queue" aria-label="Next eggs"></div>
+            </div>
+          </div>
+          <div class="botevo-toolbar">
+            <button type="button" id="botevo-drop" class="eac-primary">Drop</button>
+          </div>
+          <div id="botevo-end" class="eac-win hidden" aria-live="polite">
+            <p class="eac-win-title">Topped out</p>
+            <p id="botevo-end-blurb" class="hint">A column overflowed. Restart the drill from Lab.</p>
+            <div class="eac-win-actions">
+              <button type="button" id="botevo-again" class="eac-primary">Play again</button>
+              <button type="button" id="botevo-done" class="eac-secondary">Back to Lab</button>
             </div>
           </div>
         </div>
