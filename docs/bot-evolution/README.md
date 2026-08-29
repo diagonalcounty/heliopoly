@@ -45,6 +45,10 @@ Working title. Not RoboSockets. Lab-only matching / falling-block drill inspired
 | Gemini *Egg-Socket Connections* card | Chrome + circuit-egg + glow reference |
 | Hybrid *Bot Evolution* card mockup | Latest UI mashup — still not locked |
 
+## Implementation
+
+Lab standalone: `src/lab/botEvolution.ts` (engine + erased-plus grammar). Overlay `#botevo-root`. Tests: `npx tsx src/lab/botEvolution.test.ts`. Chrome is readable, not pixel-locked.
+
 ## Related issues
 
-See GitHub issues opened 2026-08-29 under Lab shelf [#153](https://github.com/diagonalcounty/heliopoly/issues/153).
+See GitHub issues opened 2026-08-29 under Lab shelf [#153](https://github.com/diagonalcounty/heliopoly/issues/153): parent [#203](https://github.com/diagonalcounty/heliopoly/issues/203), engine [#204](https://github.com/diagonalcounty/heliopoly/issues/204), grammar [#205](https://github.com/diagonalcounty/heliopoly/issues/205), UI [#206](https://github.com/diagonalcounty/heliopoly/issues/206).

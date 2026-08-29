@@ -34,7 +34,7 @@ export const LAB_GROUP_LABELS: Record<LabScenarioGroup, string> = {
 export const LAB_GROUP_BLURBS: Record<LabScenarioGroup, string> = {
   "which-is-larger":
     "Literacy drills: pick the larger of two numbers in a target numbering system.",
-  minigame: "Standalone practice modes (e.g. Gravity Duel).",
+  minigame: "Standalone practice modes (Bot Evolution, Gravity Duel).",
   end: "Canned end screens for UI / copy checks.",
   economy: "Economy and risk edge cases.",
 };
@@ -140,7 +140,17 @@ export const LAB_SCENARIOS: LabScenario[] = [
     standaloneId: "binary-compare",
   },
 
-  // —— Other minigames (single Gravity Duel entry) ——
+  // —— Other minigames ——
+  {
+    id: "bot-evolution",
+    title: "Bot Evolution",
+    blurb:
+      "Drop egg-bots into a 5×8 field. Match live sockets into a chain of 5; they morph into a box that fills the level bar. Untimed Lab practice; expedition stays put.",
+    group: "minigame",
+    kind: "standalone",
+    available: true,
+    standaloneId: "bot-evolution",
+  },
   {
     id: "duel-you-challenger",
     title: "Gravity Duel",

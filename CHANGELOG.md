@@ -5,6 +5,7 @@
 Weekly **https://heliopoly.live/** promote at **Sunday 00:01 UTC** (`2026-08-23T00:01:00.000Z`).
 
 ### Play / UX
+- **Bot Evolution Lab drill (#203):** 5×8 egg-socket matching. Drop into a column; chains of 5 morph into a box that fills the level bar. L1 = 5 boxes, then 6, 7…; gravity ×1.10 per level. Untimed; no `src/core` edits.
 - **Best books on the end screen (#136):** the winning story names up to three held claims by ROI — “Best books: Enceladus 236% · Venus 180% · Elon 91%.” Sold / lost / zero-cash-in deeds don’t rank.
 - **Rocket dossier:** click any text on a seat in **On the ledger** to open that rocket’s holdings — cash, systems, current rent, and ROI (rent + fuel strikes vs cash in).
 - **Remote sell:** sell a claim from the dossier without being on it (half deed, depot scrapped). One sale per turn.

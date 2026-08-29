@@ -18,6 +18,7 @@ const HIDDEN_SHEETS = [
   "#end-root",
   "#lab-root",
   "#eac-root",
+  "#botevo-root",
 ];
 
 test.describe("phone setup #158", () => {
@@ -470,6 +471,33 @@ test.describe("phone Lab sheet #193", () => {
     await page.locator("#lab-root .handbook-close").click();
     await expect(page.locator("#lab-root")).toHaveClass(/hidden/);
 
+    const rollAfter = await hitAt(page, roll.x, roll.y);
+    expect(rollAfter?.id, "Roll tappable after Lab close").toBe("btn-roll");
+  });
+});
+
+test.describe("phone Lab Bot Evolution #203", () => {
+  test.skip(({ viewport }) => (viewport?.width ?? 0) >= 900, "phone only");
+
+  test("5×8 grid; cells ≥40px; Close returns Roll", async ({ page }) => {
+    await launch(page);
+    const roll = await centerOf(page, "#btn-roll");
+    await page.locator("#btn-lab").click();
+    await expect(page.locator("#lab-root")).not.toHaveClass(/hidden/);
+    await page.locator('.lab-group-toggle[aria-controls="lab-group-items-minigame"]').click();
+    await page.locator('.lab-scenario[data-scenario="bot-evolution"]').click();
+    await expect(page.locator("#botevo-root")).not.toHaveClass(/hidden/);
+
+    const cells = page.locator("#botevo-grid .botevo-cell");
+    await expect(cells).toHaveCount(40);
+    const first = await boxOf(page, "#botevo-grid .botevo-cell");
+    expect(first.width, "egg cell ≥40px").toBeGreaterThanOrEqual(40);
+    expect(first.height, "egg cell ≥40px").toBeGreaterThanOrEqual(40);
+    expect(first.onControl, "elementFromPoint egg cell").toBe(true);
+
+    await page.locator("#botevo-root .handbook-close").click();
+    await expect(page.locator("#botevo-root")).toHaveClass(/hidden/);
+    await page.locator("#lab-root .handbook-close").click();
     const rollAfter = await hitAt(page, roll.x, roll.y);
     expect(rollAfter?.id, "Roll tappable after Lab close").toBe("btn-roll");
   });

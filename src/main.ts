@@ -83,6 +83,27 @@ import {
   STANDALONE_TO_SCRIPT,
   type NumberScriptId,
 } from "./lab/numberScripts";
+import {
+  BOT_COLS,
+  BOT_ROWS,
+  DIR_E,
+  DIR_N,
+  DIR_S,
+  DIR_W,
+  aimColumn,
+  fallingOccupies,
+  gravityMs,
+  hardDrop,
+  liveChainCells,
+  playAgainBotEvo,
+  quotaForLevel,
+  release,
+  socketsOf,
+  startBotEvo,
+  tick,
+  type BotState,
+  type PieceId,
+} from "./lab/botEvolution";
 import type { Board } from "./core/types";
 import { submitGameTelemetry } from "./telemetry";
 
@@ -353,6 +374,16 @@ const eacRightWest = document.getElementById("eac-right-west")!;
 const eacHintBtn = document.getElementById("eac-hint") as HTMLButtonElement;
 const eacResetBtn = document.getElementById("eac-reset") as HTMLButtonElement;
 const eacRecapEl = document.getElementById("eac-recap")!;
+const botEvoRoot = document.getElementById("botevo-root")!;
+const botEvoGridEl = document.getElementById("botevo-grid")!;
+const botEvoQueueEl = document.getElementById("botevo-queue")!;
+const botEvoStatusEl = document.getElementById("botevo-status")!;
+const botEvoScoreEl = document.getElementById("botevo-score")!;
+const botEvoBarEl = document.getElementById("botevo-bar")!;
+const botEvoPlayEl = document.getElementById("botevo-play")!;
+const botEvoEndEl = document.getElementById("botevo-end")!;
+const botEvoEndBlurb = document.getElementById("botevo-end-blurb")!;
+const botEvoDropBtn = document.getElementById("botevo-drop") as HTMLButtonElement;
 
 const btnNew = document.getElementById("btn-new") as HTMLButtonElement;
 const btnSelf = document.getElementById("btn-selfplay") as HTMLButtonElement;
@@ -1586,6 +1617,7 @@ function closeLab(): void {
   if (
     duelRoot.classList.contains("hidden") &&
     eacRoot.classList.contains("hidden") &&
+    botEvoRoot.classList.contains("hidden") &&
     document.getElementById("handbook-root")?.classList.contains("hidden")
   ) {
     document.body.classList.remove("handbook-open");
@@ -1740,6 +1772,7 @@ function closeEasternArabicCompare(): void {
   if (
     duelRoot.classList.contains("hidden") &&
     labRoot.classList.contains("hidden") &&
+    botEvoRoot.classList.contains("hidden") &&
     document.getElementById("handbook-root")?.classList.contains("hidden")
   ) {
     document.body.classList.remove("handbook-open");
@@ -1772,6 +1805,198 @@ function eacPlayAgain(): void {
   eacState = playAgainCompareDrill();
   renderEac();
   eacLeftBtn.focus();
+}
+
+/** —— Bot Evolution egg-socket matching (#203) —— */
+let botEvoState: BotState | null = null;
+let botEvoTimer: number | null = null;
+
+function isBotEvoOpen(): boolean {
+  return !botEvoRoot.classList.contains("hidden");
+}
+
+function clearBotEvoTimer(): void {
+  if (botEvoTimer !== null) {
+    window.clearInterval(botEvoTimer);
+    botEvoTimer = null;
+  }
+}
+
+function armBotEvoTimer(): void {
+  clearBotEvoTimer();
+  if (!botEvoState || botEvoState.phase !== "falling") return;
+  const ms = gravityMs(botEvoState.level);
+  botEvoTimer = window.setInterval(() => {
+    if (!botEvoState || botEvoState.phase !== "falling") {
+      clearBotEvoTimer();
+      return;
+    }
+    botEvoState = tick(botEvoState);
+    renderBotEvo();
+    if (!botEvoState || botEvoState.phase !== "falling") clearBotEvoTimer();
+  }, ms);
+}
+
+function appendEggGlyph(host: HTMLElement, piece: PieceId): void {
+  const egg = document.createElement("span");
+  egg.className = "botevo-egg";
+  egg.setAttribute("aria-hidden", "true");
+  const hub = document.createElement("span");
+  hub.className = "botevo-hub";
+  egg.appendChild(hub);
+  if (piece === "plus") {
+    const inner = document.createElement("span");
+    inner.className = "botevo-inner-plus";
+    egg.appendChild(inner);
+  }
+  const sockets = socketsOf(piece);
+  const arms: Array<[number, string]> = [
+    [DIR_N, "n"],
+    [DIR_E, "e"],
+    [DIR_S, "s"],
+    [DIR_W, "w"],
+  ];
+  for (const [bit, name] of arms) {
+    if (sockets & bit) {
+      const arm = document.createElement("span");
+      arm.className = `botevo-arm ${name}`;
+      egg.appendChild(arm);
+      const pin = document.createElement("span");
+      pin.className = `botevo-pin ${name}`;
+      egg.appendChild(pin);
+    }
+  }
+  host.appendChild(egg);
+}
+
+function renderBotEvo(): void {
+  if (!botEvoState) return;
+  const lost = botEvoState.phase === "lost";
+  const quota = quotaForLevel(botEvoState.level);
+  botEvoStatusEl.textContent = lost
+    ? "Topped out"
+    : `Level ${botEvoState.level} · ${botEvoState.segments} / ${quota}`;
+  botEvoScoreEl.textContent =
+    botEvoState.boxes === 1 ? "1 box" : `${botEvoState.boxes} boxes`;
+  botEvoBarEl.setAttribute("aria-valuemax", String(quota));
+  botEvoBarEl.setAttribute("aria-valuenow", String(botEvoState.segments));
+  botEvoBarEl.replaceChildren();
+  for (let i = 0; i < quota; i++) {
+    const pip = document.createElement("span");
+    pip.className = "botevo-pip" + (i < botEvoState.segments ? " is-filled" : "");
+    botEvoBarEl.appendChild(pip);
+  }
+  botEvoPlayEl.classList.toggle("hidden", lost);
+  botEvoEndEl.classList.toggle("hidden", !lost);
+  botEvoDropBtn.disabled = lost || botEvoState.phase === "falling";
+  if (lost) {
+    const n = botEvoState.boxes;
+    botEvoEndBlurb.textContent =
+      n === 1
+        ? "A column overflowed after 1 box. Play again when you’re ready."
+        : `A column overflowed after ${n} boxes. Play again when you’re ready.`;
+  }
+
+  const live = liveChainCells(botEvoState.grid);
+  let ghostRow: number | null = null;
+  if (botEvoState.phase === "aiming") {
+    for (let r = BOT_ROWS - 1; r >= 0; r--) {
+      if (botEvoState.grid[r]![botEvoState.aimCol] === null) {
+        ghostRow = r;
+        break;
+      }
+    }
+  }
+
+  botEvoGridEl.replaceChildren();
+  for (let r = 0; r < BOT_ROWS; r++) {
+    for (let c = 0; c < BOT_COLS; c++) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "botevo-cell";
+      btn.dataset.r = String(r);
+      btn.dataset.c = String(c);
+      btn.setAttribute("role", "gridcell");
+      const landed = botEvoState.grid[r]![c];
+      const falling = fallingOccupies(botEvoState, r, c);
+      const ghost = ghostRow === r && c === botEvoState.aimCol && !landed;
+      if (c === botEvoState.aimCol) btn.classList.add("is-aim");
+      if (live.has(`${r},${c}`)) btn.classList.add("is-live");
+      const show = landed ?? (falling || ghost ? botEvoState.current : null);
+      if (show) appendEggGlyph(btn, show);
+      if (ghost) btn.style.opacity = "0.45";
+      const label = landed
+        ? `Egg ${r + 1},${c + 1} ${landed}`
+        : falling
+          ? `Falling egg column ${c + 1}`
+          : `Column ${c + 1}`;
+      btn.setAttribute("aria-label", lost ? `${label}, locked` : label);
+      btn.disabled = lost;
+      if (!lost) {
+        const col = c;
+        btn.addEventListener("click", () => {
+          if (!botEvoState || botEvoState.phase === "lost") return;
+          if (botEvoState.phase === "aiming" && botEvoState.aimCol === col) {
+            botEvoState = hardDrop(botEvoState);
+          } else if (botEvoState.phase === "aiming") {
+            botEvoState = aimColumn(botEvoState, col);
+          } else {
+            botEvoState = aimColumn(botEvoState, col);
+          }
+          renderBotEvo();
+          armBotEvoTimer();
+        });
+      }
+      botEvoGridEl.appendChild(btn);
+    }
+  }
+
+  botEvoQueueEl.replaceChildren();
+  for (const piece of botEvoState.queue) {
+    const slot = document.createElement("div");
+    slot.className = "botevo-queue-egg";
+    slot.setAttribute("aria-label", `Next ${piece}`);
+    appendEggGlyph(slot, piece);
+    botEvoQueueEl.appendChild(slot);
+  }
+}
+
+function openBotEvo(): void {
+  botEvoState = startBotEvo();
+  renderBotEvo();
+  botEvoRoot.classList.remove("hidden");
+  botEvoRoot.setAttribute("aria-hidden", "false");
+  document.body.classList.add("handbook-open");
+  botEvoDropBtn.focus();
+}
+
+function closeBotEvo(): void {
+  clearBotEvoTimer();
+  botEvoRoot.classList.add("hidden");
+  botEvoRoot.setAttribute("aria-hidden", "true");
+  botEvoState = null;
+  if (
+    duelRoot.classList.contains("hidden") &&
+    labRoot.classList.contains("hidden") &&
+    eacRoot.classList.contains("hidden") &&
+    document.getElementById("handbook-root")?.classList.contains("hidden")
+  ) {
+    document.body.classList.remove("handbook-open");
+  }
+}
+
+function botEvoPlayAgain(): void {
+  clearBotEvoTimer();
+  botEvoState = playAgainBotEvo();
+  renderBotEvo();
+  botEvoDropBtn.focus();
+}
+
+function botEvoDrop(): void {
+  if (!botEvoState || botEvoState.phase !== "aiming") return;
+  botEvoState = release(botEvoState);
+  renderBotEvo();
+  armBotEvoTimer();
 }
 
 /** Which Lab accordion category is open (null = all collapsed). */
@@ -1854,6 +2079,10 @@ async function runLabScenario(id: string): Promise<void> {
   const sc = LAB_SCENARIOS.find((x) => x.id === id);
   if (!sc || !labScenarioAvailable(sc)) return;
   if (sc.kind === "standalone") {
+    if (sc.standaloneId === "bot-evolution") {
+      openBotEvo();
+      return;
+    }
     const script = STANDALONE_TO_SCRIPT[sc.standaloneId];
     if (script) openNumberCompare(script);
     return;
@@ -1877,12 +2106,25 @@ document.getElementById("eac-done")?.addEventListener("click", () => {
   closeEasternArabicCompare();
   openLab();
 });
+document.getElementById("botevo-close")?.addEventListener("click", () => closeBotEvo());
+document.getElementById("botevo-backdrop")?.addEventListener("click", () => closeBotEvo());
+document.getElementById("botevo-again")?.addEventListener("click", () => botEvoPlayAgain());
+document.getElementById("botevo-done")?.addEventListener("click", () => {
+  closeBotEvo();
+  openLab();
+});
+botEvoDropBtn.addEventListener("click", () => botEvoDrop());
 eacHintBtn.addEventListener("click", () => eacHint());
 eacResetBtn.addEventListener("click", () => eacReset());
 eacLeftBtn.addEventListener("click", () => eacChoose("left"));
 eacRightBtn.addEventListener("click", () => eacChoose("right"));
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
+    if (isBotEvoOpen()) {
+      e.preventDefault();
+      closeBotEvo();
+      return;
+    }
     if (isEacOpen()) {
       e.preventDefault();
       closeEasternArabicCompare();
@@ -1890,6 +2132,28 @@ document.addEventListener("keydown", (e) => {
     }
     if (!labRoot.classList.contains("hidden")) closeLab();
     return;
+  }
+  if (isBotEvoOpen() && botEvoState && botEvoState.phase !== "lost") {
+    if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      botEvoState = aimColumn(botEvoState, botEvoState.aimCol - 1);
+      renderBotEvo();
+      return;
+    }
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      botEvoState = aimColumn(botEvoState, botEvoState.aimCol + 1);
+      renderBotEvo();
+      return;
+    }
+    if (e.key === "ArrowDown" || e.key === " ") {
+      e.preventDefault();
+      if (botEvoState.phase === "aiming") {
+        botEvoState = hardDrop(botEvoState);
+        renderBotEvo();
+      }
+      return;
+    }
   }
   if (!isEacOpen() || !eacState || eacState.phase !== "playing") return;
   // Point-at-winner: < / ← = left larger; > / → = right larger

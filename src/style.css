@@ -617,6 +617,276 @@ html.native-shell #app {
   color: var(--muted);
 }
 
+/* —— Lab: Bot Evolution egg-socket matching (#203) —— */
+#botevo-root.botevo-overlay {
+  z-index: 1050;
+}
+
+.botevo-panel {
+  width: min(560px, calc(100vw - 32px));
+  height: auto;
+  max-height: min(92vh, 820px);
+}
+
+.botevo-body {
+  padding: 16px 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+}
+
+.botevo-status-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.botevo-status {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--accent-2);
+  letter-spacing: 0.04em;
+}
+
+.botevo-score {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.botevo-bar {
+  display: flex;
+  gap: 3px;
+  height: 10px;
+  width: 100%;
+  padding: 2px;
+  border-radius: 999px;
+  border: 1px solid #3d5a80;
+  background: #0a1020;
+}
+
+.botevo-pip {
+  flex: 1 1 0;
+  min-width: 0;
+  border-radius: 999px;
+  background: #1a2438;
+}
+
+.botevo-pip.is-filled {
+  background: linear-gradient(180deg, #ffd978 0%, #c9a227 100%);
+  box-shadow: 0 0 6px rgba(201, 162, 39, 0.55);
+}
+
+.botevo-hint {
+  margin: 0;
+}
+
+.botevo-play {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 12px;
+}
+
+.botevo-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(44px, 1fr));
+  grid-template-rows: repeat(8, minmax(44px, 1fr));
+  gap: 2px;
+  width: min(100%, 280px);
+  aspect-ratio: 5 / 8;
+  margin: 0;
+  padding: 6px;
+  border-radius: 12px;
+  border: 1px solid #3d5a80;
+  background: linear-gradient(180deg, #10182c 0%, #0a1020 100%);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+
+.botevo-cell {
+  position: relative;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid #2a3555;
+  background: rgba(18, 26, 44, 0.65);
+  cursor: pointer;
+  touch-action: manipulation;
+  overflow: visible;
+}
+
+.botevo-cell:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.botevo-cell:focus-visible {
+  border-color: var(--accent-2);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(201, 162, 39, 0.35);
+}
+
+.botevo-cell:focus:not(:focus-visible) {
+  box-shadow: none;
+  outline: none;
+}
+
+.botevo-cell:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.botevo-cell.is-aim {
+  border-color: #6ec8ff;
+  background: rgba(110, 200, 255, 0.12);
+}
+
+.botevo-cell.is-live .botevo-egg {
+  box-shadow: 0 0 10px rgba(255, 217, 120, 0.85);
+}
+
+.botevo-egg {
+  position: absolute;
+  inset: 6%;
+  border-radius: 50% 50% 48% 48%;
+  background: radial-gradient(ellipse at 35% 30%, #f7ecd0 0%, #e4d3a4 55%, #cbb888 100%);
+  border: 1px solid #8a7340;
+}
+
+.botevo-hub {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 22%;
+  height: 22%;
+  transform: translate(-50%, -50%);
+  border-radius: 2px;
+  background: #c9a227;
+  z-index: 2;
+}
+
+.botevo-inner-plus {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 36%;
+  height: 36%;
+  transform: translate(-50%, -50%);
+  background:
+    linear-gradient(#6ec8ff, #6ec8ff) center / 22% 100% no-repeat,
+    linear-gradient(#6ec8ff, #6ec8ff) center / 100% 22% no-repeat;
+  opacity: 0.85;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.botevo-arm {
+  position: absolute;
+  background: #c9a227;
+  z-index: 1;
+}
+
+.botevo-arm.n {
+  left: 44%;
+  width: 12%;
+  top: 12%;
+  height: 42%;
+}
+
+.botevo-arm.e {
+  top: 44%;
+  height: 12%;
+  right: 12%;
+  width: 42%;
+}
+
+.botevo-arm.s {
+  left: 44%;
+  width: 12%;
+  bottom: 12%;
+  height: 42%;
+}
+
+.botevo-arm.w {
+  top: 44%;
+  height: 12%;
+  left: 12%;
+  width: 42%;
+}
+
+.botevo-pin {
+  position: absolute;
+  width: 18%;
+  height: 18%;
+  border-radius: 50%;
+  background: #c9a227;
+  box-shadow: 0 0 0 2px #6b7280;
+  z-index: 4;
+}
+
+.botevo-pin.n {
+  left: 41%;
+  top: 0;
+}
+
+.botevo-pin.e {
+  right: 0;
+  top: 41%;
+}
+
+.botevo-pin.s {
+  left: 41%;
+  bottom: 0;
+}
+
+.botevo-pin.w {
+  left: 0;
+  top: 41%;
+}
+
+.botevo-queue-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 52px;
+}
+
+.botevo-queue-label {
+  margin: 0;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.botevo-queue {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.botevo-queue-egg {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid #2a3555;
+  background: rgba(18, 26, 44, 0.65);
+}
+
+.botevo-toolbar {
+  display: flex;
+  justify-content: center;
+}
+
+.botevo-play.hidden,
+#botevo-end.hidden {
+  display: none;
+}
+
 .eac-recap-vs {
   font-size: 0.8rem;
   color: var(--muted);
@@ -4313,7 +4583,8 @@ button:not(:disabled):active {
   #announce-root.hidden,
   #end-root.hidden,
   #lab-root.hidden,
-  #eac-root.hidden {
+  #eac-root.hidden,
+  #botevo-root.hidden {
     pointer-events: none !important;
   }
 
@@ -4324,7 +4595,8 @@ button:not(:disabled):active {
   #announce-root:not(.hidden),
   #end-root:not(.hidden),
   #lab-root:not(.hidden),
-  #eac-root:not(.hidden) {
+  #eac-root:not(.hidden),
+  #botevo-root:not(.hidden) {
     z-index: 2000 !important;
     isolation: isolate;
     padding: 0;
@@ -4334,7 +4606,8 @@ button:not(:disabled):active {
   }
 
   /* Drill sits above the Lab list when both are open. */
-  #eac-root:not(.hidden) {
+  #eac-root:not(.hidden),
+  #botevo-root:not(.hidden) {
     z-index: 2010 !important;
   }
 
@@ -4348,7 +4621,8 @@ button:not(:disabled):active {
       #announce-root:not(.hidden),
       #end-root:not(.hidden),
       #lab-root:not(.hidden),
-      #eac-root:not(.hidden)
+      #eac-root:not(.hidden),
+      #botevo-root:not(.hidden)
     )
     #app:has(.fleet-card.mode-standings)
     :is(
@@ -4366,7 +4640,8 @@ button:not(:disabled):active {
   #dossier-root:not(.hidden) .handbook-panel,
   #duel-root:not(.hidden) .handbook-panel,
   #lab-root:not(.hidden) .handbook-panel,
-  #eac-root:not(.hidden) .handbook-panel {
+  #eac-root:not(.hidden) .handbook-panel,
+  #botevo-root:not(.hidden) .handbook-panel {
     width: 100%;
     max-width: none;
     height: 100dvh;
@@ -4380,7 +4655,8 @@ button:not(:disabled):active {
   #dossier-root:not(.hidden) .handbook-header,
   #duel-root:not(.hidden) .handbook-header,
   #lab-root:not(.hidden) .handbook-header,
-  #eac-root:not(.hidden) .handbook-header {
+  #eac-root:not(.hidden) .handbook-header,
+  #botevo-root:not(.hidden) .handbook-header {
     padding-top: max(10px, env(safe-area-inset-top, 0px));
     padding-left: max(12px, env(safe-area-inset-left, 0px));
     padding-right: max(12px, env(safe-area-inset-right, 0px));
@@ -4389,14 +4665,16 @@ button:not(:disabled):active {
   #handbook-root:not(.hidden) .handbook-close,
   #dossier-root:not(.hidden) .handbook-close,
   #lab-root:not(.hidden) .handbook-close,
-  #eac-root:not(.hidden) .handbook-close {
+  #eac-root:not(.hidden) .handbook-close,
+  #botevo-root:not(.hidden) .handbook-close {
     min-width: 44px;
     min-height: 44px;
     pointer-events: auto;
   }
 
   #lab-root:not(.hidden) .lab-body,
-  #eac-root:not(.hidden) .eac-body {
+  #eac-root:not(.hidden) .eac-body,
+  #botevo-root:not(.hidden) .botevo-body {
     min-height: 0;
     overflow: auto;
     -webkit-overflow-scrolling: touch;
