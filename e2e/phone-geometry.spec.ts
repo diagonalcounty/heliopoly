@@ -507,12 +507,23 @@ test.describe("phone Lab urinal-rule-parking #188", () => {
     expect(close.height).toBeGreaterThanOrEqual(44);
     expect(close.onControl, "elementFromPoint drill close").toBe(true);
 
+    await expect(page.locator("#urp-root .urp-sign")).toHaveText(
+      "urinal parking enforced or pay a fine",
+    );
+    await expect(page.locator("#urp-orbits")).toHaveText("3/3");
+    await expect(page.locator("#urp-hint-pips .urp-hint-pip")).toHaveCount(2);
+    await expect(page.locator("#urp-hint-pips .urp-hint-pip.is-charged")).toHaveCount(2);
+
     const hatch = await boxOf(page, "#urp-root .urp-hatch");
-    const go = await boxOf(page, "#urp-go-around");
-    expect(go.height, "Go around ≥44px").toBeGreaterThanOrEqual(44);
-    expect(go.onControl, "Go around tappable").toBe(true);
-    expect(go.top, "Go around above home indicator").toBeLessThan(PHONE.h - 8);
+    const orbit = await boxOf(page, "#urp-orbit");
+    expect(orbit.height, "Orbit ≥44px").toBeGreaterThanOrEqual(44);
+    expect(orbit.onControl, "Orbit tappable").toBe(true);
+    expect(orbit.top, "Orbit above home indicator").toBeLessThan(PHONE.h - 8);
     expect(hatch.top, "hatch below pads / toward bottom").toBeGreaterThan(PHONE.h * 0.45);
+
+    const hint = await boxOf(page, "#urp-hint");
+    expect(hint.height, "Hint ≥44px").toBeGreaterThanOrEqual(44);
+    expect(hint.onControl, "Hint tappable").toBe(true);
 
     const empty = page.locator("#urp-pads .urp-pad.is-empty").first();
     await expect(empty).toBeVisible();
@@ -521,8 +532,13 @@ test.describe("phone Lab urinal-rule-parking #188", () => {
     expect(emptyBox.height, "empty pad ≥44px").toBeGreaterThanOrEqual(44);
     expect(emptyBox.onControl, "elementFromPoint hits empty circle").toBe(true);
 
+    const occupied = await page.locator("#urp-pads .urp-pad.is-occupied").count();
+    expect(occupied, "others already down").toBeGreaterThan(0);
+    const you = await page.locator("#urp-pads .urp-pad.urp-just-landed").count();
+    expect(you, "player rocket is not pre-placed").toBe(0);
+
     const padCount = await page.locator("#urp-pads .urp-pad").count();
-    expect(padCount, "5 pads on round 1").toBe(5);
+    expect([5, 7], "5-pad or 7-pad apron").toContain(padCount);
     const ys = await page.locator("#urp-pads .urp-pad").evaluateAll((els) =>
       els.map((el) => el.getBoundingClientRect().y),
     );

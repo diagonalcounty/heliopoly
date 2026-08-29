@@ -14,8 +14,8 @@
     <link rel="icon" type="image/png" href="./favicon-32.png" sizes="32x32" />
     <link rel="icon" type="image/png" href="./favicon-16.png" sizes="16x16" />
     <link rel="apple-touch-icon" href="./apple-touch-icon.png" sizes="180x180" />
-    <script type="module" crossorigin src="./assets/index-DOpwI4vJ.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-DIkq9o3V.css">
+    <script type="module" crossorigin src="./assets/index-C159q2DN.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-D1Z4KMo_.css">
   </head>
   <body>
     <div id="app">
@@ -359,7 +359,19 @@ Name your rocket. Then Launch.</p>
             ✕
           </button>
         </header>
-        <p id="urp-round" class="urp-round" aria-live="polite">1/2</p>
+        <p class="urp-sign">urinal parking enforced or pay a fine</p>
+        <div class="urp-meters">
+          <p id="urp-orbits" class="urp-orbits" aria-live="polite">3/3</p>
+          <div class="urp-hint-wrap">
+            <button type="button" id="urp-hint" class="urp-hint" aria-label="Hint, 2 remaining">
+              Hint
+            </button>
+            <span id="urp-hint-pips" class="urp-hint-pips" aria-hidden="true">
+              <span class="urp-hint-pip is-charged"></span>
+              <span class="urp-hint-pip is-charged"></span>
+            </span>
+          </div>
+        </div>
         <div class="urp-board">
           <div class="urp-hatch" aria-label="Hatch, approach">
             <svg class="urp-hatch-mark" viewBox="0 0 80 80" aria-hidden="true">
@@ -382,8 +394,8 @@ Name your rocket. Then Launch.</p>
           </div>
           <div class="urp-go-wrap">
             <p id="urp-status" class="urp-status" aria-live="polite"></p>
-            <button type="button" id="urp-go-around" class="urp-go" aria-label="Go around, skip the apron">
-              Go around
+            <button type="button" id="urp-orbit" class="urp-go" aria-label="Orbit, next occupancy">
+              Orbit
             </button>
           </div>
         </div>

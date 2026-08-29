@@ -714,13 +714,76 @@ html.native-shell #app {
   letter-spacing: 0.02em;
 }
 
-.urp-round {
+.urp-sign {
   margin: 0;
   flex-shrink: 0;
+  padding: 0 12px;
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: lowercase;
+  color: var(--accent-2);
+}
+
+.urp-meters {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  flex-shrink: 0;
+  padding: 2px 12px 6px;
+}
+
+.urp-orbits {
+  margin: 0;
+  min-width: 2.4em;
   text-align: center;
   font-size: 0.78rem;
   letter-spacing: 0.12em;
   color: var(--accent-2);
+}
+
+.urp-hint-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.urp-hint {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid #c9a227;
+  background: #1a2438;
+  color: var(--accent-2);
+  font-size: 0.85rem;
+  font-weight: 650;
+}
+
+.urp-hint:disabled {
+  opacity: 0.4;
+}
+
+.urp-hint-pips {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.urp-hint-pip {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid #c9a227;
+  background: transparent;
+  box-sizing: border-box;
+}
+
+.urp-hint-pip.is-charged {
+  background: #c9a227;
+  box-shadow: 0 0 0 1px rgba(201, 162, 39, 0.35);
 }
 
 .urp-board {
@@ -833,6 +896,14 @@ html.native-shell #app {
   color: var(--accent-2);
 }
 
+.urp-status.is-good {
+  color: #7ee0a8;
+}
+
+.urp-status.is-fine {
+  color: #f0a35a;
+}
+
 .urp-status:empty {
   visibility: hidden;
 }
@@ -847,21 +918,8 @@ html.native-shell #app {
   font-weight: 600;
 }
 
-.urp-go:not(.is-legal) {
-  opacity: 0.45;
-}
-
-.urp-go.is-legal {
-  opacity: 1;
-  background: #c9a227;
-  color: #0b1020;
-  border-color: #f0d078;
-  animation: urp-legal-pulse 1.15s ease-in-out infinite;
-}
-
-.urp-go.urp-flash {
-  opacity: 1;
-  box-shadow: 0 0 0 4px rgba(240, 208, 120, 0.7);
+.urp-go:disabled {
+  opacity: 0.4;
 }
 
 .urp-pad {
@@ -899,7 +957,16 @@ html.native-shell #app {
 }
 
 .urp-pad.urp-just-landed {
+  outline: none;
+  pointer-events: none;
+}
+
+.urp-pad.urp-just-landed.is-good {
   animation: urp-ok-ring 0.7s ease-out;
+}
+
+.urp-pad.urp-just-landed.is-fine {
+  box-shadow: 0 0 0 4px rgba(240, 163, 90, 0.55);
 }
 
 .urp-pad.urp-just-landed svg {
