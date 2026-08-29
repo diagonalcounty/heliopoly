@@ -8,10 +8,12 @@
  * If every vacant pad is adjacent to an occupied pad, there is no legal pad.
  *
  * Jacob is the incoming ship. Occupied pads are others already down.
- * Play is a pool of six occupancy snapshots (5-pad and 7-pad). Three looks.
- * Orbit loads a different snapshot; landings do not accumulate. After the
- * third look, Orbit is dead and they must land. A legal empty pad is no fine;
- * a rude/adjacent empty is a fine. Occupied is not a land.
+ * Play is a pool of six occupancy snapshots (5-pad and 7-pad). After shuffle,
+ * pack as three pairs: look 1 = screens[0]+[1], look 2 = [2]+[3], look 3 =
+ * [4]+[5]. Each orbit presents two pad areas; a selector chooses which area
+ * is active, then tap a pad in that area to land. Orbit loads the next pair.
+ * After the third look, Orbit is dead and they must land. A legal empty pad
+ * is no fine; a rude/adjacent empty is a fine. Occupied is not a land.
  */
 
 export const URP_LOOKS = 3;
@@ -31,12 +33,14 @@ export type UrpPhase = "playing" | "landed";
 
 export type UrpOutcome = "good" | "fine";
 
+export type UrpArea = 0 | 1;
+
 export interface UrpState {
   screens: readonly UrpScreen[];
   /** 1-based look (1..URP_LOOKS). */
   look: number;
-  screenIndex: number;
-  usedScreenIndices: readonly number[];
+  /** Which pad area of the current pair is active. */
+  selectedArea: UrpArea;
   hintsLeft: number;
   phase: UrpPhase;
   lastLanded: number | null;
@@ -93,8 +97,19 @@ export function hasLegalPad(screen: UrpScreen): boolean {
   return gradeScreen(screen).kind === "pad";
 }
 
+/** Index of screens[i] for look L area A: (L-1)*2 + A. */
+export function urpPairStart(look: number): number {
+  return (look - 1) * 2;
+}
+
+/** Current look's two pad-area screens. */
+export function currentUrpPair(state: UrpState): [UrpScreen, UrpScreen] {
+  const i = urpPairStart(state.look);
+  return [state.screens[i]!, state.screens[i + 1]!];
+}
+
 export function currentUrpScreen(state: UrpState): UrpScreen {
-  return state.screens[state.screenIndex]!;
+  return currentUrpPair(state)[state.selectedArea]!;
 }
 
 /** Remaining looks including the current one (3/3 … 1/3). 0 after landing. */
@@ -105,6 +120,12 @@ export function urpLooksChrome(state: UrpState): string {
 
 export function canOrbit(state: UrpState): boolean {
   return state.phase === "playing" && state.look < URP_LOOKS;
+}
+
+/** Switch the active pad area of this look's pair. No-op after landing. */
+export function selectUrpArea(state: UrpState, area: UrpArea): UrpState {
+  if (state.phase !== "playing" || state.selectedArea === area) return state;
+  return { ...state, selectedArea: area };
 }
 
 function mulberry32(seed: number): () => number {
@@ -150,12 +171,11 @@ export function buildUrpPool(seed: number): UrpScreen[] {
   return screens;
 }
 
-function freshState(screens: readonly UrpScreen[], screenIndex: number): UrpState {
+function freshState(screens: readonly UrpScreen[]): UrpState {
   return {
     screens,
     look: 1,
-    screenIndex,
-    usedScreenIndices: [screenIndex],
+    selectedArea: 0,
     hintsLeft: URP_HINTS,
     phase: "playing",
     lastLanded: null,
@@ -164,35 +184,22 @@ function freshState(screens: readonly UrpScreen[], screenIndex: number): UrpStat
 }
 
 export function startUrpDrill(seed: number = Date.now() >>> 0): UrpState {
-  return freshState(buildUrpPool(seed), 0);
+  return freshState(buildUrpPool(seed));
 }
 
-/** Test helper: start on a known pool (screen 0 first). */
+/** Test helper: start on a known pool (pair 1 = screens[0]+[1], area 0). */
 export function startUrpFromPool(screens: readonly UrpScreen[]): UrpState {
-  if (screens.length < 1) throw new Error("urp pool empty");
-  return freshState(screens, 0);
+  if (screens.length < URP_LOOKS * 2) throw new Error("urp pool needs 3 pairs");
+  return freshState(screens);
 }
 
-function nextUnusedScreen(state: UrpState): number | null {
-  const n = state.screens.length;
-  const used = new Set(state.usedScreenIndices);
-  for (let k = 1; k < n; k++) {
-    const i = (state.screenIndex + k) % n;
-    if (!used.has(i)) return i;
-  }
-  return null;
-}
-
-/** Load a different snapshot. No-op after the third look or after landing. */
+/** Advance to the next pair. Resets selectedArea to 0. No-op after look 3 or land. */
 export function orbitUrp(state: UrpState): UrpState {
   if (!canOrbit(state)) return state;
-  const next = nextUnusedScreen(state);
-  if (next == null) return state;
   return {
     ...state,
     look: state.look + 1,
-    screenIndex: next,
-    usedScreenIndices: [...state.usedScreenIndices, next],
+    selectedArea: 0,
     lastLanded: null,
     outcome: null,
   };
@@ -221,8 +228,8 @@ export function landUrp(
 
 /**
  * Spend one hint charge (2 → 1 → 0).
- * flashIndex is the legal empty pad on this screen, or null on a
- * violation-only screen (hint does not invent a legal pad).
+ * flashIndex is the legal empty pad on the SELECTED area, or null on a
+ * violation-only area (hint does not invent a legal pad on the other area).
  */
 export function hintUrp(state: UrpState): { state: UrpState; flashIndex: number | null } {
   if (state.phase !== "playing" || state.hintsLeft <= 0) {

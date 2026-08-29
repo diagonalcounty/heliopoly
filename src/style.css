@@ -790,9 +790,10 @@ html.native-shell #app {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-rows: minmax(0, 1fr) auto auto;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
   grid-template-columns: 1fr;
   grid-template-areas:
+    "areas"
     "pads"
     "hatch"
     "go";
@@ -800,6 +801,69 @@ html.native-shell #app {
     max(12px, env(safe-area-inset-bottom, 0px))
     max(12px, env(safe-area-inset-left, 0px));
   gap: 8px;
+}
+
+.urp-areas {
+  grid-area: areas;
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+  justify-content: center;
+  min-height: 44px;
+}
+
+.urp-area {
+  flex: 1;
+  min-height: 44px;
+  min-width: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(201, 162, 39, 0.4);
+  background: #1a2438;
+  color: var(--accent-2);
+  font-size: 0.82rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+}
+
+.urp-area.is-selected {
+  border-color: #c9a227;
+  background: #2a3a58;
+  box-shadow: 0 0 0 2px rgba(201, 162, 39, 0.5);
+  color: #f4e4a4;
+}
+
+.urp-area:disabled {
+  opacity: 0.55;
+}
+
+.urp-area-dots {
+  display: flex;
+  gap: 3px;
+  height: 6px;
+  align-items: center;
+}
+
+.urp-area-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+
+.urp-area-dot.is-empty {
+  background: transparent;
+  border: 1px solid rgba(201, 162, 39, 0.75);
+}
+
+.urp-area-dot.is-occupied {
+  background: #c9a227;
+  border: 1px solid #c9a227;
 }
 
 .urp-field {
@@ -1059,8 +1123,9 @@ html.native-shell #app {
 @media (min-aspect-ratio: 1/1) {
   .urp-board {
     grid-template-columns: minmax(140px, 28%) minmax(0, 1fr);
-    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-rows: auto minmax(0, 1fr) auto;
     grid-template-areas:
+      "hatch areas"
       "hatch pads"
       "go pads";
     align-items: center;

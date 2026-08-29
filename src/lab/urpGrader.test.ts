@@ -5,14 +5,18 @@
 import {
   buildUrpPool,
   canOrbit,
+  currentUrpPair,
+  currentUrpScreen,
   gradePads,
   hasLegalPad,
   hintUrp,
   landUrp,
   orbitUrp,
+  selectUrpArea,
   startUrpDrill,
   startUrpFromPool,
   urpLooksChrome,
+  urpPairStart,
   type UrpScreen,
 } from "./urpGrader";
 
@@ -85,13 +89,18 @@ function assert(cond: unknown, msg: string): void {
   const legal: UrpScreen = { padCount: 5, occupied: [0] };
   const jam: UrpScreen = { padCount: 5, occupied: [1, 3] };
   const jam7: UrpScreen = { padCount: 7, occupied: [1, 3, 5] };
+  // look 1 = legal+jam; look 2 = jam7+jam; look 3 = jam7+jam
   const pool: UrpScreen[] = [legal, jam, jam7, jam, jam7, jam];
   assert(pool.length === 6, "fixture pool is six screens");
   assert(pool.some(hasLegalPad), "pool ≥1 legal screen");
   assert(pool.filter((s) => !hasLegalPad(s)).length === 5, "other screens may be violation-only");
+  assert(urpPairStart(1) === 0 && urpPairStart(2) === 2 && urpPairStart(3) === 4, "pair packing offsets 0,2,4");
 
   {
     const s = startUrpFromPool(pool);
+    const pair = currentUrpPair(s);
+    assert(pair[0] === legal && pair[1] === jam, "look 1 pair = screens[0]+[1]");
+    assert(s.selectedArea === 0 && currentUrpScreen(s) === legal, "start area 0 of pair 1");
     assert(urpLooksChrome(s) === "3/3", "start remaining looks 3/3");
     assert(s.hintsLeft === 2, "start two hint charges");
     const good = landUrp(s, 4);
@@ -110,13 +119,31 @@ function assert(cond: unknown, msg: string): void {
 
   {
     let s = startUrpFromPool(pool);
-    const first = s.screenIndex;
-    const occupied0 = [...s.screens[first]!.occupied];
+    s = selectUrpArea(s, 1);
+    assert(s.selectedArea === 1 && currentUrpScreen(s) === jam, "selector switch → area 2 of pair 1");
+    s = selectUrpArea(s, 0);
+    assert(s.selectedArea === 0 && currentUrpScreen(s) === legal, "selector switch back → area 1");
+  }
+
+  {
+    let s = startUrpFromPool(pool);
+    s = selectUrpArea(s, 1);
+    const land = landUrp(s, 0);
+    assert(land.ok && land.state.outcome === "fine", "land on selected (jam) area → Fine");
+    assert(land.state.selectedArea === 1, "land stays on selected area");
+    const frozen = selectUrpArea(land.state, 0);
+    assert(frozen.selectedArea === 1, "selector frozen after land");
+  }
+
+  {
+    let s = startUrpFromPool(pool);
+    const firstPair = currentUrpPair(s);
     s = orbitUrp(s);
-    assert(s.look === 2 && s.screenIndex !== first, "orbit loads a different snapshot");
-    assert(JSON.stringify(s.screens[s.screenIndex]!.occupied) !== JSON.stringify(occupied0) || s.screens[s.screenIndex]!.padCount !== 5, "orbit occupancy/map changes");
+    const nextPair = currentUrpPair(s);
+    assert(s.look === 2 && s.selectedArea === 0, "orbit advances look and resets area 0");
+    assert(nextPair[0] === jam7 && nextPair[1] === jam, "orbit to next pair = screens[2]+[3]");
+    assert(nextPair[0] !== firstPair[0] && nextPair[1] !== firstPair[0], "orbit pair is not look-1 pair");
     assert(urpLooksChrome(s) === "2/3", "after one orbit 2/3");
-    assert(s.screens[s.screenIndex] === jam, "fixture orbit 1 → jam 5");
   }
 
   {
@@ -124,9 +151,11 @@ function assert(cond: unknown, msg: string): void {
     s = orbitUrp(s);
     s = orbitUrp(s);
     assert(s.look === 3 && urpLooksChrome(s) === "1/3", "third look 1/3");
+    const lastPair = currentUrpPair(s);
+    assert(lastPair[0] === jam7 && lastPair[1] === jam, "look 3 pair = screens[4]+[5]");
     assert(!canOrbit(s), "three-look cap: orbit dead");
     const stuck = orbitUrp(s);
-    assert(stuck.look === 3 && stuck.screenIndex === s.screenIndex, "orbit no-op on third look");
+    assert(stuck.look === 3 && stuck.selectedArea === s.selectedArea, "orbit no-op on third look");
     const land = landUrp(s, 0);
     assert(land.ok && land.state.phase === "landed", "third look must land");
     assert(urpLooksChrome(land.state) === "0/3", "after land remaining looks 0/3");
@@ -135,28 +164,50 @@ function assert(cond: unknown, msg: string): void {
 
   {
     let s = startUrpFromPool(pool);
-    assert(hasLegalPad(s.screens[s.screenIndex]!), "look 1 is the legal screen");
+    const visited: UrpScreen[] = [];
+    for (let look = 1; look <= 3; look++) {
+      const pair = currentUrpPair(s);
+      visited.push(pair[0], pair[1]);
+      if (look < 3) s = orbitUrp(s);
+    }
+    assert(visited.length === 6, "3 looks × 2 areas = 6 screens");
+    assert(
+      visited.every((scr, i) => scr === pool[i]),
+      "visiting both areas of each pair covers the pool in order",
+    );
+  }
+
+  {
+    let s = startUrpFromPool(pool);
+    assert(hasLegalPad(currentUrpPair(s)[0]!), "look 1 area 1 is the legal screen");
     s = orbitUrp(s);
     s = orbitUrp(s);
-    assert(!hasLegalPad(s.screens[s.screenIndex]!), "skipping legal can leave only violation screens");
-    const empty = [0, 1, 2, 3, 4].find((i) => !s.screens[s.screenIndex]!.occupied.includes(i))!;
+    const pair = currentUrpPair(s);
+    assert(!hasLegalPad(pair[0]) && !hasLegalPad(pair[1]), "skip pair-1 legal → later pair can be violation-only");
+    s = selectUrpArea(s, 0);
+    const empty = [0, 1, 2, 3, 4, 5, 6].find((i) => i < pair[0]!.padCount && !pair[0]!.occupied.includes(i))!;
     const land = landUrp(s, empty);
-    assert(land.ok && land.state.outcome === "fine", "violation-only look still lands, Fine");
+    assert(land.ok && land.state.outcome === "fine", "violation-only pair still lands, Fine");
   }
 
   {
     let s = startUrpFromPool(pool);
     const h1 = hintUrp(s);
-    assert(h1.state.hintsLeft === 1 && h1.flashIndex === 4, "hint 2→1 flashes legal pad");
+    assert(h1.state.hintsLeft === 1 && h1.flashIndex === 4, "hint on selected legal area flashes that pad");
     const h2 = hintUrp(h1.state);
-    assert(h2.state.hintsLeft === 0 && h2.flashIndex === 4, "hint 1→0 still flashes legal pad");
+    assert(h2.state.hintsLeft === 0 && h2.flashIndex === 4, "hint 1→0 still flashes selected legal pad");
     const h3 = hintUrp(h2.state);
     assert(h3.state.hintsLeft === 0 && h3.flashIndex === null, "hint at 0 does not spend or flash");
 
     let jamState = startUrpFromPool(pool);
-    jamState = orbitUrp(jamState);
+    jamState = selectUrpArea(jamState, 1);
     const jamHint = hintUrp(jamState);
-    assert(jamHint.state.hintsLeft === 1 && jamHint.flashIndex === null, "violation-only hint does not invent a legal pad");
+    assert(jamHint.state.hintsLeft === 1 && jamHint.flashIndex === null, "hint on selected jam area does not invent a pad");
+
+    let other = startUrpFromPool(pool);
+    other = orbitUrp(other);
+    const laterHint = hintUrp(other);
+    assert(laterHint.flashIndex === null, "hint never flashes a pad on the other / unselected area");
   }
 }
 
@@ -174,7 +225,9 @@ function assert(cond: unknown, msg: string): void {
     );
     assert(pool.some(hasLegalPad), `seed ${seed} pool ≥1 legal screen`);
     const drill = startUrpDrill(seed);
-    assert(drill.look === 1 && drill.hintsLeft === 2 && drill.phase === "playing", `seed ${seed} start looks/hints`);
+    assert(drill.look === 1 && drill.selectedArea === 0 && drill.hintsLeft === 2 && drill.phase === "playing", `seed ${seed} start looks/area/hints`);
+    const p1 = currentUrpPair(drill);
+    assert(p1[0] === drill.screens[0] && p1[1] === drill.screens[1], `seed ${seed} look 1 packed as [0]+[1]`);
   }
 }
 

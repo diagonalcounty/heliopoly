@@ -514,6 +514,18 @@ test.describe("phone Lab urinal-rule-parking #188", () => {
     await expect(page.locator("#urp-hint-pips .urp-hint-pip")).toHaveCount(2);
     await expect(page.locator("#urp-hint-pips .urp-hint-pip.is-charged")).toHaveCount(2);
 
+    const areaBtns = page.locator("#urp-areas .urp-area");
+    await expect(areaBtns).toHaveCount(2);
+    await expect(areaBtns.nth(0)).toContainText("Area 1");
+    await expect(areaBtns.nth(1)).toContainText("Area 2");
+    const area1 = await boxOf(page, '#urp-areas [data-area="0"]');
+    const area2 = await boxOf(page, '#urp-areas [data-area="1"]');
+    expect(area1.height, "Area 1 chip ≥44px").toBeGreaterThanOrEqual(44);
+    expect(area2.height, "Area 2 chip ≥44px").toBeGreaterThanOrEqual(44);
+    expect(area1.onControl, "Area 1 tappable").toBe(true);
+    expect(area2.onControl, "Area 2 tappable").toBe(true);
+    await expect(areaBtns.nth(0)).toHaveClass(/is-selected/);
+
     const hatch = await boxOf(page, "#urp-root .urp-hatch");
     const orbit = await boxOf(page, "#urp-orbit");
     expect(orbit.height, "Orbit ≥44px").toBeGreaterThanOrEqual(44);
@@ -539,11 +551,22 @@ test.describe("phone Lab urinal-rule-parking #188", () => {
 
     const padCount = await page.locator("#urp-pads .urp-pad").count();
     expect([5, 7], "5-pad or 7-pad apron").toContain(padCount);
+    expect(await page.locator(".urp-pads").count(), "one apron, not two stacked").toBe(1);
     const ys = await page.locator("#urp-pads .urp-pad").evaluateAll((els) =>
       els.map((el) => el.getBoundingClientRect().y),
     );
     const ySpan = Math.max(...ys) - Math.min(...ys);
     expect(ySpan, "apron arc, not a trough").toBeGreaterThan(12);
+
+    await page.locator('#urp-areas [data-area="1"]').click();
+    await expect(page.locator('#urp-areas [data-area="1"]')).toHaveClass(/is-selected/);
+    await expect(page.locator('#urp-areas [data-area="0"]')).not.toHaveClass(/is-selected/);
+    const padCountB = await page.locator("#urp-pads .urp-pad").count();
+    expect([5, 7], "area 2 is still 5 or 7 pads").toContain(padCountB);
+    expect(await page.locator(".urp-pads").count(), "still one active apron").toBe(1);
+    const emptyB = await boxOf(page, "#urp-pads .urp-pad.is-empty");
+    expect(emptyB.width, "active apron empty pad ≥44px").toBeGreaterThanOrEqual(44);
+    expect(emptyB.height, "active apron empty pad ≥44px").toBeGreaterThanOrEqual(44);
 
     const overRoll = await hitAt(page, roll.x, roll.y);
     expect(overRoll?.id, "Roll must not win under open drill").not.toBe("btn-roll");

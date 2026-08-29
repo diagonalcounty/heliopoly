@@ -85,12 +85,15 @@ import {
 } from "./lab/numberScripts";
 import {
   canOrbit,
+  currentUrpPair,
   currentUrpScreen,
   hintUrp,
   landUrp,
   orbitUrp,
+  selectUrpArea,
   startUrpDrill,
   urpLooksChrome,
+  type UrpArea,
   type UrpState,
 } from "./lab/urpGrader";
 import type { Board } from "./core/types";
@@ -349,6 +352,7 @@ const labRoot = document.getElementById("lab-root")!;
 const labScenariosEl = document.getElementById("lab-scenarios")!;
 const eacRoot = document.getElementById("eac-root")!;
 const urpRoot = document.getElementById("urp-root")!;
+const urpAreasEl = document.getElementById("urp-areas")!;
 const urpPadsEl = document.getElementById("urp-pads")!;
 const urpApronEl = document.getElementById("urp-apron") as unknown as SVGSVGElement;
 const urpOrbitsEl = document.getElementById("urp-orbits")!;
@@ -1860,6 +1864,30 @@ function layoutUrpPads(): void {
   layoutUrpApron(pads);
 }
 
+function renderUrpAreas(): void {
+  if (!urpState) return;
+  const pair = currentUrpPair(urpState);
+  const playing = urpState.phase === "playing";
+  urpAreasEl.querySelectorAll<HTMLButtonElement>("[data-area]").forEach((btn) => {
+    const area = Number(btn.dataset.area) as UrpArea;
+    const selected = urpState!.selectedArea === area;
+    btn.classList.toggle("is-selected", selected);
+    btn.setAttribute("aria-pressed", selected ? "true" : "false");
+    btn.disabled = !playing;
+    const screen = pair[area]!;
+    const dots = btn.querySelector(".urp-area-dots");
+    if (dots) {
+      dots.replaceChildren();
+      const occ = new Set(screen.occupied);
+      for (let i = 0; i < screen.padCount; i++) {
+        const d = document.createElement("span");
+        d.className = "urp-area-dot" + (occ.has(i) ? " is-occupied" : " is-empty");
+        dots.appendChild(d);
+      }
+    }
+  });
+}
+
 function renderUrpHintPips(): void {
   if (!urpState) return;
   const charged = urpState.hintsLeft;
@@ -1879,6 +1907,7 @@ function renderUrp(): void {
   const occ = new Set(screen.occupied);
   const playing = urpState.phase === "playing";
   urpOrbitsEl.textContent = urpLooksChrome(urpState);
+  renderUrpAreas();
   urpPadsEl.replaceChildren();
   for (let i = 0; i < screen.padCount; i++) {
     const occupied = occ.has(i);
@@ -1955,6 +1984,12 @@ function urpHint(): void {
   urpState = next.state;
   renderUrpHintPips();
   if (next.flashIndex != null) urpFlashPad(next.flashIndex);
+}
+
+function urpPickArea(area: UrpArea): void {
+  if (!urpState) return;
+  urpState = selectUrpArea(urpState, area);
+  renderUrp();
 }
 
 function openUrp(): void {
@@ -2120,6 +2155,12 @@ document.getElementById("urp-close")?.addEventListener("click", () => closeUrp()
 document.getElementById("urp-backdrop")?.addEventListener("click", () => closeUrp());
 urpOrbitBtn.addEventListener("click", () => urpOrbit());
 urpHintBtn.addEventListener("click", () => urpHint());
+urpAreasEl.addEventListener("click", (e) => {
+  const btn = (e.target as HTMLElement).closest("[data-area]");
+  if (!(btn instanceof HTMLElement)) return;
+  const area = Number(btn.getAttribute("data-area"));
+  if (area === 0 || area === 1) urpPickArea(area);
+});
 document.getElementById("eac-again")?.addEventListener("click", () => eacPlayAgain());
 document.getElementById("eac-done")?.addEventListener("click", () => {
   closeEasternArabicCompare();
