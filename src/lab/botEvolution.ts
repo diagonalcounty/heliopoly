@@ -76,7 +76,7 @@ const DELTA: Record<number, readonly [number, number]> = {
   [DIR_W]: [0, -1],
 };
 
-export type BotPhase = "aiming" | "falling" | "lost";
+export type BotPhase = "aiming" | "falling" | "morphing" | "lost";
 
 export type BotGrid = (PieceId | null)[][];
 
@@ -323,7 +323,21 @@ function spawnNext(state: BotState): void {
   state.current = next;
   state.rng = picked.rng;
   state.fallRow = null;
-  if (state.phase !== "lost") startFall(state);
+  if (state.phase === "lost") return;
+  if (state.justMorphed.length) {
+    state.phase = "morphing";
+    return;
+  }
+  startFall(state);
+}
+
+/** After the morph/fly-up animation: next egg starts falling. */
+export function resumeAfterMorph(state: BotState): BotState {
+  if (state.phase === "lost") return state;
+  const next = cloneState(state);
+  next.justMorphed = [];
+  if (next.phase === "morphing" || next.phase === "aiming") startFall(next);
+  return next;
 }
 
 function landFalling(state: BotState): void {
@@ -379,7 +393,8 @@ export function tick(state: BotState): BotState {
 
 export function hardDrop(state: BotState): BotState {
   if (state.phase === "lost") return state;
-  let next = state.phase === "aiming" ? release(state) : cloneState(state);
+  let next =
+    state.phase === "falling" ? cloneState(state) : release(state);
   let guard = 0;
   while (next.phase === "falling" && next.fallRow !== null && guard++ < BOT_ROWS + 2) {
     next = tick(next);

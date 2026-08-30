@@ -14,8 +14,8 @@
     <link rel="icon" type="image/png" href="./favicon-32.png" sizes="32x32" />
     <link rel="icon" type="image/png" href="./favicon-16.png" sizes="16x16" />
     <link rel="apple-touch-icon" href="./apple-touch-icon.png" sizes="180x180" />
-    <script type="module" crossorigin src="./assets/index-B1daGFVy.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-Ddegv7HZ.css">
+    <script type="module" crossorigin src="./assets/index-BIz1XO2L.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-BsUEL4v2.css">
   </head>
   <body>
     <div id="app">
@@ -638,19 +638,26 @@ Name your rocket. Then Launch.</p>
           </button>
         </header>
         <div class="botevo-body">
-          <div class="botevo-status-row">
-            <p id="botevo-status" class="botevo-status mono" aria-live="polite">Level 1</p>
-            <p id="botevo-score" class="botevo-score mono" aria-live="polite">0 boxes</p>
+          <div class="botevo-hud">
+            <p id="botevo-status" class="botevo-level" aria-live="polite">1</p>
+            <div
+              id="botevo-bar"
+              class="botevo-battery"
+              role="meter"
+              aria-label="Level battery"
+              aria-valuemin="0"
+              aria-valuenow="0"
+              aria-valuemax="5"
+            >
+              <div class="botevo-battery-track">
+                <div id="botevo-fill" class="botevo-battery-fill"></div>
+                <div id="botevo-ticks" class="botevo-battery-ticks" aria-hidden="true"></div>
+              </div>
+              <span class="botevo-battery-cap" aria-hidden="true"></span>
+            </div>
           </div>
-          <div
-            id="botevo-bar"
-            class="botevo-bar"
-            role="meter"
-            aria-label="Level bar"
-            aria-valuemin="0"
-            aria-valuenow="0"
-            aria-valuemax="5"
-          ></div>
+          <p id="botevo-score" class="botevo-score hidden" aria-live="polite">0 boxes</p>
+          <div id="botevo-fx" class="botevo-fx" aria-hidden="true"></div>
           <p class="hint botevo-hint">
             Eggs fall on their own. Tap a column to steer. <strong>Drop</strong>
             (or ↓) slams the falling egg to the floor. A chain of 5 morphs into

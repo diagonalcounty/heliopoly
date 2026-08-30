@@ -104,6 +104,7 @@ import {
   liveChainCells,
   playAgainBotEvo,
   quotaForLevel,
+  resumeAfterMorph,
   socketsOf,
   startBotEvo,
   tick,
@@ -440,6 +441,9 @@ const botEvoQueueEl = document.getElementById("botevo-queue")!;
 const botEvoStatusEl = document.getElementById("botevo-status")!;
 const botEvoScoreEl = document.getElementById("botevo-score")!;
 const botEvoBarEl = document.getElementById("botevo-bar")!;
+const botEvoFillEl = document.getElementById("botevo-fill")!;
+const botEvoTicksEl = document.getElementById("botevo-ticks")!;
+const botEvoFxEl = document.getElementById("botevo-fx")!;
 const botEvoPlayEl = document.getElementById("botevo-play")!;
 const botEvoEndEl = document.getElementById("botevo-end")!;
 const botEvoEndBlurb = document.getElementById("botevo-end-blurb")!;
@@ -2165,7 +2169,8 @@ function eacPlayAgain(): void {
 let botEvoState: BotState | null = null;
 let botEvoTimer: number | null = null;
 let botEvoBarView = { level: 1, segments: 0, boxes: 0 };
-const BOTEVO_MORPH_MS = 420;
+const BOTEVO_MORPH_MS = 210;
+const BOTEVO_COMBINE_MS = 70;
 
 function isBotEvoOpen(): boolean {
   return !botEvoRoot.classList.contains("hidden");
@@ -2187,17 +2192,74 @@ function armBotEvoTimer(pauseMs?: number): void {
       clearBotEvoTimer();
       return;
     }
-    const boxesBefore = botEvoState.boxes;
     botEvoState = tick(botEvoState);
     renderBotEvo();
-    if (!botEvoState || botEvoState.phase !== "falling") {
-      clearBotEvoTimer();
-      return;
-    }
-    armBotEvoTimer(
-      botEvoState.boxes > boxesBefore ? BOTEVO_MORPH_MS : undefined,
-    );
+    afterBotEvoLand();
   }, wait);
+}
+
+function flyMorphToBar(keys: string[]): void {
+  botEvoFxEl.replaceChildren();
+  if (!keys.length || !botEvoState) return;
+  const bar = botEvoBarEl.getBoundingClientRect();
+  const quota = quotaForLevel(botEvoState.level);
+  const frac = quota ? Math.min(1, Math.max(0.12, botEvoState.segments / quota)) : 1;
+  const targetX = bar.left + 6 + (bar.width - 16) * frac;
+  const targetY = bar.top + bar.height / 2;
+  const rects: DOMRect[] = [];
+  for (const k of keys) {
+    const [rs, cs] = k.split(",");
+    const cell = botEvoGridEl.querySelector(
+      `[data-r="${rs}"][data-c="${cs}"]`,
+    );
+    if (cell) rects.push(cell.getBoundingClientRect());
+  }
+  if (!rects.length) return;
+  const cx = rects.reduce((n, r) => n + r.left + r.width / 2, 0) / rects.length;
+  const cy = rects.reduce((n, r) => n + r.top + r.height / 2, 0) / rects.length;
+  for (const rect of rects) {
+    const el = document.createElement("span");
+    el.className = "botevo-fly";
+    el.style.left = `${rect.left}px`;
+    el.style.top = `${rect.top}px`;
+    el.style.width = `${rect.width * 0.76}px`;
+    el.style.height = `${rect.height * 0.76}px`;
+    el.style.marginLeft = `${rect.width * 0.12}px`;
+    el.style.marginTop = `${rect.height * 0.12}px`;
+    botEvoFxEl.appendChild(el);
+    const toCx = cx - (rect.left + rect.width / 2);
+    const toCy = cy - (rect.top + rect.height / 2);
+    const toBarX = targetX - (rect.left + rect.width / 2);
+    const toBarY = targetY - (rect.top + rect.height / 2);
+    requestAnimationFrame(() => {
+      el.style.transform = `translate(${toCx}px, ${toCy}px) scale(0.7)`;
+    });
+    window.setTimeout(() => {
+      const flyMs = BOTEVO_MORPH_MS - BOTEVO_COMBINE_MS;
+      el.style.transition = `transform ${flyMs}ms ease-in, opacity ${flyMs}ms linear`;
+      el.style.transform = `translate(${toBarX}px, ${toBarY}px) scale(0.16)`;
+      el.style.opacity = "0";
+    }, BOTEVO_COMBINE_MS);
+  }
+}
+
+function finishBotEvoMorph(): void {
+  botEvoFxEl.replaceChildren();
+  if (!botEvoState || botEvoState.phase === "lost") return;
+  botEvoState = resumeAfterMorph(botEvoState);
+  renderBotEvo();
+  armBotEvoTimer();
+}
+
+function afterBotEvoLand(): void {
+  if (!botEvoState) return;
+  if (botEvoState.phase === "morphing" && botEvoState.justMorphed.length) {
+    flyMorphToBar(botEvoState.justMorphed);
+    clearBotEvoTimer();
+    botEvoTimer = window.setTimeout(() => finishBotEvoMorph(), BOTEVO_MORPH_MS);
+    return;
+  }
+  if (botEvoState.phase === "falling") armBotEvoTimer();
 }
 
 function appendEggGlyph(host: HTMLElement, piece: PieceId): void {
@@ -2232,16 +2294,19 @@ function appendEggGlyph(host: HTMLElement, piece: PieceId): void {
   host.appendChild(egg);
 }
 
-function paintBotEvoBar(quota: number, filled: number, fillingFrom: number): void {
+function paintBotEvoBattery(quota: number, filled: number, animate: boolean): void {
   botEvoBarEl.setAttribute("aria-valuemax", String(quota));
   botEvoBarEl.setAttribute("aria-valuenow", String(filled));
-  botEvoBarEl.replaceChildren();
+  botEvoTicksEl.replaceChildren();
   for (let i = 0; i < quota; i++) {
-    const pip = document.createElement("span");
-    pip.className = "botevo-pip";
-    if (i < filled) pip.classList.add("is-filled");
-    if (i >= fillingFrom && i < filled) pip.classList.add("is-filling");
-    botEvoBarEl.appendChild(pip);
+    botEvoTicksEl.appendChild(document.createElement("span"));
+  }
+  const pct = quota ? Math.min(100, (filled / quota) * 100) : 0;
+  if (!animate) botEvoFillEl.style.transition = "none";
+  botEvoFillEl.style.width = `${pct}%`;
+  if (!animate) {
+    void botEvoFillEl.offsetWidth;
+    botEvoFillEl.style.transition = "";
   }
 }
 
@@ -2251,23 +2316,17 @@ function renderBotEvoBar(): void {
   const prev = botEvoBarView;
   const quota = quotaForLevel(s.level);
   if (s.level > prev.level) {
-    const oldQuota = quotaForLevel(prev.level);
-    paintBotEvoBar(oldQuota, oldQuota, prev.segments);
+    paintBotEvoBattery(quotaForLevel(prev.level), quotaForLevel(prev.level), true);
     window.setTimeout(() => {
       if (!botEvoState) return;
-      paintBotEvoBar(
+      paintBotEvoBattery(
         quotaForLevel(botEvoState.level),
         botEvoState.segments,
-        0,
+        false,
       );
     }, BOTEVO_MORPH_MS);
-  } else if (s.boxes > prev.boxes || s.segments > prev.segments) {
-    paintBotEvoBar(quota, s.segments, prev.segments);
-  } else if (
-    quota !== botEvoBarEl.childElementCount ||
-    s.segments !== prev.segments
-  ) {
-    paintBotEvoBar(quota, s.segments, s.segments);
+  } else {
+    paintBotEvoBattery(quota, s.segments, s.boxes > prev.boxes);
   }
   botEvoBarView = { level: s.level, segments: s.segments, boxes: s.boxes };
 }
@@ -2275,10 +2334,7 @@ function renderBotEvoBar(): void {
 function renderBotEvo(): void {
   if (!botEvoState) return;
   const lost = botEvoState.phase === "lost";
-  const quota = quotaForLevel(botEvoState.level);
-  botEvoStatusEl.textContent = lost
-    ? "Topped out"
-    : `Level ${botEvoState.level} · ${botEvoState.segments} / ${quota}`;
+  botEvoStatusEl.textContent = lost ? "—" : String(botEvoState.level);
   botEvoScoreEl.textContent =
     botEvoState.boxes === 1 ? "1 box" : `${botEvoState.boxes} boxes`;
   renderBotEvoBar();
@@ -2313,12 +2369,8 @@ function renderBotEvo(): void {
       if (falling) btn.classList.add("is-falling");
       if (morphing) btn.classList.add("is-morph");
       if (landed) appendEggGlyph(btn, landed);
-      else if (falling) appendEggGlyph(btn, botEvoState.current);
-      else if (morphing) {
-        const box = document.createElement("span");
-        box.className = "botevo-box";
-        box.setAttribute("aria-hidden", "true");
-        btn.appendChild(box);
+      else if (falling && botEvoState.phase !== "morphing") {
+        appendEggGlyph(btn, botEvoState.current);
       }
       const label = morphing
         ? `Morphing box ${r + 1},${c + 1}`
@@ -2354,6 +2406,7 @@ function renderBotEvo(): void {
 function openBotEvo(): void {
   botEvoState = startBotEvo();
   botEvoBarView = { level: 1, segments: 0, boxes: 0 };
+  botEvoFxEl.replaceChildren();
   renderBotEvo();
   armBotEvoTimer();
   botEvoRoot.classList.remove("hidden");
@@ -2364,6 +2417,7 @@ function openBotEvo(): void {
 
 function closeBotEvo(): void {
   clearBotEvoTimer();
+  botEvoFxEl.replaceChildren();
   botEvoRoot.classList.add("hidden");
   botEvoRoot.setAttribute("aria-hidden", "true");
   botEvoState = null;
@@ -2497,6 +2551,7 @@ function closePipes(): void {
 
 function botEvoPlayAgain(): void {
   clearBotEvoTimer();
+  botEvoFxEl.replaceChildren();
   botEvoState = playAgainBotEvo();
   botEvoBarView = { level: 1, segments: 0, boxes: 0 };
   renderBotEvo();
@@ -2506,16 +2561,13 @@ function botEvoPlayAgain(): void {
 
 function botEvoDrop(): void {
   if (!botEvoState || botEvoState.phase === "lost") return;
-  const boxesBefore = botEvoState.boxes;
+  if (botEvoState.phase === "morphing") {
+    botEvoState = resumeAfterMorph(botEvoState);
+  }
+  botEvoFxEl.replaceChildren();
   botEvoState = hardDrop(botEvoState);
   renderBotEvo();
-  if (!botEvoState || botEvoState.phase !== "falling") {
-    clearBotEvoTimer();
-    return;
-  }
-  armBotEvoTimer(
-    botEvoState.boxes > boxesBefore ? BOTEVO_MORPH_MS : undefined,
-  );
+  afterBotEvoLand();
 }
 
 

@@ -658,19 +658,21 @@ html.native-shell #app {
   overflow-y: auto;
 }
 
-.botevo-status-row {
+.botevo-hud {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+  align-items: center;
   gap: 12px;
-  flex-wrap: wrap;
 }
 
-.botevo-status {
+.botevo-level {
   margin: 0;
-  font-size: 0.95rem;
+  min-width: 1.35em;
+  font-size: 1.7rem;
+  font-weight: 800;
+  line-height: 1;
   color: var(--accent-2);
-  letter-spacing: 0.04em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 
 .botevo-score {
@@ -679,43 +681,79 @@ html.native-shell #app {
   color: var(--muted);
 }
 
-.botevo-bar {
+.botevo-battery {
+  flex: 1 1 auto;
   display: flex;
-  gap: 3px;
-  height: 10px;
-  width: 100%;
-  padding: 2px;
-  border-radius: 999px;
-  border: 1px solid #3d5a80;
-  background: #0a1020;
-}
-
-.botevo-pip {
-  flex: 1 1 0;
+  align-items: center;
   min-width: 0;
-  border-radius: 999px;
-  background: #1a2438;
+  height: 22px;
 }
 
-.botevo-pip.is-filled {
-  background: linear-gradient(180deg, #ffd978 0%, #c9a227 100%);
-  box-shadow: 0 0 6px rgba(201, 162, 39, 0.55);
-  transform-origin: left center;
+.botevo-battery-track {
+  position: relative;
+  flex: 1 1 auto;
+  height: 18px;
+  border-radius: 5px;
+  border: 2px solid #c9a227;
+  background: #070b14;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
 }
 
-.botevo-pip.is-filling {
-  animation: botevo-pip-fill 420ms ease-out;
+.botevo-battery-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0%;
+  background: linear-gradient(180deg, #ffe08a 0%, #d4ae3a 55%, #c9a227 100%);
+  box-shadow: 0 0 10px rgba(255, 217, 120, 0.45);
+  transition: width 210ms ease-out;
 }
 
-@keyframes botevo-pip-fill {
-  from {
-    transform: scaleX(0.15);
-    opacity: 0.35;
-  }
-  to {
-    transform: scaleX(1);
-    opacity: 1;
-  }
+.botevo-battery-ticks {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  pointer-events: none;
+}
+
+.botevo-battery-ticks span {
+  flex: 1 1 0;
+  border-right: 1px solid rgba(7, 11, 20, 0.55);
+}
+
+.botevo-battery-ticks span:last-child {
+  border-right: none;
+}
+
+.botevo-battery-cap {
+  width: 5px;
+  height: 10px;
+  margin-left: 2px;
+  flex: 0 0 auto;
+  border-radius: 0 2px 2px 0;
+  background: #c9a227;
+}
+
+.botevo-fx {
+  position: fixed;
+  inset: 0;
+  z-index: 2200;
+  pointer-events: none;
+}
+
+.botevo-fly {
+  position: fixed;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #ffe08a 0%, #c9a227 100%);
+  border: 1px solid #8a7340;
+  box-shadow: 0 0 10px rgba(255, 217, 120, 0.8);
+  transform: translate(0, 0) scale(1);
+  opacity: 1;
+  transition:
+    transform 70ms ease-out,
+    opacity 140ms linear;
 }
 
 .botevo-hint {
@@ -794,27 +832,8 @@ html.native-shell #app {
   }
 }
 
-.botevo-box {
-  position: absolute;
-  inset: 12%;
-  border-radius: 6px;
-  background: linear-gradient(180deg, #ffe08a 0%, #c9a227 100%);
-  border: 1px solid #8a7340;
-  box-shadow: 0 0 10px rgba(255, 217, 120, 0.85);
-  animation: botevo-morph-box 420ms ease-out;
-}
-
-@keyframes botevo-morph-box {
-  0% {
-    transform: scale(0.55);
-    opacity: 0.4;
-    border-radius: 50%;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-    border-radius: 6px;
-  }
+.botevo-cell.is-morph {
+  border-color: #c9a227;
 }
 
 .botevo-cell.is-live .botevo-egg {
