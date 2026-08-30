@@ -6,6 +6,7 @@ import {
   type HandbookSection,
 } from "./content";
 import { sectionIcon, topicIcon } from "./icons";
+import { liveTopicLegend, paintHandbookLegend } from "./legendCanvases";
 
 const STORAGE_KEY = "solarquest.handbook.topic";
 const SECTION_KEY = "solarquest.handbook.section";
@@ -121,16 +122,27 @@ export function mountHandbook(root: HTMLElement): HandbookController {
       btn.type = "button";
       btn.className = "handbook-toc-item";
       btn.dataset.topicId = topic.id;
-      const iconSrc = topicIcon(topic.id);
-      if (iconSrc) {
-        const img = document.createElement("img");
-        img.src = iconSrc;
-        img.alt = "";
-        img.className = "handbook-toc-icon";
-        img.width = 28;
-        img.height = 28;
-        img.decoding = "async";
-        btn.appendChild(img);
+      const live = liveTopicLegend(topic.id);
+      if (live) {
+        const canvas = document.createElement("canvas");
+        canvas.className = "handbook-toc-icon";
+        canvas.dataset.legend = live;
+        canvas.dataset.w = "28";
+        canvas.dataset.h = "28";
+        canvas.setAttribute("aria-hidden", "true");
+        btn.appendChild(canvas);
+      } else {
+        const iconSrc = topicIcon(topic.id);
+        if (iconSrc) {
+          const img = document.createElement("img");
+          img.src = iconSrc;
+          img.alt = "";
+          img.className = "handbook-toc-icon";
+          img.width = 28;
+          img.height = 28;
+          img.decoding = "async";
+          btn.appendChild(img);
+        }
       }
       const label = document.createElement("span");
       label.className = "handbook-toc-label";
@@ -139,6 +151,7 @@ export function mountHandbook(root: HTMLElement): HandbookController {
       btn.addEventListener("click", () => selectTopic(topic.id));
       toc.appendChild(btn);
     }
+    paintHandbookLegend(toc);
   }
 
   function syncTabChrome(): void {
@@ -184,10 +197,16 @@ export function mountHandbook(root: HTMLElement): HandbookController {
     safeStorageSet(STORAGE_KEY, currentId);
 
     const sec = activeSection();
-    const artIcon = topicIcon(topic.id);
-    const titleBlock = artIcon
+    const liveArt = liveTopicLegend(topic.id);
+    const artIcon = liveArt ? null : topicIcon(topic.id);
+    const iconHtml = liveArt
+      ? `<canvas class="handbook-article-icon" data-legend="${liveArt}" data-w="72" data-h="72" aria-hidden="true"></canvas>`
+      : artIcon
+        ? `<img class="handbook-article-icon" src="${artIcon}" alt="" width="72" height="72" decoding="async" />`
+        : "";
+    const titleBlock = iconHtml
       ? `<div class="handbook-article-title-row">
-          <img class="handbook-article-icon" src="${artIcon}" alt="" width="72" height="72" decoding="async" />
+          ${iconHtml}
           <div>
             <p class="handbook-article-section">${sec.title}</p>
             <h3>${topic.title}</h3>
@@ -195,6 +214,7 @@ export function mountHandbook(root: HTMLElement): HandbookController {
         </div>`
       : `<p class="handbook-article-section">${sec.title}</p><h3>${topic.title}</h3>`;
     article.innerHTML = `${titleBlock}${topic.html}`;
+    paintHandbookLegend(article);
     toc.querySelectorAll(".handbook-toc-item").forEach((el) => {
       el.classList.toggle(
         "active",
@@ -210,12 +230,20 @@ export function mountHandbook(root: HTMLElement): HandbookController {
     const end = document.getElementById("end-root");
     const eac = document.getElementById("eac-root");
     const botevo = document.getElementById("botevo-root");
+    const pipes = document.getElementById("pipes-root");
+    const tiles = document.getElementById("tiles-root");
+    const urp = document.getElementById("urp-root");
+    const deseret = document.getElementById("deseret-root");
     return (
       (!!duel && !duel.classList.contains("hidden")) ||
       (!!lab && !lab.classList.contains("hidden")) ||
       (!!end && !end.classList.contains("hidden")) ||
       (!!eac && !eac.classList.contains("hidden")) ||
-      (!!botevo && !botevo.classList.contains("hidden"))
+      (!!botevo && !botevo.classList.contains("hidden")) ||
+      (!!pipes && !pipes.classList.contains("hidden")) ||
+      (!!tiles && !tiles.classList.contains("hidden")) ||
+      (!!urp && !urp.classList.contains("hidden")) ||
+      (!!deseret && !deseret.classList.contains("hidden"))
     );
   }
 

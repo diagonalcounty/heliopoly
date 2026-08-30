@@ -4,6 +4,7 @@
  */
 import {
   bankSellValue,
+  assetSheetLine,
   bestBooksLine,
   buildDossierView,
   claimEarnings,
@@ -75,27 +76,29 @@ assert(elonReserve === 275, "Elon reserve is half of 550");
 {
   const s = setupPortfolio();
   const you = s.players[0];
-  // elon: 400/550 → 73%; venus: 0 earned but cash in → ranks at 0%
-  const line = bestBooksLine(s, you.id);
+  // Elon list 550 → mark 275 + income 400 = 675; Venus still ranks on mark
+  const line = assetSheetLine(s, you.id);
   assert(
-    line === "Best books: Elon 73% · Venus 0%.",
-    `Best books sorts by ROI and keeps zero-earnings claims (${line})`,
+    line === "Books: Elon ⍼675 (mark ⍼275 + income ⍼400) · Venus ⍼250 (mark ⍼250 + income ⍼0).",
+    `Asset sheet sorts by mark+income (${line})`,
   );
-  grantClaim(s, you.id, "titan", { rentCollected: 6000 }); // 1000%
-  grantClaim(s, you.id, "enceladus", { rentCollected: 32 }); // 10%
+  grantClaim(s, you.id, "titan", { rentCollected: 6000 });
+  grantClaim(s, you.id, "enceladus", { rentCollected: 32 });
   grantClaim(s, you.id, "ganymede", { rentCollected: 0 });
-  const capped = bestBooksLine(s, you.id);
+  const capped = assetSheetLine(s, you.id);
   assert(
-    capped === "Best books: Titan 1000% · Elon 73% · Enceladus 10%.",
-    `Best books caps at the top three (${capped})`,
+    capped === "Books: Titan ⍼6300 (mark ⍼300 + income ⍼6000) · Elon ⍼675 (mark ⍼275 + income ⍼400) · Ganymede ⍼275 (mark ⍼275 + income ⍼0).",
+    `Asset sheet caps at top three (${capped})`,
   );
 }
 
 {
   const s = setupPortfolio();
   grantClaim(s, s.players[2].id, "titan", { cashInvested: 0, rentCollected: 900 });
-  assert(bestBooksLine(s, s.players[2].id) === "", "Zero-cash-in claims never make Best books");
-  assert(bestBooksLine(s, "nobody") === "", "Unknown seat gets no Best books line");
+  const gifted = assetSheetLine(s, s.players[2].id);
+  assert(gifted.includes("Titan") && gifted.includes("income"), "Zero-cash-in gifts still show mark + income");
+  assert(assetSheetLine(s, "nobody") === "", "Unknown seat gets no books line");
+  assert(bestBooksLine(s, s.players[2].id) === gifted, "bestBooksLine delegates to assetSheetLine");
 }
 
 {

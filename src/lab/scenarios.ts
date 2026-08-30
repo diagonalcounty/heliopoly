@@ -34,7 +34,8 @@ export const LAB_GROUP_LABELS: Record<LabScenarioGroup, string> = {
 export const LAB_GROUP_BLURBS: Record<LabScenarioGroup, string> = {
   "which-is-larger":
     "Literacy drills: pick the larger of two numbers in a target numbering system.",
-  minigame: "Standalone practice modes (Bot Evolution, Gravity Duel).",
+  minigame:
+    "Standalone practice modes (urinal-rule-parking, Backup fuel, Hull panel, Deseret letters, Bot Evolution, Gravity Duel).",
   end: "Canned end screens for UI / copy checks.",
   economy: "Economy and risk edge cases.",
 };
@@ -141,6 +142,45 @@ export const LAB_SCENARIOS: LabScenario[] = [
   },
 
   // —— Other minigames ——
+  {
+    id: "urinal-rule-parking",
+    title: "urinal-rule-parking",
+    blurb: "Circular pads. Tap an empty circle.",
+    group: "minigame",
+    kind: "standalone",
+    available: true,
+    standaloneId: "urinal-rule-parking",
+  },
+  {
+    id: "backup-fuel-pipes",
+    title: "Backup fuel",
+    blurb:
+      "Reroute backup fuel: rotate pipe segments on a 6×6 until tank feeds the engine. Untimed Lab practice; expedition stays put.",
+    group: "minigame",
+    kind: "standalone",
+    available: true,
+    standaloneId: "backup-fuel-pipes",
+  },
+  {
+    id: "hull-panel",
+    title: "Hull panel",
+    blurb:
+      "Slide numbered hull plates 1–8 back into order. Untimed Lab practice; expedition stays put.",
+    group: "minigame",
+    kind: "standalone",
+    available: true,
+    standaloneId: "hull-panel",
+  },
+  {
+    id: "deseret-match",
+    title: "Deseret letters",
+    blurb:
+      "Twelve Deseret capitals. Match the glyph to its Latin letter. Eight of ten wins; misses show the answer.",
+    group: "minigame",
+    kind: "standalone",
+    available: true,
+    standaloneId: "deseret-match",
+  },
   {
     id: "bot-evolution",
     title: "Bot Evolution",
