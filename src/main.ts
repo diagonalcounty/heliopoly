@@ -103,6 +103,7 @@ import {
   hardDrop,
   landingPreview,
   liveChainCells,
+  connectorKind,
   pieceArt,
   playAgainBotEvo,
   quotaForLevel,
@@ -2275,7 +2276,7 @@ function afterBotEvoLand(): void {
 
 function appendBotSprite(host: HTMLElement, piece: PieceId): void {
   const wrap = document.createElement("span");
-  wrap.className = "botevo-bot";
+  wrap.className = `botevo-bot is-${connectorKind(piece)}`;
   wrap.setAttribute("aria-hidden", "true");
   const img = document.createElement("img");
   img.className = "botevo-sprite";

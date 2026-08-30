@@ -4,7 +4,8 @@
  *
  * Grammar: every piece is a centered plus with unused arms erased.
  * Connection uses socket flags, not sprite shape. No rotation — each
- * piece id is a fixed bot with its own face and claw layout.
+ * piece id is a fixed bot. Shell color is by connector family
+ * (4 / 3 / straight-2 / corner-2), not by facing.
  */
 
 export const BOT_COLS = 5;
@@ -63,6 +64,33 @@ export const PIECE_IDS: readonly PieceId[] = [
   "t-s",
   "t-w",
 ] as const;
+
+/** Shell color follows connector family, not facing. */
+export type ConnectorKind = "four" | "three" | "straight" | "corner";
+
+export const SHELL_FILL: Record<ConnectorKind, string> = {
+  four: "#f3ead2",
+  three: "#b5d9c4",
+  straight: "#9ec9e8",
+  corner: "#e8c4a0",
+};
+
+export function socketCount(id: PieceId): number {
+  const mask = PIECE_SOCKETS[id];
+  let n = 0;
+  for (const dir of [DIR_N, DIR_E, DIR_S, DIR_W]) {
+    if (mask & dir) n++;
+  }
+  return n;
+}
+
+export function connectorKind(id: PieceId): ConnectorKind {
+  const n = socketCount(id);
+  if (n === 4) return "four";
+  if (n === 3) return "three";
+  if (id === "i" || id === "dash") return "straight";
+  return "corner";
+}
 
 const OPPOSITE: Record<number, number> = {
   [DIR_N]: DIR_S,
@@ -232,6 +260,89 @@ export function playAgainBotEvo(seed?: number): BotState {
 /** Unique illustrated bot for this piece; faces stay upright. */
 export function pieceArt(id: PieceId): string {
   return `/lab/botevo/${id}.svg`;
+}
+
+/** Cream token SVG: Kostka face, gold pegs, shell tinted by connector family. */
+export function eggTokenSvg(id: PieceId): string {
+  const mask = PIECE_SOCKETS[id];
+  const kind = connectorKind(id);
+  const fill = SHELL_FILL[kind];
+  const nsOnly = kind === "straight" && (mask & DIR_N) !== 0;
+  const ewOnly = kind === "straight" && (mask & DIR_E) !== 0;
+  const rx = nsOnly ? 30 : ewOnly ? 50 : 38;
+  const ry = nsOnly ? 50 : ewOnly ? 32 : 46;
+  const cx = 64;
+  const cy = 64;
+  const hx = cx;
+  const hy = cy + 14;
+  const arm = 16;
+  const thick = 6;
+  const navy = "#1a2744";
+  const gold = "#c9a227";
+  const goldDk = "#8a7340";
+  const cyan = "#5aa8d4";
+  const parts: string[] = [
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">',
+    `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${fill}" stroke="${navy}" stroke-width="3"/>`,
+  ];
+  if (mask & DIR_N) {
+    parts.push(
+      `<rect x="${hx - thick / 2}" y="${hy - arm}" width="${thick}" height="${arm}" fill="${gold}"/>`,
+    );
+  }
+  if (mask & DIR_S) {
+    parts.push(
+      `<rect x="${hx - thick / 2}" y="${hy}" width="${thick}" height="${arm}" fill="${gold}"/>`,
+    );
+  }
+  if (mask & DIR_W) {
+    parts.push(
+      `<rect x="${hx - arm}" y="${hy - thick / 2}" width="${arm}" height="${thick}" fill="${gold}"/>`,
+    );
+  }
+  if (mask & DIR_E) {
+    parts.push(
+      `<rect x="${hx}" y="${hy - thick / 2}" width="${arm}" height="${thick}" fill="${gold}"/>`,
+    );
+  }
+  parts.push(
+    `<rect x="${hx - 5}" y="${hy - 5}" width="10" height="10" rx="1.5" fill="${gold}"/>`,
+  );
+  if (kind === "four") {
+    parts.push(
+      `<rect x="${hx - 1.5}" y="${hy - 6}" width="3" height="12" fill="${cyan}"/>`,
+      `<rect x="${hx - 6}" y="${hy - 1.5}" width="12" height="3" fill="${cyan}"/>`,
+    );
+  }
+  const pegL = 15;
+  const pegT = 10;
+  if (mask & DIR_N) {
+    parts.push(
+      `<rect x="${cx - pegT / 2}" y="${cy - ry - 10}" width="${pegT}" height="${pegL}" rx="3.5" fill="${gold}" stroke="${goldDk}" stroke-width="1.1"/>`,
+    );
+  }
+  if (mask & DIR_S) {
+    parts.push(
+      `<rect x="${cx - pegT / 2}" y="${cy + ry - 5}" width="${pegT}" height="${pegL}" rx="3.5" fill="${gold}" stroke="${goldDk}" stroke-width="1.1"/>`,
+    );
+  }
+  if (mask & DIR_E) {
+    parts.push(
+      `<rect x="${cx + rx - 5}" y="${cy - pegT / 2}" width="${pegL}" height="${pegT}" rx="3.5" fill="${gold}" stroke="${goldDk}" stroke-width="1.1"/>`,
+    );
+  }
+  if (mask & DIR_W) {
+    parts.push(
+      `<rect x="${cx - rx - 10}" y="${cy - pegT / 2}" width="${pegL}" height="${pegT}" rx="3.5" fill="${gold}" stroke="${goldDk}" stroke-width="1.1"/>`,
+    );
+  }
+  parts.push(
+    `<ellipse cx="${cx - 11}" cy="${cy - 12}" rx="5.2" ry="6.6" fill="${navy}"/>`,
+    `<ellipse cx="${cx + 11}" cy="${cy - 12}" rx="5.2" ry="6.6" fill="${navy}"/>`,
+    `<path d="M ${cx - 9} ${cy + 4} Q ${cx} ${cy + 10} ${cx + 9} ${cy + 4}" fill="none" stroke="${navy}" stroke-width="2.3" stroke-linecap="round"/>`,
+    "</svg>",
+  );
+  return parts.join("\n") + "\n";
 }
 
 /** Directions on `r,c` that currently plug into a neighbor. */

@@ -27,6 +27,10 @@ import {
   LOCK_GRACE_TICKS,
   quotaForLevel,
   pieceArt,
+  SHELL_FILL,
+  connectorKind,
+  eggTokenSvg,
+  socketCount,
   socketJoins,
   socketsMeet,
   startBotEvo,
@@ -91,8 +95,17 @@ assert(!hasSocket("dash", DIR_N) && !hasSocket("dash", DIR_S), "dash has no vert
 assert(PIECE_IDS.length === 11, "piece set is plus + I + dash + 4 L + 4 T");
 assert(pieceArt("plus") === "/lab/botevo/plus.svg", "plus has its own art");
 assert(pieceArt("dash") === "/lab/botevo/dash.svg", "dash is not a rotated I");
-assert(pieceArt("l-es") === "/lab/botevo/l-es.svg", "each L has its own wiring");
-assert(pieceArt("t-w") === "/lab/botevo/t-w.svg", "each T has its own wiring");
+assert(socketCount("plus") === 4 && socketCount("t-n") === 3, "plus is 4, T is 3");
+assert(socketCount("i") === 2 && socketCount("l-ne") === 2, "I and L are both 2-pin");
+assert(connectorKind("i") === "straight" && connectorKind("dash") === "straight", "I and dash share a shell");
+assert(connectorKind("t-n") === connectorKind("t-w"), "every T shares a shell");
+assert(connectorKind("l-ne") === connectorKind("l-sw"), "every L shares a shell");
+assert(connectorKind("l-ne") !== connectorKind("dash"), "corner L is not the straight shell");
+assert(eggTokenSvg("i").includes(SHELL_FILL.straight), "straight shell is cyan");
+assert(eggTokenSvg("dash").includes(SHELL_FILL.straight), "dash uses the straight shell");
+assert(eggTokenSvg("t-e").includes(SHELL_FILL.three), "T shell is mint");
+assert(eggTokenSvg("plus").includes(SHELL_FILL.four), "plus shell is cream");
+assert(eggTokenSvg("l-es").includes(SHELL_FILL.corner), "L shell is apricot");
 
 assert(socketsMeet("plus", "plus", DIR_E), "plus-plus meet east");
 assert(socketsMeet("i", "i", DIR_S), "I-I meet south");
