@@ -231,7 +231,7 @@ export function playAgainBotEvo(seed?: number): BotState {
 
 /** Unique illustrated bot for this piece; faces stay upright. */
 export function pieceArt(id: PieceId): string {
-  return `/lab/botevo/${id}.png`;
+  return `/lab/botevo/${id}.svg`;
 }
 
 /** Directions on `r,c` that currently plug into a neighbor. */

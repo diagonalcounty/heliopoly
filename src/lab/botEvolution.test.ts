@@ -89,10 +89,10 @@ assert(PIECE_SOCKETS["l-ne"] === (DIR_N | DIR_E), "L example is N+E");
 assert(!hasSocket("i", DIR_E) && !hasSocket("i", DIR_W), "I never grows side pipes");
 assert(!hasSocket("dash", DIR_N) && !hasSocket("dash", DIR_S), "dash has no vertical sockets");
 assert(PIECE_IDS.length === 11, "piece set is plus + I + dash + 4 L + 4 T");
-assert(pieceArt("plus") === "/lab/botevo/plus.png", "plus has its own art");
-assert(pieceArt("dash") === "/lab/botevo/dash.png", "dash is not a rotated I");
-assert(pieceArt("l-es") === "/lab/botevo/l-es.png", "each L has its own face");
-assert(pieceArt("t-w") === "/lab/botevo/t-w.png", "each T has its own face");
+assert(pieceArt("plus") === "/lab/botevo/plus.svg", "plus has its own art");
+assert(pieceArt("dash") === "/lab/botevo/dash.svg", "dash is not a rotated I");
+assert(pieceArt("l-es") === "/lab/botevo/l-es.svg", "each L has its own wiring");
+assert(pieceArt("t-w") === "/lab/botevo/t-w.svg", "each T has its own wiring");
 
 assert(socketsMeet("plus", "plus", DIR_E), "plus-plus meet east");
 assert(socketsMeet("i", "i", DIR_S), "I-I meet south");
