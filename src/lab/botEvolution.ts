@@ -254,6 +254,55 @@ export function rotatePiece(id: PieceId): PieceId {
   return id;
 }
 
+export type SpriteKind = "plus" | "i" | "l" | "t";
+
+/** Illustrated bot + CSS rotation so sockets stay on the live sides. */
+export function pieceSprite(
+  id: PieceId,
+): { kind: SpriteKind; rot: 0 | 90 | 180 | 270 } {
+  switch (id) {
+    case "plus":
+      return { kind: "plus", rot: 0 };
+    case "i":
+      return { kind: "i", rot: 0 };
+    case "dash":
+      return { kind: "i", rot: 90 };
+    case "l-ne":
+      return { kind: "l", rot: 0 };
+    case "l-es":
+      return { kind: "l", rot: 90 };
+    case "l-sw":
+      return { kind: "l", rot: 180 };
+    case "l-wn":
+      return { kind: "l", rot: 270 };
+    case "t-n":
+      return { kind: "t", rot: 0 };
+    case "t-e":
+      return { kind: "t", rot: 90 };
+    case "t-s":
+      return { kind: "t", rot: 180 };
+    case "t-w":
+      return { kind: "t", rot: 270 };
+  }
+}
+
+/** Directions on `r,c` that currently plug into a neighbor. */
+export function socketJoins(grid: BotGrid, r: number, c: number): number {
+  const here = grid[r]![c];
+  if (!here) return 0;
+  let mask = 0;
+  for (const dir of [DIR_N, DIR_E, DIR_S, DIR_W]) {
+    const [dr, dc] = DELTA[dir]!;
+    const nr = r + dr;
+    const nc = c + dc;
+    if (!inGrid(nr, nc)) continue;
+    const there = grid[nr]![nc];
+    if (!there) continue;
+    if (socketsMeet(here, there, dir)) mask |= dir;
+  }
+  return mask;
+}
+
 export function socketsMeet(
   a: PieceId,
   b: PieceId,

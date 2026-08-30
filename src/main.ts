@@ -103,13 +103,15 @@ import {
   hardDrop,
   landingPreview,
   liveChainCells,
+  pieceSprite,
   playAgainBotEvo,
   quotaForLevel,
   resumeAfterMorph,
   rotateCurrent,
-  socketsOf,
+  socketJoins,
   startBotEvo,
   tick,
+  type BotGrid,
   type BotState,
   type PieceId,
 } from "./lab/botEvolution";
@@ -2174,6 +2176,14 @@ let botEvoTimer: number | null = null;
 let botEvoBarView = { level: 1, segments: 0, boxes: 0 };
 const BOTEVO_MORPH_MS = 210;
 const BOTEVO_COMBINE_MS = 70;
+const BOTEVO_JOIN_DIRS: Array<[number, string]> = [
+  [DIR_N, "n"],
+  [DIR_E, "e"],
+  [DIR_S, "s"],
+  [DIR_W, "w"],
+];
+let botEvoPrevOcc = new Set<string>();
+let botEvoPrevJoins = new Set<string>();
 
 function isBotEvoOpen(): boolean {
   return !botEvoRoot.classList.contains("hidden");
@@ -2265,36 +2275,50 @@ function afterBotEvoLand(): void {
   if (botEvoState.phase === "falling") armBotEvoTimer();
 }
 
-function appendEggGlyph(host: HTMLElement, piece: PieceId): void {
-  const egg = document.createElement("span");
-  egg.className = "botevo-egg";
-  egg.setAttribute("aria-hidden", "true");
-  const hub = document.createElement("span");
-  hub.className = "botevo-hub";
-  egg.appendChild(hub);
-  if (piece === "plus") {
-    const inner = document.createElement("span");
-    inner.className = "botevo-inner-plus";
-    egg.appendChild(inner);
+function appendBotSprite(host: HTMLElement, piece: PieceId): void {
+  const { kind, rot } = pieceSprite(piece);
+  const wrap = document.createElement("span");
+  wrap.className = `botevo-bot rot-${rot}`;
+  wrap.setAttribute("aria-hidden", "true");
+  const img = document.createElement("img");
+  img.className = "botevo-sprite";
+  img.src = `/lab/botevo/${kind}.png`;
+  img.alt = "";
+  img.draggable = false;
+  wrap.appendChild(img);
+  host.appendChild(wrap);
+}
+
+function appendJoins(
+  host: HTMLElement,
+  mask: number,
+  snap: Set<string>,
+  keyPrefix: string,
+  ghost: boolean,
+): void {
+  if (!mask) return;
+  for (const [bit, name] of BOTEVO_JOIN_DIRS) {
+    if ((mask & bit) === 0) continue;
+    const join = document.createElement("span");
+    join.className = `botevo-join ${name}`;
+    if (ghost) join.classList.add("is-ghost");
+    if (snap.has(`${keyPrefix},${name}`)) join.classList.add("is-snap");
+    host.appendChild(join);
   }
-  const sockets = socketsOf(piece);
-  const arms: Array<[number, string]> = [
-    [DIR_N, "n"],
-    [DIR_E, "e"],
-    [DIR_S, "s"],
-    [DIR_W, "w"],
-  ];
-  for (const [bit, name] of arms) {
-    if (sockets & bit) {
-      const arm = document.createElement("span");
-      arm.className = `botevo-arm ${name}`;
-      egg.appendChild(arm);
-      const pin = document.createElement("span");
-      pin.className = `botevo-pin ${name}`;
-      egg.appendChild(pin);
+}
+
+function joinKeysFor(grid: BotGrid): Set<string> {
+  const keys = new Set<string>();
+  for (let r = 0; r < BOT_ROWS; r++) {
+    for (let c = 0; c < BOT_COLS; c++) {
+      const mask = socketJoins(grid, r, c);
+      if (!mask) continue;
+      for (const [bit, name] of BOTEVO_JOIN_DIRS) {
+        if (mask & bit) keys.add(`${r},${c},${name}`);
+      }
     }
   }
-  host.appendChild(egg);
+  return keys;
 }
 
 function paintBotEvoBattery(quota: number, filled: number, animate: boolean): void {
@@ -2356,6 +2380,23 @@ function renderBotEvo(): void {
   const live = liveChainCells(botEvoState.grid);
   const morph = new Set(botEvoState.justMorphed);
   const preview = landingPreview(botEvoState);
+  const occ = new Set<string>();
+  for (let r = 0; r < BOT_ROWS; r++) {
+    for (let c = 0; c < BOT_COLS; c++) {
+      if (botEvoState.grid[r]![c]) occ.add(`${r},${c}`);
+    }
+  }
+  const landedJoins = joinKeysFor(botEvoState.grid);
+  const newJoins = new Set<string>();
+  for (const k of landedJoins) if (!botEvoPrevJoins.has(k)) newJoins.add(k);
+  const newLand = new Set<string>();
+  for (const k of occ) if (!botEvoPrevOcc.has(k)) newLand.add(k);
+
+  let previewGrid: BotGrid | null = null;
+  if (preview && botEvoState.phase === "falling") {
+    previewGrid = botEvoState.grid.map((row) => row.slice());
+    previewGrid[preview.row]![botEvoState.aimCol] = botEvoState.current;
+  }
 
   botEvoGridEl.replaceChildren();
   for (let r = 0; r < BOT_ROWS; r++) {
@@ -2379,6 +2420,7 @@ function renderBotEvo(): void {
       if (live.has(`${r},${c}`)) btn.classList.add("is-live");
       if (falling) btn.classList.add("is-falling");
       if (morphing) btn.classList.add("is-morph");
+      if (newLand.has(`${r},${c}`)) btn.classList.add("is-land");
       if (ghostHere) {
         btn.classList.add("is-ghost");
         if (preview.live) btn.classList.add("is-ghost-live");
@@ -2386,18 +2428,44 @@ function renderBotEvo(): void {
       }
       if (falling && preview?.live) btn.classList.add("is-live");
       if (falling && preview?.morph) btn.classList.add("is-ghost-morph");
-      if (landed) appendEggGlyph(btn, landed);
-      else if (falling && botEvoState.phase !== "morphing") {
-        appendEggGlyph(btn, botEvoState.current);
+      if (landed) {
+        appendBotSprite(btn, landed);
+        appendJoins(
+          btn,
+          socketJoins(botEvoState.grid, r, c),
+          newJoins,
+          `${r},${c}`,
+          false,
+        );
+      } else if (falling && botEvoState.phase !== "morphing") {
+        appendBotSprite(btn, botEvoState.current);
+        if (previewGrid && preview && preview.row === r) {
+          appendJoins(
+            btn,
+            socketJoins(previewGrid, r, c),
+            new Set(),
+            `${r},${c}`,
+            true,
+          );
+        }
       } else if (ghostHere) {
-        appendEggGlyph(btn, botEvoState.current);
+        appendBotSprite(btn, botEvoState.current);
+        if (previewGrid) {
+          appendJoins(
+            btn,
+            socketJoins(previewGrid, r, c),
+            new Set(),
+            `${r},${c}`,
+            true,
+          );
+        }
       }
       const label = morphing
         ? `Morphing box ${r + 1},${c + 1}`
         : landed
-          ? `Egg ${r + 1},${c + 1} ${landed}`
+          ? `Bot ${r + 1},${c + 1}`
           : falling
-            ? `Falling egg column ${c + 1}`
+            ? `Falling bot column ${c + 1}`
             : `Column ${c + 1}`;
       btn.setAttribute("aria-label", lost ? `${label}, locked` : label);
       btn.disabled = lost;
@@ -2416,19 +2484,23 @@ function renderBotEvo(): void {
       botEvoGridEl.appendChild(btn);
     }
   }
+  botEvoPrevOcc = occ;
+  botEvoPrevJoins = landedJoins;
 
   botEvoQueueEl.replaceChildren();
   for (const piece of botEvoState.queue) {
     const slot = document.createElement("div");
     slot.className = "botevo-queue-egg";
     slot.setAttribute("aria-label", `Next ${piece}`);
-    appendEggGlyph(slot, piece);
+    appendBotSprite(slot, piece);
     botEvoQueueEl.appendChild(slot);
   }
 }
 
 function openBotEvo(): void {
   botEvoState = startBotEvo();
+  botEvoPrevOcc = new Set();
+  botEvoPrevJoins = new Set();
   botEvoBarView = { level: 1, segments: 0, boxes: 0 };
   botEvoFxEl.replaceChildren();
   renderBotEvo();
@@ -2576,6 +2648,8 @@ function closePipes(): void {
 function botEvoPlayAgain(): void {
   clearBotEvoTimer();
   botEvoFxEl.replaceChildren();
+  botEvoPrevOcc = new Set();
+  botEvoPrevJoins = new Set();
   botEvoState = playAgainBotEvo();
   botEvoBarView = { level: 1, segments: 0, boxes: 0 };
   renderBotEvo();

@@ -26,9 +26,11 @@ import {
   landingPreview,
   LOCK_GRACE_TICKS,
   quotaForLevel,
+  pieceSprite,
   rotateCurrent,
   rotatePiece,
   SHAPE_BAG,
+  socketJoins,
   socketsMeet,
   startBotEvo,
   tick,
@@ -101,6 +103,10 @@ assert(rotatePiece("t-n") === "t-e", "T turns CW");
 assert(rotatePiece("t-e") === "t-s", "T-E → T-S");
 assert(rotatePiece("t-s") === "t-w", "T-S → T-W");
 assert(rotatePiece("t-w") === "t-n", "T-W → T-N");
+assert(pieceSprite("plus").kind === "plus" && pieceSprite("plus").rot === 0, "plus sprite");
+assert(pieceSprite("dash").kind === "i" && pieceSprite("dash").rot === 90, "dash is rotated I");
+assert(pieceSprite("l-es").kind === "l" && pieceSprite("l-es").rot === 90, "L-ES is L turned CW");
+assert(pieceSprite("t-s").kind === "t" && pieceSprite("t-s").rot === 180, "T-S is T flipped");
 
 assert(socketsMeet("plus", "plus", DIR_E), "plus-plus meet east");
 assert(socketsMeet("i", "i", DIR_S), "I-I meet south");
@@ -167,6 +173,14 @@ assert(!socketsMeet("l-ne", "i", DIR_S), "L-NE has no south pin");
   const live = liveChainCells(s.grid);
   assert(live.size === 2, "two adjacent pluses glow");
   assert(live.has(`${BOT_ROWS - 1},0`) && live.has(`${BOT_ROWS - 1},1`), "glow on the pair");
+  assert(
+    (socketJoins(s.grid, BOT_ROWS - 1, 0) & DIR_E) !== 0,
+    "left plus joins east",
+  );
+  assert(
+    (socketJoins(s.grid, BOT_ROWS - 1, 1) & DIR_W) !== 0,
+    "right plus joins west",
+  );
 }
 
 {
