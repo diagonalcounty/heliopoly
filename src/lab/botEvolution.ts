@@ -91,6 +91,8 @@ export interface BotState {
   boxes: number;
   phase: BotPhase;
   rng: number;
+  /** Cells that morphed on the last land (for box flash). */
+  justMorphed: string[];
 }
 
 export function socketsOf(id: PieceId): number {
@@ -133,6 +135,7 @@ function cloneState(state: BotState): BotState {
     ...state,
     grid: cloneGrid(state.grid),
     queue: state.queue.slice(),
+    justMorphed: state.justMorphed.slice(),
   };
 }
 
@@ -167,7 +170,7 @@ export function startBotEvo(seed?: number): BotState {
   const currentPick = pickPiece(rng);
   rng = currentPick.rng;
   const filled = fillQueue(rng, BOT_QUEUE);
-  return {
+  const state: BotState = {
     grid: emptyGrid(),
     queue: filled.queue,
     current: currentPick.piece,
@@ -178,7 +181,10 @@ export function startBotEvo(seed?: number): BotState {
     boxes: 0,
     phase: "aiming",
     rng: filled.rng,
+    justMorphed: [],
   };
+  startFall(state);
+  return state;
 }
 
 export function playAgainBotEvo(seed?: number): BotState {
@@ -270,16 +276,18 @@ function creditBoxes(state: BotState, n: number): void {
 }
 
 function resolveMorphs(state: BotState): void {
+  const flash: string[] = [];
   let guard = 0;
   while (guard++ < BOT_ROWS * BOT_COLS) {
     const groups = connectedComponents(state.grid).filter(
       (g) => g.length >= MORPH_SIZE,
     );
-    if (!groups.length) return;
+    if (!groups.length) break;
     const kill = new Set<string>();
     for (const g of groups) {
       for (const k of g) kill.add(k);
     }
+    for (const k of kill) flash.push(k);
     creditBoxes(state, groups.length);
     const grid = cloneGrid(state.grid);
     for (const k of kill) {
@@ -288,6 +296,18 @@ function resolveMorphs(state: BotState): void {
     }
     state.grid = applyColumnGravity(grid);
   }
+  state.justMorphed = flash;
+}
+
+function startFall(state: BotState): void {
+  if (state.phase === "lost") return;
+  if (state.grid[0]![state.aimCol] !== null) {
+    state.phase = "lost";
+    state.fallRow = null;
+    return;
+  }
+  state.fallRow = 0;
+  state.phase = "falling";
 }
 
 function spawnNext(state: BotState): void {
@@ -303,7 +323,7 @@ function spawnNext(state: BotState): void {
   state.current = next;
   state.rng = picked.rng;
   state.fallRow = null;
-  if (state.phase !== "lost") state.phase = "aiming";
+  if (state.phase !== "lost") startFall(state);
 }
 
 function landFalling(state: BotState): void {
@@ -336,14 +356,9 @@ export function aimColumn(state: BotState, col: number): BotState {
 }
 
 export function release(state: BotState): BotState {
-  if (state.phase !== "aiming") return state;
+  if (state.phase === "lost" || state.phase === "falling") return state;
   const next = cloneState(state);
-  if (next.grid[0]![next.aimCol] !== null) {
-    next.phase = "lost";
-    return next;
-  }
-  next.fallRow = 0;
-  next.phase = "falling";
+  startFall(next);
   return next;
 }
 
@@ -366,8 +381,10 @@ export function hardDrop(state: BotState): BotState {
   if (state.phase === "lost") return state;
   let next = state.phase === "aiming" ? release(state) : cloneState(state);
   let guard = 0;
-  while (next.phase === "falling" && guard++ < BOT_ROWS + 2) {
+  while (next.phase === "falling" && next.fallRow !== null && guard++ < BOT_ROWS + 2) {
     next = tick(next);
+    if (next.phase !== "falling") break;
+    if (next.fallRow === 0) break;
   }
   return next;
 }

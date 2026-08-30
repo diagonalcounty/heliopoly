@@ -100,16 +100,16 @@ assert(!socketsMeet("l-ne", "i", DIR_S), "L-NE has no south pin");
   assert(a.current === b.current, "same seed: current piece");
   assert(a.queue.join() === b.queue.join(), "same seed: queue");
   assert(a.queue.length === BOT_QUEUE, "queue length 3");
-  assert(a.phase === "aiming", "starts aiming");
+  assert(a.phase === "falling", "starts falling");
+  assert(a.fallRow === 0, "spawn at the top row");
   assert(a.grid.length === BOT_ROWS && a.grid[0]!.length === BOT_COLS, "grid shape");
   assert(a.level === 1 && a.segments === 0 && a.boxes === 0, "L1 empty bar");
-  assert(a.fallRow === null, "nothing falling yet");
 }
 
 {
   const s0 = startBotEvo(1);
   const s = dropPiece(s0, 0, "dash");
-  assert(s.phase === "aiming" || s.phase === "lost", "drop returns to aim or lose");
+  assert(s.phase === "falling" || s.phase === "lost", "next egg auto-falls after a land");
   assert(columnHeight(s.grid, 0) === 1, "one dash lands in col 0");
   assert(lowestPiece(s.grid, 0) === "dash", "lands at the bottom");
   assert(s.grid[BOT_ROWS - 1]![0] === "dash", "bottom row occupied");
@@ -125,6 +125,7 @@ assert(!socketsMeet("l-ne", "i", DIR_S), "L-NE has no south pin");
   assert(s.boxes === 1, "fifth I morphs one box");
   assert(columnHeight(s.grid, 1) === 0, "morphed I's are removed");
   assert(s.segments === 1, "bar gained one segment");
+  assert(s.justMorphed.length >= 5, "morph flash records the chain");
 }
 
 {
@@ -179,10 +180,10 @@ assert(!socketsMeet("l-ne", "i", DIR_S), "L-NE has no south pin");
 
 {
   let s = startBotEvo(9);
-  for (let i = 0; i < BOT_ROWS; i++) s = dropPiece(s, 3, "dash");
-  assert(s.phase !== "lost", "full column of dashes is still standing");
-  assert(columnHeight(s.grid, 3) === BOT_ROWS, "column topped");
+  for (let i = 0; i < BOT_ROWS - 1; i++) s = dropPiece(s, 3, "dash");
+  assert(s.phase !== "lost", "seven dashes still leave a spawn row");
   s = dropPiece(s, 3, "dash");
+  assert(columnHeight(s.grid, 3) === BOT_ROWS, "column topped");
   assert(s.phase === "lost", "overflow / top-out loses the drill");
 }
 
@@ -197,10 +198,10 @@ assert(!socketsMeet("l-ne", "i", DIR_S), "L-NE has no south pin");
 }
 
 {
-  let s = startBotEvo(11);
-  s = dropPiece(s, 0, "plus");
-  const ticked = tick(s);
-  assert(ticked === s || ticked.phase === "aiming", "tick is a no-op while aiming");
+  const s0 = startBotEvo(11);
+  assert(s0.phase === "falling" && s0.fallRow === 0, "open starts a fall");
+  const ticked = tick(s0);
+  assert(ticked.phase === "falling" && ticked.fallRow === 1, "gravity steps one row");
 }
 
 {

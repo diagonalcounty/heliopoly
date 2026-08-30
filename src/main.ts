@@ -104,7 +104,6 @@ import {
   liveChainCells,
   playAgainBotEvo,
   quotaForLevel,
-  release,
   socketsOf,
   startBotEvo,
   tick,
@@ -2165,6 +2164,8 @@ function eacPlayAgain(): void {
 /** —— Bot Evolution egg-socket matching (#203) —— */
 let botEvoState: BotState | null = null;
 let botEvoTimer: number | null = null;
+let botEvoBarView = { level: 1, segments: 0, boxes: 0 };
+const BOTEVO_MORPH_MS = 420;
 
 function isBotEvoOpen(): boolean {
   return !botEvoRoot.classList.contains("hidden");
@@ -2172,24 +2173,31 @@ function isBotEvoOpen(): boolean {
 
 function clearBotEvoTimer(): void {
   if (botEvoTimer !== null) {
-    window.clearInterval(botEvoTimer);
+    window.clearTimeout(botEvoTimer);
     botEvoTimer = null;
   }
 }
 
-function armBotEvoTimer(): void {
+function armBotEvoTimer(pauseMs?: number): void {
   clearBotEvoTimer();
   if (!botEvoState || botEvoState.phase !== "falling") return;
-  const ms = gravityMs(botEvoState.level);
-  botEvoTimer = window.setInterval(() => {
+  const wait = pauseMs ?? gravityMs(botEvoState.level);
+  botEvoTimer = window.setTimeout(() => {
     if (!botEvoState || botEvoState.phase !== "falling") {
       clearBotEvoTimer();
       return;
     }
+    const boxesBefore = botEvoState.boxes;
     botEvoState = tick(botEvoState);
     renderBotEvo();
-    if (!botEvoState || botEvoState.phase !== "falling") clearBotEvoTimer();
-  }, ms);
+    if (!botEvoState || botEvoState.phase !== "falling") {
+      clearBotEvoTimer();
+      return;
+    }
+    armBotEvoTimer(
+      botEvoState.boxes > boxesBefore ? BOTEVO_MORPH_MS : undefined,
+    );
+  }, wait);
 }
 
 function appendEggGlyph(host: HTMLElement, piece: PieceId): void {
@@ -2224,6 +2232,46 @@ function appendEggGlyph(host: HTMLElement, piece: PieceId): void {
   host.appendChild(egg);
 }
 
+function paintBotEvoBar(quota: number, filled: number, fillingFrom: number): void {
+  botEvoBarEl.setAttribute("aria-valuemax", String(quota));
+  botEvoBarEl.setAttribute("aria-valuenow", String(filled));
+  botEvoBarEl.replaceChildren();
+  for (let i = 0; i < quota; i++) {
+    const pip = document.createElement("span");
+    pip.className = "botevo-pip";
+    if (i < filled) pip.classList.add("is-filled");
+    if (i >= fillingFrom && i < filled) pip.classList.add("is-filling");
+    botEvoBarEl.appendChild(pip);
+  }
+}
+
+function renderBotEvoBar(): void {
+  if (!botEvoState) return;
+  const s = botEvoState;
+  const prev = botEvoBarView;
+  const quota = quotaForLevel(s.level);
+  if (s.level > prev.level) {
+    const oldQuota = quotaForLevel(prev.level);
+    paintBotEvoBar(oldQuota, oldQuota, prev.segments);
+    window.setTimeout(() => {
+      if (!botEvoState) return;
+      paintBotEvoBar(
+        quotaForLevel(botEvoState.level),
+        botEvoState.segments,
+        0,
+      );
+    }, BOTEVO_MORPH_MS);
+  } else if (s.boxes > prev.boxes || s.segments > prev.segments) {
+    paintBotEvoBar(quota, s.segments, prev.segments);
+  } else if (
+    quota !== botEvoBarEl.childElementCount ||
+    s.segments !== prev.segments
+  ) {
+    paintBotEvoBar(quota, s.segments, s.segments);
+  }
+  botEvoBarView = { level: s.level, segments: s.segments, boxes: s.boxes };
+}
+
 function renderBotEvo(): void {
   if (!botEvoState) return;
   const lost = botEvoState.phase === "lost";
@@ -2233,17 +2281,10 @@ function renderBotEvo(): void {
     : `Level ${botEvoState.level} · ${botEvoState.segments} / ${quota}`;
   botEvoScoreEl.textContent =
     botEvoState.boxes === 1 ? "1 box" : `${botEvoState.boxes} boxes`;
-  botEvoBarEl.setAttribute("aria-valuemax", String(quota));
-  botEvoBarEl.setAttribute("aria-valuenow", String(botEvoState.segments));
-  botEvoBarEl.replaceChildren();
-  for (let i = 0; i < quota; i++) {
-    const pip = document.createElement("span");
-    pip.className = "botevo-pip" + (i < botEvoState.segments ? " is-filled" : "");
-    botEvoBarEl.appendChild(pip);
-  }
+  renderBotEvoBar();
   botEvoPlayEl.classList.toggle("hidden", lost);
   botEvoEndEl.classList.toggle("hidden", !lost);
-  botEvoDropBtn.disabled = lost || botEvoState.phase === "falling";
+  botEvoDropBtn.disabled = lost;
   if (lost) {
     const n = botEvoState.boxes;
     botEvoEndBlurb.textContent =
@@ -2253,15 +2294,7 @@ function renderBotEvo(): void {
   }
 
   const live = liveChainCells(botEvoState.grid);
-  let ghostRow: number | null = null;
-  if (botEvoState.phase === "aiming") {
-    for (let r = BOT_ROWS - 1; r >= 0; r--) {
-      if (botEvoState.grid[r]![botEvoState.aimCol] === null) {
-        ghostRow = r;
-        break;
-      }
-    }
-  }
+  const morph = new Set(botEvoState.justMorphed);
 
   botEvoGridEl.replaceChildren();
   for (let r = 0; r < BOT_ROWS; r++) {
@@ -2274,32 +2307,34 @@ function renderBotEvo(): void {
       btn.setAttribute("role", "gridcell");
       const landed = botEvoState.grid[r]![c];
       const falling = fallingOccupies(botEvoState, r, c);
-      const ghost = ghostRow === r && c === botEvoState.aimCol && !landed;
+      const morphing = morph.has(`${r},${c}`);
       if (c === botEvoState.aimCol) btn.classList.add("is-aim");
       if (live.has(`${r},${c}`)) btn.classList.add("is-live");
-      const show = landed ?? (falling || ghost ? botEvoState.current : null);
-      if (show) appendEggGlyph(btn, show);
-      if (ghost) btn.style.opacity = "0.45";
-      const label = landed
-        ? `Egg ${r + 1},${c + 1} ${landed}`
-        : falling
-          ? `Falling egg column ${c + 1}`
-          : `Column ${c + 1}`;
+      if (falling) btn.classList.add("is-falling");
+      if (morphing) btn.classList.add("is-morph");
+      if (landed) appendEggGlyph(btn, landed);
+      else if (falling) appendEggGlyph(btn, botEvoState.current);
+      else if (morphing) {
+        const box = document.createElement("span");
+        box.className = "botevo-box";
+        box.setAttribute("aria-hidden", "true");
+        btn.appendChild(box);
+      }
+      const label = morphing
+        ? `Morphing box ${r + 1},${c + 1}`
+        : landed
+          ? `Egg ${r + 1},${c + 1} ${landed}`
+          : falling
+            ? `Falling egg column ${c + 1}`
+            : `Column ${c + 1}`;
       btn.setAttribute("aria-label", lost ? `${label}, locked` : label);
       btn.disabled = lost;
       if (!lost) {
         const col = c;
         btn.addEventListener("click", () => {
           if (!botEvoState || botEvoState.phase === "lost") return;
-          if (botEvoState.phase === "aiming" && botEvoState.aimCol === col) {
-            botEvoState = hardDrop(botEvoState);
-          } else if (botEvoState.phase === "aiming") {
-            botEvoState = aimColumn(botEvoState, col);
-          } else {
-            botEvoState = aimColumn(botEvoState, col);
-          }
+          botEvoState = aimColumn(botEvoState, col);
           renderBotEvo();
-          armBotEvoTimer();
         });
       }
       botEvoGridEl.appendChild(btn);
@@ -2318,7 +2353,9 @@ function renderBotEvo(): void {
 
 function openBotEvo(): void {
   botEvoState = startBotEvo();
+  botEvoBarView = { level: 1, segments: 0, boxes: 0 };
   renderBotEvo();
+  armBotEvoTimer();
   botEvoRoot.classList.remove("hidden");
   botEvoRoot.setAttribute("aria-hidden", "false");
   document.body.classList.add("handbook-open");
@@ -2461,15 +2498,24 @@ function closePipes(): void {
 function botEvoPlayAgain(): void {
   clearBotEvoTimer();
   botEvoState = playAgainBotEvo();
+  botEvoBarView = { level: 1, segments: 0, boxes: 0 };
   renderBotEvo();
+  armBotEvoTimer();
   botEvoDropBtn.focus();
 }
 
 function botEvoDrop(): void {
-  if (!botEvoState || botEvoState.phase !== "aiming") return;
-  botEvoState = release(botEvoState);
+  if (!botEvoState || botEvoState.phase === "lost") return;
+  const boxesBefore = botEvoState.boxes;
+  botEvoState = hardDrop(botEvoState);
   renderBotEvo();
-  armBotEvoTimer();
+  if (!botEvoState || botEvoState.phase !== "falling") {
+    clearBotEvoTimer();
+    return;
+  }
+  armBotEvoTimer(
+    botEvoState.boxes > boxesBefore ? BOTEVO_MORPH_MS : undefined,
+  );
 }
 
 
@@ -2965,10 +3011,7 @@ document.addEventListener("keydown", (e) => {
     }
     if (e.key === "ArrowDown" || e.key === " ") {
       e.preventDefault();
-      if (botEvoState.phase === "aiming") {
-        botEvoState = hardDrop(botEvoState);
-        renderBotEvo();
-      }
+      botEvoDrop();
       return;
     }
   }
