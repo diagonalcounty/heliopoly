@@ -3,8 +3,8 @@
  * 5×8 egg-socket matching. Untimed. No Mainline / src/core.
  *
  * Grammar: every piece is a centered plus with unused arms erased.
- * Connection uses socket flags, not sprite shape. No rotation in v1 —
- * orientation is baked into the piece id.
+ * Connection uses socket flags, not sprite shape. Falling eggs rotate
+ * 90° CW (plus is a no-op; I ↔ dash; L and T cycle).
  */
 
 export const BOT_COLS = 5;
@@ -15,6 +15,16 @@ export const SPEED_MUL = 1.1;
 export const BASE_GRAVITY_MS = 700;
 export const MIN_GRAVITY_MS = 80;
 export const MORPH_SIZE = 5;
+/** Extra gravity ticks on the floor so you can slide / rotate before lock. */
+export const LOCK_GRACE_TICKS = 1;
+/** Deal these five shapes (rotations of L/T/I live on the falling egg). */
+export const SHAPE_BAG: readonly PieceId[] = [
+  "plus",
+  "i",
+  "dash",
+  "l-ne",
+  "t-n",
+];
 
 export const DIR_N = 1;
 export const DIR_E = 2;
@@ -91,6 +101,10 @@ export interface BotState {
   boxes: number;
   phase: BotPhase;
   rng: number;
+  /** Remaining shapes in the current 5-bag. */
+  bag: PieceId[];
+  /** Gravity ticks spent sitting on the stack (resets on slide/rotate). */
+  lockTicks: number;
   /** Cells that morphed on the last land (for box flash). */
   justMorphed: string[];
 }
@@ -135,6 +149,7 @@ function cloneState(state: BotState): BotState {
     ...state,
     grid: cloneGrid(state.grid),
     queue: state.queue.slice(),
+    bag: state.bag.slice(),
     justMorphed: state.justMorphed.slice(),
   };
 }
@@ -148,28 +163,57 @@ function stepRng(rng: number): { rng: number; n: number } {
   return { rng: a, n };
 }
 
-function pickPiece(rng: number): { rng: number; piece: PieceId } {
-  const step = stepRng(rng);
-  const piece = PIECE_IDS[Math.floor(step.n * PIECE_IDS.length)]!;
-  return { rng: step.rng, piece };
+function shuffleBag(rng: number): { rng: number; bag: PieceId[] } {
+  const bag = SHAPE_BAG.slice();
+  let r = rng;
+  for (let i = bag.length - 1; i > 0; i--) {
+    const step = stepRng(r);
+    r = step.rng;
+    const j = Math.floor(step.n * (i + 1));
+    const tmp = bag[i]!;
+    bag[i] = bag[j]!;
+    bag[j] = tmp;
+  }
+  return { rng: r, bag };
 }
 
-function fillQueue(rng: number, n: number): { rng: number; queue: PieceId[] } {
+function drawPiece(
+  rng: number,
+  bag: PieceId[],
+): { rng: number; bag: PieceId[]; piece: PieceId } {
+  let r = rng;
+  let nextBag = bag.slice();
+  if (!nextBag.length) {
+    const shuffled = shuffleBag(r);
+    r = shuffled.rng;
+    nextBag = shuffled.bag;
+  }
+  const piece = nextBag.shift()!;
+  return { rng: r, bag: nextBag, piece };
+}
+
+function fillQueue(
+  rng: number,
+  bag: PieceId[],
+  n: number,
+): { rng: number; bag: PieceId[]; queue: PieceId[] } {
   const queue: PieceId[] = [];
   let r = rng;
+  let b = bag.slice();
   for (let i = 0; i < n; i++) {
-    const next = pickPiece(r);
+    const next = drawPiece(r, b);
     r = next.rng;
+    b = next.bag;
     queue.push(next.piece);
   }
-  return { rng: r, queue };
+  return { rng: r, bag: b, queue };
 }
 
 export function startBotEvo(seed?: number): BotState {
   let rng = (seed ?? (Date.now() ^ 0xb07e) >>> 0) >>> 0;
-  const currentPick = pickPiece(rng);
+  const currentPick = drawPiece(rng, []);
   rng = currentPick.rng;
-  const filled = fillQueue(rng, BOT_QUEUE);
+  const filled = fillQueue(rng, currentPick.bag, BOT_QUEUE);
   const state: BotState = {
     grid: emptyGrid(),
     queue: filled.queue,
@@ -181,6 +225,8 @@ export function startBotEvo(seed?: number): BotState {
     boxes: 0,
     phase: "aiming",
     rng: filled.rng,
+    bag: filled.bag,
+    lockTicks: 0,
     justMorphed: [],
   };
   startFall(state);
@@ -189,6 +235,23 @@ export function startBotEvo(seed?: number): BotState {
 
 export function playAgainBotEvo(seed?: number): BotState {
   return startBotEvo(seed);
+}
+
+export function rotateMask(mask: number): number {
+  let out = 0;
+  if (mask & DIR_N) out |= DIR_E;
+  if (mask & DIR_E) out |= DIR_S;
+  if (mask & DIR_S) out |= DIR_W;
+  if (mask & DIR_W) out |= DIR_N;
+  return out;
+}
+
+export function rotatePiece(id: PieceId): PieceId {
+  const mask = rotateMask(PIECE_SOCKETS[id]);
+  for (const piece of PIECE_IDS) {
+    if (PIECE_SOCKETS[piece] === mask) return piece;
+  }
+  return id;
 }
 
 export function socketsMeet(
@@ -307,6 +370,7 @@ function startFall(state: BotState): void {
     return;
   }
   state.fallRow = 0;
+  state.lockTicks = 0;
   state.phase = "falling";
 }
 
@@ -317,12 +381,14 @@ function spawnNext(state: BotState): void {
     state.phase = "lost";
     return;
   }
-  const picked = pickPiece(state.rng);
+  const picked = drawPiece(state.rng, state.bag);
   q.push(picked.piece);
   state.queue = q;
   state.current = next;
   state.rng = picked.rng;
+  state.bag = picked.bag;
   state.fallRow = null;
+  state.lockTicks = 0;
   if (state.phase === "lost") return;
   if (state.justMorphed.length) {
     state.phase = "morphing";
@@ -362,11 +428,46 @@ export function aimColumn(state: BotState, col: number): BotState {
   const next = cloneState(state);
   if (next.phase === "falling" && next.fallRow !== null) {
     if (next.grid[next.fallRow]![col] !== null) return state;
+    if (next.aimCol !== col) next.lockTicks = 0;
     next.aimCol = col;
     return next;
   }
+  if (next.aimCol !== col) next.lockTicks = 0;
   next.aimCol = col;
   return next;
+}
+
+/** Rotate the falling (or aiming) egg 90° clockwise. */
+export function rotateCurrent(state: BotState): BotState {
+  if (state.phase === "lost" || state.phase === "morphing") return state;
+  const next = cloneState(state);
+  next.current = rotatePiece(next.current);
+  next.lockTicks = 0;
+  return next;
+}
+
+export interface LandingPreview {
+  row: number;
+  live: boolean;
+  morph: boolean;
+}
+
+/** Where the falling egg will sit, and whether that join glows / morphs. */
+export function landingPreview(state: BotState): LandingPreview | null {
+  if (state.phase !== "falling" || state.fallRow === null) return null;
+  const c = state.aimCol;
+  let r = state.fallRow;
+  while (r + 1 < BOT_ROWS && state.grid[r + 1]![c] === null) r++;
+  const grid = cloneGrid(state.grid);
+  grid[r]![c] = state.current;
+  const key = cellKey(r, c);
+  const group = connectedComponents(grid).find((g) => g.includes(key));
+  const size = group?.length ?? 1;
+  return {
+    row: r,
+    live: size >= 2,
+    morph: size >= MORPH_SIZE,
+  };
 }
 
 export function release(state: BotState): BotState {
@@ -384,10 +485,15 @@ export function tick(state: BotState): BotState {
   const c = next.aimCol;
   const below = r + 1;
   if (below >= BOT_ROWS || next.grid[below]![c] !== null) {
+    if (next.lockTicks < LOCK_GRACE_TICKS) {
+      next.lockTicks += 1;
+      return next;
+    }
     landFalling(next);
     return next;
   }
   next.fallRow = below;
+  next.lockTicks = 0;
   return next;
 }
 
@@ -396,10 +502,16 @@ export function hardDrop(state: BotState): BotState {
   let next =
     state.phase === "falling" ? cloneState(state) : release(state);
   let guard = 0;
-  while (next.phase === "falling" && next.fallRow !== null && guard++ < BOT_ROWS + 2) {
+  while (next.phase === "falling" && next.fallRow !== null && guard++ < BOT_ROWS + 4) {
+    const r = next.fallRow;
+    const c = next.aimCol;
+    const blocked = r + 1 >= BOT_ROWS || next.grid[r + 1]![c] !== null;
+    if (blocked) {
+      const landed = cloneState(next);
+      landFalling(landed);
+      return landed;
+    }
     next = tick(next);
-    if (next.phase !== "falling") break;
-    if (next.fallRow === 0) break;
   }
   return next;
 }

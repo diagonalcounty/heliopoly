@@ -101,10 +101,12 @@ import {
   fallingOccupies,
   gravityMs,
   hardDrop,
+  landingPreview,
   liveChainCells,
   playAgainBotEvo,
   quotaForLevel,
   resumeAfterMorph,
+  rotateCurrent,
   socketsOf,
   startBotEvo,
   tick,
@@ -448,6 +450,7 @@ const botEvoPlayEl = document.getElementById("botevo-play")!;
 const botEvoEndEl = document.getElementById("botevo-end")!;
 const botEvoEndBlurb = document.getElementById("botevo-end-blurb")!;
 const botEvoDropBtn = document.getElementById("botevo-drop") as HTMLButtonElement;
+const botEvoRotateBtn = document.getElementById("botevo-rotate") as HTMLButtonElement;
 const pipesRoot = document.getElementById("pipes-root")!;
 const pipesGridEl = document.getElementById("pipes-grid")!;
 const pipesStatusEl = document.getElementById("pipes-status")!;
@@ -2341,6 +2344,7 @@ function renderBotEvo(): void {
   botEvoPlayEl.classList.toggle("hidden", lost);
   botEvoEndEl.classList.toggle("hidden", !lost);
   botEvoDropBtn.disabled = lost;
+  botEvoRotateBtn.disabled = lost || botEvoState.phase === "morphing";
   if (lost) {
     const n = botEvoState.boxes;
     botEvoEndBlurb.textContent =
@@ -2351,6 +2355,7 @@ function renderBotEvo(): void {
 
   const live = liveChainCells(botEvoState.grid);
   const morph = new Set(botEvoState.justMorphed);
+  const preview = landingPreview(botEvoState);
 
   botEvoGridEl.replaceChildren();
   for (let r = 0; r < BOT_ROWS; r++) {
@@ -2364,12 +2369,27 @@ function renderBotEvo(): void {
       const landed = botEvoState.grid[r]![c];
       const falling = fallingOccupies(botEvoState, r, c);
       const morphing = morph.has(`${r},${c}`);
+      const ghostHere =
+        !!preview &&
+        preview.row === r &&
+        c === botEvoState.aimCol &&
+        !falling &&
+        !landed;
       if (c === botEvoState.aimCol) btn.classList.add("is-aim");
       if (live.has(`${r},${c}`)) btn.classList.add("is-live");
       if (falling) btn.classList.add("is-falling");
       if (morphing) btn.classList.add("is-morph");
+      if (ghostHere) {
+        btn.classList.add("is-ghost");
+        if (preview.live) btn.classList.add("is-ghost-live");
+        if (preview.morph) btn.classList.add("is-ghost-morph");
+      }
+      if (falling && preview?.live) btn.classList.add("is-live");
+      if (falling && preview?.morph) btn.classList.add("is-ghost-morph");
       if (landed) appendEggGlyph(btn, landed);
       else if (falling && botEvoState.phase !== "morphing") {
+        appendEggGlyph(btn, botEvoState.current);
+      } else if (ghostHere) {
         appendEggGlyph(btn, botEvoState.current);
       }
       const label = morphing
@@ -2385,6 +2405,10 @@ function renderBotEvo(): void {
         const col = c;
         btn.addEventListener("click", () => {
           if (!botEvoState || botEvoState.phase === "lost") return;
+          if (fallingOccupies(botEvoState, r, col)) {
+            botEvoRotate();
+            return;
+          }
           botEvoState = aimColumn(botEvoState, col);
           renderBotEvo();
         });
@@ -2568,6 +2592,13 @@ function botEvoDrop(): void {
   botEvoState = hardDrop(botEvoState);
   renderBotEvo();
   afterBotEvoLand();
+}
+
+function botEvoRotate(): void {
+  if (!botEvoState || botEvoState.phase === "lost") return;
+  if (botEvoState.phase === "morphing") return;
+  botEvoState = rotateCurrent(botEvoState);
+  renderBotEvo();
 }
 
 
@@ -2987,6 +3018,7 @@ document.getElementById("botevo-done")?.addEventListener("click", () => {
   openLab();
 });
 botEvoDropBtn.addEventListener("click", () => botEvoDrop());
+botEvoRotateBtn.addEventListener("click", () => botEvoRotate());
 document.getElementById("pipes-close")?.addEventListener("click", () => closePipes());
 document.getElementById("pipes-backdrop")?.addEventListener("click", () => closePipes());
 document.getElementById("pipes-again")?.addEventListener("click", () => pipesPlayAgain());
@@ -3059,6 +3091,11 @@ document.addEventListener("keydown", (e) => {
       e.preventDefault();
       botEvoState = aimColumn(botEvoState, botEvoState.aimCol + 1);
       renderBotEvo();
+      return;
+    }
+    if (e.key === "ArrowUp" || e.key === "x" || e.key === "X" || e.key === "z" || e.key === "Z") {
+      e.preventDefault();
+      botEvoRotate();
       return;
     }
     if (e.key === "ArrowDown" || e.key === " ") {

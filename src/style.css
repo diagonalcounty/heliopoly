@@ -840,6 +840,22 @@ html.native-shell #app {
   box-shadow: 0 0 10px rgba(255, 217, 120, 0.85);
 }
 
+.botevo-cell.is-ghost .botevo-egg {
+  opacity: 0.38;
+  filter: saturate(0.85);
+  pointer-events: none;
+}
+
+.botevo-cell.is-ghost-live .botevo-egg {
+  opacity: 0.72;
+  box-shadow: 0 0 10px rgba(255, 217, 120, 0.7);
+}
+
+.botevo-cell.is-ghost-morph .botevo-egg {
+  opacity: 0.9;
+  box-shadow: 0 0 14px rgba(255, 217, 120, 0.95);
+}
+
 .botevo-egg {
   position: absolute;
   inset: 6%;
@@ -884,29 +900,29 @@ html.native-shell #app {
 .botevo-arm.n {
   left: 44%;
   width: 12%;
-  top: 12%;
-  height: 42%;
+  top: -4%;
+  height: 54%;
 }
 
 .botevo-arm.e {
   top: 44%;
   height: 12%;
-  right: 12%;
-  width: 42%;
+  right: -4%;
+  width: 54%;
 }
 
 .botevo-arm.s {
   left: 44%;
   width: 12%;
-  bottom: 12%;
-  height: 42%;
+  bottom: -4%;
+  height: 54%;
 }
 
 .botevo-arm.w {
   top: 44%;
   height: 12%;
-  left: 12%;
-  width: 42%;
+  left: -4%;
+  width: 54%;
 }
 
 .botevo-pin {
@@ -921,21 +937,21 @@ html.native-shell #app {
 
 .botevo-pin.n {
   left: 41%;
-  top: 0;
+  top: -14%;
 }
 
 .botevo-pin.e {
-  right: 0;
+  right: -14%;
   top: 41%;
 }
 
 .botevo-pin.s {
   left: 41%;
-  bottom: 0;
+  bottom: -14%;
 }
 
 .botevo-pin.w {
-  left: 0;
+  left: -14%;
   top: 41%;
 }
 
@@ -973,6 +989,7 @@ html.native-shell #app {
 .botevo-toolbar {
   display: flex;
   justify-content: center;
+  gap: 10px;
 }
 
 .botevo-play.hidden,

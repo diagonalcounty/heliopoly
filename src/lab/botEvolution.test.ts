@@ -17,12 +17,18 @@ import {
   PIECE_IDS,
   PIECE_SOCKETS,
   SPEED_MUL,
+  aimColumn,
   connectedComponents,
   dropPiece,
   gravityMs,
   hasSocket,
   liveChainCells,
+  landingPreview,
+  LOCK_GRACE_TICKS,
   quotaForLevel,
+  rotateCurrent,
+  rotatePiece,
+  SHAPE_BAG,
   socketsMeet,
   startBotEvo,
   tick,
@@ -84,6 +90,17 @@ assert(PIECE_SOCKETS["l-ne"] === (DIR_N | DIR_E), "L example is N+E");
 assert(!hasSocket("i", DIR_E) && !hasSocket("i", DIR_W), "I never grows side pipes");
 assert(!hasSocket("dash", DIR_N) && !hasSocket("dash", DIR_S), "dash has no vertical sockets");
 assert(PIECE_IDS.length === 11, "piece set is plus + I + dash + 4 L + 4 T");
+assert(SHAPE_BAG.length === 5, "deal bag is five shapes");
+assert(rotatePiece("plus") === "plus", "plus rotation is a no-op");
+assert(rotatePiece("i") === "dash" && rotatePiece("dash") === "i", "I ↔ dash");
+assert(rotatePiece("l-ne") === "l-es", "L turns CW");
+assert(rotatePiece("l-es") === "l-sw", "L-ES → L-SW");
+assert(rotatePiece("l-sw") === "l-wn", "L-SW → L-WN");
+assert(rotatePiece("l-wn") === "l-ne", "L-WN → L-NE");
+assert(rotatePiece("t-n") === "t-e", "T turns CW");
+assert(rotatePiece("t-e") === "t-s", "T-E → T-S");
+assert(rotatePiece("t-s") === "t-w", "T-S → T-W");
+assert(rotatePiece("t-w") === "t-n", "T-W → T-N");
 
 assert(socketsMeet("plus", "plus", DIR_E), "plus-plus meet east");
 assert(socketsMeet("i", "i", DIR_S), "I-I meet south");
@@ -203,6 +220,62 @@ assert(!socketsMeet("l-ne", "i", DIR_S), "L-NE has no south pin");
   assert(s0.phase === "falling" && s0.fallRow === 0, "open starts a fall");
   const ticked = tick(s0);
   assert(ticked.phase === "falling" && ticked.fallRow === 1, "gravity steps one row");
+}
+
+{
+  const drawn = new Set<PieceId>();
+  let s = startBotEvo(14);
+  drawn.add(s.current);
+  for (const p of s.queue) drawn.add(p);
+  while (drawn.size < 5) {
+    s = dropPiece(s, 0, "dash");
+    drawn.add(s.current);
+    if (s.phase === "lost") break;
+  }
+  assert(drawn.size === 5, "one bag deals all five shapes");
+}
+
+{
+  let s = startBotEvo(15);
+  s = dropPiece(s, 2, "plus");
+  assert(s.current !== undefined, "next egg after a plus");
+  const turned = rotateCurrent(s);
+  assert(turned.current === rotatePiece(s.current), "rotate changes the falling egg");
+  const twice = rotateCurrent(rotateCurrent(turned));
+  if (s.current === "plus") {
+    assert(twice.current === "plus", "plus stays plus after turns");
+  } else if (s.current === "i" || s.current === "dash") {
+    assert(twice.current === s.current, "I/dash is 180°");
+  }
+}
+
+{
+  const s0 = startBotEvo(16);
+  const ghost = landingPreview(s0);
+  assert(ghost !== null && ghost.row === BOT_ROWS - 1, "ghost sits on the floor");
+  assert(!ghost!.live && !ghost!.morph, "empty floor is not a chain");
+}
+
+{
+  let s = startBotEvo(17);
+  s = dropPiece(s, 1, "plus");
+  s = aimColumn(s, 1);
+  // Force a plus so the ghost will join the stack.
+  const falling: BotState = { ...s, current: "plus" };
+  const ghost = landingPreview(falling);
+  assert(ghost && ghost.live, "ghost plus on a plus stack glows");
+}
+
+{
+  let s = startBotEvo(18);
+  for (let i = 0; i < 7; i++) s = dropPiece(s, 4, "dash");
+  assert(s.phase === "falling" && s.fallRow === 0, "spawn on a 7-high dash stack");
+  s = { ...s, current: "dash", aimCol: 4, lockTicks: 0 };
+  const once = tick(s);
+  assert(once.phase === "falling" && once.fallRow === 0, "floor grace: first tick does not lock");
+  assert(once.lockTicks === LOCK_GRACE_TICKS, "grace tick counted");
+  const twice = tick(once);
+  assert(twice.grid[0]![4] === "dash" || twice.phase === "lost", "second tick locks");
 }
 
 {

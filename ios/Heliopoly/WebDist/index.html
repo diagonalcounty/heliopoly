@@ -14,8 +14,8 @@
     <link rel="icon" type="image/png" href="./favicon-32.png" sizes="32x32" />
     <link rel="icon" type="image/png" href="./favicon-16.png" sizes="16x16" />
     <link rel="apple-touch-icon" href="./apple-touch-icon.png" sizes="180x180" />
-    <script type="module" crossorigin src="./assets/index-BIz1XO2L.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-BsUEL4v2.css">
+    <script type="module" crossorigin src="./assets/index-BftncDub.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-tjT_1cxj.css">
   </head>
   <body>
     <div id="app">
@@ -659,9 +659,11 @@ Name your rocket. Then Launch.</p>
           <p id="botevo-score" class="botevo-score hidden" aria-live="polite">0 boxes</p>
           <div id="botevo-fx" class="botevo-fx" aria-hidden="true"></div>
           <p class="hint botevo-hint">
-            Eggs fall on their own. Tap a column to steer. <strong>Drop</strong>
-            (or ↓) slams the falling egg to the floor. A chain of 5 morphs into
-            a box that fills the bar. Untimed Lab practice; expedition stays put.
+            Eggs fall on their own. Tap a column to steer.
+            <strong>Rotate</strong> (or tap the falling egg, or ↑) turns the
+            sockets. <strong>Drop</strong> (or ↓) slams it. A chain of 5 morphs
+            into a box that fills the bar. Untimed Lab practice; expedition
+            stays put.
           </p>
           <div id="botevo-play" class="botevo-play">
             <div id="botevo-grid" class="botevo-grid" role="grid" aria-label="Bot Evolution field"></div>
@@ -671,6 +673,7 @@ Name your rocket. Then Launch.</p>
             </div>
           </div>
           <div class="botevo-toolbar">
+            <button type="button" id="botevo-rotate" class="eac-secondary">Rotate</button>
             <button type="button" id="botevo-drop" class="eac-primary">Drop</button>
           </div>
           <div id="botevo-end" class="eac-win hidden" aria-live="polite">
