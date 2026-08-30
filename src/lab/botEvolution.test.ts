@@ -26,10 +26,7 @@ import {
   landingPreview,
   LOCK_GRACE_TICKS,
   quotaForLevel,
-  pieceSprite,
-  rotateCurrent,
-  rotatePiece,
-  SHAPE_BAG,
+  pieceArt,
   socketJoins,
   socketsMeet,
   startBotEvo,
@@ -92,21 +89,10 @@ assert(PIECE_SOCKETS["l-ne"] === (DIR_N | DIR_E), "L example is N+E");
 assert(!hasSocket("i", DIR_E) && !hasSocket("i", DIR_W), "I never grows side pipes");
 assert(!hasSocket("dash", DIR_N) && !hasSocket("dash", DIR_S), "dash has no vertical sockets");
 assert(PIECE_IDS.length === 11, "piece set is plus + I + dash + 4 L + 4 T");
-assert(SHAPE_BAG.length === 5, "deal bag is five shapes");
-assert(rotatePiece("plus") === "plus", "plus rotation is a no-op");
-assert(rotatePiece("i") === "dash" && rotatePiece("dash") === "i", "I ↔ dash");
-assert(rotatePiece("l-ne") === "l-es", "L turns CW");
-assert(rotatePiece("l-es") === "l-sw", "L-ES → L-SW");
-assert(rotatePiece("l-sw") === "l-wn", "L-SW → L-WN");
-assert(rotatePiece("l-wn") === "l-ne", "L-WN → L-NE");
-assert(rotatePiece("t-n") === "t-e", "T turns CW");
-assert(rotatePiece("t-e") === "t-s", "T-E → T-S");
-assert(rotatePiece("t-s") === "t-w", "T-S → T-W");
-assert(rotatePiece("t-w") === "t-n", "T-W → T-N");
-assert(pieceSprite("plus").kind === "plus" && pieceSprite("plus").rot === 0, "plus sprite");
-assert(pieceSprite("dash").kind === "i" && pieceSprite("dash").rot === 90, "dash is rotated I");
-assert(pieceSprite("l-es").kind === "l" && pieceSprite("l-es").rot === 90, "L-ES is L turned CW");
-assert(pieceSprite("t-s").kind === "t" && pieceSprite("t-s").rot === 180, "T-S is T flipped");
+assert(pieceArt("plus") === "/lab/botevo/plus.png", "plus has its own art");
+assert(pieceArt("dash") === "/lab/botevo/dash.png", "dash is not a rotated I");
+assert(pieceArt("l-es") === "/lab/botevo/l-es.png", "each L has its own face");
+assert(pieceArt("t-w") === "/lab/botevo/t-w.png", "each T has its own face");
 
 assert(socketsMeet("plus", "plus", DIR_E), "plus-plus meet east");
 assert(socketsMeet("i", "i", DIR_S), "I-I meet south");
@@ -237,30 +223,9 @@ assert(!socketsMeet("l-ne", "i", DIR_S), "L-NE has no south pin");
 }
 
 {
-  const drawn = new Set<PieceId>();
-  let s = startBotEvo(14);
-  drawn.add(s.current);
-  for (const p of s.queue) drawn.add(p);
-  while (drawn.size < 5) {
-    s = dropPiece(s, 0, "dash");
-    drawn.add(s.current);
-    if (s.phase === "lost") break;
-  }
-  assert(drawn.size === 5, "one bag deals all five shapes");
-}
-
-{
-  let s = startBotEvo(15);
-  s = dropPiece(s, 2, "plus");
-  assert(s.current !== undefined, "next egg after a plus");
-  const turned = rotateCurrent(s);
-  assert(turned.current === rotatePiece(s.current), "rotate changes the falling egg");
-  const twice = rotateCurrent(rotateCurrent(turned));
-  if (s.current === "plus") {
-    assert(twice.current === "plus", "plus stays plus after turns");
-  } else if (s.current === "i" || s.current === "dash") {
-    assert(twice.current === s.current, "I/dash is 180°");
-  }
+  const s = startBotEvo(14);
+  const drawn = new Set<PieceId>([s.current, ...s.queue, ...s.bag]);
+  assert(drawn.size === PIECE_IDS.length, "one bag is all 11 bots");
 }
 
 {

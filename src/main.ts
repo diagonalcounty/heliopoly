@@ -103,11 +103,10 @@ import {
   hardDrop,
   landingPreview,
   liveChainCells,
-  pieceSprite,
+  pieceArt,
   playAgainBotEvo,
   quotaForLevel,
   resumeAfterMorph,
-  rotateCurrent,
   socketJoins,
   startBotEvo,
   tick,
@@ -452,7 +451,6 @@ const botEvoPlayEl = document.getElementById("botevo-play")!;
 const botEvoEndEl = document.getElementById("botevo-end")!;
 const botEvoEndBlurb = document.getElementById("botevo-end-blurb")!;
 const botEvoDropBtn = document.getElementById("botevo-drop") as HTMLButtonElement;
-const botEvoRotateBtn = document.getElementById("botevo-rotate") as HTMLButtonElement;
 const pipesRoot = document.getElementById("pipes-root")!;
 const pipesGridEl = document.getElementById("pipes-grid")!;
 const pipesStatusEl = document.getElementById("pipes-status")!;
@@ -2276,13 +2274,12 @@ function afterBotEvoLand(): void {
 }
 
 function appendBotSprite(host: HTMLElement, piece: PieceId): void {
-  const { kind, rot } = pieceSprite(piece);
   const wrap = document.createElement("span");
-  wrap.className = `botevo-bot rot-${rot}`;
+  wrap.className = "botevo-bot";
   wrap.setAttribute("aria-hidden", "true");
   const img = document.createElement("img");
   img.className = "botevo-sprite";
-  img.src = `/lab/botevo/${kind}.png`;
+  img.src = pieceArt(piece);
   img.alt = "";
   img.draggable = false;
   wrap.appendChild(img);
@@ -2368,7 +2365,6 @@ function renderBotEvo(): void {
   botEvoPlayEl.classList.toggle("hidden", lost);
   botEvoEndEl.classList.toggle("hidden", !lost);
   botEvoDropBtn.disabled = lost;
-  botEvoRotateBtn.disabled = lost || botEvoState.phase === "morphing";
   if (lost) {
     const n = botEvoState.boxes;
     botEvoEndBlurb.textContent =
@@ -2473,10 +2469,6 @@ function renderBotEvo(): void {
         const col = c;
         btn.addEventListener("click", () => {
           if (!botEvoState || botEvoState.phase === "lost") return;
-          if (fallingOccupies(botEvoState, r, col)) {
-            botEvoRotate();
-            return;
-          }
           botEvoState = aimColumn(botEvoState, col);
           renderBotEvo();
         });
@@ -2668,12 +2660,7 @@ function botEvoDrop(): void {
   afterBotEvoLand();
 }
 
-function botEvoRotate(): void {
-  if (!botEvoState || botEvoState.phase === "lost") return;
-  if (botEvoState.phase === "morphing") return;
-  botEvoState = rotateCurrent(botEvoState);
-  renderBotEvo();
-}
+
 
 
 function pipesPlayAgain(): void {
@@ -3092,7 +3079,6 @@ document.getElementById("botevo-done")?.addEventListener("click", () => {
   openLab();
 });
 botEvoDropBtn.addEventListener("click", () => botEvoDrop());
-botEvoRotateBtn.addEventListener("click", () => botEvoRotate());
 document.getElementById("pipes-close")?.addEventListener("click", () => closePipes());
 document.getElementById("pipes-backdrop")?.addEventListener("click", () => closePipes());
 document.getElementById("pipes-again")?.addEventListener("click", () => pipesPlayAgain());
@@ -3165,11 +3151,6 @@ document.addEventListener("keydown", (e) => {
       e.preventDefault();
       botEvoState = aimColumn(botEvoState, botEvoState.aimCol + 1);
       renderBotEvo();
-      return;
-    }
-    if (e.key === "ArrowUp" || e.key === "x" || e.key === "X" || e.key === "z" || e.key === "Z") {
-      e.preventDefault();
-      botEvoRotate();
       return;
     }
     if (e.key === "ArrowDown" || e.key === " ") {

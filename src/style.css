@@ -844,18 +844,6 @@ html.native-shell #app {
   display: block;
 }
 
-.botevo-bot.rot-90 {
-  transform: rotate(90deg);
-}
-
-.botevo-bot.rot-180 {
-  transform: rotate(180deg);
-}
-
-.botevo-bot.rot-270 {
-  transform: rotate(270deg);
-}
-
 .botevo-sprite {
   width: 100%;
   height: 100%;

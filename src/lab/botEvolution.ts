@@ -3,8 +3,8 @@
  * 5×8 egg-socket matching. Untimed. No Mainline / src/core.
  *
  * Grammar: every piece is a centered plus with unused arms erased.
- * Connection uses socket flags, not sprite shape. Falling eggs rotate
- * 90° CW (plus is a no-op; I ↔ dash; L and T cycle).
+ * Connection uses socket flags, not sprite shape. No rotation — each
+ * piece id is a fixed bot with its own face and claw layout.
  */
 
 export const BOT_COLS = 5;
@@ -15,16 +15,8 @@ export const SPEED_MUL = 1.1;
 export const BASE_GRAVITY_MS = 700;
 export const MIN_GRAVITY_MS = 80;
 export const MORPH_SIZE = 5;
-/** Extra gravity ticks on the floor so you can slide / rotate before lock. */
+/** Extra gravity ticks on the floor so you can slide before lock. */
 export const LOCK_GRACE_TICKS = 1;
-/** Deal these five shapes (rotations of L/T/I live on the falling egg). */
-export const SHAPE_BAG: readonly PieceId[] = [
-  "plus",
-  "i",
-  "dash",
-  "l-ne",
-  "t-n",
-];
 
 export const DIR_N = 1;
 export const DIR_E = 2;
@@ -101,9 +93,9 @@ export interface BotState {
   boxes: number;
   phase: BotPhase;
   rng: number;
-  /** Remaining shapes in the current 5-bag. */
+  /** Remaining bots in the current 11-bag. */
   bag: PieceId[];
-  /** Gravity ticks spent sitting on the stack (resets on slide/rotate). */
+  /** Gravity ticks spent sitting on the stack (resets on slide). */
   lockTicks: number;
   /** Cells that morphed on the last land (for box flash). */
   justMorphed: string[];
@@ -164,7 +156,7 @@ function stepRng(rng: number): { rng: number; n: number } {
 }
 
 function shuffleBag(rng: number): { rng: number; bag: PieceId[] } {
-  const bag = SHAPE_BAG.slice();
+  const bag = PIECE_IDS.slice();
   let r = rng;
   for (let i = bag.length - 1; i > 0; i--) {
     const step = stepRng(r);
@@ -237,53 +229,9 @@ export function playAgainBotEvo(seed?: number): BotState {
   return startBotEvo(seed);
 }
 
-export function rotateMask(mask: number): number {
-  let out = 0;
-  if (mask & DIR_N) out |= DIR_E;
-  if (mask & DIR_E) out |= DIR_S;
-  if (mask & DIR_S) out |= DIR_W;
-  if (mask & DIR_W) out |= DIR_N;
-  return out;
-}
-
-export function rotatePiece(id: PieceId): PieceId {
-  const mask = rotateMask(PIECE_SOCKETS[id]);
-  for (const piece of PIECE_IDS) {
-    if (PIECE_SOCKETS[piece] === mask) return piece;
-  }
-  return id;
-}
-
-export type SpriteKind = "plus" | "i" | "l" | "t";
-
-/** Illustrated bot + CSS rotation so sockets stay on the live sides. */
-export function pieceSprite(
-  id: PieceId,
-): { kind: SpriteKind; rot: 0 | 90 | 180 | 270 } {
-  switch (id) {
-    case "plus":
-      return { kind: "plus", rot: 0 };
-    case "i":
-      return { kind: "i", rot: 0 };
-    case "dash":
-      return { kind: "i", rot: 90 };
-    case "l-ne":
-      return { kind: "l", rot: 0 };
-    case "l-es":
-      return { kind: "l", rot: 90 };
-    case "l-sw":
-      return { kind: "l", rot: 180 };
-    case "l-wn":
-      return { kind: "l", rot: 270 };
-    case "t-n":
-      return { kind: "t", rot: 0 };
-    case "t-e":
-      return { kind: "t", rot: 90 };
-    case "t-s":
-      return { kind: "t", rot: 180 };
-    case "t-w":
-      return { kind: "t", rot: 270 };
-  }
+/** Unique illustrated bot for this piece; faces stay upright. */
+export function pieceArt(id: PieceId): string {
+  return `/lab/botevo/${id}.png`;
 }
 
 /** Directions on `r,c` that currently plug into a neighbor. */
@@ -483,15 +431,6 @@ export function aimColumn(state: BotState, col: number): BotState {
   }
   if (next.aimCol !== col) next.lockTicks = 0;
   next.aimCol = col;
-  return next;
-}
-
-/** Rotate the falling (or aiming) egg 90° clockwise. */
-export function rotateCurrent(state: BotState): BotState {
-  if (state.phase === "lost" || state.phase === "morphing") return state;
-  const next = cloneState(state);
-  next.current = rotatePiece(next.current);
-  next.lockTicks = 0;
   return next;
 }
 

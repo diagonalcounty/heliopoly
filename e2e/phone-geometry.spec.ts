@@ -498,10 +498,10 @@ test.describe("phone Lab Bot Evolution #203", () => {
     expect(first.width, "egg cell ≥40px").toBeGreaterThanOrEqual(40);
     expect(first.height, "egg cell ≥40px").toBeGreaterThanOrEqual(40);
     expect(first.onControl, "elementFromPoint egg cell").toBe(true);
-    const rotate = await boxOf(page, "#botevo-rotate");
-    expect(rotate.width, "Rotate ≥44px wide").toBeGreaterThanOrEqual(44);
-    expect(rotate.height, "Rotate ≥44px tall").toBeGreaterThanOrEqual(44);
-    expect(rotate.onControl, "elementFromPoint Rotate").toBe(true);
+    const drop = await boxOf(page, "#botevo-drop");
+    expect(drop.width, "Drop ≥44px wide").toBeGreaterThanOrEqual(44);
+    expect(drop.height, "Drop ≥44px tall").toBeGreaterThanOrEqual(44);
+    expect(drop.onControl, "elementFromPoint Drop").toBe(true);
 
     await page.locator("#botevo-root .handbook-close").click();
     await expect(page.locator("#botevo-root")).toHaveClass(/hidden/);
