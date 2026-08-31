@@ -25,7 +25,8 @@ Working title. Not RoboSockets. Lab-only matching / falling-block drill inspired
 ## Art direction (hybrid, not final)
 
 - Palette: Heliopoly navy / cream / gold / cyan.
-- Eggs: circuit-trace faces + gold glow on a live chain (Egg-Socket card comp).
+- Eggs: family shells (cream plus / cyan straight / apricot corner / mint tee). **Connectors are pistons** on live sides only; dead sides are smooth shell — no bumpers, no wall-plates, no extra hug-arms.
+- Gold glow on a live chain (Egg-Socket card comp).
 - Mascot: raccoon clerk (Kostka-dog card energy, suit, not oil-paint realism).
 - Playfield: simple 5×8 cell grid. Slot-table wells were too thick — connectors must meet through column gaps.
 - UI chrome: vintage card frame is attractive but **not locked**. Do not block build on pixel-perfect HUD.
