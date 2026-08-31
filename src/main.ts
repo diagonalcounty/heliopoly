@@ -104,7 +104,7 @@ import {
   landingPreview,
   liveChainCells,
   connectorKind,
-  pieceArt,
+  eggTokenSvg,
   playAgainBotEvo,
   quotaForLevel,
   resumeAfterMorph,
@@ -2278,12 +2278,8 @@ function appendBotSprite(host: HTMLElement, piece: PieceId): void {
   const wrap = document.createElement("span");
   wrap.className = `botevo-bot is-${connectorKind(piece)}`;
   wrap.setAttribute("aria-hidden", "true");
-  const img = document.createElement("img");
-  img.className = "botevo-sprite";
-  img.src = pieceArt(piece);
-  img.alt = "";
-  img.draggable = false;
-  wrap.appendChild(img);
+  wrap.innerHTML = eggTokenSvg(piece);
+  wrap.querySelector("svg")?.classList.add("botevo-sprite");
   host.appendChild(wrap);
 }
 
