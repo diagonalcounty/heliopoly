@@ -105,7 +105,6 @@ import {
   liveChainCells,
   connectorKind,
   eggTokenSvg,
-  playAgainBotEvo,
   quotaForLevel,
   resumeAfterMorph,
   socketJoins,
@@ -452,6 +451,9 @@ const botEvoPlayEl = document.getElementById("botevo-play")!;
 const botEvoEndEl = document.getElementById("botevo-end")!;
 const botEvoEndBlurb = document.getElementById("botevo-end-blurb")!;
 const botEvoDropBtn = document.getElementById("botevo-drop") as HTMLButtonElement;
+const botEvoIntroEl = document.getElementById("botevo-intro")!;
+const botEvoTableEl = document.getElementById("botevo-table")!;
+const botEvoBeginBtn = document.getElementById("botevo-begin") as HTMLButtonElement;
 const pipesRoot = document.getElementById("pipes-root")!;
 const pipesGridEl = document.getElementById("pipes-grid")!;
 const pipesStatusEl = document.getElementById("pipes-status")!;
@@ -2169,7 +2171,7 @@ function eacPlayAgain(): void {
   eacLeftBtn.focus();
 }
 
-/** —— Bot Evolution egg-socket matching (#203) —— */
+/** —— egg-bot-evolution (#203) —— */
 let botEvoState: BotState | null = null;
 let botEvoTimer: number | null = null;
 let botEvoBarView = { level: 1, segments: 0, boxes: 0 };
@@ -2486,18 +2488,33 @@ function renderBotEvo(): void {
   }
 }
 
-function openBotEvo(): void {
-  botEvoState = startBotEvo();
+function showBotEvoIntro(): void {
+  clearBotEvoTimer();
+  botEvoState = null;
+  botEvoIntroEl.classList.remove("hidden");
+  botEvoTableEl.classList.add("hidden");
+}
+
+function startBotEvoPlay(): void {
+  clearBotEvoTimer();
+  botEvoFxEl.replaceChildren();
   botEvoPrevOcc = new Set();
   botEvoPrevJoins = new Set();
+  botEvoState = startBotEvo();
   botEvoBarView = { level: 1, segments: 0, boxes: 0 };
-  botEvoFxEl.replaceChildren();
+  botEvoIntroEl.classList.add("hidden");
+  botEvoTableEl.classList.remove("hidden");
   renderBotEvo();
   armBotEvoTimer();
+  botEvoDropBtn.focus();
+}
+
+function openBotEvo(): void {
+  showBotEvoIntro();
   botEvoRoot.classList.remove("hidden");
   botEvoRoot.setAttribute("aria-hidden", "false");
   document.body.classList.add("handbook-open");
-  botEvoDropBtn.focus();
+  botEvoBeginBtn.focus();
 }
 
 function closeBotEvo(): void {
@@ -2635,15 +2652,7 @@ function closePipes(): void {
 }
 
 function botEvoPlayAgain(): void {
-  clearBotEvoTimer();
-  botEvoFxEl.replaceChildren();
-  botEvoPrevOcc = new Set();
-  botEvoPrevJoins = new Set();
-  botEvoState = playAgainBotEvo();
-  botEvoBarView = { level: 1, segments: 0, boxes: 0 };
-  renderBotEvo();
-  armBotEvoTimer();
-  botEvoDropBtn.focus();
+  startBotEvoPlay();
 }
 
 function botEvoDrop(): void {
@@ -3014,7 +3023,7 @@ async function runLabScenario(id: string): Promise<void> {
   const sc = LAB_SCENARIOS.find((x) => x.id === id);
   if (!sc || !labScenarioAvailable(sc)) return;
   if (sc.kind === "standalone") {
-    if (sc.standaloneId === "bot-evolution") {
+    if (sc.standaloneId === "egg-bot-evolution") {
       openBotEvo();
 
       return;
@@ -3070,6 +3079,7 @@ document.getElementById("eac-done")?.addEventListener("click", () => {
 });
 document.getElementById("botevo-close")?.addEventListener("click", () => closeBotEvo());
 document.getElementById("botevo-backdrop")?.addEventListener("click", () => closeBotEvo());
+botEvoBeginBtn.addEventListener("click", () => startBotEvoPlay());
 document.getElementById("botevo-again")?.addEventListener("click", () => botEvoPlayAgain());
 document.getElementById("botevo-done")?.addEventListener("click", () => {
   closeBotEvo();

@@ -35,7 +35,7 @@ export const LAB_GROUP_BLURBS: Record<LabScenarioGroup, string> = {
   "which-is-larger":
     "Literacy drills: pick the larger of two numbers in a target numbering system.",
   minigame:
-    "Standalone practice modes (urinal-rule-parking, Backup fuel, Hull panel, Deseret letters, Bot Evolution, Gravity Duel).",
+    "Standalone practice modes (urinal-rule-parking, Backup fuel, Hull panel, Deseret letters, egg-bot-evolution, Gravity Duel).",
   end: "Canned end screens for UI / copy checks.",
   economy: "Economy and risk edge cases.",
 };
@@ -182,14 +182,14 @@ export const LAB_SCENARIOS: LabScenario[] = [
     standaloneId: "deseret-match",
   },
   {
-    id: "bot-evolution",
-    title: "Bot Evolution",
+    id: "egg-bot-evolution",
+    title: "egg-bot-evolution",
     blurb:
-      "Drop egg-bots into a 5×8 field. Each bot’s claws are fixed. Match a chain of 5; they morph into a box that fills the level bar. Untimed Lab practice; expedition stays put.",
+      "Drop egg-bots into a 5×8 field. Each bot’s pins are fixed. Match a chain of 5; they morph into a box that fills the level bar. Untimed Lab practice; expedition stays put.",
     group: "minigame",
     kind: "standalone",
     available: true,
-    standaloneId: "bot-evolution",
+    standaloneId: "egg-bot-evolution",
   },
   {
     id: "duel-you-challenger",

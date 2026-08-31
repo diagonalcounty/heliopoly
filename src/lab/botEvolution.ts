@@ -1,5 +1,5 @@
 /**
- * Lab drill: Bot Evolution (#203 / #204 / #205).
+ * Lab drill: egg-bot-evolution (#203 / #204 / #205).
  * 5×8 egg-socket matching. Untimed. No Mainline / src/core.
  *
  * Grammar: every piece is a centered plus with unused arms erased.

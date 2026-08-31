@@ -639,7 +639,7 @@ html.native-shell #app {
   color: var(--muted);
 }
 
-/* —— Lab: Bot Evolution egg-socket matching (#203) —— */
+/* —— Lab: egg-bot-evolution (#203) —— */
 #botevo-root.botevo-overlay {
   z-index: 1050;
 }
@@ -758,6 +758,66 @@ html.native-shell #app {
 
 .botevo-hint {
   margin: 0;
+}
+
+.botevo-intro.hidden,
+.botevo-table.hidden {
+  display: none;
+}
+
+.botevo-table {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.botevo-card {
+  display: grid;
+  grid-template-columns: minmax(96px, 34%) 1fr;
+  gap: 0;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 4px solid #aa7942;
+  background: #0c101c;
+}
+
+.botevo-card-art {
+  min-height: 160px;
+  background: #0b1020 center 18% / cover no-repeat;
+}
+
+.botevo-card-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 16px 16px;
+}
+
+.botevo-card-kicker {
+  margin: 0;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #c9a227;
+}
+
+.botevo-card-copy h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  line-height: 1.2;
+}
+
+.botevo-card-body {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.botevo-card-copy .eac-primary {
+  align-self: flex-start;
+  margin-top: 4px;
 }
 
 .botevo-play {
@@ -5865,6 +5925,21 @@ button:not(:disabled):active {
     overflow: auto;
     -webkit-overflow-scrolling: touch;
     padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
+  }
+
+  #botevo-root:not(.hidden) .botevo-card {
+    grid-template-columns: 1fr;
+  }
+
+  #botevo-root:not(.hidden) .botevo-card-art {
+    min-height: 140px;
+    height: 160px;
+  }
+
+  #botevo-root:not(.hidden) #botevo-begin {
+    min-width: 44px;
+    min-height: 44px;
+    pointer-events: auto;
   }
 
   #lab-root:not(.hidden) .lab-scenarios {

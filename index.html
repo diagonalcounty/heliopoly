@@ -335,7 +335,7 @@ Name your rocket. Then Launch.</p>
         <div class="lab-body">
           <p class="hint lab-intro">
             Tap a category to expand it, then pick an item. Literacy drills and
-            standalone Minigames (urinal-rule-parking, Backup fuel, Hull panel, Deseret letters, Bot Evolution) leave your expedition alone;
+            standalone Minigames (urinal-rule-parking, Backup fuel, Hull panel, Deseret letters, egg-bot-evolution) leave your expedition alone;
             Gravity Duel / End / Economy replace the current game.
           </p>
           <div id="lab-scenarios" class="lab-scenarios"></div>
@@ -618,7 +618,7 @@ Name your rocket. Then Launch.</p>
       </div>
     </div>
 
-    <!-- Lab drill: Bot Evolution egg-socket matching (#203) -->
+    <!-- Lab drill: egg-bot-evolution (#203) -->
     <div id="botevo-root" class="handbook botevo-overlay hidden" aria-hidden="true">
       <div class="handbook-backdrop" id="botevo-backdrop"></div>
       <div
@@ -630,13 +630,36 @@ Name your rocket. Then Launch.</p>
         <header class="handbook-header">
           <div>
             <p class="handbook-kicker">Lab · minigame</p>
-            <h2 id="botevo-title">Bot Evolution</h2>
+            <h2 id="botevo-title">egg-bot-evolution</h2>
           </div>
           <button type="button" id="botevo-close" class="handbook-close" aria-label="Close drill">
             ✕
           </button>
         </header>
         <div class="botevo-body">
+          <div id="botevo-intro" class="botevo-intro">
+            <article class="botevo-card">
+              <div
+                class="botevo-card-art"
+                role="img"
+                aria-label="The clerk"
+                style="background-image: url('/handbook/cards/clerk-canonical.jpg')"
+              ></div>
+              <div class="botevo-card-copy">
+                <p class="botevo-card-kicker">The clerk</p>
+                <h3>Found eggs. Useless alone.</h3>
+                <p class="botevo-card-body">
+                  Live pins have to meet. A chain of five morphs into a box —
+                  that’s a save, not a blast. Color is the family: cream four-pin,
+                  cyan straight, apricot corner, mint tee. They fall as they are.
+                  No turning. Overflow a column and the drill is over. Lab
+                  practice; the expedition stays put.
+                </p>
+                <button type="button" id="botevo-begin" class="eac-primary">Begin</button>
+              </div>
+            </article>
+          </div>
+          <div id="botevo-table" class="botevo-table hidden">
           <div class="botevo-hud">
             <p id="botevo-status" class="botevo-level" aria-live="polite">1</p>
             <div
@@ -663,7 +686,7 @@ Name your rocket. Then Launch.</p>
             Untimed Lab practice.
           </p>
           <div id="botevo-play" class="botevo-play">
-            <div id="botevo-grid" class="botevo-grid" role="grid" aria-label="Bot Evolution field"></div>
+            <div id="botevo-grid" class="botevo-grid" role="grid" aria-label="egg-bot-evolution field"></div>
             <div class="botevo-queue-wrap">
               <p class="botevo-queue-label">Next</p>
               <div id="botevo-queue" class="botevo-queue" aria-label="Next eggs"></div>
@@ -679,6 +702,7 @@ Name your rocket. Then Launch.</p>
               <button type="button" id="botevo-again" class="eac-primary">Play again</button>
               <button type="button" id="botevo-done" class="eac-secondary">Back to Lab</button>
             </div>
+          </div>
           </div>
         </div>
       </div>
