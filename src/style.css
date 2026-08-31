@@ -898,7 +898,7 @@ html.native-shell #app {
 
 .botevo-bot {
   position: absolute;
-  inset: -16%;
+  inset: -22%;
   z-index: 2;
   pointer-events: none;
   display: block;

@@ -259,7 +259,7 @@ export function playAgainBotEvo(seed?: number): BotState {
 
 /** Unique illustrated bot for this piece; faces stay upright. */
 export function pieceArt(id: PieceId): string {
-  return `/lab/botevo/${id}.svg`;
+  return `/lab/botevo/${id}.png`;
 }
 
 /** Cream token SVG: Kostka face, gold pegs, shell tinted by connector family. */

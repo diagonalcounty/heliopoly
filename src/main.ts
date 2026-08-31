@@ -104,7 +104,6 @@ import {
   landingPreview,
   liveChainCells,
   connectorKind,
-  eggTokenSvg,
   quotaForLevel,
   resumeAfterMorph,
   socketJoins,
@@ -114,6 +113,7 @@ import {
   type BotState,
   type PieceId,
 } from "./lab/botEvolution";
+import { BOTEVO_SPRITES } from "./lab/botevoSprites";
 import {
   PIPE_GRID,
   cellKind,
@@ -2280,8 +2280,12 @@ function appendBotSprite(host: HTMLElement, piece: PieceId): void {
   const wrap = document.createElement("span");
   wrap.className = `botevo-bot is-${connectorKind(piece)}`;
   wrap.setAttribute("aria-hidden", "true");
-  wrap.innerHTML = eggTokenSvg(piece);
-  wrap.querySelector("svg")?.classList.add("botevo-sprite");
+  const img = document.createElement("img");
+  img.className = "botevo-sprite";
+  img.src = BOTEVO_SPRITES[piece];
+  img.alt = "";
+  img.draggable = false;
+  wrap.appendChild(img);
   host.appendChild(wrap);
 }
 
