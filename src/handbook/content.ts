@@ -372,7 +372,7 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
 </ul>
 <p>Landing on your own claim and hitting <strong>Books</strong> in the pilot column opens the same dossier focused on that body. Remote path is unchanged: ledger row to dossier.</p>
 <p>Rival dossiers are public. The board already shows who owns what; the dossier is the books.</p>
-<p>When the ledger closes, the winning story names up to three held claims (“Best books”). Claims sold, lost, or taken without cash down are not ranked.</p>
+<p>When the ledger closes, the winning story is a short <strong>asset sheet</strong>: each highlighted claim is <strong>mark + income</strong> in Angzarr, not ROI%. Rank is that sum, top about three still held. Gifts and steals still show mark + income (no infinite percent). Sold or lost books are not on the card — closed books are gone. Earth land/pass cash is investor capital, not property income; it is not a claim line.</p>
 <h3>Sell</h3>
 <p>Sell pays the <strong>Mark</strong>. The claim goes unowned. Any <strong>depot is scrapped</strong>. Use this when you would rather the body sit empty than go to a rival.</p>
 <h3>Auction</h3>
