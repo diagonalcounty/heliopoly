@@ -336,6 +336,72 @@ function listing(
   );
 }
 
+{
+  const s = createGame({
+    playerCount: 4,
+    humanSeat: true,
+    humanName: "Venture",
+    seed: 40,
+    aiDifficulty: "normal",
+  });
+  grantClaim(s, s.players[1].id, "deimos");
+  s.players[2].cash = 350;
+  const floor = bankSellValue(250);
+  const snipe = listing(s, s.players[1], "deimos", {
+    [s.players[0].id]: 131,
+  });
+  const bid = chooseAuctionBid(s, s.players[2], snipe, "normal");
+  assert(
+    bid >= 131,
+    `normal contests human Deimos 131 without list+cushion cash (bid ${bid}, cash 350, floor ${floor})`,
+  );
+}
+
+{
+  const s = createGame({
+    playerCount: 4,
+    humanSeat: true,
+    humanName: "Venture",
+    seed: 41,
+    aiDifficulty: "normal",
+  });
+  grantClaim(s, s.players[1].id, "deimos");
+  s.players[2].cash = 800;
+  const snipe = listing(s, s.players[1], "deimos", {
+    [s.players[0].id]: 131,
+  });
+  const bid = chooseAuctionBid(s, s.players[2], snipe, "normal");
+  assert(
+    bid >= 131,
+    `normal contests human Deimos 131 even when junk (bid ${bid}, cash 800)`,
+  );
+}
+
+{
+  const s = createGame({
+    playerCount: 4,
+    humanSeat: true,
+    humanName: "Venture",
+    seed: 60,
+    aiDifficulty: "normal",
+  });
+  grantClaim(s, s.players[1].id, "daktulios");
+  s.players[2].cash = 700;
+  const floor = bankSellValue(800);
+  const snipe = listing(s, s.players[1], "daktulios", {
+    [s.players[0].id]: 405,
+  });
+  const bid = chooseAuctionBid(s, s.players[2], snipe, "normal");
+  assert(
+    bid >= 405,
+    `normal contests Daktulios standing 405 without list+cushion (bid ${bid}, cash 700, floor ${floor})`,
+  );
+  assert(
+    bid > 405,
+    `normal beats Daktulios 405 when liquidity and fairCap allow (${bid} > 405)`,
+  );
+}
+
 if (failed) {
   throw new Error(`${failed} assertion(s) failed`);
 }

@@ -629,17 +629,27 @@ export function chooseAuctionBid(
     (flags.deniesSet || flags.deniesHub) &&
     (difficulty === "hard" || difficulty === "expert");
 
-  if (!wantBuy && !strategic && !deny) return 0;
-  if (flags.junk && !strategic && !deny) return 0;
+  const standing = standingBid(auction, bidder.id);
+  const ask = standing > 0 ? standing : floor;
+  const humanIn = state.players.some(
+    (p) => p.agent === "human" && !p.eliminated && p.id !== auction.sellerId,
+  );
+  // Reserve+small (Deimos 131 / Daktulios 405), not Mars-409-class.
+  const nearReserveCap = Math.max(floor + 10, Math.floor(floor * 1.1));
+  const contestNearReserve =
+    difficulty === "normal" &&
+    liquidity >= ask &&
+    ask <= nearReserveCap &&
+    (humanIn || standing > 0);
+
+  if (!wantBuy && !strategic && !deny && !contestNearReserve) return 0;
+  if (flags.junk && !strategic && !deny && !contestNearReserve) return 0;
 
   const fairCap = valueClaim(state, auction, difficulty, flags);
   if (fairCap < floor) return 0;
 
   let target = Math.max(floor, Math.min(fairCap, liquidity));
 
-  const humanIn = state.players.some(
-    (p) => p.agent === "human" && !p.eliminated && p.id !== auction.sellerId,
-  );
   const aiWant = state.players.filter(
     (p) =>
       p.agent === "ai" &&
@@ -660,7 +670,6 @@ export function chooseAuctionBid(
     target = Math.max(target, Math.min(cap, bumped));
   }
 
-  const standing = standingBid(auction, bidder.id);
   if (standing > 0) {
     const raiseBy =
       difficulty === "expert" || strategic || deny ? Math.max(1, chip) : 1;
