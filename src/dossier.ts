@@ -24,7 +24,7 @@ function escapeHtml(s: string): string {
 }
 
 export interface DossierController {
-  open: (playerId: string) => void;
+  open: (playerId: string, focusNodeId?: string) => void;
   close: () => void;
   isOpen: () => boolean;
   refresh: () => void;
@@ -44,6 +44,8 @@ export function mountDossier(
   let playerId: string | null = null;
   /** Claim with the inline reserve form expanded (#140). */
   let askNodeId: string | null = null;
+  /** Claim to highlight after open (underfoot Books); not an auto-sell. */
+  let focusNodeId: string | null = null;
 
   root.classList.add("handbook", "dossier");
   root.innerHTML = `
@@ -75,6 +77,7 @@ export function mountDossier(
   function hide(): void {
     open = false;
     askNodeId = null;
+    focusNodeId = null;
     root.classList.add("hidden");
     root.setAttribute("aria-hidden", "true");
     if (
@@ -91,6 +94,15 @@ export function mountDossier(
     root.setAttribute("aria-hidden", "false");
     document.body.classList.add("handbook-open");
     paint();
+    requestAnimationFrame(scrollFocusIntoView);
+  }
+
+  function scrollFocusIntoView(): void {
+    if (!focusNodeId) return;
+    const row = bodyEl.querySelector(".dossier-row-focus");
+    if (row instanceof HTMLElement) {
+      row.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
   }
 
   function paint(): void {
@@ -106,7 +118,7 @@ export function mountDossier(
     }
     titleEl.textContent = view.name;
     swatchEl.style.background = view.color;
-    bodyEl.innerHTML = renderDossier(view, askNodeId);
+    bodyEl.innerHTML = renderDossier(view, askNodeId, focusNodeId);
     const form = bodyEl.querySelector("[data-auction-form]");
     if (form) {
       const input = form.querySelector(
@@ -187,8 +199,9 @@ export function mountDossier(
   });
 
   return {
-    open: (id: string) => {
+    open: (id: string, nodeId?: string) => {
       playerId = id;
+      focusNodeId = nodeId ?? null;
       show();
     },
     close: hide,
@@ -205,7 +218,11 @@ function handbookTopicForName(name: string): string {
   return pilot ? `pilot-${pilot.id}` : "rival-pilots-overview";
 }
 
-function renderDossier(view: DossierView, askNodeId: string | null): string {
+function renderDossier(
+  view: DossierView,
+  askNodeId: string | null,
+  focusNodeId: string | null,
+): string {
   const prop = PROPELLANTS[view.propellant].short;
   const topic = handbookTopicForName(view.name);
   const bioLabel =
@@ -223,7 +240,7 @@ function renderDossier(view: DossierView, askNodeId: string | null): string {
     : "";
 
   const groups = view.groups.length
-    ? view.groups.map((g) => renderGroup(g, view, askNodeId)).join("")
+    ? view.groups.map((g) => renderGroup(g, view, askNodeId, focusNodeId)).join("")
     : `<p class="hint">No claims on the ledger.</p>`;
 
   return `
@@ -257,6 +274,7 @@ function renderGroup(
   g: DossierView["groups"][number],
   view: DossierView,
   askNodeId: string | null,
+  focusNodeId: string | null,
 ): string {
   const flag = g.monopoly ? ` · MONOPOLY rent ×2` : "";
   const rows = g.rows.map((row) => {
@@ -292,7 +310,8 @@ function renderGroup(
               <button type="button" class="primary" data-dossier-auction="${row.nodeId}" ${listed ? "disabled" : ""}>${listed ? "Listed this turn" : "Auction"}</button>
             </div>`;
     }
-    return `<li class="dossier-row">
+    const focused = focusNodeId === row.nodeId ? " dossier-row-focus" : "";
+    return `<li class="dossier-row${focused}" data-node-id="${escapeHtml(row.nodeId)}">
       <div class="dossier-row-main">
         <strong>${escapeHtml(row.name)}</strong>
         <span class="dossier-row-sub">${formatMoney(row.listPrice)} deed · rent now ${formatMoney(row.rentNow)}${depot}${hub}</span>
