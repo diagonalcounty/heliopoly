@@ -101,7 +101,6 @@ import {
   fallingOccupies,
   gravityMs,
   hardDrop,
-  landingPreview,
   liveChainCells,
   connectorKind,
   quotaForLevel,
@@ -2294,14 +2293,12 @@ function appendJoins(
   mask: number,
   snap: Set<string>,
   keyPrefix: string,
-  ghost: boolean,
 ): void {
   if (!mask) return;
   for (const [bit, name] of BOTEVO_JOIN_DIRS) {
     if ((mask & bit) === 0) continue;
     const join = document.createElement("span");
     join.className = `botevo-join ${name}`;
-    if (ghost) join.classList.add("is-ghost");
     if (snap.has(`${keyPrefix},${name}`)) join.classList.add("is-snap");
     host.appendChild(join);
   }
@@ -2378,7 +2375,6 @@ function renderBotEvo(): void {
 
   const live = liveChainCells(botEvoState.grid);
   const morph = new Set(botEvoState.justMorphed);
-  const preview = landingPreview(botEvoState);
   const occ = new Set<string>();
   for (let r = 0; r < BOT_ROWS; r++) {
     for (let c = 0; c < BOT_COLS; c++) {
@@ -2390,12 +2386,6 @@ function renderBotEvo(): void {
   for (const k of landedJoins) if (!botEvoPrevJoins.has(k)) newJoins.add(k);
   const newLand = new Set<string>();
   for (const k of occ) if (!botEvoPrevOcc.has(k)) newLand.add(k);
-
-  let previewGrid: BotGrid | null = null;
-  if (preview && botEvoState.phase === "falling") {
-    previewGrid = botEvoState.grid.map((row) => row.slice());
-    previewGrid[preview.row]![botEvoState.aimCol] = botEvoState.current;
-  }
 
   botEvoGridEl.replaceChildren();
   for (let r = 0; r < BOT_ROWS; r++) {
@@ -2409,23 +2399,10 @@ function renderBotEvo(): void {
       const landed = botEvoState.grid[r]![c];
       const falling = fallingOccupies(botEvoState, r, c);
       const morphing = morph.has(`${r},${c}`);
-      const ghostHere =
-        !!preview &&
-        preview.row === r &&
-        c === botEvoState.aimCol &&
-        !falling &&
-        !landed;
       if (live.has(`${r},${c}`)) btn.classList.add("is-live");
       if (falling) btn.classList.add("is-falling");
       if (morphing) btn.classList.add("is-morph");
       if (newLand.has(`${r},${c}`)) btn.classList.add("is-land");
-      if (ghostHere) {
-        btn.classList.add("is-ghost");
-        if (preview.live) btn.classList.add("is-ghost-live");
-        if (preview.morph) btn.classList.add("is-ghost-morph");
-      }
-      if (falling && preview?.live) btn.classList.add("is-live");
-      if (falling && preview?.morph) btn.classList.add("is-ghost-morph");
       if (landed) {
         appendBotSprite(btn, landed);
         appendJoins(
@@ -2433,30 +2410,9 @@ function renderBotEvo(): void {
           socketJoins(botEvoState.grid, r, c),
           newJoins,
           `${r},${c}`,
-          false,
         );
       } else if (falling && botEvoState.phase !== "morphing") {
         appendBotSprite(btn, botEvoState.current);
-        if (previewGrid && preview && preview.row === r) {
-          appendJoins(
-            btn,
-            socketJoins(previewGrid, r, c),
-            new Set(),
-            `${r},${c}`,
-            true,
-          );
-        }
-      } else if (ghostHere) {
-        appendBotSprite(btn, botEvoState.current);
-        if (previewGrid) {
-          appendJoins(
-            btn,
-            socketJoins(previewGrid, r, c),
-            new Set(),
-            `${r},${c}`,
-            true,
-          );
-        }
       }
       const label = morphing
         ? `Morphing box ${r + 1},${c + 1}`
