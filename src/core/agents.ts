@@ -44,7 +44,12 @@ export function heuristicAI(
       if (bidder && bidder.agent === "ai") {
         return {
           type: "auction_bid",
-          amount: chooseAuctionBid(state, bidder, state.pendingAuction),
+          amount: chooseAuctionBid(
+            state,
+            bidder,
+            state.pendingAuction,
+            difficulty,
+          ),
         };
       }
     }
@@ -184,6 +189,15 @@ function pickLiquidation(
   const rivals = state.players.filter((x) => !x.eliminated && x.id !== p.id);
   const someoneCanBid = rivals.some((r) => r.cash >= pick.value);
   if (legal.canAuction && someoneCanBid && difficulty !== "easy") {
+    const contested = pick.hub || pick.rent >= 50;
+    if (
+      (difficulty === "hard" || difficulty === "expert") &&
+      !contested
+    ) {
+      // Dump junk to the bank; don't gift a cheap moon at the floor.
+      if (p.cash < 100) return { type: "sell", nodeId: pick.nodeId };
+      return null;
+    }
     return { type: "auction_start", nodeId: pick.nodeId };
   }
   if (p.cash < 100) return { type: "sell", nodeId: pick.nodeId };
