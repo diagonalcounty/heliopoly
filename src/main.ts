@@ -2415,7 +2415,6 @@ function renderBotEvo(): void {
         c === botEvoState.aimCol &&
         !falling &&
         !landed;
-      if (c === botEvoState.aimCol) btn.classList.add("is-aim");
       if (live.has(`${r},${c}`)) btn.classList.add("is-live");
       if (falling) btn.classList.add("is-falling");
       if (morphing) btn.classList.add("is-morph");

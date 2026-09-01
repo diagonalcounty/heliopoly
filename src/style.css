@@ -874,11 +874,6 @@ html.native-shell #app {
   transform: scale(0.96);
 }
 
-.botevo-cell.is-aim {
-  border-color: #6ec8ff;
-  background: rgba(110, 200, 255, 0.12);
-}
-
 .botevo-cell.is-falling .botevo-sprite {
   animation: botevo-fall-nudge 280ms ease-out;
 }
