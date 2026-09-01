@@ -508,6 +508,10 @@ test.describe("phone Lab egg-bot-evolution #203", () => {
     expect(drop.width, "Drop ≥44px wide").toBeGreaterThanOrEqual(44);
     expect(drop.height, "Drop ≥44px tall").toBeGreaterThanOrEqual(44);
     expect(drop.onControl, "elementFromPoint Drop").toBe(true);
+    const pause = await boxOf(page, "#botevo-pause");
+    expect(pause.width, "Pause ≥44px wide").toBeGreaterThanOrEqual(44);
+    expect(pause.height, "Pause ≥44px tall").toBeGreaterThanOrEqual(44);
+    expect(pause.onControl, "elementFromPoint Pause").toBe(true);
 
     await page.locator("#botevo-root .handbook-close").click();
     await expect(page.locator("#botevo-root")).toHaveClass(/hidden/);

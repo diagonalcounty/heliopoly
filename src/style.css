@@ -708,7 +708,7 @@ html.native-shell #app {
   width: 0%;
   background: linear-gradient(180deg, #ffe08a 0%, #d4ae3a 55%, #c9a227 100%);
   box-shadow: 0 0 10px rgba(255, 217, 120, 0.45);
-  transition: width 210ms ease-out;
+  transition: width 720ms ease-out;
 }
 
 .botevo-battery-ticks {
@@ -748,12 +748,12 @@ html.native-shell #app {
   border-radius: 6px;
   background: linear-gradient(180deg, #ffe08a 0%, #c9a227 100%);
   border: 1px solid #8a7340;
-  box-shadow: 0 0 10px rgba(255, 217, 120, 0.8);
+  box-shadow: 0 0 14px rgba(255, 217, 120, 0.95);
   transform: translate(0, 0) scale(1);
   opacity: 1;
   transition:
-    transform 70ms ease-out,
-    opacity 140ms linear;
+    transform 280ms ease-out,
+    opacity 280ms linear;
 }
 
 .botevo-hint {
@@ -821,10 +821,32 @@ html.native-shell #app {
 }
 
 .botevo-play {
+  position: relative;
   display: flex;
   align-items: flex-start;
   justify-content: center;
   gap: 12px;
+}
+
+.botevo-paused {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: rgba(7, 11, 20, 0.72);
+  color: var(--accent-2);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.botevo-paused.hidden {
+  display: none;
 }
 
 .botevo-grid {
@@ -5914,7 +5936,9 @@ button:not(:disabled):active {
     height: 160px;
   }
 
-  #botevo-root:not(.hidden) #botevo-begin {
+  #botevo-root:not(.hidden) #botevo-begin,
+  #botevo-root:not(.hidden) #botevo-pause,
+  #botevo-root:not(.hidden) #botevo-drop {
     min-width: 44px;
     min-height: 44px;
     pointer-events: auto;

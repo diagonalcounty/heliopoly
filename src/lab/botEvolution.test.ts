@@ -148,7 +148,7 @@ assert(!socketsMeet("l-ne", "i", DIR_S), "L-NE has no south pin");
   assert(columnHeight(s.grid, 1) === 0, "morphed I's are removed");
   assert(s.segments === 1, "bar gained one segment");
   assert(s.justMorphed.length >= 5, "morph flash records the chain");
-  assert(s.phase === "morphing", "next egg waits until the morph flies up");
+  assert(s.phase === "falling", "next egg falls while the morph flies up");
 }
 
 {

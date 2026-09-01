@@ -450,6 +450,8 @@ const botEvoPlayEl = document.getElementById("botevo-play")!;
 const botEvoEndEl = document.getElementById("botevo-end")!;
 const botEvoEndBlurb = document.getElementById("botevo-end-blurb")!;
 const botEvoDropBtn = document.getElementById("botevo-drop") as HTMLButtonElement;
+const botEvoPauseBtn = document.getElementById("botevo-pause") as HTMLButtonElement;
+const botEvoPausedEl = document.getElementById("botevo-paused")!;
 const botEvoIntroEl = document.getElementById("botevo-intro")!;
 const botEvoTableEl = document.getElementById("botevo-table")!;
 const botEvoBeginBtn = document.getElementById("botevo-begin") as HTMLButtonElement;
@@ -2173,9 +2175,13 @@ function eacPlayAgain(): void {
 /** —— egg-bot-evolution (#203) —— */
 let botEvoState: BotState | null = null;
 let botEvoTimer: number | null = null;
+let botEvoMorphTimer: number | null = null;
+let botEvoPaused = false;
+let botEvoMorphSig = "";
 let botEvoBarView = { level: 1, segments: 0, boxes: 0 };
-const BOTEVO_MORPH_MS = 210;
-const BOTEVO_COMBINE_MS = 70;
+const BOTEVO_COMBINE_MS = 280;
+const BOTEVO_FLY_MS = 720;
+const BOTEVO_MORPH_MS = BOTEVO_COMBINE_MS + BOTEVO_FLY_MS;
 const BOTEVO_JOIN_DIRS: Array<[number, string]> = [
   [DIR_N, "n"],
   [DIR_E, "e"],
@@ -2196,12 +2202,20 @@ function clearBotEvoTimer(): void {
   }
 }
 
+function clearBotEvoMorphTimer(): void {
+  if (botEvoMorphTimer !== null) {
+    window.clearTimeout(botEvoMorphTimer);
+    botEvoMorphTimer = null;
+  }
+}
+
 function armBotEvoTimer(pauseMs?: number): void {
   clearBotEvoTimer();
+  if (botEvoPaused) return;
   if (!botEvoState || botEvoState.phase !== "falling") return;
   const wait = pauseMs ?? gravityMs(botEvoState.level);
   botEvoTimer = window.setTimeout(() => {
-    if (!botEvoState || botEvoState.phase !== "falling") {
+    if (botEvoPaused || !botEvoState || botEvoState.phase !== "falling") {
       clearBotEvoTimer();
       return;
     }
@@ -2245,11 +2259,10 @@ function flyMorphToBar(keys: string[]): void {
     const toBarX = targetX - (rect.left + rect.width / 2);
     const toBarY = targetY - (rect.top + rect.height / 2);
     requestAnimationFrame(() => {
-      el.style.transform = `translate(${toCx}px, ${toCy}px) scale(0.7)`;
+      el.style.transform = `translate(${toCx}px, ${toCy}px) scale(0.72)`;
     });
     window.setTimeout(() => {
-      const flyMs = BOTEVO_MORPH_MS - BOTEVO_COMBINE_MS;
-      el.style.transition = `transform ${flyMs}ms ease-in, opacity ${flyMs}ms linear`;
+      el.style.transition = `transform ${BOTEVO_FLY_MS}ms ease-in, opacity ${BOTEVO_FLY_MS}ms linear`;
       el.style.transform = `translate(${toBarX}px, ${toBarY}px) scale(0.16)`;
       el.style.opacity = "0";
     }, BOTEVO_COMBINE_MS);
@@ -2257,20 +2270,24 @@ function flyMorphToBar(keys: string[]): void {
 }
 
 function finishBotEvoMorph(): void {
+  botEvoMorphTimer = null;
+  botEvoMorphSig = "";
   botEvoFxEl.replaceChildren();
   if (!botEvoState || botEvoState.phase === "lost") return;
+  const falling = botEvoState.phase === "falling";
   botEvoState = resumeAfterMorph(botEvoState);
   renderBotEvo();
-  armBotEvoTimer();
+  if (!falling) armBotEvoTimer();
 }
 
 function afterBotEvoLand(): void {
   if (!botEvoState) return;
-  if (botEvoState.phase === "morphing" && botEvoState.justMorphed.length) {
+  const sig = botEvoState.justMorphed.slice().sort().join(",");
+  if (sig && sig !== botEvoMorphSig) {
+    botEvoMorphSig = sig;
     flyMorphToBar(botEvoState.justMorphed);
-    clearBotEvoTimer();
-    botEvoTimer = window.setTimeout(() => finishBotEvoMorph(), BOTEVO_MORPH_MS);
-    return;
+    clearBotEvoMorphTimer();
+    botEvoMorphTimer = window.setTimeout(() => finishBotEvoMorph(), BOTEVO_MORPH_MS);
   }
   if (botEvoState.phase === "falling") armBotEvoTimer();
 }
@@ -2364,7 +2381,11 @@ function renderBotEvo(): void {
   renderBotEvoBar();
   botEvoPlayEl.classList.toggle("hidden", lost);
   botEvoEndEl.classList.toggle("hidden", !lost);
-  botEvoDropBtn.disabled = lost;
+  botEvoPausedEl.classList.toggle("hidden", lost || !botEvoPaused);
+  botEvoPauseBtn.disabled = lost;
+  botEvoPauseBtn.textContent = botEvoPaused ? "Resume" : "Pause";
+  botEvoPauseBtn.setAttribute("aria-pressed", botEvoPaused ? "true" : "false");
+  botEvoDropBtn.disabled = lost || botEvoPaused;
   if (lost) {
     const n = botEvoState.boxes;
     botEvoEndBlurb.textContent =
@@ -2426,7 +2447,7 @@ function renderBotEvo(): void {
       if (!lost) {
         const col = c;
         btn.addEventListener("click", () => {
-          if (!botEvoState || botEvoState.phase === "lost") return;
+          if (!botEvoState || botEvoState.phase === "lost" || botEvoPaused) return;
           botEvoState = aimColumn(botEvoState, col);
           renderBotEvo();
         });
@@ -2449,6 +2470,9 @@ function renderBotEvo(): void {
 
 function showBotEvoIntro(): void {
   clearBotEvoTimer();
+  clearBotEvoMorphTimer();
+  botEvoPaused = false;
+  botEvoMorphSig = "";
   botEvoState = null;
   botEvoIntroEl.classList.remove("hidden");
   botEvoTableEl.classList.add("hidden");
@@ -2456,6 +2480,9 @@ function showBotEvoIntro(): void {
 
 function startBotEvoPlay(): void {
   clearBotEvoTimer();
+  clearBotEvoMorphTimer();
+  botEvoPaused = false;
+  botEvoMorphSig = "";
   botEvoFxEl.replaceChildren();
   botEvoPrevOcc = new Set();
   botEvoPrevJoins = new Set();
@@ -2478,6 +2505,9 @@ function openBotEvo(): void {
 
 function closeBotEvo(): void {
   clearBotEvoTimer();
+  clearBotEvoMorphTimer();
+  botEvoPaused = false;
+  botEvoMorphSig = "";
   botEvoFxEl.replaceChildren();
   botEvoRoot.classList.add("hidden");
   botEvoRoot.setAttribute("aria-hidden", "true");
@@ -2615,14 +2645,18 @@ function botEvoPlayAgain(): void {
 }
 
 function botEvoDrop(): void {
-  if (!botEvoState || botEvoState.phase === "lost") return;
-  if (botEvoState.phase === "morphing") {
-    botEvoState = resumeAfterMorph(botEvoState);
-  }
-  botEvoFxEl.replaceChildren();
+  if (!botEvoState || botEvoState.phase === "lost" || botEvoPaused) return;
   botEvoState = hardDrop(botEvoState);
   renderBotEvo();
   afterBotEvoLand();
+}
+
+function toggleBotEvoPause(): void {
+  if (!botEvoState || botEvoState.phase === "lost") return;
+  botEvoPaused = !botEvoPaused;
+  if (botEvoPaused) clearBotEvoTimer();
+  renderBotEvo();
+  if (!botEvoPaused) armBotEvoTimer();
 }
 
 
@@ -3045,6 +3079,7 @@ document.getElementById("botevo-done")?.addEventListener("click", () => {
   openLab();
 });
 botEvoDropBtn.addEventListener("click", () => botEvoDrop());
+botEvoPauseBtn.addEventListener("click", () => toggleBotEvoPause());
 document.getElementById("pipes-close")?.addEventListener("click", () => closePipes());
 document.getElementById("pipes-backdrop")?.addEventListener("click", () => closePipes());
 document.getElementById("pipes-again")?.addEventListener("click", () => pipesPlayAgain());
@@ -3107,6 +3142,12 @@ document.addEventListener("keydown", (e) => {
     return;
   }
   if (isBotEvoOpen() && botEvoState && botEvoState.phase !== "lost") {
+    if (e.key === "p" || e.key === "P") {
+      e.preventDefault();
+      toggleBotEvoPause();
+      return;
+    }
+    if (botEvoPaused) return;
     if (e.key === "ArrowLeft") {
       e.preventDefault();
       botEvoState = aimColumn(botEvoState, botEvoState.aimCol - 1);

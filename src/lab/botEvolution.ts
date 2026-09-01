@@ -498,14 +498,10 @@ function spawnNext(state: BotState): void {
   state.fallRow = null;
   state.lockTicks = 0;
   if (state.phase === "lost") return;
-  if (state.justMorphed.length) {
-    state.phase = "morphing";
-    return;
-  }
   startFall(state);
 }
 
-/** After the morph/fly-up animation: next egg starts falling. */
+/** Clear the morph flash after the fly-up FX. Gameplay already resumed. */
 export function resumeAfterMorph(state: BotState): BotState {
   if (state.phase === "lost") return state;
   const next = cloneState(state);
