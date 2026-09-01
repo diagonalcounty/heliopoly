@@ -160,7 +160,7 @@ export const LAB_SCENARIOS: LabScenario[] = [
   {
     id: "end-you-win",
     title: "End screen — you prevail",
-    blurb: "All other pilots eliminated; opens the end screen with the winner's best-books ROI line.",
+    blurb: "All other pilots eliminated; opens the end screen with the winner's mark + income asset sheet.",
     group: "end",
     kind: "game",
     build: () => {
@@ -182,11 +182,12 @@ export const LAB_SCENARIOS: LabScenario[] = [
       s.winnerId = you.id;
       s.phase = "game_over";
       s.endReason = `${you.name} is the last pilot flying.`;
-      // Paying books so the end story shows the "Best books" ROI line (#136);
-      // ganymede earns nothing and is cut by the top-3 cap.
-      grantClaim(s, you.id, "enceladus", { rentCollected: 756 }); // 236%
-      grantClaim(s, you.id, "venus", { rentCollected: 900 }); // 180%
-      grantClaim(s, you.id, "elon", { rentCollected: 500 }); // 91%
+      // Held books so the end story shows a mark + income asset sheet.
+      // Rank is mark+income: Venus 250+900, Enceladus 160+756, Elon 275+500.
+      // Ganymede mark 275 + income 0 stays 4th under the top-3 cap.
+      grantClaim(s, you.id, "enceladus", { rentCollected: 756 });
+      grantClaim(s, you.id, "venus", { rentCollected: 900 });
+      grantClaim(s, you.id, "elon", { rentCollected: 500 });
       grantClaim(s, you.id, "ganymede", { rentCollected: 0 });
       s.log.push(`Winner: ${you.name} (lab)`);
       return tagLab(s, `End · ${you.name} wins`);

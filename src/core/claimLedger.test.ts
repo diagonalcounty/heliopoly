@@ -2,6 +2,7 @@
  * Claim books, remote bank dump, and table auction.
  * Run: npx tsx src/core/claimLedger.test.ts
  */
+import { winnerAssetSheetLine } from "./assetSheet";
 import {
   bankSellValue,
   bestBooksLine,
@@ -9,9 +10,11 @@ import {
   claimEarnings,
   claimRoi,
   formatAuctionResult,
+  formatMarkIncomeLine,
   grantClaim,
   tryConsumeLandingRight,
 } from "./claimLedger";
+import { formatMoney } from "./currency";
 import { applyAction, getLegalActions, netWorth } from "./rules";
 import { createGame, currentPlayer } from "./state";
 import { teslaTargetClaims } from "./turnClock";
@@ -67,35 +70,92 @@ assert(elonReserve === 275, "Elon reserve is half of 550");
   assert(!legal.sell, "Underfoot Sell is off while on Earth");
   const view = buildDossierView(s, you.id, netWorth);
   assert(view && view.canSell, "Own dossier can sell on our turn");
+  const venus = view?.groups.flatMap((g) => g.rows).find((r) => r.nodeId === "venus");
+  assert(
+    venus != null && venus.listPrice === 500 && venus.bankValue === 250,
+    "Venus dossier row mark is half list (500 → 250)",
+  );
+  assert(
+    venus != null &&
+      formatMarkIncomeLine(venus) === `Mark ${formatMoney(250)} · income ${formatMoney(0)}`,
+    `Venus book-so-far is mark + income (${venus ? formatMarkIncomeLine(venus) : "missing"})`,
+  );
   const rival = buildDossierView(s, s.players[1].id, netWorth);
   assert(rival && !rival.canSell, "Rival dossier is read-only");
   assert(rival && rival.groups.some((g) => g.rows.some((r) => r.nodeId === "mars" && r.hasDepot)), "Rival Mars shows depot");
 }
 
-{
-  const s = setupPortfolio();
-  const you = s.players[0];
-  // elon: 400/550 → 73%; venus: 0 earned but cash in → ranks at 0%
-  const line = bestBooksLine(s, you.id);
-  assert(
-    line === "Best books: Elon 73% · Venus 0%.",
-    `Best books sorts by ROI and keeps zero-earnings claims (${line})`,
-  );
-  grantClaim(s, you.id, "titan", { rentCollected: 6000 }); // 1000%
-  grantClaim(s, you.id, "enceladus", { rentCollected: 32 }); // 10%
-  grantClaim(s, you.id, "ganymede", { rentCollected: 0 });
-  const capped = bestBooksLine(s, you.id);
-  assert(
-    capped === "Best books: Titan 1000% · Elon 73% · Enceladus 10%.",
-    `Best books caps at the top three (${capped})`,
-  );
+function sheetClaim(name: string, mark: number, income: number): string {
+  return `${name} Mark ${formatMoney(mark)} · income ${formatMoney(income)}`;
 }
 
 {
   const s = setupPortfolio();
+  const you = s.players[0];
+  const elonBook = you.claimBooks.elon!;
+  const venusBook = you.claimBooks.venus!;
+  const elonMark = bankSellValue(elonBook.listPrice);
+  const venusMark = bankSellValue(venusBook.listPrice);
+  const elonIncome = claimEarnings(elonBook);
+  const venusIncome = claimEarnings(venusBook);
+  assert(elonMark === 275 && elonIncome === 400, "Elon list 550 mark 275 plus 400 income");
+  assert(venusMark === 250 && venusIncome === 0, "Venus list 500 mark 250 plus 0 income");
+  const line = winnerAssetSheetLine(s, you.id);
+  const expected = `Assets: ${sheetClaim("Elon", elonMark, elonIncome)} · ${sheetClaim("Venus", venusMark, venusIncome)}.`;
+  assert(line === expected, `Asset sheet ranks by mark + income (${line})`);
+  assert(line === bestBooksLine(s, you.id), "bestBooksLine re-exports the asset sheet");
+  grantClaim(s, you.id, "titan", { rentCollected: 6000 });
+  grantClaim(s, you.id, "enceladus", { rentCollected: 32 });
+  grantClaim(s, you.id, "ganymede", { rentCollected: 0 });
+  const titanBook = you.claimBooks.titan!;
+  const ganymedeBook = you.claimBooks.ganymede!;
+  const titanMark = bankSellValue(titanBook.listPrice);
+  const ganymedeMark = bankSellValue(ganymedeBook.listPrice);
+  const capped = winnerAssetSheetLine(s, you.id);
+  const expectedCap = `Assets: ${sheetClaim("Titan", titanMark, claimEarnings(titanBook))} · ${sheetClaim("Elon", elonMark, elonIncome)} · ${sheetClaim("Ganymede", ganymedeMark, claimEarnings(ganymedeBook))}.`;
+  assert(
+    capped === expectedCap,
+    `Asset sheet caps at the top three by mark + income (${capped})`,
+  );
+  assert(!capped.includes("Enceladus"), "Enceladus mark+income is 4th and dropped");
+}
+
+{
+  const s = setupPortfolio();
+  const you = s.players[0];
+  you.claimBooks.venus!.rentCollected = 25;
+  grantClaim(s, you.id, "ganymede", { rentCollected: 0 });
+  const tied = winnerAssetSheetLine(s, you.id);
+  const elonBook = you.claimBooks.elon!;
+  const venusBook = you.claimBooks.venus!;
+  const ganymedeBook = you.claimBooks.ganymede!;
+  const elonMark = bankSellValue(elonBook.listPrice);
+  const venusMark = bankSellValue(venusBook.listPrice);
+  const ganymedeMark = bankSellValue(ganymedeBook.listPrice);
+  assert(
+    bankSellValue(elonBook.listPrice) + claimEarnings(elonBook) >
+      bankSellValue(ganymedeBook.listPrice) + claimEarnings(ganymedeBook),
+    "Elon still leads on mark + income",
+  );
+  assert(
+    venusMark + claimEarnings(venusBook) === ganymedeMark + claimEarnings(ganymedeBook),
+    "Venus and Ganymede tie on mark + income",
+  );
+  const expectedTied = `Assets: ${sheetClaim("Elon", elonMark, claimEarnings(elonBook))} · ${sheetClaim("Ganymede", ganymedeMark, claimEarnings(ganymedeBook))} · ${sheetClaim("Venus", venusMark, claimEarnings(venusBook))}.`;
+  assert(tied === expectedTied, `Tie-break prefers higher mark, then name (${tied})`);
+}
+
+{
+  const s = setupPortfolio();
+  assert(winnerAssetSheetLine(s, s.players[2].id) === "", "Empty portfolio has no asset-sheet clause");
   grantClaim(s, s.players[2].id, "titan", { cashInvested: 0, rentCollected: 900 });
-  assert(bestBooksLine(s, s.players[2].id) === "", "Zero-cash-in claims never make Best books");
-  assert(bestBooksLine(s, "nobody") === "", "Unknown seat gets no Best books line");
+  const giftBook = s.players[2].claimBooks.titan!;
+  const giftMark = bankSellValue(giftBook.listPrice);
+  const giftLine = winnerAssetSheetLine(s, s.players[2].id);
+  const expectedGift = `Assets: ${sheetClaim("Titan", giftMark, claimEarnings(giftBook))}.`;
+  assert(giftLine === expectedGift, `Zero-cash-in gift still shows mark + income (${giftLine})`);
+  assert(!giftLine.includes("%") && !giftLine.includes("Infinity"), "Gift line is Angzarr, not a percent");
+  assert(winnerAssetSheetLine(s, "nobody") === "", "Unknown seat gets no asset-sheet line");
 }
 
 {

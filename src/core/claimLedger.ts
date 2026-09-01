@@ -183,33 +183,10 @@ export function claimRoi(book: ClaimBook): number | null {
 }
 
 /**
- * End-screen line naming the seat's best-paying claims by ROI (#136).
- * Only deeds still held at close rank — closed books are gone — and
- * zero-cash-in claims (gift / steal) never do.
+ * End-screen asset sheet: held claims ranked by mark + income.
+ * Gifts and steals (zero cash in) still appear. Closed books are gone.
  */
-export function bestBooksLine(
-  state: GameState,
-  playerId: string,
-  max = 3,
-): string {
-  const p = state.players.find((x) => x.id === playerId);
-  if (!p) return "";
-  const ranked: { name: string; pct: number }[] = [];
-  for (const [nodeId, book] of Object.entries(p.claimBooks)) {
-    const roi = claimRoi(book);
-    if (roi === null) continue;
-    ranked.push({
-      name: getNode(state.board, nodeId).name,
-      pct: Math.round(roi * 100),
-    });
-  }
-  if (ranked.length === 0) return "";
-  ranked.sort((a, b) => b.pct - a.pct);
-  return `Best books: ${ranked
-    .slice(0, max)
-    .map((r) => `${r.name} ${r.pct}%`)
-    .join(" · ")}.`;
-}
+export { winnerAssetSheetLine as bestBooksLine } from "./assetSheet";
 
 export function grantClaim(
   state: GameState,
@@ -581,6 +558,11 @@ export function formatRoiLine(row: DossierClaimRow): string {
   }
   const pct = Math.round((row.earnings / row.cashInvested) * 100);
   return `${pct}% recovered (${formatMoney(row.earnings)} / ${formatMoney(row.cashInvested)})`;
+}
+
+/** Dossier book-so-far: secondary floor + rent/strikes this ownership. */
+export function formatMarkIncomeLine(row: DossierClaimRow): string {
+  return `Mark ${formatMoney(row.bankValue)} · income ${formatMoney(row.earnings)}`;
 }
 
 export function hubNetworkLabel(hubCount: number): string {

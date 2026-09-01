@@ -27,7 +27,7 @@ import {
 } from "./core/pilotCopy";
 import { sanitizePilotName } from "./core/pilotNames";
 import { goingUnderFlags } from "./core/goingUnder";
-import { bestBooksLine } from "./core/claimLedger";
+import { winnerAssetSheetLine } from "./core/assetSheet";
 import {
   applyAction,
   resolveCharterChoiceIfAi,
@@ -1115,8 +1115,8 @@ function endScreenStory(s: GameState, winner: Player | undefined): string {
     deeds > 0 || depots > 0
       ? ` Closing books: ${nw} net worth · ${deeds} claim${deeds === 1 ? "" : "s"} · ${depots} depot${depots === 1 ? "" : "s"}.`
       : ` Closing books: ${nw} net worth.`;
-  const best = bestBooksLine(s, winner.id);
-  return reason + history + lengthBit + empire + (best ? ` ${best}` : "");
+  const assets = winnerAssetSheetLine(s, winner.id);
+  return reason + history + lengthBit + empire + (assets ? ` ${assets}` : "");
 }
 
 function showEndScreen(s: GameState): void {
@@ -1990,7 +1990,7 @@ btnSell.addEventListener("click", () => {
   if (!state) return;
   const legal = getLegalActions(state);
   if (legal.sell && legal.sellNodeId) {
-    void act({ type: "sell", nodeId: legal.sellNodeId });
+    dossier.open(currentPlayer(state).id, legal.sellNodeId);
   }
 });
 btnStation.addEventListener("click", () => void act({ type: "place_station" }));
@@ -2454,11 +2454,7 @@ function renderSide(): void {
     if (routeHoverStop !== null) routeHoverStop = null;
   }
 
-  if (legal.sell) {
-    btnSell.textContent = `Sell (${formatMoney(legal.sellValue)})`;
-  } else {
-    btnSell.textContent = "Sell claim";
-  }
+  btnSell.textContent = "Books";
 
   if (legal.buy) btnBuy.textContent = `Buy (${formatMoney(legal.buyPrice)})`;
   else {

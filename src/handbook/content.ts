@@ -313,7 +313,7 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
   <li><strong>Break</strong> — optional: shave spaces (−1 space = 0.5 fuel, −2 = 1 fuel, …). Stepper still works as fallback.</li>
   <li><strong>Path preview</strong> — after you roll, a <em>thin line in your rocket color</em> shows full range. <strong>Click or tap a stop</strong> on that line to land there (sets break + moves). Hover a <em>path segment</em> for break fuel cost — planetoid hover inspect is separate.</li>
   <li><strong>Move</strong> — travel (dice − break). Button switches from Roll → Move (or path click lands immediately).</li>
-  <li>After landing: <strong>Buy</strong> / <strong>Sell claim</strong> (½ price, depot scrapped) / Depot / End turn.</li>
+  <li>After landing: <strong>Buy</strong> / <strong>Books</strong> (opens your dossier on that body) / Depot / End turn. Dump (½ price, depot scrapped) and auction live on the dossier row — not as a one-click dump from the pilot column.</li>
 </ol>
   <p><strong>Remote sell:</strong> you do not have to be on the claim. Click a rocket on <strong>On the ledger</strong> (any of that seat’s text) to open its dossier. On <em>your</em> turn you can <strong>sell</strong> any of your claims or <strong>auction</strong> it to the table at a reserve of your choosing. Each claim may be auctioned <strong>once per turn</strong>; you may list different claims in the same turn. If nobody meets your reserve, the auction is withdrawn — you may then sell that claim or keep it, but you cannot list it again this turn.</p>
 <p><strong>Buy window:</strong> you may claim an <em>unowned</em> deed underfoot when you land <em>or</em> later while you are still on it (before you leave) — e.g. after rent income on a following turn makes the price affordable.</p>
@@ -361,19 +361,26 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
   },
   {
     id: "claims-ledger",
-    title: "Dossier, ROI & selling",
+    title: "Dossier, mark & income",
     html: `
-<p>Click a rocket on <strong>On the ledger</strong> — name, cash, fuel, claims, anywhere on that seat’s row — to open its <strong>dossier</strong>. You get cash, fuel, claims grouped by system, current rent, and how much each claim has earned this owner (rent + fuel strikes vs cash you put in).</p>
+<p>Click a rocket on <strong>On the ledger</strong> — name, cash, fuel, claims, anywhere on that seat’s row — to open its <strong>dossier</strong>. You get cash, fuel, and claims grouped by system. Each held claim leads with <strong>Mark</strong>, then a quieter <strong>MSRP / bank sticker</strong>, then rent now.</p>
+<p>Three figures, same words as the auction sheet:</p>
+<ul>
+  <li><strong>Mark</strong> — half the sticker. What the bank pays on a dump; the guaranteed floor. A depot is <em>not</em> in the mark (it is scrapped on dump).</li>
+  <li><strong>MSRP / bank sticker</strong> — the list / buy price from the bank when the claim is unowned. Quieter on a claim you already hold — it is not what the bank will pay you.</li>
+  <li><strong>Income</strong> — rent + fuel strikes this ownership. The row’s book-so-far is mark plus that income, not a list-price total.</li>
+</ul>
+<p>Landing on your own claim and hitting <strong>Books</strong> in the pilot column opens the same dossier focused on that body. Remote path is unchanged: ledger row to dossier.</p>
 <p>Rival dossiers are public. The board already shows who owns what; the dossier is the books.</p>
-<p>When the ledger closes, the winning story names up to three held claims by ROI (“Best books”) — claims sold, lost, or taken without cash down are not ranked.</p>
+<p>When the ledger closes, the winning story is a short <strong>asset sheet</strong>: each highlighted claim is <strong>mark + income</strong> in Angzarr, not ROI%. Rank is that sum, top about three still held. Gifts and steals still show mark + income (no infinite percent). Sold or lost books are not on the card — closed books are gone. Earth land/pass cash is investor capital, not property income; it is not a claim line.</p>
 <h3>Sell</h3>
-<p>Sell for <strong>half the deed price</strong>. The claim goes unowned. Any <strong>depot is scrapped</strong>. Use this when you would rather the body sit empty than go to a rival.</p>
+<p>Sell pays the <strong>Mark</strong>. The claim goes unowned. Any <strong>depot is scrapped</strong>. Use this when you would rather the body sit empty than go to a rival.</p>
 <h3>Auction</h3>
 <p>Put a claim up to the table and <strong>set your own reserve</strong>. Three prices matter:</p>
 <ul>
-  <li><strong>Deed price (MSRP)</strong> — the board list price of the claim.</li>
-  <li><strong>Mark</strong> — half the deed. What the bank pays on a dump; the guaranteed floor.</li>
-  <li><strong>Reserve</strong> — your ask. Defaults to the mark; raise it up to the deed price when the table is flush (hub, monopoly piece, a depot that survives auction). The bank still pays only the mark if you later dump.</li>
+  <li><strong>Mark</strong> — half the sticker. What the bank pays on a dump; the guaranteed floor.</li>
+  <li><strong>MSRP / bank sticker</strong> — the board list price of the claim (buy from the bank when unowned).</li>
+  <li><strong>Reserve</strong> — your ask. Defaults to the mark; raise it up to MSRP when the table is flush (hub, monopoly piece, a depot that survives auction). A winning bid can clear above the mark; that is willingness to pay, not a rewrite of the floor. The bank still pays only the mark if you later dump.</li>
 </ul>
 <p>Highest bid at or above your reserve wins. Ties go to the next seat after the seller.</p>
 <ul>
