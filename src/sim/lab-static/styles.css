@@ -532,7 +532,7 @@ th {
 }
 
 .roi-panel table {
-  min-width: 720px;
+  min-width: 820px;
 }
 
 .roi-panel tr.roi-top td:first-child {
@@ -548,6 +548,18 @@ th {
 .roi-cell .bar-track {
   margin-top: 4px;
   height: 6px;
+}
+
+.roi-cell .bar.pos {
+  background: linear-gradient(90deg, #2a8f6a, var(--ok));
+}
+
+.roi-cell .bar.neg {
+  background: linear-gradient(90deg, #8a3140, var(--danger));
+}
+
+.yield-cell {
+  font-size: 0.8rem;
 }
 
 .pos {

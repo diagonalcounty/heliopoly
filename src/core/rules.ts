@@ -1405,7 +1405,7 @@ function maybeStrikeGusher(
   state.gusherPaid[nodeId] = true;
   p.cash += bonus;
   const body = getNode(state.board, nodeId);
-  creditGusherCollected(p, nodeId, bonus, body.price ?? 0);
+  creditGusherCollected(p, nodeId, bonus, body.price ?? 0, state);
   const fuelWord = PROPELLANTS[p.propellant].short;
   const isHuman = p.agent === "human";
   const headline = pickStrikeHeadline(

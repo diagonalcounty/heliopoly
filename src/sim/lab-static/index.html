@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Heliopoly Sim Lab</title>
-    <link rel="stylesheet" href="/styles.css?v=property-roi-1" />
+    <link rel="stylesheet" href="/styles.css?v=mark-142" />
   </head>
   <body>
     <header>
@@ -157,11 +157,13 @@
         </div>
 
         <div class="roi-panel" id="roi-panel" hidden>
-          <h3 class="launch-title">Properties by ROI</h3>
+          <h3 class="launch-title">Properties by bank-exit book</h3>
           <p class="hint launch-blurb">
-            Empirical <strong>rent collected ÷ claim + depot spend</strong> over
-            finished games. Sorted highest ROI first. Cheap moons can outrank
-            expensive planets if they pay back faster.
+            Same words as Ops Manual (Dossier, ROI &amp; selling):
+            <strong>mark</strong> is half the deed (bank floor; depot not in
+            mark) + <strong>income</strong> (rent, plus fuel strikes when the
+            ledger tracks them) vs claim+depot spend. Sorted by
+            <strong>bank-exit net</strong> (income + mark − invested), not ROI%.
           </p>
           <div id="tbl-roi"></div>
           <p id="roi-callout" class="launch-callout" hidden></p>
@@ -196,8 +198,8 @@
 
     <footer>
       Docs: <code>scripts/README-sim.md</code> · harness #89 · HTML report #90 ·
-      lab #91 · ROI #127 · <code>npm run sim-lab</code>
+      lab #91 · ROI #127 · mark #142 · <code>npm run sim-lab</code>
     </footer>
-    <script src="/app.js?v=property-roi-1" type="module"></script>
+    <script src="/app.js?v=mark-142" type="module"></script>
   </body>
 </html>

@@ -34,7 +34,7 @@ npm run sim-lab
 ```
 
 - Form: games, players, experiment, **Human level** (seat 0), **AI pack level** (other seats), seed, optional **Save** to `sim-results/`
-- Results: **human win %** vs fair share, plain-language outcome summary (no LLM), **when-human-loses dropout chart** (human out / pack out / game end by round), launch-order cards, **properties by ROI** (rent collected vs claim+depot spend), direction/propellant/rocket tables
+- Results: **human win %** vs fair share, plain-language outcome summary (no LLM), **when-human-loses dropout chart** (human out / pack out / game end by round), launch-order cards, **properties by bank-exit book** (mark + income vs claim+depot spend), direction/propellant/rocket tables
 - Progress stream while running
 - Local: `npm run sim-lab` → http://127.0.0.1:5174/
 - Public: https://simulation.heliopoly.live/ (#134) — one batch at a time, capped games, nothing saved to disk. **Not** heliopoly.live (Sunday unlock #98).
@@ -207,7 +207,17 @@ After changing `src/core/agents.ts` or rules, re-run two sims (before/after comm
    - Seat-order bias?
    - CH₄ vs H₂ win rates?
    - Unfinished rate healthy?
-   - Which properties have the highest empirical ROI (`propertyRoi` in `summary.json`)?
+   - Which bodies have the best **bank-exit book** (`propertyRoi` in `summary.json`: mark + income − invested)?
+
+Property rows use the same Ops Manual words as the live dossier (handbook topic **Dossier, ROI & selling** / `claims-ledger`):
+
+| Word | Meaning |
+|------|---------|
+| **Deed price (MSRP)** | Board list price of the claim |
+| **Mark** | Half the deed (`bankSellValue`); what the bank pays on a dump; guaranteed floor. Depot cash is **not** in the mark |
+| **Income** | Rent collected, plus fuel strikes when the sim ledger tracks them |
+
+`meanBankExitNet` = income + mark − invested. `roiCash` is the old rent/invested ratio, demoted. Earth-pass / investor cash stays out of `propertyRoi`.
 
 Schema version is `1` (`schemaVersion` field). Prefer stable field names when extending.
 

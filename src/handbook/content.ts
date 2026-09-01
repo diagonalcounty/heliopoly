@@ -375,6 +375,7 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
   <li><strong>Mark</strong> — half the deed. What the bank pays on a dump; the guaranteed floor.</li>
   <li><strong>Reserve</strong> — your ask. Defaults to the mark; raise it up to the deed price when the table is flush (hub, monopoly piece, a depot that survives auction). The bank still pays only the mark if you later dump.</li>
 </ul>
+<p>Sim Lab’s property table uses the same words: deed price (MSRP), mark (half list, bank floor; depot not in the mark), and income (rent, plus fuel strikes when the ledger tracks them).</p>
 <p>Highest bid at or above your reserve wins. Ties go to the next seat after the seller.</p>
 <ul>
   <li>You get the cash.</li>
