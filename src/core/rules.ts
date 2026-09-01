@@ -29,6 +29,7 @@ import {
   lastPilotFlying,
   leadsWithWorth,
 } from "./pilotCopy";
+import { rocketTitle } from "./pilotNames";
 import { PROPELLANTS } from "./propellant";
 import { reseedForActivePilot } from "./seed";
 import {
@@ -179,7 +180,7 @@ function payEarthVisit(
   const label = kind === "land" ? "lands on" : "passes";
   pushLog(
     state,
-    `${p.name} ${label} Earth: +${formatMoney(amount)} (base ${formatMoney(base)} + ${formatMoney(EARTH_PER_ROTATION)}×${p.circuitsCompleted} rotations).`,
+    `${rocketTitle(p)} ${label} Earth: +${formatMoney(amount)} (base ${formatMoney(base)} + ${formatMoney(EARTH_PER_ROTATION)}×${p.circuitsCompleted} rotations).`,
   );
   delta(state, `+${formatMoney(amount)} Earth ${kind}`);
 
@@ -189,7 +190,7 @@ function payEarthVisit(
     p.cash += MONOLITH_EARTH_BONUS;
     pushLog(
       state,
-      `${p.name} claims Monolith stipend on Earth: +${formatMoney(MONOLITH_EARTH_BONUS)}.`,
+      `${rocketTitle(p)} claims Monolith stipend on Earth: +${formatMoney(MONOLITH_EARTH_BONUS)}.`,
     );
     delta(state, `+${formatMoney(MONOLITH_EARTH_BONUS)} Monolith`);
   }
@@ -208,14 +209,14 @@ function onCircuitComplete(state: GameState, pilot: Player): void {
 
   pushLog(
     state,
-    `Circuit complete: ${pilot.name} · rotation ${pilot.circuitsCompleted} (board loops ${state.boardRotations}).`,
+    `Circuit complete: ${rocketTitle(pilot)} · rotation ${pilot.circuitsCompleted} (board loops ${state.boardRotations}).`,
   );
 
   if (pilot.circuitsCompleted > 0 && pilot.circuitsCompleted % 10 === 0) {
     pilot.cash += EARTH_DECADE_BONUS;
     pushLog(
       state,
-      `${pilot.name} decade ledger bonus (rotation ${pilot.circuitsCompleted}): +${formatMoney(EARTH_DECADE_BONUS)}.`,
+      `${rocketTitle(pilot)} decade ledger bonus (rotation ${pilot.circuitsCompleted}): +${formatMoney(EARTH_DECADE_BONUS)}.`,
     );
     delta(state, `+${formatMoney(EARTH_DECADE_BONUS)} decade rotation`);
   }
@@ -226,7 +227,7 @@ function onCircuitComplete(state: GameState, pilot: Player): void {
   pilot.depotsPlacedThisCircuit = 0;
   pushLog(
     state,
-    `${pilot.name} resupplies at Earth: +${resupply} fuel depot(s) in hand (now ${pilot.stationsInHand}).`,
+    `${rocketTitle(pilot)} resupplies at Earth: +${resupply} fuel depot(s) in hand (now ${pilot.stationsInHand}).`,
   );
   delta(state, `+${resupply} fuel depots (Earth resupply)`);
 }
@@ -288,11 +289,11 @@ function applyParkingTick(state: GameState, pilot: Player): void {
   const chance = parkFeralChance(n);
   pushLog(
     state,
-    `${pilot.name} parks (no move) · park count ${n}${
+    `${rocketTitle(pilot)} parks (no move) · park count ${n}${
       chance > 0 ? ` · feral risk ${Math.round(chance * 100)}% per claim` : ""
     }.`,
   );
-  delta(state, `${pilot.name} park #${n}`);
+  delta(state, `${rocketTitle(pilot)} park #${n}`);
 
   if (chance <= 0 || pilot.properties.length === 0) return;
 
@@ -301,7 +302,7 @@ function applyParkingTick(state: GameState, pilot: Player): void {
       const node = getNode(state.board, nodeId);
       pushLog(
         state,
-        `${node.name} stays held (${pilot.name} park #${n}, ${Math.round(chance * 100)}% resisted).`,
+        `${node.name} stays held (${rocketTitle(pilot)} park #${n}, ${Math.round(chance * 100)}% resisted).`,
       );
       continue;
     }
@@ -310,7 +311,7 @@ function applyParkingTick(state: GameState, pilot: Player): void {
     releaseClaimToBank(state, nodeId);
     pushLog(
       state,
-      `${node.name} goes FERAL — ${pilot.name} park #${n} (${Math.round(chance * 100)}%). Depot lost if any.`,
+      `${node.name} goes FERAL — ${rocketTitle(pilot)} park #${n} (${Math.round(chance * 100)}%). Depot lost if any.`,
     );
     delta(state, `feral: ${node.name}`);
     if (pilot.ephemerisBodyId === nodeId) {
@@ -331,14 +332,14 @@ function eliminate(
   player.eliminatedReason = reason;
   pushLog(
     state,
-    `${player.name} eliminated (round ${state.round}, turn ${state.gameTurn}): ${reason}`,
+    `${rocketTitle(player)} eliminated (round ${state.round}, turn ${state.gameTurn}): ${reason}`,
   );
-  delta(state, `OUT ${player.name}: ${reason}`);
+  delta(state, `OUT ${rocketTitle(player)}: ${reason}`);
   // Oregon Trail–style interrupt so the field does not vanish unnoticed
   state.pendingAnnouncement = {
     kind: "out",
     title: "OUT!",
-    body: `${player.name} is off the ledger.\n${reason}\nRound ${state.round}.`,
+    body: `${rocketTitle(player)} is off the ledger.\n${reason}\nRound ${state.round}.`,
   };
   // Deeds return to bank; fuel depots destroyed
   for (const prop of [...player.properties]) {
@@ -362,7 +363,7 @@ function checkWinner(state: GameState): void {
     state.winnerId = alive[0].id;
     state.phase = "game_over";
     state.endReason = lastPilotFlying(alive[0]);
-    pushLog(state, `Winner: ${alive[0].name}`);
+    pushLog(state, `Winner: ${rocketTitle(alive[0])}`);
     return;
   }
   if (alive.length === 0) {
@@ -387,7 +388,7 @@ function forceEndByRounds(state: GameState): boolean {
   state.endReason = `The ledger closed (round ${state.config.maxRounds}). ${lead}`;
   pushLog(
     state,
-    `Round limit: ${alive[0].name} wins on net worth (${formatMoney(netWorth(state, alive[0]))}).`,
+    `Round limit: ${rocketTitle(alive[0])} wins on net worth (${formatMoney(netWorth(state, alive[0]))}).`,
   );
   return true;
 }
@@ -427,10 +428,10 @@ function advanceTurn(state: GameState): void {
     p.movedThisTurn = false;
     pushLog(
       state,
-      `— Turn ${state.gameTurn} · Round ${state.round}: ${p.name} skips (Gravity Duel forfeit) —`,
+      `— Turn ${state.gameTurn} · Round ${state.round}: ${rocketTitle(p)} skips (Gravity Duel forfeit) —`,
     );
-    delta(state, `${p.name}: skipped turn`);
-    state.turnDeltas = [`${p.name}: skipped turn (duel loss)`];
+    delta(state, `${rocketTitle(p)}: skipped turn`);
+    state.turnDeltas = [`${rocketTitle(p)}: skipped turn (duel loss)`];
     applyParkingTick(state, p); // no move → park risk
     // Prize Olbers/steal may have picked an AI this round — resolve so the
     // next seat (often human) is not locked with empty legal actions.
@@ -445,7 +446,7 @@ function advanceTurn(state: GameState): void {
   state.turnDeltas = [];
   pushLog(
     state,
-    `— Turn ${state.gameTurn} · Round ${state.round}: ${p.name}'s turn —`,
+    `— Turn ${state.gameTurn} · Round ${state.round}: ${rocketTitle(p)}'s turn —`,
   );
   autoResolveCharterChoice(state);
 }
@@ -748,20 +749,20 @@ function applyLandingLeak(
     p.skipTurns += 1; // grounded for tank repair
     pushLog(
       state,
-      `${p.name} LEAK on landing ${nodeName}: −${loss} fuel (half tanks) · loses next turn to repair.`,
+      `${rocketTitle(p)} LEAK on landing ${nodeName}: −${loss} fuel (half tanks) · loses next turn to repair.`,
     );
     delta(state, `−${loss} fuel LEAK · +1 skip repair`);
     if (!state.pendingAnnouncement) {
       state.pendingAnnouncement = {
         kind: "leak",
         title: "LEAK!",
-        body: `${p.name}'s H₂ tanks failed landing on ${nodeName}.\n−${loss} fuel (half the tanks).\nLoses next turn to repair.`,
+        body: `${rocketTitle(p)}'s H₂ tanks failed landing on ${nodeName}.\n−${loss} fuel (half the tanks).\nLoses next turn to repair.`,
       };
     }
   } else {
     pushLog(
       state,
-      `${p.name} propellant glitch landing on ${nodeName}: −${loss} fuel`,
+      `${rocketTitle(p)} propellant glitch landing on ${nodeName}: −${loss} fuel`,
     );
     delta(state, `−${loss} fuel (${p.propellant})`);
   }
@@ -813,9 +814,9 @@ function beginDuel(
   if (idx >= 0) state.currentPlayerIndex = idx;
   pushLog(
     state,
-    `Gravity Duel on ${getNode(state.board, nodeId).name}: ${challenger.name} vs ${defender.name}!`,
+    `Gravity Duel on ${getNode(state.board, nodeId).name}: ${rocketTitle(challenger)} vs ${rocketTitle(defender)}!`,
   );
-  delta(state, `Duel vs ${defender.name}`);
+  delta(state, `Duel vs ${rocketTitle(defender)}`);
 }
 
 /**
@@ -866,7 +867,7 @@ function resolveDuelIfComplete(state: GameState): void {
 
   pushLog(
     state,
-    `Reveal: ${c.name} ${d.challengerStance.toUpperCase()} ${ct} · ${def.name} ${d.defenderStance.toUpperCase()} ${dt} · mean ${mean.toFixed(2)}`,
+    `Reveal: ${rocketTitle(c)} ${d.challengerStance.toUpperCase()} ${ct} · ${rocketTitle(def)} ${d.defenderStance.toUpperCase()} ${dt} · mean ${mean.toFixed(2)}`,
   );
 
   let winner: Player | null = null;
@@ -941,9 +942,9 @@ function resolveDuelIfComplete(state: GameState): void {
   }
   // #48: loser is also knocked back one Mainline space (in addition to skip + waiver)
   knockBackOneSpace(state, loser);
-  const summary = duelWinSummary(winner.name, loser.name);
+  const summary = duelWinSummary(winner, loser);
   pushLog(state, `Gravity Duel: ${summary}`);
-  delta(state, `Duel WIN ${winner.name} / ${loser.name} skips + knockback + waiver`);
+  delta(state, `Duel WIN ${rocketTitle(winner)} / ${rocketTitle(loser)} skips + knockback + waiver`);
   state.lastDuelResult = {
     nodeName: getNode(state.board, d.nodeId).name,
     challengerName: c.name,
@@ -976,14 +977,14 @@ function knockBackOneSpace(state: GameState, loser: Player): void {
   if (fromId === "earth") {
     pushLog(
       state,
-      `${loser.name} holds Earth — cannot be knocked further back.`,
+      `${rocketTitle(loser)} holds Earth — cannot be knocked further back.`,
     );
     return;
   }
 
   const backId = stepBackAlong(state.board, fromId);
   if (!backId || backId === fromId) {
-    pushLog(state, `${loser.name} cannot be knocked back from ${fromName}.`);
+    pushLog(state, `${rocketTitle(loser)} cannot be knocked back from ${fromName}.`);
     return;
   }
 
@@ -991,9 +992,9 @@ function knockBackOneSpace(state: GameState, loser: Player): void {
   loser.position = backId;
   pushLog(
     state,
-    `${loser.name} is knocked back ${fromName} → ${backName} (duel forfeit).`,
+    `${rocketTitle(loser)} is knocked back ${fromName} → ${backName} (duel forfeit).`,
   );
-  delta(state, `${loser.name}: knockback → ${backName}`);
+  delta(state, `${rocketTitle(loser)}: knockback → ${backName}`);
 
   applyKnockbackLanding(state, loser);
 }
@@ -1012,7 +1013,7 @@ function applyKnockbackLanding(state: GameState, p: Player): void {
     p.cash += node.landingBonus;
     pushLog(
       state,
-      `${p.name} collects ${formatMoney(node.landingBonus)} from ${node.name} (knockback).`,
+      `${rocketTitle(p)} collects ${formatMoney(node.landingBonus)} from ${node.name} (knockback).`,
     );
     delta(state, `+${formatMoney(node.landingBonus)} ${node.name}`);
   }
@@ -1027,7 +1028,7 @@ function applyKnockbackLanding(state: GameState, p: Player): void {
     if (tryConsumeLandingRight(p, node.id)) {
       pushLog(
         state,
-        `${p.name} uses docking rights — no rent on ${node.name} (knockback).`,
+        `${rocketTitle(p)} uses docking rights — no rent on ${node.name} (knockback).`,
       );
       delta(state, `docking rights ${node.name}`);
       return;
@@ -1036,9 +1037,9 @@ function applyKnockbackLanding(state: GameState, p: Player): void {
       p.nextRentWaived = false;
       pushLog(
         state,
-        `${p.name} uses port holiday — no rent to ${owner.name} (knockback).`,
+        `${rocketTitle(p)} uses port holiday — no rent to ${rocketTitle(owner)} (knockback).`,
       );
-      delta(state, `rent holiday vs ${owner.name}`);
+      delta(state, `rent holiday vs ${rocketTitle(owner)}`);
       return;
     }
     const waiverIdx = p.rentWaiversAgainst.indexOf(owner.id);
@@ -1046,9 +1047,9 @@ function applyKnockbackLanding(state: GameState, p: Player): void {
       p.rentWaiversAgainst.splice(waiverIdx, 1);
       pushLog(
         state,
-        `${p.name} uses Gravity Duel free pass — no rent to ${owner.name} (knockback).`,
+        `${rocketTitle(p)} uses Gravity Duel free pass — no rent to ${rocketTitle(owner)} (knockback).`,
       );
-      delta(state, `rent waived vs ${owner.name}`);
+      delta(state, `rent waived vs ${rocketTitle(owner)}`);
     } else {
       const rent = rentDue(state, node.id, ownerId);
       if (p.cash >= rent) {
@@ -1057,18 +1058,18 @@ function applyKnockbackLanding(state: GameState, p: Player): void {
         creditRentCollected(owner, node.id, rent, node.price ?? 0, state);
         pushLog(
           state,
-          `${p.name} pays ${formatMoney(rent)} rent to ${owner.name} (knockback).`,
+          `${rocketTitle(p)} pays ${formatMoney(rent)} rent to ${rocketTitle(owner)} (knockback).`,
         );
-        delta(state, `−${formatMoney(rent)} rent → ${owner.name}`);
+        delta(state, `−${formatMoney(rent)} rent → ${rocketTitle(owner)}`);
       } else {
         const paid = p.cash;
         owner.cash += paid;
         creditRentCollected(owner, node.id, paid, node.price ?? 0, state);
         pushLog(
           state,
-          `${p.name} cannot pay ${formatMoney(rent)} rent (knockback).`,
+          `${rocketTitle(p)} cannot pay ${formatMoney(rent)} rent (knockback).`,
         );
-        delta(state, `bankrupt to ${owner.name}`);
+        delta(state, `bankrupt to ${rocketTitle(owner)}`);
         eliminate(state, p, "bankruptcy");
       }
     }
@@ -1086,7 +1087,7 @@ function movePlayer(state: GameState, steps: number): void {
     p.freeLeavePending = false;
     pushLog(
       state,
-      `${p.name} rides free leave from ${startNode.name} (comet dust token · g${g}).`,
+      `${rocketTitle(p)} rides free leave from ${startNode.name} (comet dust token · g${g}).`,
     );
     delta(state, `free leave ${startNode.name}`);
     burn = 0;
@@ -1096,7 +1097,7 @@ function movePlayer(state: GameState, steps: number): void {
     if (p.fuel < burn) {
       pushLog(
         state,
-        `${p.name} cannot leave ${startNode.name} (g${g}): need ${burn} fuel, have ${p.fuel}.`,
+        `${rocketTitle(p)} cannot leave ${startNode.name} (g${g}): need ${burn} fuel, have ${p.fuel}.`,
       );
       delta(state, `stuck on ${startNode.name} (no leave fuel)`);
       resolveLanding(state, true);
@@ -1105,7 +1106,7 @@ function movePlayer(state: GameState, steps: number): void {
     p.fuel -= burn;
     pushLog(
       state,
-      `${p.name} burns ${burn} fuel leaving ${startNode.name} (g${g} · ${PROPELLANTS[p.propellant].short}).`,
+      `${rocketTitle(p)} burns ${burn} fuel leaving ${startNode.name} (g${g} · ${PROPELLANTS[p.propellant].short}).`,
     );
     delta(state, `−${burn} fuel leave ${startNode.name}`);
   }
@@ -1126,7 +1127,7 @@ function movePlayer(state: GameState, steps: number): void {
     if (frame.passThrough) {
       pushLog(
         state,
-        `${p.name} is pulled through ${getNode(state.board, frame.nodeId).name}.`,
+        `${rocketTitle(p)} is pulled through ${getNode(state.board, frame.nodeId).name}.`,
       );
     }
   }
@@ -1156,7 +1157,7 @@ function doSetDirection(
 ): void {
   const p = currentPlayer(state);
   if (!p.canBidirectional || p.directionLocked) {
-    pushLog(state, `${p.name} cannot change course.`);
+    pushLog(state, `${rocketTitle(p)} cannot change course.`);
     return;
   }
   if (direction !== "forward" && direction !== "backward") return;
@@ -1164,7 +1165,7 @@ function doSetDirection(
   p.moveDirection = direction;
   pushLog(
     state,
-    `${p.name} sets course ${direction === "backward" ? "retrograde" : "prograde"} on the Mainline.`,
+    `${rocketTitle(p)} sets course ${direction === "backward" ? "retrograde" : "prograde"} on the Mainline.`,
   );
   delta(state, `course ${direction}`);
 }
@@ -1173,7 +1174,7 @@ function resolveLanding(state: GameState, stayed: boolean): void {
   const p = currentPlayer(state);
   const node = getNode(state.board, p.position);
   if (!stayed) {
-    pushLog(state, `${p.name} lands on ${node.name} (insertion free).`);
+    pushLog(state, `${rocketTitle(p)} lands on ${node.name} (insertion free).`);
     // Tank stress on insertion — planet/moon only; transit/station may defer
     const qualifies = node.kind === "planet" || node.kind === "moon";
     applyLandingLeak(state, p, node.name, qualifies);
@@ -1186,7 +1187,7 @@ function resolveLanding(state: GameState, stayed: boolean): void {
     p.cash += node.landingBonus;
     pushLog(
       state,
-      `${p.name} collects ${formatMoney(node.landingBonus)} from ${node.name}.`,
+      `${rocketTitle(p)} collects ${formatMoney(node.landingBonus)} from ${node.name}.`,
     );
     delta(state, `+${formatMoney(node.landingBonus)} ${node.name}`);
   }
@@ -1199,25 +1200,25 @@ function resolveLanding(state: GameState, stayed: boolean): void {
     if (!stayed && tryConsumeLandingRight(p, node.id)) {
       pushLog(
         state,
-        `${p.name} uses docking rights — no rent on ${node.name}.`,
+        `${rocketTitle(p)} uses docking rights — no rent on ${node.name}.`,
       );
       delta(state, `docking rights ${node.name}`);
     } else if (p.nextRentWaived) {
       p.nextRentWaived = false;
       pushLog(
         state,
-        `${p.name} uses port holiday — no rent to ${owner.name}.`,
+        `${rocketTitle(p)} uses port holiday — no rent to ${rocketTitle(owner)}.`,
       );
-      delta(state, `rent holiday vs ${owner.name}`);
+      delta(state, `rent holiday vs ${rocketTitle(owner)}`);
     } else {
       const waiverIdx = p.rentWaiversAgainst.indexOf(owner.id);
       if (waiverIdx >= 0) {
         p.rentWaiversAgainst.splice(waiverIdx, 1);
         pushLog(
           state,
-          `${p.name} uses Gravity Duel free pass — no rent to ${owner.name}.`,
+          `${rocketTitle(p)} uses Gravity Duel free pass — no rent to ${rocketTitle(owner)}.`,
         );
-        delta(state, `rent waived vs ${owner.name}`);
+        delta(state, `rent waived vs ${rocketTitle(owner)}`);
       } else {
         const rent = rentDue(state, node.id, ownerId);
         if (p.cash >= rent) {
@@ -1226,9 +1227,9 @@ function resolveLanding(state: GameState, stayed: boolean): void {
           creditRentCollected(owner, node.id, rent, node.price ?? 0, state);
           pushLog(
             state,
-            `${p.name} pays ${formatMoney(rent)} rent to ${owner.name}.`,
+            `${rocketTitle(p)} pays ${formatMoney(rent)} rent to ${rocketTitle(owner)}.`,
           );
-          delta(state, `−${formatMoney(rent)} rent → ${owner.name}`);
+          delta(state, `−${formatMoney(rent)} rent → ${rocketTitle(owner)}`);
         } else {
           // Creditor gets remaining cash only; deeds go to bank on eliminate
           const paid = p.cash;
@@ -1236,9 +1237,9 @@ function resolveLanding(state: GameState, stayed: boolean): void {
           creditRentCollected(owner, node.id, paid, node.price ?? 0, state);
           pushLog(
             state,
-            `${p.name} cannot pay ${formatMoney(rent)} rent.`,
+            `${rocketTitle(p)} cannot pay ${formatMoney(rent)} rent.`,
           );
-          delta(state, `bankrupt to ${owner.name}`);
+          delta(state, `bankrupt to ${rocketTitle(owner)}`);
           eliminate(state, p, "bankruptcy");
           return;
         }
@@ -1282,12 +1283,12 @@ function doRefuel(state: GameState, amount: number): void {
   const p = currentPlayer(state);
   const qty = Math.max(0, Math.min(amount, info.max));
   if (!info.allowed || qty <= 0) {
-    pushLog(state, `${p.name} cannot refuel here.`);
+    pushLog(state, `${rocketTitle(p)} cannot refuel here.`);
     return;
   }
   const cost = qty * info.costPer;
   if (p.cash < cost) {
-    pushLog(state, `${p.name} cannot afford refuel.`);
+    pushLog(state, `${rocketTitle(p)} cannot afford refuel.`);
     return;
   }
   p.cash -= cost;
@@ -1300,7 +1301,7 @@ function doRefuel(state: GameState, amount: number): void {
   }
   pushLog(
     state,
-    `${p.name} refuels +${qty} fuel${cost ? ` for ${formatMoney(cost)}` : " (free)"}.`,
+    `${rocketTitle(p)} refuels +${qty} fuel${cost ? ` for ${formatMoney(cost)}` : " (free)"}.`,
   );
   delta(
     state,
@@ -1313,7 +1314,7 @@ function doBuy(state: GameState): void {
   const node = getNode(state.board, p.position);
   const legal = getLegalActions(state);
   if (!legal.buy) {
-    pushLog(state, `${p.name} cannot buy ${node.name}.`);
+    pushLog(state, `${rocketTitle(p)} cannot buy ${node.name}.`);
     return;
   }
   p.cash -= legal.buyPrice;
@@ -1329,7 +1330,7 @@ function doBuy(state: GameState): void {
     p.ephemerisBodyId = node.id;
     pushLog(
       state,
-      `${p.name}'s ephemeris anchor is now ${node.name} (first claim).`,
+      `${rocketTitle(p)}'s ephemeris anchor is now ${node.name} (first claim).`,
     );
   }
   const sys = systemOfGroup(node.group);
@@ -1337,7 +1338,7 @@ function doBuy(state: GameState): void {
     !!sys && hasSystemMonopoly(state.owners, p.id, sys.id as SystemId);
   pushLog(
     state,
-    `${p.name} claims ${node.name} for ${formatMoney(legal.buyPrice)}${mono ? ` · ${sys!.name} MONOPOLY (rent ×2)` : ""}.`,
+    `${rocketTitle(p)} claims ${node.name} for ${formatMoney(legal.buyPrice)}${mono ? ` · ${sys!.name} MONOPOLY (rent ×2)` : ""}.`,
   );
   delta(state, `−${formatMoney(legal.buyPrice)} claim ${node.name}`);
 }
@@ -1346,20 +1347,20 @@ function doPlaceStation(state: GameState): void {
   const p = currentPlayer(state);
   const legal = getLegalActions(state);
   if (!legal.placeStation) {
-    pushLog(state, `${p.name} cannot place a fuel depot here.`);
+    pushLog(state, `${rocketTitle(p)} cannot place a fuel depot here.`);
     return;
   }
   const body = getNode(state.board, p.position);
   // Planetoids only (planet/moon); hubs are never depot sites
   if (body.kind !== "planet" && body.kind !== "moon") {
-    pushLog(state, `${p.name} cannot place a depot on ${body.name}.`);
+    pushLog(state, `${rocketTitle(p)} cannot place a depot on ${body.name}.`);
     return;
   }
   const cost = depotPlaceCashCost(p.depotsPlacedThisCircuit, body.price);
   if (p.cash < cost) {
     pushLog(
       state,
-      `${p.name} cannot afford depot on ${body.name} (${formatMoney(cost)}).`,
+      `${rocketTitle(p)} cannot afford depot on ${body.name} (${formatMoney(cost)}).`,
     );
     return;
   }
@@ -1376,7 +1377,7 @@ function doPlaceStation(state: GameState): void {
       : ` for ${formatMoney(cost)} (10% of claim)`;
   pushLog(
     state,
-    `${p.name} places a fuel depot on ${body.name}${freeNote}.`,
+    `${rocketTitle(p)} places a fuel depot on ${body.name}${freeNote}.`,
   );
   delta(
     state,
@@ -1411,11 +1412,11 @@ function maybeStrikeGusher(
   const headline = pickStrikeHeadline(
     p.propellant,
     mulberryNext(state),
-    p.name,
+    rocketTitle(p),
     isHuman,
   );
   // Log always names the striker (title may be second-person for human)
-  const logHeadline = isHuman ? `${headline} (${p.name})` : headline;
+  const logHeadline = isHuman ? `${headline} (${rocketTitle(p)})` : headline;
   pushLog(
     state,
     `${logHeadline} · ${body.name} · +${formatMoney(bonus)} (${fuelWord}).`,
@@ -1425,7 +1426,7 @@ function maybeStrikeGusher(
     kind: "gusher",
     title: headline,
     body: strikeAnnouncementBody(
-      p.name,
+      rocketTitle(p),
       body.name,
       `+${formatMoney(bonus)}`,
       isHuman,
@@ -1438,7 +1439,7 @@ function doSell(state: GameState, nodeId: string): void {
   const p = currentPlayer(state);
   const node = getNode(state.board, nodeId);
   if (state.pendingAuction || state.pendingCharterChoice) {
-    pushLog(state, `${p.name} cannot sell during a pending table action.`);
+    pushLog(state, `${rocketTitle(p)} cannot sell during a pending table action.`);
     return;
   }
 
@@ -1447,20 +1448,20 @@ function doSell(state: GameState, nodeId: string): void {
     state.phase !== "await_post_land" &&
     state.phase !== "await_move"
   ) {
-    pushLog(state, `${p.name} cannot sell ${node.name} now.`);
+    pushLog(state, `${rocketTitle(p)} cannot sell ${node.name} now.`);
     return;
   }
   if (state.phase === "await_move" && nodeId !== p.position) {
-    pushLog(state, `${p.name} can only dump the claim underfoot after rolling.`);
+    pushLog(state, `${rocketTitle(p)} can only dump the claim underfoot after rolling.`);
     return;
   }
   if (state.owners[nodeId] !== p.id || !isPurchasable(node)) {
-    pushLog(state, `${p.name} cannot sell ${node.name}.`);
+    pushLog(state, `${rocketTitle(p)} cannot sell ${node.name}.`);
     return;
   }
   const value = bankSellValue(node.price);
   if (value <= 0) {
-    pushLog(state, `${p.name} cannot sell ${node.name}.`);
+    pushLog(state, `${rocketTitle(p)} cannot sell ${node.name}.`);
     return;
   }
   p.cash += value;
@@ -1472,7 +1473,7 @@ function doSell(state: GameState, nodeId: string): void {
   }
   pushLog(
     state,
-    `${p.name} sells ${node.name} to the bank for ${formatMoney(value)}${hadDepot ? " (depot scrapped)" : ""}.`,
+    `${rocketTitle(p)} sells ${node.name} to the bank for ${formatMoney(value)}${hadDepot ? " (depot scrapped)" : ""}.`,
   );
   delta(state, `+${formatMoney(value)} sold ${node.name}`);
 }
@@ -1494,7 +1495,7 @@ function doAuctionStart(state: GameState, nodeId: string, reserve?: number): voi
   const p = currentPlayer(state);
   const node = getNode(state.board, nodeId);
   if (!canStartAuction(state, p, nodeId)) {
-    pushLog(state, `${p.name} cannot auction ${node.name}.`);
+    pushLog(state, `${rocketTitle(p)} cannot auction ${node.name}.`);
     return;
   }
   const mark = bankSellValue(node.price);
@@ -1519,7 +1520,7 @@ function doAuctionStart(state: GameState, nodeId: string, reserve?: number): voi
     clamped > mark
       ? `reserve ${formatMoney(clamped)} — ${formatMoney(clamped - mark)} over the ${formatMoney(mark)} mark`
       : `reserve ${formatMoney(mark)} — same as sell`;
-  pushLog(state, `${p.name} auctions ${node.name} (${askNote}).`);
+  pushLog(state, `${rocketTitle(p)} auctions ${node.name} (${askNote}).`);
   delta(state, `auction ${node.name}`);
   if (!auction.awaitingBidderId) {
     resolveAuction(state);
@@ -1543,14 +1544,14 @@ function applyAuctionBid(
     if (raw < auction.reserve) {
       pushLog(
         state,
-        `${bidder.name}'s bid ${formatMoney(raw)} is below reserve ${formatMoney(auction.reserve)}.`,
+        `${rocketTitle(bidder)}'s bid ${formatMoney(raw)} is below reserve ${formatMoney(auction.reserve)}.`,
       );
       return;
     }
     if (raw > bidder.cash) {
       pushLog(
         state,
-        `${bidder.name} cannot bid ${formatMoney(raw)} (cash ${formatMoney(bidder.cash)}).`,
+        `${rocketTitle(bidder)} cannot bid ${formatMoney(raw)} (cash ${formatMoney(bidder.cash)}).`,
       );
       return;
     }
@@ -1561,8 +1562,8 @@ function applyAuctionBid(
   pushLog(
     state,
     bid > 0
-      ? `${bidder.name} bids ${formatMoney(bid)} on ${bodyName}.`
-      : `${bidder.name} passes on ${bodyName}.`,
+      ? `${rocketTitle(bidder)} bids ${formatMoney(bid)} on ${bodyName}.`
+      : `${rocketTitle(bidder)} passes on ${bodyName}.`,
   );
   auction.awaitingBidderId = nextAuctionBidder(state, auction, bidderId);
   if (!auction.awaitingBidderId) resolveAuction(state);
@@ -1670,9 +1671,9 @@ function resolveAuction(state: GameState): void {
   const depotNote = hadDepot ? " (depot stays)" : "";
   pushLog(
     state,
-    `${buyer.name} takes ${node.name} from ${seller.name} for ${formatMoney(top)}${depotNote}. ${seller.name} keeps docking rights for one landing.`,
+    `${rocketTitle(buyer)} takes ${node.name} from ${rocketTitle(seller)} for ${formatMoney(top)}${depotNote}. ${rocketTitle(seller)} keeps docking rights for one landing.`,
   );
-  delta(state, `${node.name} → ${buyer.name} ${formatMoney(top)}`);
+  delta(state, `${node.name} → ${rocketTitle(buyer)} ${formatMoney(top)}`);
   state.pendingAnnouncement = {
     kind: "info",
     title: card.title,
@@ -1733,16 +1734,16 @@ function doWarp(state: GameState, destination: string): void {
   const p = currentPlayer(state);
   if (state.phase !== "await_action") return;
   if (p.warpCharges <= 0) {
-    pushLog(state, `${p.name} has no warp charge.`);
+    pushLog(state, `${rocketTitle(p)} has no warp charge.`);
     return;
   }
   const dest = state.board.nodes[destination];
   if (!dest) {
-    pushLog(state, `${p.name} cannot warp — unknown beacon.`);
+    pushLog(state, `${rocketTitle(p)} cannot warp — unknown beacon.`);
     return;
   }
   if (destination === p.position) {
-    pushLog(state, `${p.name} is already at ${dest.name}.`);
+    pushLog(state, `${rocketTitle(p)} is already at ${dest.name}.`);
     return;
   }
 
@@ -1763,7 +1764,7 @@ function doWarp(state: GameState, destination: string): void {
 
   pushLog(
     state,
-    `${p.name} warps ${fromName} → ${dest.name} (King's Quest · ${p.warpCharges} charge(s) left).`,
+    `${rocketTitle(p)} warps ${fromName} → ${dest.name} (King's Quest · ${p.warpCharges} charge(s) left).`,
   );
   delta(state, `warp → ${dest.name}`);
 
@@ -1783,7 +1784,7 @@ function doMove(state: GameState): void {
   const usedFreeBreak = br > 0 && p.freeBreakPending;
   const cost = effectiveBreakFuelCost(p.freeBreakPending, br);
   if (p.fuel + 1e-9 < cost) {
-    pushLog(state, `${p.name} cannot afford break (${cost} fuel for −${br} spaces).`);
+    pushLog(state, `${rocketTitle(p)} cannot afford break (${cost} fuel for −${br} spaces).`);
     return;
   }
   if (br > 0) {
@@ -1796,8 +1797,8 @@ function doMove(state: GameState): void {
     pushLog(
       state,
       usedFreeBreak
-        ? `${p.name} breaks −${br} space(s) free (M&Ms token) (roll ${total} → move ${total - br}).`
-        : `${p.name} breaks −${br} space(s) for ${cost} fuel (roll ${total} → move ${total - br}).`,
+        ? `${rocketTitle(p)} breaks −${br} space(s) free (M&Ms token) (roll ${total} → move ${total - br}).`
+        : `${rocketTitle(p)} breaks −${br} space(s) for ${cost} fuel (roll ${total} → move ${total - br}).`,
     );
     delta(
       state,
@@ -1809,7 +1810,7 @@ function doMove(state: GameState): void {
   const steps = total - br;
   state.breakSpaces = 0;
   if (steps <= 0) {
-    pushLog(state, `${p.name} breaks full roll — stays put.`);
+    pushLog(state, `${rocketTitle(p)} breaks full roll — stays put.`);
     delta(state, `stay (full break)`);
     // No path advance → not a move for parking
     state.phase = "await_post_land";
@@ -1849,7 +1850,7 @@ function autoDuelAi(state: GameState): void {
     d.challengerRoll = roll2d6(state, c);
     pushLog(
       state,
-      `${c.name} rolls duel dice ${d.challengerRoll.d1}+${d.challengerRoll.d2}=${d.challengerRoll.total}.`,
+      `${rocketTitle(c)} rolls duel dice ${d.challengerRoll.d1}+${d.challengerRoll.d2}=${d.challengerRoll.total}.`,
     );
   }
   if (
@@ -1861,7 +1862,7 @@ function autoDuelAi(state: GameState): void {
     d.defenderRoll = roll2d6(state, def);
     pushLog(
       state,
-      `${def.name} rolls duel dice ${d.defenderRoll.d1}+${d.defenderRoll.d2}=${d.defenderRoll.total}.`,
+      `${rocketTitle(def)} rolls duel dice ${d.defenderRoll.d1}+${d.defenderRoll.d2}=${d.defenderRoll.total}.`,
     );
   }
   resolveDuelIfComplete(state);
@@ -1937,11 +1938,11 @@ export function applyCharterKick(
   eliminate(
     state,
     target,
-    `removed by ${chooser.name} (vibe-code rules authority)`,
+    `removed by ${rocketTitle(chooser)} (vibe-code rules authority)`,
   );
   pushLog(
     state,
-    `${chooser.name} patches the build: ${target.name} is off the ledger.`,
+    `${rocketTitle(chooser)} patches the build: ${rocketTitle(target)} is off the ledger.`,
   );
 }
 
@@ -1972,7 +1973,7 @@ export function applyCharterOlbers(
   state.breakSpaces = 0;
   pushLog(
     state,
-    `${chooser.name} warps ${fromName} → ${dest.name} (Olbers award · +${formatMoney(OLBERS_AWARD_CASH)}).`,
+    `${rocketTitle(chooser)} warps ${fromName} → ${dest.name} (Olbers award · +${formatMoney(OLBERS_AWARD_CASH)}).`,
   );
   delta(state, `Olbers → ${dest.name} +${formatMoney(OLBERS_AWARD_CASH)}`);
   // Landing rules at hub (rent if owned by other, etc.)
@@ -2023,7 +2024,7 @@ export function applyCharterSteal(
   state.pendingCharterChoice = null;
   pushLog(
     state,
-    `${chooser.name} reassigns ${node.name} from ${prev?.name ?? "the bank"} via AIL${depotOk ? " (depot installed)" : ""}.`,
+    `${rocketTitle(chooser)} reassigns ${node.name} from ${prev ? rocketTitle(prev) : "the bank"} via AIL${depotOk ? " (depot installed)" : ""}.`,
   );
   delta(state, `blockchain claim ${node.name}`);
 }
@@ -2099,7 +2100,7 @@ export function applyAction(state: GameState, action: PlayerAction): GameState {
       p.rolledThisTurn = true;
       pushLog(
         next,
-        `${p.name} rolls ${roll.d1}+${roll.d2}=${roll.total}${roll.doubles ? " (doubles)" : ""}, Break=${next.breakSpaces}, Move`,
+        `${rocketTitle(p)} rolls ${roll.d1}+${roll.d2}=${roll.total}${roll.doubles ? " (doubles)" : ""}, Break=${next.breakSpaces}, Move`,
       );
       delta(next, `roll ${roll.total}`);
       next.phase = "await_move";
@@ -2154,7 +2155,7 @@ export function applyAction(state: GameState, action: PlayerAction): GameState {
     case "end_turn":
       if (next.phase === "await_post_land" || next.phase === "await_action") {
         if (!p.rolledThisTurn) {
-          pushLog(next, `${p.name} ends turn without rolling (camping).`);
+          pushLog(next, `${rocketTitle(p)} ends turn without rolling (camping).`);
         }
         if (!p.movedThisTurn) {
           applyParkingTick(next, p);
@@ -2167,10 +2168,10 @@ export function applyAction(state: GameState, action: PlayerAction): GameState {
       if (!d || next.phase !== "await_duel") break;
       if (p.id === d.challengerId && d.challengerStance === null) {
         d.challengerStance = action.stance;
-        pushLog(next, `${p.name} locks a secret stance.`);
+        pushLog(next, `${rocketTitle(p)} locks a secret stance.`);
       } else if (p.id === d.defenderId && d.defenderStance === null) {
         d.defenderStance = action.stance;
-        pushLog(next, `${p.name} locks a secret stance.`);
+        pushLog(next, `${rocketTitle(p)} locks a secret stance.`);
       }
       autoDuelAi(next);
       break;
@@ -2188,13 +2189,13 @@ export function applyAction(state: GameState, action: PlayerAction): GameState {
         d.challengerRoll = roll2d6(next, p);
         pushLog(
           next,
-          `${p.name} rolls duel ${d.challengerRoll.d1}+${d.challengerRoll.d2}=${d.challengerRoll.total}.`,
+          `${rocketTitle(p)} rolls duel ${d.challengerRoll.d1}+${d.challengerRoll.d2}=${d.challengerRoll.total}.`,
         );
       } else if (p.id === d.defenderId && d.defenderRoll === null) {
         d.defenderRoll = roll2d6(next, p);
         pushLog(
           next,
-          `${p.name} rolls duel ${d.defenderRoll.d1}+${d.defenderRoll.d2}=${d.defenderRoll.total}.`,
+          `${rocketTitle(p)} rolls duel ${d.defenderRoll.d1}+${d.defenderRoll.d2}=${d.defenderRoll.total}.`,
         );
       }
       autoDuelAi(next);
@@ -2320,7 +2321,7 @@ export function resignGame(state: GameState, playerId: string): GameState {
   next.pendingAnnouncement = {
     kind: "out",
     title: "OUT!",
-    body: `${p.name} left the expedition.\nRound ${next.round}.`,
+    body: `${rocketTitle(p)} left the expedition.\nRound ${next.round}.`,
   };
   const others = livingPlayers(next).filter((x) => x.id !== playerId);
   if (others.length === 1) next.winnerId = others[0].id;

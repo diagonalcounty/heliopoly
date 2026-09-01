@@ -25,7 +25,7 @@ import {
   prevailsHeadline,
   winsHeadline,
 } from "./core/pilotCopy";
-import { sanitizePilotName } from "./core/pilotNames";
+import { rocketTitle, sanitizePilotName } from "./core/pilotNames";
 import { goingUnderFlags } from "./core/goingUnder";
 import { bestBooksLine } from "./core/claimLedger";
 import {
@@ -607,7 +607,7 @@ function paintAuctionPrompt(): void {
   const seller = state.players.find((p) => p.id === a.sellerId);
   const human = state.players.find((p) => p.agent === "human" && !p.eliminated);
   auctionTitle.textContent = node.name;
-  auctionBody.textContent = `${seller?.name ?? "A rival"} is auctioning ${node.name}. Reserve ${formatMoney(a.reserve)}. You have ${formatMoney(human?.cash ?? 0)}.`;
+  auctionBody.textContent = `${seller ? rocketTitle(seller) : "A rival"} is auctioning ${node.name}. Reserve ${formatMoney(a.reserve)}. You have ${formatMoney(human?.cash ?? 0)}.`;
   auctionAmount.min = String(a.reserve);
   auctionAmount.max = String(human?.cash ?? 0);
   if (!auctionAmount.value) auctionAmount.value = String(a.reserve);
@@ -803,6 +803,12 @@ function diceElsForSeat(
   return side === "left" ? [dieL1, dieL2] : [dieR1, dieR2];
 }
 
+function shipTitle(s: GameState, name: string | null | undefined): string {
+  if (!name) return "";
+  const p = s.players.find((x) => x.name === name);
+  return p ? rocketTitle(p) : name;
+}
+
 function applyDuelShipNames(
   s: GameState,
   challengerName: string,
@@ -811,13 +817,15 @@ function applyDuelShipNames(
   challengerId?: string,
   defenderId?: string,
 ): void {
-  duelMatchup.textContent = `${challengerName} vs ${defenderName} · ${nodeName}`;
+  const cTitle = shipTitle(s, challengerName);
+  const dTitle = shipTitle(s, defenderName);
+  duelMatchup.textContent = `${cTitle} vs ${dTitle} · ${nodeName}`;
   const map =
     challengerId && defenderId
       ? duelVisualMap(s, challengerId, defenderId)
       : duelVisualMapByNames(s, challengerName, defenderName);
   const nameFor = (seat: DuelSeat) =>
-    seat === "challenger" ? challengerName : defenderName;
+    seat === "challenger" ? cTitle : dTitle;
   diceLabelL.textContent = nameFor(map.left);
   diceLabelR.textContent = nameFor(map.right);
 }
@@ -835,7 +843,7 @@ function showDuelResultFooter(s: GameState): void {
   duelResultHeadline.textContent =
     r.outcome === "tie"
       ? "Draw — both hold the lane"
-      : winsHeadline(r.winnerName ?? "Winner");
+      : winsHeadline(shipTitle(s, r.winnerName) || "Winner");
   const humanName = s.players.find((p) => p.agent === "human")?.name ?? null;
   const humanInDuel =
     humanName !== null &&
@@ -847,7 +855,7 @@ function showDuelResultFooter(s: GameState): void {
     humanInDuel,
   );
   duelResultSummary.textContent = [
-    `${r.challengerName} [${r.challengerStance.toUpperCase()}] ${r.challengerRoll.total} · ${r.defenderName} [${r.defenderStance.toUpperCase()}] ${r.defenderRoll.total}`,
+    `${shipTitle(s, r.challengerName)} [${r.challengerStance.toUpperCase()}] ${r.challengerRoll.total} · ${shipTitle(s, r.defenderName)} [${r.defenderStance.toUpperCase()}] ${r.defenderRoll.total}`,
     r.summary,
   ].join("\n");
   // Host flag for waitForDuelResultDismiss
@@ -1015,7 +1023,7 @@ function updateDuelModal(s: GameState | null): void {
   const parts: string[] = [];
   if (d.challengerRoll && d.defenderRoll && d.challengerStance && d.defenderStance) {
     parts.push(
-      `Stances: ${c.name}=${d.challengerStance} · ${def.name}=${d.defenderStance}`,
+      `Stances: ${rocketTitle(c)}=${d.challengerStance} · ${rocketTitle(def)}=${d.defenderStance}`,
     );
   }
   duelDice.textContent = parts.join("\n");
@@ -1110,7 +1118,7 @@ function endScreenStory(s: GameState, winner: Player | undefined): string {
   const nw = formatMoney(netWorth(s, winner));
   const deeds = winner.properties.length;
   const depots = winner.properties.filter((id) => s.stations[id]).length;
-  const history = ` The ledger writes ${winner.name} as one of the greatest of all kind.`;
+  const history = ` The ledger writes ${rocketTitle(winner)} as one of the greatest of all kind.`;
   const empire =
     deeds > 0 || depots > 0
       ? ` Closing books: ${nw} net worth · ${deeds} claim${deeds === 1 ? "" : "s"} · ${depots} depot${depots === 1 ? "" : "s"}.`
@@ -1158,9 +1166,9 @@ function showEndScreen(s: GameState): void {
               ? `round ? (turn ${p.eliminatedOnTurn})`
               : "round ?";
         const why = p.eliminatedReason ? ` · ${p.eliminatedReason}` : "";
-        return `<div>${i + 1}. ${p.name}${mark} — out ${r}${why}</div>`;
+        return `<div>${i + 1}. ${rocketTitle(p)}${mark} — out ${r}${why}</div>`;
       }
-      return `<div>${i + 1}. ${p.name}${mark} — ${formatMoney(netWorth(s, p))} · flying</div>`;
+      return `<div>${i + 1}. ${rocketTitle(p)}${mark} — ${formatMoney(netWorth(s, p))} · flying</div>`;
     })
     .join("");
   endRoot.classList.remove("hidden");
@@ -2275,7 +2283,7 @@ function renderSide(): void {
         vibePick && !pl.eliminated && pl.agent === "ai"
           ? " vibe-kickable"
           : "";
-      const name = escapeHtml(pl.name);
+      const name = escapeHtml(rocketTitle(pl));
       const rowTitle =
         kickable !== ""
           ? `Kick ${name} off the ledger`
@@ -2361,12 +2369,15 @@ function renderSide(): void {
         : `leave burn ~${legal.leaveBurnPreview}`,
     );
   } else if (state.phase === "await_post_land") {
+    const landOwner = state.owners[node.id]
+      ? state.players.find((x) => x.id === state!.owners[node.id])
+      : undefined;
     const ctx = isPurchasable(node) && !state.owners[node.id]
       ? `claim available ${formatMoney(node.price ?? 0)}`
       : state.owners[node.id] === p.id
         ? "you own this body"
-        : state.owners[node.id]
-          ? `owned by ${state!.players.find(x => x.id === state!.owners[node.id])?.name ?? "?"}`
+        : landOwner
+          ? `owned by ${rocketTitle(landOwner)}`
           : "insertion free";
     teleLines.push(`LANDED: ${node.name}`);
     teleLines.push(ctx);
@@ -2466,7 +2477,7 @@ function renderSide(): void {
     const ownerId = state.owners[here.id];
     if (ownerId && ownerId !== p.id) {
       const o = state.players.find((x) => x.id === ownerId);
-      btnBuy.textContent = `Owned by ${o?.name ?? "?"}`;
+      btnBuy.textContent = `Owned by ${o ? rocketTitle(o) : "?"}`;
     } else if (isPurchasable(here) && p.cash < (here.price ?? 0)) {
       btnBuy.textContent = `Need ${formatMoney(here.price ?? 0)}`;
     } else if (!isPurchasable(here)) btnBuy.textContent = "Not for sale";
@@ -2947,7 +2958,7 @@ function drawBoard(): void {
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
     let label = node.kind === "space" ? "" : node.name;
-    if (label && owner) label = `${label} · ${owner.name}`;
+    if (label && owner) label = `${label} · ${rocketTitle(owner)}`;
     const ly = Math.min(h - 4, y + r + 6);
     const lx = Math.max(4, Math.min(w - 4, x));
     if (label) {
