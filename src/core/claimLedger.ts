@@ -97,7 +97,14 @@ function ledgerRow(
   if (!led) return null;
   let row = led[nodeId];
   if (!row) {
-    row = { nodeId, invested: 0, rentCollected: 0, landings: 0, claims: 0 };
+    row = {
+      nodeId,
+      invested: 0,
+      rentCollected: 0,
+      strikesCollected: 0,
+      landings: 0,
+      claims: 0,
+    };
     led[nodeId] = row;
   }
   return row;
@@ -149,14 +156,26 @@ export function creditRentCollected(
   if (state) recordPropertyRent(state, nodeId, Math.max(0, amount));
 }
 
+export function recordPropertyStrike(
+  state: GameState,
+  nodeId: string,
+  cashPaid: number,
+): void {
+  const row = ledgerRow(state, nodeId);
+  if (!row) return;
+  row.strikesCollected = (row.strikesCollected ?? 0) + Math.max(0, cashPaid);
+}
+
 export function creditGusherCollected(
   owner: Player,
   nodeId: string,
   amount: number,
   listPrice: number,
+  state?: GameState,
 ): void {
   if (amount <= 0) return;
   ensureClaimBook(owner, nodeId, listPrice).gusherCollected += amount;
+  if (state) recordPropertyStrike(state, nodeId, amount);
 }
 
 export function creditDepotSpend(

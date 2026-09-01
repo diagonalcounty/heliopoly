@@ -137,27 +137,41 @@ def main() -> int:
             f"n={row.get('n', finished):5}  rate={pct(row.get('rate', 0))}"
         )
     print()
-    print("Properties by ROI (finished games; rent ÷ claim+depot spend)")
+    print("Properties by bank-exit book (finished games; mark + income − invested)")
     print("-" * 40)
     roi_rows = summary.get("propertyRoi") or []
     if not roi_rows:
-        print("  (no property ROI in this run — re-run with a current sim)")
+        print("  (no property books in this run — re-run with a current sim)")
     else:
         print(
             f"  {'property':16} {'sys':10} {'n':>5}  "
-            f"{'invest':>8} {'rent':>8} {'net':>8}  {'ROI':>7}  land"
+            f"{'mark':>8} {'income':>8} {'invest':>8} {'bk-exit':>8}  "
+            f"{'land':>4}  {'yield':>7}"
         )
         for row in roi_rows:
-            roi = row.get("roi")
-            roi_s = "   n/a" if roi is None else f"{100.0 * float(roi):6.0f}%"
+            yield_v = row.get("roiCash")
+            if yield_v is None:
+                yield_v = row.get("roi")
+            yield_s = "   n/a" if yield_v is None else f"{100.0 * float(yield_v):6.0f}%"
             grp = (row.get("group") or "—")[:10]
+            income = row.get("meanIncome")
+            if income is None:
+                income = row.get("meanRentCollected") or 0
+            mark = row.get("meanMark") or 0
+            net = row.get("meanBankExitNet")
+            if net is None:
+                net = row.get("meanNet")
+            if net is None:
+                net = float(income) + float(mark) - float(row.get("meanInvested") or 0)
             print(
                 f"  {str(row.get('name', '?'))[:16]:16} {grp:10} "
                 f"{int(row.get('n') or 0):5}  "
+                f"{float(mark):8.0f} "
+                f"{float(income):8.0f} "
                 f"{float(row.get('meanInvested') or 0):8.0f} "
-                f"{float(row.get('meanRentCollected') or 0):8.0f} "
-                f"{float(row.get('meanNet') or 0):8.0f}  "
-                f"{roi_s}  {float(row.get('meanLandings') or 0):4.1f}"
+                f"{float(net):8.0f}  "
+                f"{float(row.get('meanLandings') or 0):4.1f}  "
+                f"{yield_s}"
             )
     print()
     print("Tip: all-retro → backward ≈ 100%. Mixed → forward+backward ≈ 100%.")

@@ -100,13 +100,15 @@ export interface ClaimBook {
 }
 
 /**
- * Sim-only running totals per claimable node (#127).
- * Survives ownership transfers so batch ROI is property-centric.
+ * Sim-only running totals per claimable node (#127 / #142).
+ * Survives ownership transfers so batch books are property-centric.
  */
 export interface PropertyLedgerRow {
   nodeId: string;
   invested: number;
   rentCollected: number;
+  /** Fuel-strike cash on this body; omitted on older ledgers. */
+  strikesCollected?: number;
   landings: number;
   claims: number;
 }

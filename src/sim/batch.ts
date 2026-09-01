@@ -6,6 +6,7 @@ import { join } from "node:path";
 import { execSync } from "node:child_process";
 import { normalizeAiDifficulty, type AiDifficulty } from "../core/types";
 import { playOneGame, DEFAULT_MAX_TURNS, DEFAULT_SEED_STRIDE } from "./play";
+import { aggregatePropertyRoi, bestBankExitCallout } from "./propertyBooks";
 import type {
   DensityCurve,
   EliminationPlaceCurves,
@@ -163,101 +164,10 @@ export function buildOutcomeSummary(opts: {
     );
   }
 
-  const ranked = (propertyRoi ?? []).filter((r) => r.roi != null && r.n >= 3);
-  if (ranked.length) {
-    const top = ranked[0]!;
-    const roiPct = (100 * (top.roi ?? 0)).toFixed(0);
-    const second = ranked[1];
-    const gap =
-      second?.roi != null && top.roi != null ? top.roi - second.roi : null;
-    const gapNote =
-      gap != null && gap >= 0.25
-        ? ` Next is ${second!.name} at ${(100 * second!.roi!).toFixed(0)}%.`
-        : "";
-    lines.push(
-      `Highest property ROI: ${top.name} returned ${roiPct}% of claim+depot spend (n=${top.n} finished games).${gapNote}`,
-    );
-  }
+  const bookLine = bestBankExitCallout(propertyRoi);
+  if (bookLine) lines.push(bookLine);
 
   return lines.join(" ");
-}
-
-interface PropertyRoiAcc {
-  nodeId: string;
-  name: string;
-  group: string | null;
-  kind: string;
-  n: number;
-  totalInvested: number;
-  totalRent: number;
-  totalLandings: number;
-  roiSum: number;
-  roiN: number;
-}
-
-function absorbPropertyCash(
-  acc: Map<string, PropertyRoiAcc>,
-  rows: SimPropertyCash[],
-): void {
-  for (const row of rows) {
-    if (row.claims === 0 && row.invested === 0 && row.rentCollected === 0) {
-      continue;
-    }
-    let cur = acc.get(row.nodeId);
-    if (!cur) {
-      cur = {
-        nodeId: row.nodeId,
-        name: row.name,
-        group: row.group,
-        kind: row.kind,
-        n: 0,
-        totalInvested: 0,
-        totalRent: 0,
-        totalLandings: 0,
-        roiSum: 0,
-        roiN: 0,
-      };
-      acc.set(row.nodeId, cur);
-    }
-    cur.n += 1;
-    cur.totalInvested += row.invested;
-    cur.totalRent += row.rentCollected;
-    cur.totalLandings += row.landings;
-    if (row.invested > 0) {
-      cur.roiSum += row.rentCollected / row.invested;
-      cur.roiN += 1;
-    }
-  }
-}
-
-function finalizePropertyRoi(acc: Map<string, PropertyRoiAcc>): PropertyRoiRow[] {
-  const rows: PropertyRoiRow[] = [];
-  for (const cur of acc.values()) {
-    const n = Math.max(1, cur.n);
-    rows.push({
-      nodeId: cur.nodeId,
-      name: cur.name,
-      group: cur.group,
-      kind: cur.kind,
-      n: cur.n,
-      meanInvested: cur.totalInvested / n,
-      meanRentCollected: cur.totalRent / n,
-      meanLandings: cur.totalLandings / n,
-      meanNet: (cur.totalRent - cur.totalInvested) / n,
-      roi: cur.totalInvested > 0 ? cur.totalRent / cur.totalInvested : null,
-      meanRoi: cur.roiN > 0 ? cur.roiSum / cur.roiN : null,
-    });
-  }
-  rows.sort((a, b) => {
-    const ar = a.roi;
-    const br = b.roi;
-    if (ar == null && br == null) return b.meanNet - a.meanNet;
-    if (ar == null) return 1;
-    if (br == null) return -1;
-    if (br !== ar) return br - ar;
-    return b.meanNet - a.meanNet;
-  });
-  return rows;
 }
 
 function percentile(sorted: number[], p: number): number {
@@ -552,7 +462,7 @@ export function runBatch(params: BatchParams): {
   /** Per-seat exit round (elim or win-at-end) for density chart. */
   const seatExitSamples: number[][] = Array.from({ length: players }, () => []);
   const placeGameEnd: number[] = [];
-  const propertyRoiAcc = new Map<string, PropertyRoiAcc>();
+  const propertyCashGames: SimPropertyCash[][] = [];
 
   const t0 = Date.now();
   const progressEvery = Math.max(1, Math.floor(games / 25));
@@ -582,7 +492,7 @@ export function runBatch(params: BatchParams): {
     if (game.unfinished) {
       unfinished++;
     } else {
-      absorbPropertyCash(propertyRoiAcc, game.propertyCash ?? []);
+      propertyCashGames.push(game.propertyCash ?? []);
       // Game-level: count the winner once (not every seat)
       const winner =
         game.seats.find((s) => s.winner) ??
@@ -671,7 +581,7 @@ export function runBatch(params: BatchParams): {
   const winRateByDirection = shareOfFinished(winsByDirection);
   const winRateByPropellant = shareOfFinished(winsByPropellant);
   const winRateBySeat = shareOfFinished(winsBySeat);
-  const propertyRoi = finalizePropertyRoi(propertyRoiAcc);
+  const propertyRoi = aggregatePropertyRoi(propertyCashGames);
   let outcomeSummary = buildOutcomeSummary({
     players,
     humanSeat,

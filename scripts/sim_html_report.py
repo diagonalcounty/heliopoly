@@ -104,19 +104,48 @@ def money(n: float) -> str:
     return f"{sign}⍼{abs(round(n)):,}"
 
 
+def _row_income(r: dict[str, Any]) -> float:
+    v = r.get("meanIncome")
+    if v is None:
+        v = r.get("meanRentCollected") or 0
+    return float(v)
+
+
+def _row_mark(r: dict[str, Any]) -> float:
+    return float(r.get("meanMark") or 0)
+
+
+def _row_bank_exit(r: dict[str, Any]) -> float:
+    v = r.get("meanBankExitNet")
+    if v is None:
+        v = r.get("meanNet")
+    if v is None:
+        v = _row_income(r) + _row_mark(r) - float(r.get("meanInvested") or 0)
+    return float(v)
+
+
+def _row_cash_yield(r: dict[str, Any]) -> float | None:
+    v = r.get("roiCash")
+    if v is None:
+        v = r.get("roi")
+    return None if v is None else float(v)
+
+
 def table_property_roi(rows: list[dict[str, Any]]) -> str:
     if not rows:
         return (
-            "<section><h2>Properties by ROI</h2>"
-            "<p class='muted'>No property ROI in this run.</p></section>"
+            "<section><h2>Properties by bank-exit book</h2>"
+            "<p class='muted'>No property books in this run.</p></section>"
         )
-    max_roi = max((float(r.get("roi") or 0) for r in rows), default=0.01) or 0.01
+    max_abs = max((abs(_row_bank_exit(r)) for r in rows), default=0.01) or 0.01
     body_parts: list[str] = []
     for i, r in enumerate(rows):
-        roi = r.get("roi")
-        roi_s = "n/a" if roi is None else pct(float(roi))
-        width = 0.0 if roi is None else min(100.0, float(roi) / max_roi * 100.0)
-        net = float(r.get("meanNet") or 0)
+        income = _row_income(r)
+        mark = _row_mark(r)
+        net = _row_bank_exit(r)
+        yield_v = _row_cash_yield(r)
+        yield_s = "n/a" if yield_v is None else pct(yield_v)
+        width = min(100.0, abs(net) / max_abs * 100.0)
         net_cls = "pos" if net >= 0 else "neg"
         top = ' class="roi-top"' if i == 0 else ""
         grp = esc(r.get("group") or "—")
@@ -126,26 +155,27 @@ def table_property_roi(rows: list[dict[str, Any]]) -> str:
             f"<td>{esc(r.get('name'))}</td>"
             f"<td class='muted'>{grp} · {kind}</td>"
             f"<td class='num'>{int(r.get('n') or 0):,}</td>"
+            f"<td class='num'>{money(mark)}</td>"
+            f"<td class='num'>{money(income)}</td>"
             f"<td class='num'>{money(float(r.get('meanInvested') or 0))}</td>"
-            f"<td class='num'>{money(float(r.get('meanRentCollected') or 0))}</td>"
-            f"<td class='num {net_cls}'>{money(net)}</td>"
-            f"<td class='num'>{roi_s}"
-            f"<div class='bar-track'><div class='bar' style='width:{width:.1f}%'></div></div>"
+            f"<td class='num {net_cls}'>{money(net)}"
+            f"<div class='bar-track'><div class='bar {net_cls}' style='width:{width:.1f}%'></div></div>"
             f"</td>"
             f"<td class='num'>{float(r.get('meanLandings') or 0):.1f}</td>"
+            f"<td class='num muted'>{yield_s}</td>"
             f"</tr>"
         )
     return f"""
     <section>
-      <h2>Properties by ROI</h2>
-      <p class="muted">Empirical rent collected ÷ claim + depot spend over finished games. Sorted highest ROI first.</p>
+      <h2>Properties by bank-exit book</h2>
+      <p class="muted">Mark (half list, bank floor; depot not in mark) + income (rent, plus fuel strikes when tracked) vs claim+depot spend. Sorted by bank-exit net (income + mark − invested), not ROI%. Same vocabulary as Ops Manual: Dossier, ROI &amp; selling.</p>
       <table>
         <thead>
           <tr>
             <th>Property</th><th>System</th><th class="num">n</th>
-            <th class="num">Mean invested</th><th class="num">Mean rent</th>
-            <th class="num">Mean net</th><th class="num">ROI</th>
-            <th class="num">Landings</th>
+            <th class="num">Mark</th><th class="num">Income</th>
+            <th class="num">Invested</th><th class="num">Bank-exit net</th>
+            <th class="num">Landings</th><th class="num muted">Cash yield</th>
           </tr>
         </thead>
         <tbody>{"".join(body_parts)}</tbody>
@@ -421,6 +451,8 @@ th { color: var(--muted); font-weight: 600; font-size: 0.75rem; text-transform: 
 .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.86em; }
 .pos { color: var(--ok); }
 .neg { color: #ff6b7a; }
+.bar.pos { background: #5ddea0; }
+.bar.neg { background: #ff6b7a; }
 .muted { color: var(--muted); }
 tr.roi-top td:first-child { color: var(--accent-2); font-weight: 700; }
 .muted { color: var(--muted); }

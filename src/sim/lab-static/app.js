@@ -300,6 +300,25 @@ function kindLabel(kind) {
   return kind || "body";
 }
 
+function rowIncome(r) {
+  return r.meanIncome != null ? r.meanIncome : r.meanRentCollected || 0;
+}
+
+function rowMark(r) {
+  return r.meanMark || 0;
+}
+
+function rowBankExit(r) {
+  if (r.meanBankExitNet != null) return r.meanBankExitNet;
+  return rowIncome(r) + rowMark(r) - (r.meanInvested || 0);
+}
+
+function rowCashYield(r) {
+  if (r.roiCash != null) return r.roiCash;
+  if (r.roi != null) return r.roi;
+  return null;
+}
+
 function renderPropertyRoi(rows) {
   const panel = document.getElementById("roi-panel");
   const tbl = document.getElementById("tbl-roi");
@@ -310,31 +329,36 @@ function renderPropertyRoi(rows) {
     return;
   }
   panel.hidden = false;
-  const maxRoi = Math.max(
-    ...rows.map((r) => (r.roi != null ? r.roi : 0)),
+  const maxAbs = Math.max(
+    ...rows.map((r) => Math.abs(rowBankExit(r))),
     0.01,
   );
   const body = rows
     .map((r, i) => {
-      const roiTxt = r.roi == null ? "n/a" : pct(r.roi);
-      const barW =
-        r.roi == null ? 0 : Math.min(100, (r.roi / maxRoi) * 100);
+      const income = rowIncome(r);
+      const mark = rowMark(r);
+      const net = rowBankExit(r);
+      const yieldV = rowCashYield(r);
+      const yieldTxt = yieldV == null ? "n/a" : pct(yieldV);
+      const barW = Math.min(100, (Math.abs(net) / maxAbs) * 100);
       const sys = r.group ? escapeHtml(r.group) : "—";
       const top = i === 0 ? " roi-top" : "";
+      const netCls = net >= 0 ? "pos" : "neg";
       return `<tr class="${top}">
         <td>${escapeHtml(r.name)}</td>
         <td class="muted">${sys} · ${escapeHtml(kindLabel(r.kind))}</td>
         <td class="num">${fmtInt(r.n)}</td>
+        <td class="num">${fmtMoney(mark)}</td>
+        <td class="num">${fmtMoney(income)}</td>
         <td class="num">${fmtMoney(r.meanInvested)}</td>
-        <td class="num">${fmtMoney(r.meanRentCollected)}</td>
-        <td class="num ${r.meanNet >= 0 ? "pos" : "neg"}">${fmtMoney(r.meanNet)}</td>
-        <td class="num roi-cell">
-          <div class="roi-num">${roiTxt}</div>
+        <td class="num roi-cell ${netCls}">
+          <div class="roi-num">${fmtMoney(net)}</div>
           <div class="bar-track" aria-hidden="true">
-            <div class="bar" style="width:${barW.toFixed(1)}%"></div>
+            <div class="bar ${netCls}" style="width:${barW.toFixed(1)}%"></div>
           </div>
         </td>
         <td class="num">${(r.meanLandings || 0).toFixed(1)}</td>
+        <td class="num muted yield-cell">${yieldTxt}</td>
       </tr>`;
     })
     .join("");
@@ -345,22 +369,26 @@ function renderPropertyRoi(rows) {
           <th>Property</th>
           <th>System</th>
           <th class="num">n</th>
-          <th class="num">Mean invested</th>
-          <th class="num">Mean rent</th>
-          <th class="num">Mean net</th>
-          <th class="num">ROI</th>
+          <th class="num">Mark</th>
+          <th class="num">Income</th>
+          <th class="num">Invested</th>
+          <th class="num">Bank-exit net</th>
           <th class="num">Landings</th>
+          <th class="num muted">Cash yield</th>
         </tr>
       </thead>
       <tbody>${body}</tbody>
     </table>
   </div>`;
 
-  const top = rows.find((r) => r.roi != null);
+  const top = rows[0];
   if (top && callout) {
+    const income = rowIncome(top);
+    const mark = rowMark(top);
+    const net = rowBankExit(top);
     callout.hidden = false;
     callout.className = "launch-callout ok";
-    callout.textContent = `${top.name} leads at ${pct(top.roi)} ROI (${fmtMoney(top.meanRentCollected)} rent on ${fmtMoney(top.meanInvested)} invested, n=${fmtInt(top.n)}).`;
+    callout.textContent = `${top.name} is the best bank-exit book (mark ${fmtMoney(mark)} + income ${fmtMoney(income)} → net ${fmtMoney(net)}, n=${fmtInt(top.n)}).`;
   } else if (callout) {
     callout.hidden = true;
   }
@@ -547,7 +575,7 @@ async function pingHealth() {
       : "";
     if (!h.features?.includes("property-roi")) {
       el.textContent +=
-        " · ⚠ restart npm run sim-lab for property ROI table";
+        " · ⚠ restart npm run sim-lab for property mark + income table";
       el.classList.add("warn");
     } else if (!h.features?.includes("human-loss-timing")) {
       el.textContent +=

@@ -1,4 +1,5 @@
 import { heuristicAI } from "../core/agents";
+import { bankSellValue } from "../core/claimLedger";
 import {
   applyAction,
   resolveCharterChoiceIfAi,
@@ -116,10 +117,17 @@ function snapshotPropertyCash(state: GameState): SimPropertyCash[] {
   if (!led) return [];
   const out: SimPropertyCash[] = [];
   for (const row of Object.values(led)) {
-    if (row.claims === 0 && row.invested === 0 && row.rentCollected === 0) {
+    const strikes = row.strikesCollected ?? 0;
+    if (
+      row.claims === 0 &&
+      row.invested === 0 &&
+      row.rentCollected === 0 &&
+      strikes === 0
+    ) {
       continue;
     }
     const node = state.board.nodes[row.nodeId];
+    const listPrice = node?.price ?? 0;
     out.push({
       nodeId: row.nodeId,
       name: node?.name ?? row.nodeId,
@@ -127,6 +135,9 @@ function snapshotPropertyCash(state: GameState): SimPropertyCash[] {
       kind: node?.kind ?? "space",
       invested: row.invested,
       rentCollected: row.rentCollected,
+      strikesCollected: strikes,
+      listPrice,
+      mark: bankSellValue(listPrice),
       landings: row.landings,
       claims: row.claims,
     });
