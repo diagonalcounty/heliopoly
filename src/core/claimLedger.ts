@@ -583,6 +583,11 @@ export function formatRoiLine(row: DossierClaimRow): string {
   return `${pct}% recovered (${formatMoney(row.earnings)} / ${formatMoney(row.cashInvested)})`;
 }
 
+/** Dossier book-so-far: secondary floor + rent/strikes this ownership. */
+export function formatMarkIncomeLine(row: DossierClaimRow): string {
+  return `Mark ${formatMoney(row.bankValue)} · income ${formatMoney(row.earnings)}`;
+}
+
 export function hubNetworkLabel(hubCount: number): string {
   if (hubCount <= 0) return "no hubs";
   if (hubCount === 1) return `hubs 1/${STATION_HUB_IDS.length}`;

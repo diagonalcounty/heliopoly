@@ -9,9 +9,11 @@ import {
   claimEarnings,
   claimRoi,
   formatAuctionResult,
+  formatMarkIncomeLine,
   grantClaim,
   tryConsumeLandingRight,
 } from "./claimLedger";
+import { formatMoney } from "./currency";
 import { applyAction, getLegalActions, netWorth } from "./rules";
 import { createGame, currentPlayer } from "./state";
 import { teslaTargetClaims } from "./turnClock";
@@ -67,6 +69,16 @@ assert(elonReserve === 275, "Elon reserve is half of 550");
   assert(!legal.sell, "Underfoot Sell is off while on Earth");
   const view = buildDossierView(s, you.id, netWorth);
   assert(view && view.canSell, "Own dossier can sell on our turn");
+  const venus = view?.groups.flatMap((g) => g.rows).find((r) => r.nodeId === "venus");
+  assert(
+    venus != null && venus.listPrice === 500 && venus.bankValue === 250,
+    "Venus dossier row mark is half list (500 → 250)",
+  );
+  assert(
+    venus != null &&
+      formatMarkIncomeLine(venus) === `Mark ${formatMoney(250)} · income ${formatMoney(0)}`,
+    `Venus book-so-far is mark + income (${venus ? formatMarkIncomeLine(venus) : "missing"})`,
+  );
   const rival = buildDossierView(s, s.players[1].id, netWorth);
   assert(rival && !rival.canSell, "Rival dossier is read-only");
   assert(rival && rival.groups.some((g) => g.rows.some((r) => r.nodeId === "mars" && r.hasDepot)), "Rival Mars shows depot");

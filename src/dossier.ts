@@ -4,7 +4,7 @@
  */
 import {
   buildDossierView,
-  formatRoiLine,
+  formatMarkIncomeLine,
   hubNetworkLabel,
   type DossierView,
 } from "./core/claimLedger";
@@ -236,7 +236,7 @@ function renderDossier(
         .join(" · ")}</p>`
     : "";
   const sellHint = view.canSell
-    ? `<p class="hint">Sell pays half the deed and scraps the depot. Auction lets you set a reserve at or above that half-price mark (up to the deed price); a winning bid keeps the depot and grants you one free landing. Each claim may be auctioned once per turn.</p>`
+    ? `<p class="hint">Sell pays the Mark (half the bank sticker) and scraps the depot. Auction reserve defaults to the Mark; you may raise it up to MSRP. A winning bid keeps the depot and grants you one free landing. Each claim may be auctioned once per turn.</p>`
     : "";
 
   const groups = view.groups.length
@@ -301,7 +301,7 @@ function renderGroup(
                   data-dossier-reserve-input
                 />
               </label>
-              <span class="dossier-row-sub">mark ${formatMoney(row.bankValue)} · deed ${formatMoney(row.listPrice)}</span>
+              <span class="dossier-row-sub">Mark ${formatMoney(row.bankValue)} · MSRP ${formatMoney(row.listPrice)}</span>
               <button type="button" class="primary" data-dossier-auction-go="${row.nodeId}">Ask ${formatMoney(row.bankValue)}</button>
               <button type="button" data-dossier-auction-cancel>Cancel</button>
             </div>`
@@ -314,8 +314,8 @@ function renderGroup(
     return `<li class="dossier-row${focused}" data-node-id="${escapeHtml(row.nodeId)}">
       <div class="dossier-row-main">
         <strong>${escapeHtml(row.name)}</strong>
-        <span class="dossier-row-sub">${formatMoney(row.listPrice)} deed · rent now ${formatMoney(row.rentNow)}${depot}${hub}</span>
-        <span class="dossier-row-roi">${escapeHtml(formatRoiLine(row))}</span>
+        <span class="dossier-row-sub"><span class="dossier-row-mark">Mark ${formatMoney(row.bankValue)}</span> · <span class="dossier-row-msrp">MSRP ${formatMoney(row.listPrice)}</span> · rent now ${formatMoney(row.rentNow)}${depot}${hub}</span>
+        <span class="dossier-row-book">${escapeHtml(formatMarkIncomeLine(row))}</span>
       </div>
       ${actions}
     </li>`;
