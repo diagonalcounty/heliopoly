@@ -12,6 +12,7 @@
  */
 import { closeClaimBook } from "./claimLedger";
 import { formatMoney } from "./currency";
+import { rocketTitle } from "./pilotNames";
 import { lunarRangeCmForDate } from "./lunarRangeTable";
 import { STATION_HUB_IDS, isStationHub } from "./systems";
 import type { GameState, Player } from "./types";
@@ -321,13 +322,13 @@ function fireMmsFreeBreak(state: GameState): void {
       youOrName(
         p,
         "You brought back the blue and brown M&Ms.",
-        `${p.name} brought back the blue and brown M&Ms.`,
+        `${rocketTitle(p)} brought back the blue and brown M&Ms.`,
       ),
       "One free brake on their next turn (break ≥1 space costs 0 fuel once; unused expires at end of that seat).",
     ].join("\n"),
   };
   state.log.push(
-    `Ledger event: blue & brown M&Ms — ${p.name} gets one free brake.`,
+    `Ledger event: blue & brown M&Ms — ${rocketTitle(p)} gets one free brake.`,
   );
 }
 
@@ -342,13 +343,13 @@ function fireKingsQuest(state: GameState): void {
       youOrName(
         p,
         "You kill time on an old terminal and set a King's Quest record.",
-        `${p.name} kills time on an old terminal and sets a King's Quest record.`,
+        `${rocketTitle(p)} kills time on an old terminal and sets a King's Quest record.`,
       ),
       "One warp: instead of rolling, click any beacon. No stops on the way; landing rules still apply where you arrive.",
     ].join("\n"),
   };
   state.log.push(
-    `Ledger event: King's Quest — ${p.name} gets one warp charge.`,
+    `Ledger event: King's Quest — ${rocketTitle(p)} gets one warp charge.`,
   );
 }
 
@@ -364,14 +365,14 @@ function fireStrongBadEmail(state: GameState): void {
       youOrName(
         p,
         "You emailed Strong Bad from a deep-space relay. He typed one word and hit send.",
-        `${p.name} emailed Strong Bad from a deep-space relay. He typed one word and hit send.`,
+        `${rocketTitle(p)} emailed Strong Bad from a deep-space relay. He typed one word and hit send.`,
       ),
       "WARP.",
       "One warp: click any beacon instead of rolling. No stops on the way; landing rules still apply where you arrive.",
     ].join("\n"),
   };
   state.log.push(
-    `Ledger event: Strong Bad Email — WARP — ${p.name} gets one warp charge.`,
+    `Ledger event: Strong Bad Email — WARP — ${rocketTitle(p)} gets one warp charge.`,
   );
 }
 
@@ -414,12 +415,12 @@ function fireAsteroidDepot(state: GameState): void {
       youOrName(
         p,
         `You take +${ASTEROID_DEPOTS} fuel depot in hand.`,
-        `${p.name} takes +${ASTEROID_DEPOTS} fuel depot in hand.`,
+        `${rocketTitle(p)} takes +${ASTEROID_DEPOTS} fuel depot in hand.`,
       ),
     ].join("\n"),
   };
   state.log.push(
-    `Ledger event: belt ice survey — ${p.name} +${ASTEROID_DEPOTS} depot in hand.`,
+    `Ledger event: belt ice survey — ${rocketTitle(p)} +${ASTEROID_DEPOTS} depot in hand.`,
   );
 }
 
@@ -490,11 +491,11 @@ function fireRogueTesla(state: GameState): void {
     title: "Rogue Tesla Roadster",
     body: [
       `A Tesla Roadster fell out of a long orbit and hit ${node.name}.`,
-      `${owner.name} loses the claim${hadDepot ? " — and the fuel depot with it" : ""}.`,
+      `${rocketTitle(owner)} loses the claim${hadDepot ? " — and the fuel depot with it" : ""}.`,
     ].join("\n"),
   };
   state.log.push(
-    `Ledger event: rogue Tesla Roadster destroyed ${owner.name}'s claim on ${node.name}${hadDepot ? " (depot lost)" : ""}.`,
+    `Ledger event: rogue Tesla Roadster destroyed ${rocketTitle(owner)}'s claim on ${node.name}${hadDepot ? " (depot lost)" : ""}.`,
   );
 }
 
@@ -513,11 +514,11 @@ function fireOlbersStation(state: GameState): void {
       `Award: warp to any station hub (Elon · Holst · Daktulios — not Earth) and collect ${formatMoney(OLBERS_AWARD_CASH)}.`,
       chooser.agent === "human"
         ? "Dismiss this, then click a station hub on the board."
-        : `${chooser.name} will chart a hub.`,
+        : `${rocketTitle(chooser)} will chart a hub.`,
     ].join("\n"),
   };
   state.log.push(
-    `Ledger event: Olbers award — ${chooser.name} may warp to a station hub for ${formatMoney(OLBERS_AWARD_CASH)}.`,
+    `Ledger event: Olbers award — ${rocketTitle(chooser)} may warp to a station hub for ${formatMoney(OLBERS_AWARD_CASH)}.`,
   );
 }
 
@@ -532,11 +533,11 @@ function fireKarenSkip(state: GameState): void {
     title: "Karen in the comments",
     body: [
       "Someone named Karen left a novel-length social-media essay under your last telemetry selfie.",
-      `${victim.name} misses a critical ship maneuver — lose one full seat turn.`,
+      `${rocketTitle(victim)} misses a critical ship maneuver — lose one full seat turn.`,
     ].join("\n"),
   };
   state.log.push(
-    `Ledger event: Karen distraction — ${victim.name} will skip a turn.`,
+    `Ledger event: Karen distraction — ${rocketTitle(victim)} will skip a turn.`,
   );
 }
 
@@ -559,11 +560,11 @@ function fireBlockchainSteal(state: GameState): void {
       "The ledger reassigns the body to you — with a fuel depot already bolted down.",
       chooser.agent === "human"
         ? "Dismiss this, then click an opponent's claim on the board."
-        : `${chooser.name} will reassign a deed.`,
+        : `${rocketTitle(chooser)} will reassign a deed.`,
     ].join("\n"),
   };
   state.log.push(
-    `Ledger event: blockchain reassignment — ${chooser.name} steals one opponent claim + depot.`,
+    `Ledger event: blockchain reassignment — ${rocketTitle(chooser)} steals one opponent claim + depot.`,
   );
 }
 
@@ -580,13 +581,13 @@ function fireDisneyRoyalties(state: GameState): void {
       youOrName(
         p,
         "You sing a Disney song. The mic was live.",
-        `${p.name} sings a Disney song. The mic was live.`,
+        `${rocketTitle(p)} sings a Disney song. The mic was live.`,
       ),
       `Royalties ${formatMoney(fine)}. Miss the next seat turn.`,
     ].join("\n"),
   };
   state.log.push(
-    `Ledger event: hot microphone — ${p.name} pays ${formatMoney(fine)} and skips a turn.`,
+    `Ledger event: hot microphone — ${rocketTitle(p)} pays ${formatMoney(fine)} and skips a turn.`,
   );
 }
 
@@ -602,7 +603,7 @@ function fireTuesdayBoy(state: GameState): void {
       youOrName(
         p,
         "You prove the Tuesday boy paradox is 13/27.",
-        `${p.name} proves the Tuesday boy paradox is 13/27.`,
+        `${rocketTitle(p)} proves the Tuesday boy paradox is 13/27.`,
       ),
       before > 0
         ? "Park count −1. Feral is one park further away."
@@ -610,7 +611,7 @@ function fireTuesdayBoy(state: GameState): void {
     ].join("\n"),
   };
   state.log.push(
-    `Ledger event: Tuesday boy — ${p.name} park count ${before} → ${p.parkCount}.`,
+    `Ledger event: Tuesday boy — ${rocketTitle(p)} park count ${before} → ${p.parkCount}.`,
   );
 }
 
@@ -627,12 +628,12 @@ function fireError47(state: GameState): void {
       youOrName(
         p,
         `You dump ${lost} fuel.`,
-        `${p.name} dumps ${lost} fuel.`,
+        `${rocketTitle(p)} dumps ${lost} fuel.`,
       ),
     ].join("\n"),
   };
   state.log.push(
-    `Ledger event: Error 47 — ${p.name} loses ${lost} fuel.`,
+    `Ledger event: Error 47 — ${rocketTitle(p)} loses ${lost} fuel.`,
   );
 }
 
@@ -645,12 +646,12 @@ function fireKostka(state: GameState, p: Player): void {
       youOrName(
         p,
         `On Earth, you adopt a dog named Kostka. +${formatMoney(KOSTKA_CASH)}.`,
-        `On Earth, ${p.name} adopts a dog named Kostka. +${formatMoney(KOSTKA_CASH)}.`,
+        `On Earth, ${rocketTitle(p)} adopts a dog named Kostka. +${formatMoney(KOSTKA_CASH)}.`,
       ),
     ].join("\n"),
   };
   state.log.push(
-    `Ledger event: Kostka — ${p.name} +${formatMoney(KOSTKA_CASH)} (Earth).`,
+    `Ledger event: Kostka — ${rocketTitle(p)} +${formatMoney(KOSTKA_CASH)} (Earth).`,
   );
   if (!state.timedEvent.firedIds.includes("kostka_dog")) {
     state.timedEvent.firedIds.push("kostka_dog");
@@ -718,11 +719,11 @@ function fireVibeKick(state: GameState): void {
       "Kick one rival rocket off the ledger.",
       chooser.agent === "human"
         ? "Dismiss this, then click an AI rocket in standings."
-        : `${chooser.name} will uninvite a rival.`,
+        : `${rocketTitle(chooser)} will uninvite a rival.`,
     ].join("\n"),
   };
   state.log.push(
-    `Ledger event: vibe-code authority — ${chooser.name} may eliminate one rival.`,
+    `Ledger event: vibe-code authority — ${rocketTitle(chooser)} may eliminate one rival.`,
   );
   // Mark as fired via special id in firedIds
   if (!state.timedEvent.firedIds.includes("vibe_kick")) {

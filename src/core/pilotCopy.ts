@@ -1,3 +1,4 @@
+import { rocketTitle } from "./pilotNames";
 import type { Player } from "./types";
 
 /**
@@ -8,23 +9,32 @@ export function isSecondPerson(p: Pick<Player, "name" | "agent">): boolean {
   return p.name === "You";
 }
 
-/** Display name for narrative (no rewrite unless still "You"). */
+/** Display name for narrative (AI ships titled; no rewrite unless still "You"). */
 export function pilotName(p: Pick<Player, "name" | "agent">): string {
-  return p.name;
+  return rocketTitle(p);
 }
 
-/** "You Prevail" / "Hopper Prevails". */
+/** "You Prevail" / "The Ada Prevails". */
 export function prevailsHeadline(p: Pick<Player, "name" | "agent">): string {
-  return isSecondPerson(p) ? "You Prevail" : `${p.name} Prevails`;
+  return isSecondPerson(p) ? "You Prevail" : `${rocketTitle(p)} Prevails`;
 }
 
-/** "You win!" / "Hopper wins!" — duel splash & similar. */
+/** "You win!" / "The Ada wins!" — duel splash & similar. Pass a display title. */
 export function winsHeadline(name: string): string {
   return name === "You" ? "You win!" : `${name} wins!`;
 }
 
-/** Full duel resolution line (grammar-safe for "You"). */
-export function duelWinSummary(winnerName: string, loserName: string): string {
+function displayOrYou(p: Pick<Player, "name" | "agent">): string {
+  return isSecondPerson(p) ? "You" : rocketTitle(p);
+}
+
+/** Full duel resolution line (grammar-safe for "You"; AI ships titled). */
+export function duelWinSummary(
+  winner: Pick<Player, "name" | "agent">,
+  loser: Pick<Player, "name" | "agent">,
+): string {
+  const winnerName = displayOrYou(winner);
+  const loserName = displayOrYou(loser);
   const winBit =
     winnerName === "You" ? "You win!" : `${winnerName} wins!`;
   const loseBit =
@@ -40,13 +50,13 @@ export function duelWinSummary(winnerName: string, loserName: string): string {
 export function lastPilotFlying(p: Pick<Player, "name" | "agent">): string {
   return isSecondPerson(p)
     ? "You are the last rocket flying."
-    : `${p.name} is the last rocket flying.`;
+    : `${rocketTitle(p)} is the last rocket flying.`;
 }
 
 export function abandonedCharter(p: Pick<Player, "name" | "agent">): string {
   return isSecondPerson(p)
     ? "You left the expedition."
-    : `${p.name} left the expedition.`;
+    : `${rocketTitle(p)} left the expedition.`;
 }
 
 /** Round-limit / NW lead line with correct person. */
@@ -56,7 +66,7 @@ export function leadsWithWorth(
 ): string {
   return isSecondPerson(p)
     ? `You lead with ${worthLabel}.`
-    : `${p.name} leads with ${worthLabel}.`;
+    : `${rocketTitle(p)} leads with ${worthLabel}.`;
 }
 
 /*
