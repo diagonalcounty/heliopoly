@@ -21,8 +21,16 @@
       <header class="top">
         <div class="top-row">
           <h1>
-            Heliopoly <span class="badge">1.1.0</span>
-            ><span class="title-tagline"> · Orbital Economics</span>
+            Heliopoly
+            <label class="badge version-picker" title="Gameplay version">
+              <select id="gameplay-mode" aria-label="Gameplay version">
+                <option value="v1">V1 Boardgame · 1.1.0</option>
+                <option value="v2" disabled>V2 Orbital economics (unshipped)</option>
+                <option value="v3" disabled>V3 Settlement (unshipped)</option>
+                <option value="v4" disabled>V4 Governance (unshipped)</option>
+              </select>
+            </label>
+            <span class="title-tagline"> · Orbital Economics</span>
           </h1>
           <div class="top-actions">
             <label class="anim-speed-field" title="Ship hops, dice, and AI pacing">

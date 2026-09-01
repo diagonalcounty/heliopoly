@@ -45,6 +45,14 @@ import {
   isOlbersStation,
   stealableClaims,
 } from "./core/turnClock";
+import {
+  GAMEPLAY_MODE_KEY,
+  GAMEPLAY_MODES,
+  modeDef,
+  modeSelectLabel,
+  parseStoredMode,
+  type GameplayModeId,
+} from "./core/gameplayMode";
 import { createGame, currentPlayer } from "./core/state";
 import {
   normalizeAiDifficulty,
@@ -169,6 +177,48 @@ function saveAnimSpeed(id: AnimSpeedId): void {
   }
 }
 
+/** Player preference: which ruleset to load (#132). Unshipped ids fall back to V1. */
+function loadGameplayMode(): GameplayModeId {
+  try {
+    const raw = localStorage.getItem(GAMEPLAY_MODE_KEY);
+    const id = parseStoredMode(raw);
+    if (modeDef(id).shipped) {
+      if (raw !== id) {
+        localStorage.setItem(GAMEPLAY_MODE_KEY, id);
+      }
+      return id;
+    }
+    localStorage.setItem(GAMEPLAY_MODE_KEY, "v1");
+    return "v1";
+  } catch {
+    /* private mode */
+  }
+  return "v1";
+}
+
+let gameplayMode: GameplayModeId = loadGameplayMode();
+
+function saveGameplayMode(id: GameplayModeId): void {
+  gameplayMode = id;
+  try {
+    localStorage.setItem(GAMEPLAY_MODE_KEY, id);
+  } catch {
+    /* ignore */
+  }
+}
+
+function paintGameplayModeSelect(sel: HTMLSelectElement): void {
+  sel.replaceChildren();
+  for (const def of GAMEPLAY_MODES) {
+    const opt = document.createElement("option");
+    opt.value = def.id;
+    opt.textContent = modeSelectLabel(def.id);
+    opt.disabled = !def.shipped;
+    sel.appendChild(opt);
+  }
+  sel.value = gameplayMode;
+}
+
 /**
  * Player preference: scale system ring band + dashed opacity (#101).
  * Peak constants = true max (slider 100%). Default slider = 50% = preferred look.
@@ -273,6 +323,39 @@ if (animSpeedSelect) {
   animSpeedSelect.addEventListener("change", () => {
     const v = animSpeedSelect.value;
     if (isAnimSpeedId(v)) saveAnimSpeed(v);
+  });
+}
+
+const gameplayModeSelect = document.getElementById(
+  "gameplay-mode",
+) as HTMLSelectElement | null;
+if (gameplayModeSelect) {
+  paintGameplayModeSelect(gameplayModeSelect);
+  gameplayModeSelect.addEventListener("change", () => {
+    const next = parseStoredMode(gameplayModeSelect.value);
+    if (!modeDef(next).shipped) {
+      gameplayModeSelect.value = gameplayMode;
+      return;
+    }
+    if (next === gameplayMode) return;
+    const live = !!state && state.phase !== "game_over";
+    if (live) {
+      const ok = window.confirm(
+        "Switch gameplay version? This ends the current match.",
+      );
+      if (!ok) {
+        gameplayModeSelect.value = gameplayMode;
+        return;
+      }
+    }
+    saveGameplayMode(next);
+    state = null;
+    visualNode = {};
+    setBusy(false);
+    hideEndScreen();
+    btnQuit.classList.add("hidden");
+    setSetupCollapsed(false);
+    render();
   });
 }
 

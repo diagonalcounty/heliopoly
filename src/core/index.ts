@@ -19,3 +19,4 @@ export * from "./lunarRangeTable";
 export * from "./links";
 export * from "./goingUnder";
 export * from "./claimLedger";
+export * from "./gameplayMode";
