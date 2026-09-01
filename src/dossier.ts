@@ -4,7 +4,7 @@
  */
 import {
   buildDossierView,
-  formatRoiLine,
+  formatMarkIncomeLine,
   hubNetworkLabel,
   type DossierView,
 } from "./core/claimLedger";
@@ -24,7 +24,7 @@ function escapeHtml(s: string): string {
 }
 
 export interface DossierController {
-  open: (playerId: string) => void;
+  open: (playerId: string, focusNodeId?: string) => void;
   close: () => void;
   isOpen: () => boolean;
   refresh: () => void;
@@ -44,6 +44,8 @@ export function mountDossier(
   let playerId: string | null = null;
   /** Claim with the inline reserve form expanded (#140). */
   let askNodeId: string | null = null;
+  /** Claim to highlight after open (underfoot Books); not an auto-sell. */
+  let focusNodeId: string | null = null;
 
   root.classList.add("handbook", "dossier");
   root.innerHTML = `
@@ -75,6 +77,7 @@ export function mountDossier(
   function hide(): void {
     open = false;
     askNodeId = null;
+    focusNodeId = null;
     root.classList.add("hidden");
     root.setAttribute("aria-hidden", "true");
     if (
@@ -91,6 +94,15 @@ export function mountDossier(
     root.setAttribute("aria-hidden", "false");
     document.body.classList.add("handbook-open");
     paint();
+    requestAnimationFrame(scrollFocusIntoView);
+  }
+
+  function scrollFocusIntoView(): void {
+    if (!focusNodeId) return;
+    const row = bodyEl.querySelector(".dossier-row-focus");
+    if (row instanceof HTMLElement) {
+      row.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
   }
 
   function paint(): void {
@@ -106,7 +118,7 @@ export function mountDossier(
     }
     titleEl.textContent = view.name;
     swatchEl.style.background = view.color;
-    bodyEl.innerHTML = renderDossier(view, askNodeId);
+    bodyEl.innerHTML = renderDossier(view, askNodeId, focusNodeId);
     const form = bodyEl.querySelector("[data-auction-form]");
     if (form) {
       const input = form.querySelector(
@@ -187,8 +199,9 @@ export function mountDossier(
   });
 
   return {
-    open: (id: string) => {
+    open: (id: string, nodeId?: string) => {
       playerId = id;
+      focusNodeId = nodeId ?? null;
       show();
     },
     close: hide,
@@ -205,7 +218,11 @@ function handbookTopicForName(name: string): string {
   return pilot ? `pilot-${pilot.id}` : "rival-pilots-overview";
 }
 
-function renderDossier(view: DossierView, askNodeId: string | null): string {
+function renderDossier(
+  view: DossierView,
+  askNodeId: string | null,
+  focusNodeId: string | null,
+): string {
   const prop = PROPELLANTS[view.propellant].short;
   const topic = handbookTopicForName(view.name);
   const bioLabel =
@@ -219,11 +236,11 @@ function renderDossier(view: DossierView, askNodeId: string | null): string {
         .join(" · ")}</p>`
     : "";
   const sellHint = view.canSell
-    ? `<p class="hint">Sell pays half the deed and scraps the depot. Auction lets you set a reserve at or above that half-price mark (up to the deed price); a winning bid keeps the depot and grants you one free landing. Each claim may be auctioned once per turn.</p>`
+    ? `<p class="hint">Sell pays the Mark (half the bank sticker) and scraps the depot. Auction reserve defaults to the Mark; you may raise it up to MSRP. A winning bid keeps the depot and grants you one free landing. Each claim may be auctioned once per turn.</p>`
     : "";
 
   const groups = view.groups.length
-    ? view.groups.map((g) => renderGroup(g, view, askNodeId)).join("")
+    ? view.groups.map((g) => renderGroup(g, view, askNodeId, focusNodeId)).join("")
     : `<p class="hint">No claims on the ledger.</p>`;
 
   return `
@@ -257,6 +274,7 @@ function renderGroup(
   g: DossierView["groups"][number],
   view: DossierView,
   askNodeId: string | null,
+  focusNodeId: string | null,
 ): string {
   const flag = g.monopoly ? ` · MONOPOLY rent ×2` : "";
   const rows = g.rows.map((row) => {
@@ -283,7 +301,7 @@ function renderGroup(
                   data-dossier-reserve-input
                 />
               </label>
-              <span class="dossier-row-sub">mark ${formatMoney(row.bankValue)} · deed ${formatMoney(row.listPrice)}</span>
+              <span class="dossier-row-sub">Mark ${formatMoney(row.bankValue)} · MSRP ${formatMoney(row.listPrice)}</span>
               <button type="button" class="primary" data-dossier-auction-go="${row.nodeId}">Ask ${formatMoney(row.bankValue)}</button>
               <button type="button" data-dossier-auction-cancel>Cancel</button>
             </div>`
@@ -292,11 +310,12 @@ function renderGroup(
               <button type="button" class="primary" data-dossier-auction="${row.nodeId}" ${listed ? "disabled" : ""}>${listed ? "Listed this turn" : "Auction"}</button>
             </div>`;
     }
-    return `<li class="dossier-row">
+    const focused = focusNodeId === row.nodeId ? " dossier-row-focus" : "";
+    return `<li class="dossier-row${focused}" data-node-id="${escapeHtml(row.nodeId)}">
       <div class="dossier-row-main">
         <strong>${escapeHtml(row.name)}</strong>
-        <span class="dossier-row-sub">${formatMoney(row.listPrice)} deed · rent now ${formatMoney(row.rentNow)}${depot}${hub}</span>
-        <span class="dossier-row-roi">${escapeHtml(formatRoiLine(row))}</span>
+        <span class="dossier-row-sub"><span class="dossier-row-mark">Mark ${formatMoney(row.bankValue)}</span> · <span class="dossier-row-msrp">MSRP ${formatMoney(row.listPrice)}</span> · rent now ${formatMoney(row.rentNow)}${depot}${hub}</span>
+        <span class="dossier-row-book">${escapeHtml(formatMarkIncomeLine(row))}</span>
       </div>
       ${actions}
     </li>`;

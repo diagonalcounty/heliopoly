@@ -1990,7 +1990,7 @@ btnSell.addEventListener("click", () => {
   if (!state) return;
   const legal = getLegalActions(state);
   if (legal.sell && legal.sellNodeId) {
-    void act({ type: "sell", nodeId: legal.sellNodeId });
+    dossier.open(currentPlayer(state).id, legal.sellNodeId);
   }
 });
 btnStation.addEventListener("click", () => void act({ type: "place_station" }));
@@ -2454,11 +2454,7 @@ function renderSide(): void {
     if (routeHoverStop !== null) routeHoverStop = null;
   }
 
-  if (legal.sell) {
-    btnSell.textContent = `Sell (${formatMoney(legal.sellValue)})`;
-  } else {
-    btnSell.textContent = "Sell claim";
-  }
+  btnSell.textContent = "Books";
 
   if (legal.buy) btnBuy.textContent = `Buy (${formatMoney(legal.buyPrice)})`;
   else {
