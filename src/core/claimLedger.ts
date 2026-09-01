@@ -14,12 +14,14 @@ import {
   STATION_HUB_IDS,
   type SystemId,
 } from "./systems";
-import type {
-  ClaimBook,
-  GameState,
-  Player,
-  PendingAuction,
-  PropertyLedgerRow,
+import {
+  normalizeAiDifficulty,
+  type AiDifficulty,
+  type ClaimBook,
+  type GameState,
+  type Player,
+  type PendingAuction,
+  type PropertyLedgerRow,
 } from "./types";
 
 function currentRent(state: GameState, nodeId: string, ownerId: string): number {
@@ -353,52 +355,333 @@ export function formatAuctionResult(
   };
 }
 
+/** Cash to keep after a bid so the rocket can still fly. */
+function liquidityFloor(difficulty: AiDifficulty): number {
+  switch (difficulty) {
+    case "easy":
+      return 400;
+    case "expert":
+      return 60;
+    case "hard":
+      return 100;
+    default:
+      return 150;
+  }
+}
+
+interface AuctionFlags {
+  completesSet: boolean;
+  extendsHub: boolean;
+  completesHubs: boolean;
+  deniesSet: boolean;
+  deniesHub: boolean;
+  hasDepot: boolean;
+  junk: boolean;
+}
+
+function wouldCompleteSystem(
+  state: GameState,
+  playerId: string,
+  nodeId: string,
+): boolean {
+  const node = getNode(state.board, nodeId);
+  const sys = systemOfGroup(node.group);
+  if (!sys) return false;
+  return sys.deedIds.every(
+    (id) => id === nodeId || state.owners[id] === playerId,
+  );
+}
+
+function rivalWouldCompleteSystem(
+  state: GameState,
+  bidderId: string,
+  nodeId: string,
+): boolean {
+  const node = getNode(state.board, nodeId);
+  const sys = systemOfGroup(node.group);
+  if (!sys || sys.deedIds.length <= 1) return false;
+  return state.players.some((p) => {
+    if (p.eliminated || p.id === bidderId) return false;
+    const ownsRest = sys.deedIds.every(
+      (id) => id === nodeId || state.owners[id] === p.id,
+    );
+    const alreadyIn = sys.deedIds.some(
+      (id) => id !== nodeId && state.owners[id] === p.id,
+    );
+    return ownsRest && alreadyIn;
+  });
+}
+
+function rivalWouldCompleteHubNet(
+  state: GameState,
+  bidderId: string,
+  nodeId: string,
+): boolean {
+  if (!isStationHub(nodeId)) return false;
+  return state.players.some((p) => {
+    if (p.eliminated || p.id === bidderId) return false;
+    return stationHubsOwned(state.owners, p.id) >= 2;
+  });
+}
+
+function auctionFlags(
+  state: GameState,
+  bidder: Player,
+  nodeId: string,
+): AuctionFlags {
+  const node = getNode(state.board, nodeId);
+  const rent = node.rent ?? 0;
+  const isHub = isStationHub(nodeId);
+  const hubsNow = stationHubsOwned(state.owners, bidder.id);
+  const completesSet = wouldCompleteSystem(state, bidder.id, nodeId);
+  const extendsHub = isHub && hubsNow >= 1;
+  const completesHubs = isHub && hubsNow >= 2;
+  return {
+    completesSet,
+    extendsHub,
+    completesHubs,
+    deniesSet: rivalWouldCompleteSystem(state, bidder.id, nodeId),
+    deniesHub: rivalWouldCompleteHubNet(state, bidder.id, nodeId),
+    hasDepot: !!state.stations[nodeId],
+    junk: !isHub && rent < 50 && !completesSet && !extendsHub,
+  };
+}
+
+/** True if this seat would claim the body on landing (afford list, not stranded). */
+function wouldBuyOnLanding(
+  bidder: Player,
+  list: number,
+  difficulty: AiDifficulty,
+): boolean {
+  if (list <= 0) return false;
+  const cushion =
+    difficulty === "easy" ? 250 : difficulty === "expert" ? 80 : 150;
+  return bidder.cash >= list + cushion;
+}
+
+/**
+ * Max willing bid before "I'd rather wait / skip" (not what the owner can cash out).
+ * List is the unowned bank sticker; Earth cash is liquidity only.
+ */
+function valueClaim(
+  state: GameState,
+  auction: PendingAuction,
+  difficulty: AiDifficulty,
+  flags: AuctionFlags,
+): number {
+  const node = getNode(state.board, auction.nodeId);
+  const list = node.price ?? auction.reserve * 2;
+  const floor = auction.reserve;
+  const rent = node.rent ?? 0;
+
+  let ratio =
+    difficulty === "expert"
+      ? 0.9
+      : difficulty === "hard"
+        ? 0.82
+        : difficulty === "easy"
+          ? 0.5
+          : 0.6;
+
+  if (flags.completesSet) {
+    ratio =
+      difficulty === "expert"
+        ? 1.25
+        : difficulty === "hard"
+          ? 1.1
+          : difficulty === "normal"
+            ? 0.85
+            : 0.5;
+  } else if (flags.completesHubs) {
+    ratio =
+      difficulty === "expert"
+        ? 1.15
+        : difficulty === "hard"
+          ? 1.0
+          : difficulty === "normal"
+            ? 0.75
+            : 0.5;
+  } else if (flags.extendsHub) {
+    const hubRatio =
+      difficulty === "expert"
+        ? 0.95
+        : difficulty === "hard"
+          ? 0.88
+          : difficulty === "normal"
+            ? 0.7
+            : 0.5;
+    ratio = Math.max(ratio, hubRatio);
+  }
+
+  if (flags.deniesSet || flags.deniesHub) {
+    if (difficulty === "expert") ratio = Math.max(ratio, 1.1);
+    else if (difficulty === "hard") ratio = Math.max(ratio, 0.9);
+    else if (difficulty === "normal") ratio = Math.max(ratio, 0.62);
+  }
+
+  let fairCap = Math.floor(list * ratio);
+
+  if (flags.hasDepot && difficulty !== "easy") {
+    const prem =
+      difficulty === "expert" ? 0.08 : difficulty === "hard" ? 0.06 : 0.03;
+    fairCap += Math.floor(list * prem);
+  }
+
+  if (
+    difficulty === "normal" &&
+    !flags.completesSet &&
+    !flags.extendsHub &&
+    !flags.completesHubs
+  ) {
+    fairCap = Math.max(fairCap, floor + Math.floor(rent * 1.2));
+    fairCap = Math.min(fairCap, Math.floor(list * 0.65));
+  }
+
+  return Math.max(0, fairCap);
+}
+
+function contestChip(
+  floor: number,
+  difficulty: AiDifficulty,
+  rngState: number,
+  salt: string,
+): number {
+  if (difficulty === "easy") return 0;
+  const n = unitNoise(rngState, salt);
+  if (difficulty === "normal") {
+    const pct = 0.01 + n * 0.04;
+    return Math.max(1, Math.floor(floor * pct));
+  }
+  if (difficulty === "hard") {
+    const pct = 0.03 + n * 0.05;
+    return Math.max(2, Math.floor(floor * pct));
+  }
+  const pct = 0.05 + n * 0.07;
+  return Math.max(3, Math.floor(floor * pct));
+}
+
+function seatWantsClaim(
+  state: GameState,
+  player: Player,
+  auction: PendingAuction,
+  difficulty: AiDifficulty,
+): boolean {
+  if (player.eliminated || player.id === auction.sellerId) return false;
+  if (player.cash < auction.reserve) return false;
+  const node = getNode(state.board, auction.nodeId);
+  const flags = auctionFlags(state, player, auction.nodeId);
+  if (flags.completesSet || flags.extendsHub || flags.completesHubs) return true;
+  if (
+    (flags.deniesSet || flags.deniesHub) &&
+    (difficulty === "hard" || difficulty === "expert")
+  ) {
+    return true;
+  }
+  if (flags.junk) return false;
+  return wouldBuyOnLanding(player, node.price ?? 0, difficulty);
+}
+
+function standingBid(auction: PendingAuction, bidderId: string): number {
+  let top = 0;
+  for (const [id, amt] of Object.entries(auction.bids)) {
+    if (id === bidderId || amt < auction.reserve) continue;
+    if (amt > top) top = amt;
+  }
+  return top;
+}
+
 /**
  * How much an AI seat bids (0 = pass). Reserve is the floor.
- * Completing a system or hub set bids up; easy seats often pass.
+ * Optional `difficultyOverride` is per-seat skill (Sim Lab / heuristicAI).
  */
 export function chooseAuctionBid(
   state: GameState,
   bidder: Player,
   auction: PendingAuction,
+  difficultyOverride?: AiDifficulty,
 ): number {
-  const reserve = auction.reserve;
-  if (bidder.cash < reserve) return 0;
+  const floor = auction.reserve;
+  if (bidder.cash < floor) return 0;
+  const difficulty = normalizeAiDifficulty(
+    difficultyOverride ?? state.config.aiDifficulty,
+  );
+  const need = liquidityFloor(difficulty);
+  const liquidity = bidder.cash - need;
+  if (liquidity < floor) return 0;
+
   const node = getNode(state.board, auction.nodeId);
-  const difficulty = state.config.aiDifficulty;
-  const keep = difficulty === "easy" ? 400 : difficulty === "expert" ? 80 : 150;
-  const maxBid = bidder.cash - keep;
-  if (maxBid < reserve) return 0;
+  const list = node.price ?? floor * 2;
+  const flags = auctionFlags(state, bidder, auction.nodeId);
+  const salt = `${bidder.id}:${auction.nodeId}`;
 
-  const sys = systemOfGroup(node.group);
-  let completesSet = false;
-  if (sys) {
-    completesSet = sys.deedIds.every(
-      (id) => id === auction.nodeId || state.owners[id] === bidder.id,
-    );
-  }
-  const hubsNow = stationHubsOwned(state.owners, bidder.id);
-  const bidderWouldGainHub =
-    isStationHub(auction.nodeId) && state.owners[auction.nodeId] !== bidder.id;
-  const completesHubs = bidderWouldGainHub && hubsNow >= 1;
-
-  const price = node.price ?? reserve * 2;
-  let want = 0;
-  if (completesSet) {
-    const mult = difficulty === "expert" ? 1.25 : difficulty === "hard" ? 1.1 : 0.95;
-    want = Math.max(reserve, Math.floor(price * mult));
-  } else if (completesHubs) {
-    want = Math.max(reserve, Math.floor(price * (difficulty === "easy" ? 0.6 : 0.85)));
-  } else if (difficulty === "easy") {
-    const noise = unitNoise(state.rngState, bidder.id + auction.nodeId);
-    want = noise > 0.72 ? reserve : 0;
-  } else if (bidder.cash >= reserve + keep + 200) {
-    const rent = node.rent ?? 0;
-    if (isStationHub(auction.nodeId) || rent >= 50) want = reserve;
+  if (difficulty === "easy") {
+    const flush = bidder.cash >= floor + need + 200;
+    if (!flush) return 0;
+    const noise = unitNoise(state.rngState, salt);
+    if (flags.completesSet || noise > 0.72) return floor;
+    return 0;
   }
 
-  if (want <= 0) return 0;
-  return Math.min(maxBid, Math.max(reserve, want));
+  const wantBuy = wouldBuyOnLanding(bidder, list, difficulty);
+  const strategic =
+    flags.completesSet || flags.extendsHub || flags.completesHubs;
+  const deny =
+    (flags.deniesSet || flags.deniesHub) &&
+    (difficulty === "hard" || difficulty === "expert");
+
+  if (!wantBuy && !strategic && !deny) return 0;
+  if (flags.junk && !strategic && !deny) return 0;
+
+  const fairCap = valueClaim(state, auction, difficulty, flags);
+  if (fairCap < floor) return 0;
+
+  let target = Math.max(floor, Math.min(fairCap, liquidity));
+
+  const humanIn = state.players.some(
+    (p) => p.agent === "human" && !p.eliminated && p.id !== auction.sellerId,
+  );
+  const aiWant = state.players.filter(
+    (p) =>
+      p.agent === "ai" &&
+      p.id !== auction.sellerId &&
+      seatWantsClaim(state, p, auction, difficulty),
+  ).length;
+  const contest = humanIn || aiWant >= 1;
+  const chip = contestChip(floor, difficulty, state.rngState, salt);
+
+  if (contest) {
+    target = Math.max(target, Math.min(liquidity, floor + chip));
+  }
+  if (aiWant >= 2) {
+    const cap = Math.min(fairCap, liquidity);
+    const frac =
+      difficulty === "expert" ? 0.9 : difficulty === "hard" ? 0.7 : 0.45;
+    const bumped = floor + Math.floor((cap - floor) * frac);
+    target = Math.max(target, Math.min(cap, bumped));
+  }
+
+  const standing = standingBid(auction, bidder.id);
+  if (standing > 0) {
+    const raiseBy =
+      difficulty === "expert" || strategic || deny ? Math.max(1, chip) : 1;
+    const beat = standing + raiseBy;
+    const cap = Math.min(fairCap, liquidity);
+    if (beat <= cap) target = Math.max(target, beat);
+    else if (cap > standing) target = Math.max(target, cap);
+    else return 0;
+  }
+
+  const critical =
+    flags.completesSet ||
+    flags.completesHubs ||
+    ((flags.deniesSet || flags.deniesHub) &&
+      (difficulty === "hard" || difficulty === "expert"));
+  if (critical && (difficulty === "expert" || difficulty === "hard")) {
+    target = Math.min(fairCap, liquidity);
+  }
+
+  if (target < floor) return 0;
+  return Math.min(liquidity, Math.max(floor, Math.floor(target)));
 }
 
 function unitNoise(rngState: number, extra: string): number {

@@ -375,6 +375,7 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
   <li><strong>Mark</strong> — half the deed. What the bank pays on a dump; the guaranteed floor.</li>
   <li><strong>Reserve</strong> — your ask. Defaults to the mark; raise it up to the deed price when the table is flush (hub, monopoly piece, a depot that survives auction). The bank still pays only the mark if you later dump.</li>
 </ul>
+<p>Clearance is the winning bid, and it can sit above the mark. Rivals bid from the floor plus a premium for set-complete, hubs, and a depot that stays with the claim. Earth cash is liquidity only — it does not raise what a body is worth. On Normal and above, mark+1 is not a reliable snipe.</p>
 <p>Highest bid at or above your reserve wins. Ties go to the next seat after the seller.</p>
 <ul>
   <li>You get the cash.</li>
