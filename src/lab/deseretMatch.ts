@@ -4,12 +4,12 @@
  * Practice only — no GameState / src/core.
  *
  * Each round starts with a 3s aligned-alphabet preview (capitals over Latin)
- * before the 4-choice quiz. Preview is once per round (open + Play again).
+ * before the 2-choice quiz. Preview is once per round (open + Play again).
  */
 
 export const ROUND_LENGTH = 10;
 export const WIN_CORRECT = 8;
-export const CHOICE_COUNT = 4;
+export const CHOICE_COUNT = 2;
 /** Seconds the alignment chart is on screen before the quiz (3, then 2, then 1). */
 export const PREVIEW_TICKS = 3;
 
@@ -50,7 +50,7 @@ export const DESERET_INVENTORY: readonly DeseretGlyph[] = [
 
 export interface DeseretPrompt {
   glyph: DeseretGlyph;
-  /** Four Latin labels: 1 correct + 3 inventory distractors. */
+  /** Two Latin labels: 1 correct + 1 inventory distractor. */
   choices: string[];
 }
 
@@ -105,7 +105,7 @@ function pickDistinct<T>(pool: readonly T[], n: number, rng: Rng): T[] {
   return out;
 }
 
-/** 4-choice prompt; distractors are other inventory Latin labels. */
+/** 2-choice prompt; the distractor is another inventory Latin label. */
 export function dealPrompt(
   rng: Rng = Math.random,
   usedIds: readonly string[] = [],

@@ -81,7 +81,7 @@ function skipPreview(s: DeseretState): DeseretState {
   const rng = mulberry32(79);
   for (let i = 0; i < 40; i++) {
     const p = dealPrompt(rng);
-    assert(p.choices.length === CHOICE_COUNT, `deal ${i}: 4 choices`);
+    assert(p.choices.length === CHOICE_COUNT, `deal ${i}: 2 choices`);
     assert(p.choices.includes(p.glyph.latin), `deal ${i}: correct latin is among choices`);
     assert(new Set(p.choices).size === CHOICE_COUNT, `deal ${i}: choices are unique`);
     const inventory = new Set(latinLabels());
@@ -90,7 +90,7 @@ function skipPreview(s: DeseretState): DeseretState {
       `deal ${i}: distractors come from inventory`,
     );
     const others = p.choices.filter((c) => c !== p.glyph.latin);
-    assert(others.length === 3, `deal ${i}: three distractors`);
+    assert(others.length === CHOICE_COUNT - 1, `deal ${i}: one distractor`);
   }
 }
 
@@ -117,7 +117,7 @@ function skipPreview(s: DeseretState): DeseretState {
   assert(s2.phase === "preview" && s2.previewCountdown === 1, "tick 2 shows 1");
   const s3 = tickPreview(s2);
   assert(s3.phase === "playing" && s3.previewCountdown === 0, "tick 3 starts the quiz");
-  assert(s3.prompt.choices.length === CHOICE_COUNT, "playing has 4 options");
+  assert(s3.prompt.choices.length === CHOICE_COUNT, "playing has 2 options");
   assert(s3.prompt.glyph.id === s0.prompt.glyph.id, "first quiz glyph is the deal from start");
   assert(isCorrectChoice(s3, s3.prompt.glyph.latin), "grade: correct latin matches glyph");
   assert(!isCorrectChoice(s3, "ZZ"), "grade: unknown latin is wrong");
@@ -150,7 +150,7 @@ function skipPreview(s: DeseretState): DeseretState {
     assert(s.revealedLatin === s.prompt.glyph.latin, `miss ${i}: revealed latin is the answer`);
     assert(
       s.prompt.choices.includes(s.revealedLatin!),
-      `miss ${i}: answer is one of the four buttons`,
+      `miss ${i}: answer is one of the two buttons`,
     );
     s = advanceDeseret(s, rng);
   }
@@ -198,7 +198,7 @@ function skipPreview(s: DeseretState): DeseretState {
   assert(s.asked === 0 && s.correct === 0, "Play again resets counters");
   s = skipPreview(s);
   assert(s.phase === "playing", "after preview ticks, Play again is playing");
-  assert(s.prompt.choices.length === CHOICE_COUNT, "Play again deal has 4 options");
+  assert(s.prompt.choices.length === CHOICE_COUNT, "Play again deal has 2 options");
 }
 
 if (failed) {

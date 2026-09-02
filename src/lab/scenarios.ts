@@ -175,7 +175,7 @@ export const LAB_SCENARIOS: LabScenario[] = [
     id: "deseret-match",
     title: "Deseret letters",
     blurb:
-      "Twelve Deseret capitals. Match the glyph to its Latin letter. Eight of ten wins; misses show the answer.",
+      "Twelve Deseret capitals. Two Latin letters: pick the match. Eight of ten wins; misses show the answer.",
     group: "minigame",
     kind: "standalone",
     available: true,
