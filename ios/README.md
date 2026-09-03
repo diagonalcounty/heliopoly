@@ -23,7 +23,7 @@ open ios/Heliopoly/Heliopoly.xcodeproj
 In Xcode:
 
 1. Select the **Heliopoly** scheme (shared).
-2. Pick an **iPad** simulator (or iPhone).
+2. Pick an **iPhone or iPad** simulator (universal).
 3. Set your **Team** under Signing & Capabilities if needed (empty `DEVELOPMENT_TEAM` in project until you pick one).
 4. **Run** (⌘R).
 
@@ -31,7 +31,7 @@ In Xcode:
 
 ```text
 ios/Heliopoly/
-  Heliopoly.xcodeproj/     # project + shared schemes (Heliopoly, HeliopolyPhone)
+  Heliopoly.xcodeproj/     # project + shared scheme (Heliopoly); Phone prototype has no shared scheme
   WebDist/                 # Vite production build (npm run ios:sync)
   Heliopoly/
     HeliopolyApp.swift     # iPad @main
@@ -118,13 +118,15 @@ Mini layout CSS: portrait `max-width: 780px`; landscape mini height band `max-he
 
 ## App Store
 
+Archive the **Heliopoly** scheme only (bundle `heliopoly.live.Heliopoly`). Do not archive HeliopolyPhone — different bundle; creates a duplicate ASC app. See `Heliopoly/APP_STORE_ARCHIVE.md`.
+
 Full listing copy, privacy answers, review notes, screenshot checklist, and export-compliance answers live in:
 
 **[`Heliopoly/AppStore/LISTING.md`](Heliopoly/AppStore/LISTING.md)**
 
 | Item | Status |
 |------|--------|
-| Display name / version | Heliopoly · **1.0.0** (build 1) |
+| Display name / version | Heliopoly · **1.3.x** (set in Xcode before archive) |
 | Bundle ID | `heliopoly.live.Heliopoly` |
 | Category | Games |
 | App icon 1024 | `Heliopoly/Assets.xcassets/AppIcon.appiconset/` (+ marketing `AppStore/AppIcon-1024.png`) |
@@ -132,7 +134,7 @@ Full listing copy, privacy answers, review notes, screenshot checklist, and expo
 | Privacy Manifest | `PrivacyInfo.xcprivacy` — no tracking / no collected types |
 | Privacy Policy URL | https://heliopoly.live/privacy.html (`public/privacy.html` in monorepo — deploy before submit) |
 | Support URL | https://github.com/diagonalcounty/heliopoly/issues |
-| Devices | Currently **iPad** (`TARGETED_DEVICE_FAMILY = 2`) |
+| Devices | **iPhone + iPad** (`TARGETED_DEVICE_FAMILY = 1,2`) |
 | Review notes | Offline bundled game via `heliopoly://` — not a remote browser |
 
 Paid Apple Developer Program required to upload. See issue **#66**.
