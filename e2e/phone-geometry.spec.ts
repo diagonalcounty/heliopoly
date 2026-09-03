@@ -478,6 +478,41 @@ test.describe("phone Lab sheet #193", () => {
     const rollAfter = await hitAt(page, roll.x, roll.y);
     expect(rollAfter?.id, "Roll tappable after Lab close").toBe("btn-roll");
   });
+
+  test("minigame cards do not clip blurbs", async ({ page }) => {
+    await launch(page);
+    await page.locator("#btn-lab").click();
+    await page
+      .locator('.lab-group-toggle[aria-controls="lab-group-items-minigame"]')
+      .click();
+    await expect(page.locator("#lab-group-items-minigame")).toBeVisible();
+
+    const report = await page.evaluate(() => {
+      const cards = [
+        ...document.querySelectorAll("#lab-group-items-minigame .lab-scenario"),
+      ] as HTMLElement[];
+      return cards.map((el) => {
+        const blurb = el.querySelector(".lab-scenario-blurb") as HTMLElement | null;
+        return {
+          title: el.querySelector(".lab-scenario-title")?.textContent ?? "",
+          cardClips: el.scrollHeight > el.clientHeight + 1,
+          blurbClips: blurb ? blurb.scrollHeight > blurb.clientHeight + 1 : true,
+          blurb: blurb?.textContent?.trim() ?? "",
+        };
+      });
+    });
+    expect(report.length, "minigame cards").toBeGreaterThanOrEqual(5);
+    for (const row of report) {
+      expect(row.cardClips, `${row.title} card clips its copy`).toBe(false);
+      expect(row.blurbClips, `${row.title} blurb clips`).toBe(false);
+      expect(row.blurb.length, `${row.title} has a blurb`).toBeGreaterThan(12);
+    }
+
+    const last = page.locator("#lab-group-items-minigame .lab-scenario").last();
+    await last.scrollIntoViewIfNeeded();
+    const box = await boxOf(page, "#lab-group-items-minigame .lab-scenario:last-child");
+    expect(box.onControl, "last minigame card is tappable").toBe(true);
+  });
 });
 
 test.describe("phone Lab egg-bot-evolution #203", () => {
