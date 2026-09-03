@@ -124,7 +124,7 @@ Full listing copy, privacy answers, review notes, screenshot checklist, and expo
 
 | Item | Status |
 |------|--------|
-| Display name / version | Heliopoly · **1.0.0** (build 1) |
+| Display name / version | Heliopoly · **1.3.0** (build 3) |
 | Bundle ID | `heliopoly.live.Heliopoly` |
 | Category | Games |
 | App icon 1024 | `Heliopoly/Assets.xcassets/AppIcon.appiconset/` (+ marketing `AppStore/AppIcon-1024.png`) |
