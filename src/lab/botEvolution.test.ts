@@ -40,6 +40,12 @@ import {
   type BotState,
   type PieceId,
 } from "./botEvolution";
+import {
+  availableLookKinds,
+  blankDirs,
+  liveDirs,
+  pickLookDir,
+} from "./botevoFaces";
 
 let failed = 0;
 function assert(cond: unknown, msg: string): void {
@@ -372,6 +378,36 @@ assert(!socketsMeet("l-ne", "i", DIR_S), "L-NE has no south pin");
   s = dropPiece(s, 4, "i");
   assert(s.boxes === 0, "I does not complete a horizontal dash");
   assert(countPieces(s.grid) === 5, "all five pieces remain");
+}
+
+{
+  assert(liveDirs("plus").length === 4, "plus has 4 live look dirs");
+  assert(blankDirs("plus").length === 0, "plus has no blank sides");
+  assert(availableLookKinds("plus").join() === "live", "plus only looks at live");
+  assert(pickLookDir("plus", "blank") === null, "plus cannot look at blank");
+  const plusLive = pickLookDir("plus", "live", () => 0);
+  assert(plusLive !== null && plusLive.mouth === "smile", "live look smiles");
+  assert(
+    plusLive !== null && (PIECE_SOCKETS.plus & plusLive.dir) !== 0,
+    "live look dir is a plus socket",
+  );
+
+  assert(liveDirs("i").join() === `${DIR_N},${DIR_S}`, "I live is N+S");
+  assert(blankDirs("i").join() === `${DIR_E},${DIR_W}`, "I blank is E+W");
+  const iBlank = pickLookDir("i", "blank", () => 0);
+  assert(iBlank !== null && iBlank.mouth === "hope", "blank look is hopeful");
+  assert(iBlank !== null && iBlank.name === "e", "rng 0 picks first blank (E)");
+  assert(
+    iBlank !== null && (PIECE_SOCKETS.i & iBlank.dir) === 0,
+    "blank look dir is not an I socket",
+  );
+
+  const dashLive = pickLookDir("dash", "live", () => 0.99);
+  assert(
+    dashLive !== null && (dashLive.name === "e" || dashLive.name === "w"),
+    "dash live look is E or W only",
+  );
+  assert(pickLookDir("dash", "blank", () => 0)?.name === "n", "dash blank can be N");
 }
 
 if (failed) {
