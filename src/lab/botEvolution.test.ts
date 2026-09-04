@@ -27,6 +27,7 @@ import {
   LOCK_GRACE_TICKS,
   quotaForLevel,
   pieceArt,
+  queuePixelStrength,
   recycleBottomRow,
   SHELL_FILL,
   connectorKind,
@@ -320,6 +321,64 @@ assert(!socketsMeet("l-ne", "i", DIR_S), "L-NE has no south pin");
   // After the promoting morph, bottom row was recycled (column may be empty).
   assert(s.queue.length === BOT_QUEUE, "promoted game keeps 6-slot queue");
   assert(s.recycleSharp.length === BOT_QUEUE, "promoted recycleSharp length 6");
+}
+
+{
+  const none = [false, false, false, false, false, false];
+  assert(queuePixelStrength(0, none) === null, "slot 1 always sharp");
+  assert(queuePixelStrength(1, none) === null, "slot 2 sharp by default");
+  assert(queuePixelStrength(2, none) === null, "slot 3 sharp by default");
+  assert(queuePixelStrength(3, none) === "light", "slot 4 light");
+  assert(queuePixelStrength(4, none) === "medium", "slot 5 medium");
+  assert(queuePixelStrength(5, none) === "heavy", "slot 6 heavy");
+
+  const recycled = [false, true, true, true, true, true];
+  assert(queuePixelStrength(0, recycled) === null, "slot 1 stays sharp on recycle");
+  assert(queuePixelStrength(1, recycled) === null, "recycled slot 2 sharp");
+  assert(queuePixelStrength(5, recycled) === null, "recycled slot 6 sharp");
+
+  // New bag bot enters slot 6 while older recycle occupants remain sharp above.
+  const fading = [false, true, true, true, true, false];
+  assert(queuePixelStrength(5, fading) === "heavy", "new slot 6 is heavy");
+  assert(queuePixelStrength(4, fading) === null, "still-recycled slot 5 sharp");
+  assert(queuePixelStrength(3, fading) === null, "still-recycled slot 4 sharp");
+}
+
+{
+  let s = startBotEvo(22);
+  const bottom = BOT_ROWS - 1;
+  s = {
+    ...s,
+    grid: s.grid.map((row) => row.slice()),
+    queue: s.queue.slice(),
+    bag: s.bag.slice(),
+    recycleSharp: s.recycleSharp.slice(),
+    justRecycled: [],
+  };
+  for (let c = 0; c < BOT_COLS; c++) s.grid[bottom]![c] = "dash";
+  s = recycleBottomRow(s);
+  assert(
+    s.recycleSharp.slice(1).every(Boolean),
+    "full recycle marks 2–6 sharp",
+  );
+  assert(queuePixelStrength(3, s.recycleSharp) === null, "recycle beat slot 4 sharp");
+  assert(queuePixelStrength(5, s.recycleSharp) === null, "recycle beat slot 6 sharp");
+
+  // Each spawn shifts sharp flags; new bag piece at the end is not sharp.
+  s = dropPiece(s, 0, "plus");
+  assert(s.recycleSharp[5] === false, "new bag bot in slot 6 not sharp");
+  assert(queuePixelStrength(5, s.recycleSharp) === "heavy", "post-recycle slot 6 heavy");
+  assert(s.recycleSharp[4] === true, "prior recycle occupant still sharp in slot 5");
+  assert(queuePixelStrength(4, s.recycleSharp) === null, "slot 5 still sharp");
+
+  s = dropPiece(s, 1, "plus");
+  assert(s.recycleSharp[4] === false, "next new bot lands in slot 5");
+  assert(queuePixelStrength(4, s.recycleSharp) === "medium", "slot 5 medium after refill");
+  assert(queuePixelStrength(3, s.recycleSharp) === null, "slot 4 still recycled-sharp");
+
+  s = dropPiece(s, 2, "plus");
+  assert(s.recycleSharp[3] === false, "third new bot lands in slot 4");
+  assert(queuePixelStrength(3, s.recycleSharp) === "light", "slot 4 light after refill");
 }
 
 {

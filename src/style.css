@@ -1375,6 +1375,10 @@ html.native-shell #app {
   align-items: center;
   gap: 6px;
   min-width: 52px;
+  /* Block sizes for Next-queue pixelation (#219); overridable via ?botevoTune=1. */
+  --botevo-px-light: 3;
+  --botevo-px-medium: 5;
+  --botevo-px-heavy: 8;
 }
 
 .botevo-queue-label {
@@ -1399,11 +1403,44 @@ html.native-shell #app {
   border: 1px solid #2a3555;
   background: rgba(18, 26, 44, 0.45);
   overflow: visible;
+  /* Never steal playfield taps. */
+  pointer-events: none;
 }
 
 .botevo-queue-egg.is-awaiting-recycle {
   background: rgba(18, 26, 44, 0.28);
   border-style: dashed;
+}
+
+/* #219 — slots 4/5/6 pixelate the whole egg (sprite + face). Recycle-sharp clears data-pixel. */
+.botevo-queue-egg[data-pixel="light"] {
+  --botevo-px: var(--botevo-px-light);
+}
+
+.botevo-queue-egg[data-pixel="medium"] {
+  --botevo-px: var(--botevo-px-medium);
+}
+
+.botevo-queue-egg[data-pixel="heavy"] {
+  --botevo-px: var(--botevo-px-heavy);
+}
+
+.botevo-queue-egg[data-pixel] {
+  overflow: hidden;
+}
+
+.botevo-queue-egg[data-pixel] .botevo-bot {
+  /* Zoom-down then scale-up ≈ chunky pixels on sprite + CSS faces (WebKit/Chromium). */
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  zoom: calc(1 / var(--botevo-px));
+  transform: scale(var(--botevo-px));
+  transform-origin: center center;
+}
+
+.botevo-queue-egg[data-pixel] .botevo-sprite {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
 }
 
 .botevo-toolbar {

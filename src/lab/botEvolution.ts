@@ -11,6 +11,8 @@
 export const BOT_COLS = 5;
 export const BOT_ROWS = 8;
 export const BOT_QUEUE = 6;
+/** Next-queue pixelation strengths for slots 4 / 5 / 6 (#219). */
+export type QueuePixelStrength = "light" | "medium" | "heavy";
 export const BASE_QUOTA = 5;
 export const SPEED_MUL = 1.1;
 export const BASE_GRAVITY_MS = 700;
@@ -142,6 +144,23 @@ export interface BotState {
   justRecycled: RecycledBot[];
   /** Level-ups during the current morph resolve; applied after spawnNext. */
   pendingPromotions: number;
+}
+
+/**
+ * Default Next-queue pixelation for a 0-based slot index (#219).
+ * Slot 1 (index 0) is always sharp. Recycle-sharp occupants stay sharp.
+ * Otherwise slots 4/5/6 → light/medium/heavy; 2–3 stay sharp.
+ */
+export function queuePixelStrength(
+  slotIndex: number,
+  recycleSharp: readonly boolean[],
+): QueuePixelStrength | null {
+  if (slotIndex <= 0) return null;
+  if (recycleSharp[slotIndex]) return null;
+  if (slotIndex === 3) return "light";
+  if (slotIndex === 4) return "medium";
+  if (slotIndex === 5) return "heavy";
+  return null;
 }
 
 export function socketsOf(id: PieceId): number {

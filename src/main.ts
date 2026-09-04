@@ -104,6 +104,7 @@ import {
   hardDrop,
   liveChainCells,
   connectorKind,
+  queuePixelStrength,
   quotaForLevel,
   resumeAfterMorph,
   socketJoins,
@@ -2586,10 +2587,17 @@ function renderBotEvo(): void {
   );
   const deferRecycleSprites =
     recycledCount > 0 || botEvoRecycleFlying;
+  const forceRecycleSharp = botEvoQueueEl.dataset.forceRecycleSharp === "1";
+  const sharpFlags = forceRecycleSharp
+    ? botEvoState.recycleSharp.map((_, i) => i > 0)
+    : botEvoState.recycleSharp;
   botEvoState.queue.forEach((piece, index) => {
     const slot = document.createElement("div");
     slot.className = "botevo-queue-egg";
     slot.dataset.slot = String(index + 1);
+    if (sharpFlags[index]) slot.dataset.recycle = "1";
+    const pixel = queuePixelStrength(index, sharpFlags);
+    if (pixel) slot.dataset.pixel = pixel;
     const hideRecycled =
       deferRecycleSprites && index > 0 && index <= recycledCount;
     if (hideRecycled) {
@@ -2818,11 +2826,19 @@ function toggleBotEvoPause(): void {
   if (!botEvoPaused) armBotEvoTimer();
 }
 
-/** Lab-only face tuner when `?botevoTune=1` (#218). */
+/** Lab-only face + pixel tuner when `?botevoTune=1` (#218 / #219). */
 function mountBotEvoTunePanel(): void {
   const params = new URLSearchParams(window.location.search);
   if (params.get("botevoTune") !== "1") return;
   if (document.getElementById("botevo-tune")) return;
+
+  const wrap = document.querySelector<HTMLElement>(".botevo-queue-wrap");
+  const readPx = (name: string, fallback: number): number => {
+    if (!wrap) return fallback;
+    const raw = getComputedStyle(wrap).getPropertyValue(name).trim();
+    const n = Number(raw);
+    return Number.isFinite(n) && n > 0 ? n : fallback;
+  };
 
   const panel = document.createElement("aside");
   panel.id = "botevo-tune";
@@ -2836,6 +2852,11 @@ function mountBotEvoTunePanel(): void {
     <label>blinkWeight <input type="number" data-k="blinkWeight" min="0" max="1" step="0.05" /></label>
     <label>queueExcitementRate <input type="number" data-k="queueExcitementRate" min="0.05" max="1" step="0.05" /></label>
     <label class="row"><input type="checkbox" data-k="exclusivePlayfield" /> exclusivePlayfield</label>
+    <h3>queue pixel (#219)</h3>
+    <label>px light (slot 4) <input type="number" data-px="light" min="1" max="16" step="1" /></label>
+    <label>px medium (slot 5) <input type="number" data-px="medium" min="1" max="16" step="1" /></label>
+    <label>px heavy (slot 6) <input type="number" data-px="heavy" min="1" max="16" step="1" /></label>
+    <label class="row"><input type="checkbox" data-force-recycle /> force recycle-sharp 2–6</label>
     <button type="button" data-act="apply">Apply</button>
     <button type="button" data-act="export">Export JSON</button>
     <pre data-out hidden></pre>
@@ -2852,6 +2873,14 @@ function mountBotEvoTunePanel(): void {
         input.value = String(t[k]);
       }
     }
+    const pxLight = panel.querySelector<HTMLInputElement>('input[data-px="light"]')!;
+    const pxMed = panel.querySelector<HTMLInputElement>('input[data-px="medium"]')!;
+    const pxHeavy = panel.querySelector<HTMLInputElement>('input[data-px="heavy"]')!;
+    pxLight.value = String(readPx("--botevo-px-light", 3));
+    pxMed.value = String(readPx("--botevo-px-medium", 5));
+    pxHeavy.value = String(readPx("--botevo-px-heavy", 8));
+    const force = panel.querySelector<HTMLInputElement>("input[data-force-recycle]")!;
+    force.checked = botEvoQueueEl.dataset.forceRecycleSharp === "1";
   };
   fill();
 
@@ -2866,12 +2895,29 @@ function mountBotEvoTunePanel(): void {
         else partial[k] = Number(input.value);
       }
       botEvoFaces.setTune(partial);
+      if (wrap) {
+        for (const input of panel.querySelectorAll<HTMLInputElement>("input[data-px]")) {
+          const key = input.dataset.px!;
+          const n = Math.max(1, Math.min(16, Number(input.value) || 1));
+          wrap.style.setProperty(`--botevo-px-${key}`, String(n));
+        }
+      }
+      const force = panel.querySelector<HTMLInputElement>("input[data-force-recycle]")!;
+      if (force.checked) botEvoQueueEl.dataset.forceRecycleSharp = "1";
+      else delete botEvoQueueEl.dataset.forceRecycleSharp;
+      if (botEvoState) renderBotEvo();
       fill();
     }
     if (btn.dataset.act === "export") {
       const out = panel.querySelector<HTMLElement>("[data-out]")!;
       out.hidden = false;
-      out.textContent = botEvoFaces.exportTuneJson();
+      const px = {
+        light: readPx("--botevo-px-light", 3),
+        medium: readPx("--botevo-px-medium", 5),
+        heavy: readPx("--botevo-px-heavy", 8),
+        forceRecycleSharp: botEvoQueueEl.dataset.forceRecycleSharp === "1",
+      };
+      out.textContent = `${botEvoFaces.exportTuneJson()}\n${JSON.stringify({ queuePixel: px }, null, 2)}`;
       void navigator.clipboard?.writeText(out.textContent);
     }
   });

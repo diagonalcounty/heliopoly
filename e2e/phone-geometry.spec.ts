@@ -548,6 +548,22 @@ test.describe("phone Lab egg-bot-evolution #203", () => {
     expect(pause.height, "Pause ≥44px tall").toBeGreaterThanOrEqual(44);
     expect(pause.onControl, "elementFromPoint Pause").toBe(true);
 
+    // #219 — Next queue pixelation chrome (cold start: 4 light / 5 medium / 6 heavy).
+    const queueEggs = page.locator("#botevo-queue .botevo-queue-egg");
+    await expect(queueEggs).toHaveCount(6);
+    await expect(queueEggs.nth(0)).not.toHaveAttribute("data-pixel");
+    await expect(queueEggs.nth(1)).not.toHaveAttribute("data-pixel");
+    await expect(queueEggs.nth(2)).not.toHaveAttribute("data-pixel");
+    await expect(queueEggs.nth(3)).toHaveAttribute("data-pixel", "light");
+    await expect(queueEggs.nth(4)).toHaveAttribute("data-pixel", "medium");
+    await expect(queueEggs.nth(5)).toHaveAttribute("data-pixel", "heavy");
+    const queueWrap = await boxOf(page, ".botevo-queue-wrap");
+    expect(queueWrap.width, "Next column stays narrow").toBeLessThanOrEqual(72);
+    const pe = await page.locator("#botevo-queue .botevo-queue-egg").first().evaluate(
+      (el) => getComputedStyle(el).pointerEvents,
+    );
+    expect(pe, "queue eggs do not steal taps").toBe("none");
+
     await page.locator("#botevo-root .handbook-close").click();
     await expect(page.locator("#botevo-root")).toHaveClass(/hidden/);
     await page.locator("#lab-root .handbook-close").click();
