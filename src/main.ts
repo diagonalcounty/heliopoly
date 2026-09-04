@@ -27,7 +27,7 @@ import {
 } from "./core/pilotCopy";
 import { sanitizePilotName } from "./core/pilotNames";
 import { goingUnderFlags } from "./core/goingUnder";
-import { bestBooksLine } from "./core/claimLedger";
+import { assetSheetLine } from "./core/claimLedger";
 import {
   applyAction,
   resolveCharterChoiceIfAi,
@@ -55,7 +55,13 @@ import {
   type PlayerAction,
   type PropellantId,
 } from "./core/types";
-import { bodyRadius, drawBodyIcon, drawFuelDepotIcon } from "./bodyIcons";
+import {
+  bodyRadius,
+  drawBodyIcon,
+  drawClaimHalo,
+  drawFuelDepotIcon,
+  drawRocketToken,
+} from "./bodyIcons";
 import { inspectBody } from "./core/inspect";
 import { mountHandbook } from "./handbook/handbook";
 import { mountDossier } from "./dossier";
@@ -70,6 +76,7 @@ import {
 import {
   applyCompareChoice,
   MAX_COMPARE_ROUNDS,
+  SAME_LEAD_HINT,
   playAgainCompareDrill,
   resetCompareDrill,
   startCompareDrill,
@@ -83,6 +90,75 @@ import {
   STANDALONE_TO_SCRIPT,
   type NumberScriptId,
 } from "./lab/numberScripts";
+import {
+  BOT_COLS,
+  BOT_ROWS,
+  DIR_E,
+  DIR_N,
+  DIR_S,
+  DIR_W,
+  aimColumn,
+  clearJustRecycled,
+  fallingOccupies,
+  gravityMs,
+  hardDrop,
+  liveChainCells,
+  connectorKind,
+  quotaForLevel,
+  resumeAfterMorph,
+  socketJoins,
+  startBotEvo,
+  tick,
+  type BotGrid,
+  type BotState,
+  type PieceId,
+  type RecycledBot,
+} from "./lab/botEvolution";
+import { BOTEVO_SPRITES } from "./lab/botevoSprites";
+import {
+  PIPE_GRID,
+  cellKind,
+  flowFromTank,
+  playAgainPipes,
+  rotateTile,
+  startPipes,
+  type PipeState,
+} from "./lab/backupFuelPipes";
+import {
+  EMPTY,
+  SOLVED_TILES,
+  TILE_CELLS,
+  isAdjacentToEmpty,
+  playAgainTiles,
+  slideTile,
+  startTiles,
+  type TileState,
+} from "./lab/slidingTiles";
+import {
+  canOrbit,
+  currentUrpPair,
+  currentUrpScreen,
+  hintUrp,
+  landUrp,
+  orbitUrp,
+  selectUrpArea,
+  startUrpDrill,
+  urpLooksChrome,
+  type UrpArea,
+  type UrpState,
+} from "./lab/urpGrader";
+import {
+  DESERET_INVENTORY,
+  ROUND_LENGTH as DESERET_ROUND,
+  WIN_CORRECT as DESERET_WIN,
+  advanceDeseret,
+  applyDeseretChoice,
+  glyphChar,
+  playAgainDeseret,
+  startDeseretMatch,
+  tickPreview,
+  type DeseretState,
+} from "./lab/deseretMatch";
 import type { Board } from "./core/types";
 import { submitGameTelemetry } from "./telemetry";
 
@@ -338,6 +414,16 @@ const endRanks = document.getElementById("end-ranks")!;
 const labRoot = document.getElementById("lab-root")!;
 const labScenariosEl = document.getElementById("lab-scenarios")!;
 const eacRoot = document.getElementById("eac-root")!;
+const urpRoot = document.getElementById("urp-root")!;
+const urpAreasEl = document.getElementById("urp-areas")!;
+const urpPadsEl = document.getElementById("urp-pads")!;
+const urpApronEl = document.getElementById("urp-apron") as unknown as SVGSVGElement;
+const urpOrbitsEl = document.getElementById("urp-orbits")!;
+const urpOrbitBtn = document.getElementById("urp-orbit") as HTMLButtonElement;
+const urpHintBtn = document.getElementById("urp-hint") as HTMLButtonElement;
+const urpHintPipsEl = document.getElementById("urp-hint-pips")!;
+const urpStatusEl = document.getElementById("urp-status")!;
+const urpHatchEl = document.querySelector("#urp-root .urp-hatch") as HTMLElement | null;
 const eacRoundEl = document.getElementById("eac-round")!;
 const eacAttemptsEl = document.getElementById("eac-attempts")!;
 const eacPlayEl = document.getElementById("eac-play")!;
@@ -353,6 +439,49 @@ const eacRightWest = document.getElementById("eac-right-west")!;
 const eacHintBtn = document.getElementById("eac-hint") as HTMLButtonElement;
 const eacResetBtn = document.getElementById("eac-reset") as HTMLButtonElement;
 const eacRecapEl = document.getElementById("eac-recap")!;
+const botEvoRoot = document.getElementById("botevo-root")!;
+const botEvoGridEl = document.getElementById("botevo-grid")!;
+const botEvoQueueEl = document.getElementById("botevo-queue")!;
+const botEvoStatusEl = document.getElementById("botevo-status")!;
+const botEvoScoreEl = document.getElementById("botevo-score")!;
+const botEvoBarEl = document.getElementById("botevo-bar")!;
+const botEvoFillEl = document.getElementById("botevo-fill")!;
+const botEvoTicksEl = document.getElementById("botevo-ticks")!;
+const botEvoFxEl = document.getElementById("botevo-fx")!;
+const botEvoPlayEl = document.getElementById("botevo-play")!;
+const botEvoEndEl = document.getElementById("botevo-end")!;
+const botEvoEndBlurb = document.getElementById("botevo-end-blurb")!;
+const botEvoDropBtn = document.getElementById("botevo-drop") as HTMLButtonElement;
+const botEvoPauseBtn = document.getElementById("botevo-pause") as HTMLButtonElement;
+const botEvoPausedEl = document.getElementById("botevo-paused")!;
+const botEvoIntroEl = document.getElementById("botevo-intro")!;
+const botEvoTableEl = document.getElementById("botevo-table")!;
+const botEvoBeginBtn = document.getElementById("botevo-begin") as HTMLButtonElement;
+const pipesRoot = document.getElementById("pipes-root")!;
+const pipesGridEl = document.getElementById("pipes-grid")!;
+const pipesStatusEl = document.getElementById("pipes-status")!;
+const pipesRotatesEl = document.getElementById("pipes-rotates")!;
+const pipesEndEl = document.getElementById("pipes-end")!;
+const pipesEndBlurb = document.getElementById("pipes-end-blurb")!;
+const tilesRoot = document.getElementById("tiles-root")!;
+const tilesGridEl = document.getElementById("tiles-grid")!;
+const tilesStatusEl = document.getElementById("tiles-status")!;
+const tilesMovesEl = document.getElementById("tiles-moves")!;
+const tilesEndEl = document.getElementById("tiles-end")!;
+const tilesEndBlurb = document.getElementById("tiles-end-blurb")!;
+const deseretRoot = document.getElementById("deseret-root")!;
+const deseretGlyphEl = document.getElementById("deseret-glyph")!;
+const deseretChoicesEl = document.getElementById("deseret-choices")!;
+const deseretStatusEl = document.getElementById("deseret-status")!;
+const deseretScoreEl = document.getElementById("deseret-score")!;
+const deseretPlayEl = document.getElementById("deseret-play")!;
+const deseretPreviewEl = document.getElementById("deseret-preview")!;
+const deseretCountdownEl = document.getElementById("deseret-countdown")!;
+const deseretChartEl = document.getElementById("deseret-chart")!;
+const deseretEndEl = document.getElementById("deseret-end")!;
+const deseretEndTitle = document.getElementById("deseret-end-title")!;
+const deseretEndBlurb = document.getElementById("deseret-end-blurb")!;
+const eacPlaceHintEl = document.getElementById("eac-place-hint");
 
 const btnNew = document.getElementById("btn-new") as HTMLButtonElement;
 const btnSelf = document.getElementById("btn-selfplay") as HTMLButtonElement;
@@ -1115,7 +1244,7 @@ function endScreenStory(s: GameState, winner: Player | undefined): string {
     deeds > 0 || depots > 0
       ? ` Closing books: ${nw} net worth · ${deeds} claim${deeds === 1 ? "" : "s"} · ${depots} depot${depots === 1 ? "" : "s"}.`
       : ` Closing books: ${nw} net worth.`;
-  const best = bestBooksLine(s, winner.id);
+  const best = assetSheetLine(s, winner.id);
   return reason + history + lengthBit + empire + (best ? ` ${best}` : "");
 }
 
@@ -1586,6 +1715,11 @@ function closeLab(): void {
   if (
     duelRoot.classList.contains("hidden") &&
     eacRoot.classList.contains("hidden") &&
+    botEvoRoot.classList.contains("hidden") &&
+    pipesRoot.classList.contains("hidden") &&
+    tilesRoot.classList.contains("hidden") &&
+    urpRoot.classList.contains("hidden") &&
+    deseretRoot.classList.contains("hidden") &&
     document.getElementById("handbook-root")?.classList.contains("hidden")
   ) {
     document.body.classList.remove("handbook-open");
@@ -1625,6 +1759,7 @@ function eacSyncChrome(): void {
   if (eacHintEl) {
     eacHintEl.innerHTML = `${pack.hintLead}
       You win by finishing three levels in a row without help on those steps.
+      ${SAME_LEAD_HINT}
       Need a hand? <strong>Hint</strong> reveals one number in familiar
       Western digits, but that try won’t advance you; you’ll need to clear
       the level again without a hint.
@@ -1719,6 +1854,11 @@ function renderEac(): void {
       : `Right number ${rightGlyph}`,
   );
   eacHintBtn.disabled = eacState.hintUsed;
+  if (eacPlaceHintEl) {
+    const show = eacState.lastMissSameLead;
+    eacPlaceHintEl.classList.toggle("hidden", !show);
+    eacPlaceHintEl.textContent = show ? SAME_LEAD_HINT : "";
+  }
 }
 
 function openNumberCompare(script: NumberScriptId): void {
@@ -1740,6 +1880,265 @@ function closeEasternArabicCompare(): void {
   if (
     duelRoot.classList.contains("hidden") &&
     labRoot.classList.contains("hidden") &&
+    botEvoRoot.classList.contains("hidden") &&
+    pipesRoot.classList.contains("hidden") &&
+    tilesRoot.classList.contains("hidden") &&
+    urpRoot.classList.contains("hidden") &&
+    deseretRoot.classList.contains("hidden") &&
+    document.getElementById("handbook-root")?.classList.contains("hidden")
+  ) {
+    document.body.classList.remove("handbook-open");
+  }
+}
+
+/** —— urinal-rule-parking (#188) —— */
+const URP_ROCKET_COLORS = ["#e2b14a", "#3db8c5", "#d46a3a", "#7aa2ff", "#c86bdb"];
+const URP_PLAYER_COLOR = "#f4f0e0";
+let urpState: UrpState | null = null;
+let urpFlashTimer = 0;
+let urpPadRo: ResizeObserver | null = null;
+
+function isUrpOpen(): boolean {
+  return !urpRoot.classList.contains("hidden");
+}
+
+function urpLandscape(): boolean {
+  return window.matchMedia("(min-aspect-ratio: 1/1)").matches;
+}
+
+function urpRocketSvg(color: string): string {
+  return `<svg viewBox="0 0 32 32" aria-hidden="true">
+    <path fill="${color}" d="M16 1.2c4 7.2 5.4 11.6 5.4 17.6h-10.8C10.6 12.8 12 8.4 16 1.2z"/>
+    <circle cx="16" cy="12.5" r="2.4" fill="#0b1020"/>
+    <path fill="${color}" d="M10.4 18.2 4.6 27.2h7.2L14 18.2zm11.2 0 5.8 9H20L18 18.2z"/>
+    <path fill="#f4d36a" d="M13.6 26.4h4.8l-1 4.2h-2.8z"/>
+  </svg>`;
+}
+
+function urpSetStatus(text: string, kind: "good" | "fine" | "" = ""): void {
+  urpStatusEl.textContent = text;
+  urpStatusEl.classList.toggle("is-good", kind === "good");
+  urpStatusEl.classList.toggle("is-fine", kind === "fine");
+}
+
+function urpFieldEl(): HTMLElement {
+  return urpPadsEl.parentElement as HTMLElement;
+}
+
+function layoutUrpApron(pads: NodeListOf<HTMLElement>): void {
+  const field = urpFieldEl();
+  const w = field.clientWidth;
+  const h = field.clientHeight;
+  const fr = field.getBoundingClientRect();
+  urpApronEl.setAttribute("viewBox", `0 0 ${w} ${h}`);
+  urpApronEl.setAttribute("width", String(w));
+  urpApronEl.setAttribute("height", String(h));
+  const pts = [...pads].map((el) => {
+    const r = el.getBoundingClientRect();
+    return { x: r.x + r.width / 2 - fr.x, y: r.y + r.height / 2 - fr.y };
+  });
+  let path = urpApronEl.querySelector("path");
+  if (!path) {
+    path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    urpApronEl.appendChild(path);
+  }
+  if (pts.length < 2) {
+    path.setAttribute("d", "");
+    return;
+  }
+  let d = `M ${pts[0]!.x} ${pts[0]!.y}`;
+  for (let i = 1; i < pts.length; i++) {
+    d += ` L ${pts[i]!.x} ${pts[i]!.y}`;
+  }
+  path.setAttribute("d", d);
+}
+
+function layoutUrpPads(): void {
+  if (!urpState) return;
+  const field = urpFieldEl();
+  const n = currentUrpScreen(urpState).padCount;
+  const w = field.clientWidth;
+  const h = field.clientHeight;
+  if (w < 8 || h < 8) return;
+  const landscape = urpLandscape();
+  const chord = landscape ? h * 0.84 : w * 0.86;
+  const size = Math.max(44, Math.min(64, Math.floor(chord / n) - 4));
+  const pads = urpPadsEl.querySelectorAll<HTMLElement>(".urp-pad");
+  pads.forEach((el, i) => {
+    const t = n <= 1 ? 0.5 : i / (n - 1);
+    const bulge = Math.sin(t * Math.PI);
+    let x: number;
+    let y: number;
+    if (landscape) {
+      x = w * (0.16 + bulge * 0.46) - size / 2;
+      y = h * (0.08 + t * 0.84) - size / 2;
+    } else {
+      x = w * (0.08 + t * 0.84) - size / 2;
+      y = h * (0.58 - bulge * 0.36) - size / 2;
+    }
+    el.style.width = `${size}px`;
+    el.style.height = `${size}px`;
+    el.style.left = `${Math.round(x)}px`;
+    el.style.top = `${Math.round(y)}px`;
+  });
+  layoutUrpApron(pads);
+}
+
+function renderUrpAreas(): void {
+  if (!urpState) return;
+  const pair = currentUrpPair(urpState);
+  const playing = urpState.phase === "playing";
+  urpAreasEl.querySelectorAll<HTMLButtonElement>("[data-area]").forEach((btn) => {
+    const area = Number(btn.dataset.area) as UrpArea;
+    const selected = urpState!.selectedArea === area;
+    btn.classList.toggle("is-selected", selected);
+    btn.setAttribute("aria-pressed", selected ? "true" : "false");
+    btn.disabled = !playing;
+    const screen = pair[area]!;
+    const dots = btn.querySelector(".urp-area-dots");
+    if (dots) {
+      dots.replaceChildren();
+      const occ = new Set(screen.occupied);
+      for (let i = 0; i < screen.padCount; i++) {
+        const d = document.createElement("span");
+        d.className = "urp-area-dot" + (occ.has(i) ? " is-occupied" : " is-empty");
+        dots.appendChild(d);
+      }
+    }
+  });
+}
+
+function renderUrpHintPips(): void {
+  if (!urpState) return;
+  const charged = urpState.hintsLeft;
+  urpHintPipsEl.replaceChildren();
+  for (let i = 0; i < 2; i++) {
+    const pip = document.createElement("span");
+    pip.className = "urp-hint-pip" + (i < charged ? " is-charged" : "");
+    urpHintPipsEl.appendChild(pip);
+  }
+  urpHintBtn.disabled = urpState.phase !== "playing" || charged <= 0;
+  urpHintBtn.setAttribute("aria-label", `Hint, ${charged} remaining`);
+}
+
+function renderUrp(): void {
+  if (!urpState) return;
+  const screen = currentUrpScreen(urpState);
+  const occ = new Set(screen.occupied);
+  const playing = urpState.phase === "playing";
+  urpOrbitsEl.textContent = urpLooksChrome(urpState);
+  renderUrpAreas();
+  urpPadsEl.replaceChildren();
+  for (let i = 0; i < screen.padCount; i++) {
+    const occupied = occ.has(i);
+    const you = urpState.lastLanded === i;
+    const el = document.createElement(occupied || you || !playing ? "div" : "button");
+    if (!occupied && !you && playing) (el as HTMLButtonElement).type = "button";
+    el.className = "urp-pad" + (occupied || you ? " is-occupied" : " is-empty");
+    if (you) {
+      el.classList.add("urp-just-landed");
+      if (urpState.outcome === "good") el.classList.add("is-good");
+      if (urpState.outcome === "fine") el.classList.add("is-fine");
+    }
+    el.dataset.index = String(i);
+    el.setAttribute(
+      "aria-label",
+      you ? "Your ship" : occupied ? "Occupied pad" : "Empty pad",
+    );
+    if (you) {
+      el.innerHTML = urpRocketSvg(URP_PLAYER_COLOR);
+    } else if (occupied) {
+      const colorIdx = Math.max(0, screen.occupied.indexOf(i));
+      const color = URP_ROCKET_COLORS[colorIdx % URP_ROCKET_COLORS.length]!;
+      el.innerHTML = urpRocketSvg(color);
+    } else if (playing) {
+      el.addEventListener("click", () => urpLand(i));
+    }
+    urpPadsEl.appendChild(el);
+  }
+  const orbitOk = canOrbit(urpState);
+  urpOrbitBtn.disabled = !orbitOk;
+  urpOrbitBtn.setAttribute("aria-disabled", orbitOk ? "false" : "true");
+  renderUrpHintPips();
+  if (urpState.outcome === "good") urpSetStatus("Good job. No fine.", "good");
+  else if (urpState.outcome === "fine") urpSetStatus("Fine.", "fine");
+  layoutUrpPads();
+}
+
+function urpFlashPad(index: number): void {
+  window.clearTimeout(urpFlashTimer);
+  urpPadsEl.querySelectorAll(".urp-flash").forEach((el) => el.classList.remove("urp-flash"));
+  const pad = urpPadsEl.querySelector(`[data-index="${index}"]`);
+  pad?.classList.add("urp-flash");
+  urpFlashTimer = window.setTimeout(() => {
+    urpPadsEl.querySelectorAll(".urp-flash").forEach((el) => el.classList.remove("urp-flash"));
+  }, 1200);
+}
+
+function urpWhoosh(): void {
+  if (!urpHatchEl) return;
+  urpHatchEl.classList.remove("urp-whoosh");
+  void urpHatchEl.offsetWidth;
+  urpHatchEl.classList.add("urp-whoosh");
+}
+
+function urpLand(index: number): void {
+  if (!urpState) return;
+  const next = landUrp(urpState, index);
+  if (!next.ok) return;
+  urpState = next.state;
+  renderUrp();
+}
+
+function urpOrbit(): void {
+  if (!urpState || !canOrbit(urpState)) return;
+  urpState = orbitUrp(urpState);
+  urpSetStatus("");
+  urpWhoosh();
+  renderUrp();
+}
+
+function urpHint(): void {
+  if (!urpState) return;
+  const next = hintUrp(urpState);
+  urpState = next.state;
+  renderUrpHintPips();
+  if (next.flashIndex != null) urpFlashPad(next.flashIndex);
+}
+
+function urpPickArea(area: UrpArea): void {
+  if (!urpState) return;
+  urpState = selectUrpArea(urpState, area);
+  renderUrp();
+}
+
+function openUrp(): void {
+  urpState = startUrpDrill();
+  urpSetStatus("");
+  renderUrp();
+  urpRoot.classList.remove("hidden");
+  urpRoot.setAttribute("aria-hidden", "false");
+  document.body.classList.add("handbook-open");
+  layoutUrpPads();
+  if (!urpPadRo) {
+    urpPadRo = new ResizeObserver(() => layoutUrpPads());
+    urpPadRo.observe(urpFieldEl());
+  }
+}
+
+function closeUrp(): void {
+  urpRoot.classList.add("hidden");
+  urpRoot.setAttribute("aria-hidden", "true");
+  urpState = null;
+  window.clearTimeout(urpFlashTimer);
+  if (
+    duelRoot.classList.contains("hidden") &&
+    eacRoot.classList.contains("hidden") &&
+    labRoot.classList.contains("hidden") &&
+    pipesRoot.classList.contains("hidden") &&
+    tilesRoot.classList.contains("hidden") &&
+    deseretRoot.classList.contains("hidden") &&
+    botEvoRoot.classList.contains("hidden") &&
     document.getElementById("handbook-root")?.classList.contains("hidden")
   ) {
     document.body.classList.remove("handbook-open");
@@ -1768,10 +2167,881 @@ function eacReset(): void {
   eacLeftBtn.focus();
 }
 
+
 function eacPlayAgain(): void {
   eacState = playAgainCompareDrill();
   renderEac();
   eacLeftBtn.focus();
+}
+
+/** —— egg-bot-evolution (#203) —— */
+let botEvoState: BotState | null = null;
+let botEvoTimer: number | null = null;
+let botEvoMorphTimer: number | null = null;
+let botEvoRecycleTimer: number | null = null;
+let botEvoPaused = false;
+let botEvoMorphSig = "";
+let botEvoRecyclePending: RecycledBot[] = [];
+let botEvoRecycleFlying = false;
+let botEvoBarView = { level: 1, segments: 0, boxes: 0 };
+const BOTEVO_COMBINE_MS = 280;
+const BOTEVO_FLY_MS = 720;
+const BOTEVO_MORPH_MS = BOTEVO_COMBINE_MS + BOTEVO_FLY_MS;
+/** CSS twin of .botevo-fly (~280ms ease-out); muted recycle must not outshine battery. */
+const BOTEVO_RECYCLE_MS = 280;
+const BOTEVO_RECYCLE_STAGGER_MS = 40;
+const BOTEVO_JOIN_DIRS: Array<[number, string]> = [
+  [DIR_N, "n"],
+  [DIR_E, "e"],
+  [DIR_S, "s"],
+  [DIR_W, "w"],
+];
+let botEvoPrevOcc = new Set<string>();
+let botEvoPrevJoins = new Set<string>();
+
+function isBotEvoOpen(): boolean {
+  return !botEvoRoot.classList.contains("hidden");
+}
+
+function clearBotEvoTimer(): void {
+  if (botEvoTimer !== null) {
+    window.clearTimeout(botEvoTimer);
+    botEvoTimer = null;
+  }
+}
+
+function clearBotEvoMorphTimer(): void {
+  if (botEvoMorphTimer !== null) {
+    window.clearTimeout(botEvoMorphTimer);
+    botEvoMorphTimer = null;
+  }
+}
+
+function clearBotEvoRecycleTimer(): void {
+  if (botEvoRecycleTimer !== null) {
+    window.clearTimeout(botEvoRecycleTimer);
+    botEvoRecycleTimer = null;
+  }
+}
+
+function armBotEvoTimer(pauseMs?: number): void {
+  clearBotEvoTimer();
+  if (botEvoPaused) return;
+  if (!botEvoState || botEvoState.phase !== "falling") return;
+  const wait = pauseMs ?? gravityMs(botEvoState.level);
+  botEvoTimer = window.setTimeout(() => {
+    if (botEvoPaused || !botEvoState || botEvoState.phase !== "falling") {
+      clearBotEvoTimer();
+      return;
+    }
+    botEvoState = tick(botEvoState);
+    renderBotEvo();
+    afterBotEvoLand();
+  }, wait);
+}
+
+function flyMorphToBar(keys: string[]): void {
+  botEvoFxEl.replaceChildren();
+  if (!keys.length || !botEvoState) return;
+  const bar = botEvoBarEl.getBoundingClientRect();
+  const quota = quotaForLevel(botEvoState.level);
+  const frac = quota ? Math.min(1, Math.max(0.12, botEvoState.segments / quota)) : 1;
+  const targetX = bar.left + 6 + (bar.width - 16) * frac;
+  const targetY = bar.top + bar.height / 2;
+  const rects: DOMRect[] = [];
+  for (const k of keys) {
+    const [rs, cs] = k.split(",");
+    const cell = botEvoGridEl.querySelector(
+      `[data-r="${rs}"][data-c="${cs}"]`,
+    );
+    if (cell) rects.push(cell.getBoundingClientRect());
+  }
+  if (!rects.length) return;
+  const cx = rects.reduce((n, r) => n + r.left + r.width / 2, 0) / rects.length;
+  const cy = rects.reduce((n, r) => n + r.top + r.height / 2, 0) / rects.length;
+  for (const rect of rects) {
+    const el = document.createElement("span");
+    el.className = "botevo-fly";
+    el.style.left = `${rect.left}px`;
+    el.style.top = `${rect.top}px`;
+    el.style.width = `${rect.width * 0.76}px`;
+    el.style.height = `${rect.height * 0.76}px`;
+    el.style.marginLeft = `${rect.width * 0.12}px`;
+    el.style.marginTop = `${rect.height * 0.12}px`;
+    botEvoFxEl.appendChild(el);
+    const toCx = cx - (rect.left + rect.width / 2);
+    const toCy = cy - (rect.top + rect.height / 2);
+    const toBarX = targetX - (rect.left + rect.width / 2);
+    const toBarY = targetY - (rect.top + rect.height / 2);
+    requestAnimationFrame(() => {
+      el.style.transform = `translate(${toCx}px, ${toCy}px) scale(0.72)`;
+    });
+    window.setTimeout(() => {
+      el.style.transition = `transform ${BOTEVO_FLY_MS}ms ease-in, opacity ${BOTEVO_FLY_MS}ms linear`;
+      el.style.transform = `translate(${toBarX}px, ${toBarY}px) scale(0.16)`;
+      el.style.opacity = "0";
+    }, BOTEVO_COMBINE_MS);
+  }
+}
+
+function finishBotEvoRecycle(): void {
+  botEvoRecycleTimer = null;
+  botEvoRecycleFlying = false;
+  botEvoRecyclePending = [];
+  botEvoFxEl.replaceChildren();
+  if (!botEvoState || botEvoState.phase === "lost") return;
+  botEvoState = clearJustRecycled(botEvoState);
+  renderBotEvo();
+}
+
+function flyRecycleToQueue(items: RecycledBot[]): void {
+  if (!items.length || !botEvoState) return;
+  botEvoRecycleFlying = true;
+  // Ensure six slot shells exist so we can target rects while content is deferred.
+  renderBotEvo();
+  const slots = botEvoQueueEl.querySelectorAll<HTMLElement>(".botevo-queue-egg");
+  items.forEach((item, i) => {
+    const slotIndex = i + 1;
+    const slot = slots[slotIndex];
+    const cell = botEvoGridEl.querySelector(
+      `[data-r="${BOT_ROWS - 1}"][data-c="${item.col}"]`,
+    );
+    if (!slot || !cell) return;
+    const from = cell.getBoundingClientRect();
+    const to = slot.getBoundingClientRect();
+    const el = document.createElement("span");
+    el.className = "botevo-fly is-recycle";
+    el.style.left = `${from.left}px`;
+    el.style.top = `${from.top}px`;
+    el.style.width = `${from.width * 0.76}px`;
+    el.style.height = `${from.height * 0.76}px`;
+    el.style.marginLeft = `${from.width * 0.12}px`;
+    el.style.marginTop = `${from.height * 0.12}px`;
+    const img = document.createElement("img");
+    img.src = BOTEVO_SPRITES[item.piece];
+    img.alt = "";
+    img.draggable = false;
+    el.appendChild(img);
+    botEvoFxEl.appendChild(el);
+    const dx = to.left + to.width / 2 - (from.left + from.width / 2);
+    const dy = to.top + to.height / 2 - (from.top + from.height / 2);
+    const delay = i * BOTEVO_RECYCLE_STAGGER_MS;
+    window.setTimeout(() => {
+      requestAnimationFrame(() => {
+        el.style.transform = `translate(${dx}px, ${dy}px) scale(0.92)`;
+      });
+    }, delay);
+  });
+  const total =
+    BOTEVO_RECYCLE_MS +
+    Math.max(0, items.length - 1) * BOTEVO_RECYCLE_STAGGER_MS +
+    40;
+  clearBotEvoRecycleTimer();
+  botEvoRecycleTimer = window.setTimeout(() => finishBotEvoRecycle(), total);
+}
+
+function maybeStartBotEvoRecycle(): void {
+  if (!botEvoRecyclePending.length || botEvoRecycleFlying) return;
+  if (botEvoMorphTimer !== null) return;
+  const items = botEvoRecyclePending.slice();
+  flyRecycleToQueue(items);
+}
+
+function finishBotEvoMorph(): void {
+  botEvoMorphTimer = null;
+  botEvoMorphSig = "";
+  botEvoFxEl.replaceChildren();
+  if (!botEvoState || botEvoState.phase === "lost") return;
+  const falling = botEvoState.phase === "falling";
+  botEvoState = resumeAfterMorph(botEvoState);
+  renderBotEvo();
+  if (!falling) armBotEvoTimer();
+  // Promotion mid-morph: finish battery fly, then muted recycle wave.
+  maybeStartBotEvoRecycle();
+}
+
+function afterBotEvoLand(): void {
+  if (!botEvoState) return;
+  if (botEvoState.justRecycled.length) {
+    botEvoRecyclePending = botEvoState.justRecycled.map((r) => ({ ...r }));
+  }
+  const sig = botEvoState.justMorphed.slice().sort().join(",");
+  if (sig && sig !== botEvoMorphSig) {
+    botEvoMorphSig = sig;
+    flyMorphToBar(botEvoState.justMorphed);
+    clearBotEvoMorphTimer();
+    botEvoMorphTimer = window.setTimeout(() => finishBotEvoMorph(), BOTEVO_MORPH_MS);
+  } else {
+    maybeStartBotEvoRecycle();
+  }
+  if (botEvoState.phase === "falling") armBotEvoTimer();
+}
+
+function appendBotSprite(host: HTMLElement, piece: PieceId): void {
+  const wrap = document.createElement("span");
+  wrap.className = `botevo-bot is-${connectorKind(piece)}`;
+  wrap.setAttribute("aria-hidden", "true");
+  const img = document.createElement("img");
+  img.className = "botevo-sprite";
+  img.src = BOTEVO_SPRITES[piece];
+  img.alt = "";
+  img.draggable = false;
+  wrap.appendChild(img);
+  host.appendChild(wrap);
+}
+
+function appendJoins(
+  host: HTMLElement,
+  mask: number,
+  snap: Set<string>,
+  keyPrefix: string,
+): void {
+  if (!mask) return;
+  for (const [bit, name] of BOTEVO_JOIN_DIRS) {
+    if ((mask & bit) === 0) continue;
+    const join = document.createElement("span");
+    join.className = `botevo-join ${name}`;
+    if (snap.has(`${keyPrefix},${name}`)) join.classList.add("is-snap");
+    host.appendChild(join);
+  }
+}
+
+function joinKeysFor(grid: BotGrid): Set<string> {
+  const keys = new Set<string>();
+  for (let r = 0; r < BOT_ROWS; r++) {
+    for (let c = 0; c < BOT_COLS; c++) {
+      const mask = socketJoins(grid, r, c);
+      if (!mask) continue;
+      for (const [bit, name] of BOTEVO_JOIN_DIRS) {
+        if (mask & bit) keys.add(`${r},${c},${name}`);
+      }
+    }
+  }
+  return keys;
+}
+
+function paintBotEvoBattery(quota: number, filled: number, animate: boolean): void {
+  botEvoBarEl.setAttribute("aria-valuemax", String(quota));
+  botEvoBarEl.setAttribute("aria-valuenow", String(filled));
+  botEvoTicksEl.replaceChildren();
+  for (let i = 0; i < quota; i++) {
+    botEvoTicksEl.appendChild(document.createElement("span"));
+  }
+  const pct = quota ? Math.min(100, (filled / quota) * 100) : 0;
+  if (!animate) botEvoFillEl.style.transition = "none";
+  botEvoFillEl.style.width = `${pct}%`;
+  if (!animate) {
+    void botEvoFillEl.offsetWidth;
+    botEvoFillEl.style.transition = "";
+  }
+}
+
+function renderBotEvoBar(): void {
+  if (!botEvoState) return;
+  const s = botEvoState;
+  const prev = botEvoBarView;
+  const quota = quotaForLevel(s.level);
+  if (s.level > prev.level) {
+    paintBotEvoBattery(quotaForLevel(prev.level), quotaForLevel(prev.level), true);
+    window.setTimeout(() => {
+      if (!botEvoState) return;
+      paintBotEvoBattery(
+        quotaForLevel(botEvoState.level),
+        botEvoState.segments,
+        false,
+      );
+    }, BOTEVO_MORPH_MS);
+  } else {
+    paintBotEvoBattery(quota, s.segments, s.boxes > prev.boxes);
+  }
+  botEvoBarView = { level: s.level, segments: s.segments, boxes: s.boxes };
+}
+
+function renderBotEvo(): void {
+  if (!botEvoState) return;
+  const lost = botEvoState.phase === "lost";
+  botEvoStatusEl.textContent = lost ? "—" : String(botEvoState.level);
+  botEvoScoreEl.textContent =
+    botEvoState.boxes === 1 ? "1 box" : `${botEvoState.boxes} boxes`;
+  renderBotEvoBar();
+  botEvoPlayEl.classList.toggle("hidden", lost);
+  botEvoEndEl.classList.toggle("hidden", !lost);
+  botEvoPausedEl.classList.toggle("hidden", lost || !botEvoPaused);
+  botEvoPauseBtn.disabled = lost;
+  botEvoPauseBtn.textContent = botEvoPaused ? "Resume" : "Pause";
+  botEvoPauseBtn.setAttribute("aria-pressed", botEvoPaused ? "true" : "false");
+  botEvoDropBtn.disabled = lost || botEvoPaused;
+  if (lost) {
+    const n = botEvoState.boxes;
+    botEvoEndBlurb.textContent =
+      n === 1
+        ? "A column overflowed after 1 box. Play again when you’re ready."
+        : `A column overflowed after ${n} boxes. Play again when you’re ready.`;
+  }
+
+  const live = liveChainCells(botEvoState.grid);
+  const morph = new Set(botEvoState.justMorphed);
+  const occ = new Set<string>();
+  for (let r = 0; r < BOT_ROWS; r++) {
+    for (let c = 0; c < BOT_COLS; c++) {
+      if (botEvoState.grid[r]![c]) occ.add(`${r},${c}`);
+    }
+  }
+  const landedJoins = joinKeysFor(botEvoState.grid);
+  const newJoins = new Set<string>();
+  for (const k of landedJoins) if (!botEvoPrevJoins.has(k)) newJoins.add(k);
+  const newLand = new Set<string>();
+  for (const k of occ) if (!botEvoPrevOcc.has(k)) newLand.add(k);
+
+  botEvoGridEl.replaceChildren();
+  for (let r = 0; r < BOT_ROWS; r++) {
+    for (let c = 0; c < BOT_COLS; c++) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "botevo-cell";
+      btn.dataset.r = String(r);
+      btn.dataset.c = String(c);
+      btn.setAttribute("role", "gridcell");
+      const landed = botEvoState.grid[r]![c];
+      const falling = fallingOccupies(botEvoState, r, c);
+      const morphing = morph.has(`${r},${c}`);
+      if (live.has(`${r},${c}`)) btn.classList.add("is-live");
+      if (falling) btn.classList.add("is-falling");
+      if (morphing) btn.classList.add("is-morph");
+      if (newLand.has(`${r},${c}`)) btn.classList.add("is-land");
+      if (landed) {
+        appendBotSprite(btn, landed);
+        appendJoins(
+          btn,
+          socketJoins(botEvoState.grid, r, c),
+          newJoins,
+          `${r},${c}`,
+        );
+      } else if (falling && botEvoState.phase !== "morphing") {
+        appendBotSprite(btn, botEvoState.current);
+      }
+      const label = morphing
+        ? `Morphing box ${r + 1},${c + 1}`
+        : landed
+          ? `Bot ${r + 1},${c + 1}`
+          : falling
+            ? `Falling bot column ${c + 1}`
+            : `Column ${c + 1}`;
+      btn.setAttribute("aria-label", lost ? `${label}, locked` : label);
+      btn.disabled = lost;
+      if (!lost) {
+        const col = c;
+        btn.addEventListener("click", () => {
+          if (!botEvoState || botEvoState.phase === "lost" || botEvoPaused) return;
+          botEvoState = aimColumn(botEvoState, col);
+          renderBotEvo();
+        });
+      }
+      botEvoGridEl.appendChild(btn);
+    }
+  }
+  botEvoPrevOcc = occ;
+  botEvoPrevJoins = landedJoins;
+
+  botEvoQueueEl.replaceChildren();
+  const recycledCount = Math.max(
+    botEvoState.justRecycled.length,
+    botEvoRecyclePending.length,
+  );
+  const deferRecycleSprites =
+    recycledCount > 0 || botEvoRecycleFlying;
+  botEvoState.queue.forEach((piece, index) => {
+    const slot = document.createElement("div");
+    slot.className = "botevo-queue-egg";
+    slot.dataset.slot = String(index + 1);
+    const hideRecycled =
+      deferRecycleSprites && index > 0 && index <= recycledCount;
+    if (hideRecycled) {
+      slot.classList.add("is-awaiting-recycle");
+      slot.setAttribute("aria-label", `Next slot ${index + 1}`);
+    } else {
+      slot.setAttribute("aria-label", `Next ${piece}`);
+      appendBotSprite(slot, piece);
+    }
+    botEvoQueueEl.appendChild(slot);
+  });
+}
+
+function showBotEvoIntro(): void {
+  clearBotEvoTimer();
+  clearBotEvoMorphTimer();
+  clearBotEvoRecycleTimer();
+  botEvoPaused = false;
+  botEvoMorphSig = "";
+  botEvoRecyclePending = [];
+  botEvoRecycleFlying = false;
+  botEvoState = null;
+  botEvoIntroEl.classList.remove("hidden");
+  botEvoTableEl.classList.add("hidden");
+}
+
+function startBotEvoPlay(): void {
+  clearBotEvoTimer();
+  clearBotEvoMorphTimer();
+  clearBotEvoRecycleTimer();
+  botEvoPaused = false;
+  botEvoMorphSig = "";
+  botEvoRecyclePending = [];
+  botEvoRecycleFlying = false;
+  botEvoFxEl.replaceChildren();
+  botEvoPrevOcc = new Set();
+  botEvoPrevJoins = new Set();
+  botEvoState = startBotEvo();
+  botEvoBarView = { level: 1, segments: 0, boxes: 0 };
+  botEvoIntroEl.classList.add("hidden");
+  botEvoTableEl.classList.remove("hidden");
+  renderBotEvo();
+  armBotEvoTimer();
+  botEvoDropBtn.focus();
+}
+
+function openBotEvo(): void {
+  showBotEvoIntro();
+  botEvoRoot.classList.remove("hidden");
+  botEvoRoot.setAttribute("aria-hidden", "false");
+  document.body.classList.add("handbook-open");
+  botEvoBeginBtn.focus();
+}
+
+function closeBotEvo(): void {
+  clearBotEvoTimer();
+  clearBotEvoMorphTimer();
+  clearBotEvoRecycleTimer();
+  botEvoPaused = false;
+  botEvoMorphSig = "";
+  botEvoRecyclePending = [];
+  botEvoRecycleFlying = false;
+  botEvoFxEl.replaceChildren();
+  botEvoRoot.classList.add("hidden");
+  botEvoRoot.setAttribute("aria-hidden", "true");
+  botEvoState = null;
+  if (
+    duelRoot.classList.contains("hidden") &&
+    labRoot.classList.contains("hidden") &&
+    eacRoot.classList.contains("hidden") &&
+    pipesRoot.classList.contains("hidden") &&
+    tilesRoot.classList.contains("hidden") &&
+    urpRoot.classList.contains("hidden") &&
+    deseretRoot.classList.contains("hidden") &&
+    document.getElementById("handbook-root")?.classList.contains("hidden")
+  ) {
+    document.body.classList.remove("handbook-open");
+  }
+}
+
+/** —— Backup fuel pipe routing (#77) —— */
+let pipesState: PipeState | null = null;
+
+function isPipesOpen(): boolean {
+  return !pipesRoot.classList.contains("hidden");
+}
+
+function renderPipes(): void {
+  if (!pipesState) return;
+  const won = pipesState.phase === "won";
+  const flow = flowFromTank(pipesState);
+  pipesStatusEl.textContent = won ? "Flow restored" : "Tank → engine";
+  pipesRotatesEl.textContent =
+    pipesState.rotates === 1 ? "1 rotate" : `${pipesState.rotates} rotates`;
+  pipesEndEl.classList.toggle("hidden", !won);
+  if (won) {
+    const n = pipesState.rotates;
+    pipesEndBlurb.textContent =
+      n === 1
+        ? "Backup fuel reaches the engine in 1 rotate."
+        : `Backup fuel reaches the engine in ${n} rotates.`;
+  }
+  pipesGridEl.replaceChildren();
+  for (let r = 0; r < PIPE_GRID; r++) {
+    for (let c = 0; c < PIPE_GRID; c++) {
+      const kind = cellKind(r, c, pipesState.tank, pipesState.engine);
+      const mask = pipesState.tiles[r][c];
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "pipe-cell";
+      btn.dataset.r = String(r);
+      btn.dataset.c = String(c);
+      if (kind === "tank") btn.classList.add("is-tank");
+      if (kind === "engine") btn.classList.add("is-engine");
+      if (flow.has(`${r},${c}`)) btn.classList.add("is-flow");
+      const fixture = kind !== "pipe";
+      btn.disabled = fixture || won;
+      const label =
+        kind === "tank"
+          ? "Fuel tank"
+          : kind === "engine"
+            ? "Engine"
+            : `Pipe ${r + 1},${c + 1}`;
+      btn.setAttribute("aria-label", won ? `${label}, locked` : `${label}, tap to rotate`);
+      btn.setAttribute("role", "gridcell");
+      const glyph = document.createElement("span");
+      glyph.className = "pipe-glyph";
+      glyph.setAttribute("aria-hidden", "true");
+      const hub = document.createElement("span");
+      hub.className = "pipe-hub";
+      glyph.appendChild(hub);
+      const arms: Array<[number, string]> = [
+        [DIR_N, "n"],
+        [DIR_E, "e"],
+        [DIR_S, "s"],
+        [DIR_W, "w"],
+      ];
+      for (const [bit, name] of arms) {
+        if (mask & bit) {
+          const arm = document.createElement("span");
+          arm.className = `pipe-arm ${name}`;
+          glyph.appendChild(arm);
+        }
+      }
+      btn.appendChild(glyph);
+      if (kind === "tank" || kind === "engine") {
+        const badge = document.createElement("span");
+        badge.className = "pipe-badge";
+        badge.textContent = kind === "tank" ? "Tnk" : "Eng";
+        btn.appendChild(badge);
+      }
+      if (!fixture && !won) {
+        const rr = r;
+        const cc = c;
+        btn.addEventListener("click", () => {
+          if (!pipesState || pipesState.phase !== "playing") return;
+          pipesState = rotateTile(pipesState, rr, cc);
+          renderPipes();
+        });
+      }
+      pipesGridEl.appendChild(btn);
+    }
+  }
+}
+
+function openPipes(): void {
+  pipesState = startPipes();
+  renderPipes();
+  // Keep Lab under the drill so ✕ returns to the list, not the board.
+  pipesRoot.classList.remove("hidden");
+  pipesRoot.setAttribute("aria-hidden", "false");
+  document.body.classList.add("handbook-open");
+  const first = pipesGridEl.querySelector("button:not(:disabled)") as HTMLButtonElement | null;
+  first?.focus();
+}
+
+function closePipes(): void {
+  pipesRoot.classList.add("hidden");
+  pipesRoot.setAttribute("aria-hidden", "true");
+  pipesState = null;
+  if (
+    duelRoot.classList.contains("hidden") &&
+    labRoot.classList.contains("hidden") &&
+    eacRoot.classList.contains("hidden") &&
+    botEvoRoot.classList.contains("hidden") &&
+    tilesRoot.classList.contains("hidden") &&
+    urpRoot.classList.contains("hidden") &&
+    deseretRoot.classList.contains("hidden") &&
+    document.getElementById("handbook-root")?.classList.contains("hidden")
+  ) {
+    document.body.classList.remove("handbook-open");
+  }
+}
+
+function botEvoPlayAgain(): void {
+  startBotEvoPlay();
+}
+
+function botEvoDrop(): void {
+  if (!botEvoState || botEvoState.phase === "lost" || botEvoPaused) return;
+  botEvoState = hardDrop(botEvoState);
+  renderBotEvo();
+  afterBotEvoLand();
+}
+
+function toggleBotEvoPause(): void {
+  if (!botEvoState || botEvoState.phase === "lost") return;
+  botEvoPaused = !botEvoPaused;
+  if (botEvoPaused) clearBotEvoTimer();
+  renderBotEvo();
+  if (!botEvoPaused) armBotEvoTimer();
+}
+
+
+
+
+function pipesPlayAgain(): void {
+  pipesState = playAgainPipes();
+  renderPipes();
+  const first = pipesGridEl.querySelector("button:not(:disabled)") as HTMLButtonElement | null;
+  first?.focus();
+}
+
+/** —— Hull panel 8-puzzle (#78) —— */
+let tilesState: TileState | null = null;
+
+function isTilesOpen(): boolean {
+  return !tilesRoot.classList.contains("hidden");
+}
+
+function renderTiles(): void {
+  if (!tilesState) return;
+  const won = tilesState.phase === "won";
+  tilesStatusEl.textContent = won ? "Panel seated" : "Slide plates into order";
+  tilesMovesEl.textContent =
+    tilesState.moves === 1 ? "1 move" : `${tilesState.moves} moves`;
+  tilesEndEl.classList.toggle("hidden", !won);
+  if (won) {
+    const n = tilesState.moves;
+    tilesEndBlurb.textContent =
+      n === 1 ? "Hull plates seated in 1 move." : `Hull plates seated in ${n} moves.`;
+  }
+  tilesGridEl.replaceChildren();
+  for (let i = 0; i < TILE_CELLS; i++) {
+    const value = tilesState.board[i];
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "tile-cell";
+    btn.setAttribute("role", "gridcell");
+    const empty = value === EMPTY;
+    if (empty) {
+      btn.classList.add("is-empty");
+      btn.disabled = true;
+      btn.setAttribute("aria-label", "Empty slot");
+      btn.textContent = "";
+    } else {
+      btn.textContent = String(value);
+      const home = SOLVED_TILES[i] === value;
+      if (home) btn.classList.add("is-home");
+      const slidable = !won && isAdjacentToEmpty(tilesState.board, i);
+      if (slidable) btn.classList.add("is-slidable");
+      btn.disabled = won;
+      btn.setAttribute(
+        "aria-label",
+        won ? `Plate ${value}` : slidable ? `Plate ${value}, tap to slide` : `Plate ${value}`,
+      );
+      const idx = i;
+      btn.addEventListener("click", () => {
+        if (!tilesState || tilesState.phase !== "playing") return;
+        tilesState = slideTile(tilesState, idx);
+        renderTiles();
+      });
+    }
+    tilesGridEl.appendChild(btn);
+  }
+}
+
+function openTiles(): void {
+  tilesState = startTiles();
+  renderTiles();
+  tilesRoot.classList.remove("hidden");
+  tilesRoot.setAttribute("aria-hidden", "false");
+  document.body.classList.add("handbook-open");
+  const first = tilesGridEl.querySelector("button.is-slidable") as HTMLButtonElement | null;
+  first?.focus();
+}
+
+function closeTiles(): void {
+  tilesRoot.classList.add("hidden");
+  tilesRoot.setAttribute("aria-hidden", "true");
+  tilesState = null;
+  if (
+    duelRoot.classList.contains("hidden") &&
+    labRoot.classList.contains("hidden") &&
+    eacRoot.classList.contains("hidden") &&
+    pipesRoot.classList.contains("hidden") &&
+    urpRoot.classList.contains("hidden") &&
+    deseretRoot.classList.contains("hidden") &&
+    botEvoRoot.classList.contains("hidden") &&
+    document.getElementById("handbook-root")?.classList.contains("hidden")
+  ) {
+    document.body.classList.remove("handbook-open");
+  }
+}
+
+function tilesPlayAgain(): void {
+  tilesState = playAgainTiles();
+  renderTiles();
+  const first = tilesGridEl.querySelector("button.is-slidable") as HTMLButtonElement | null;
+  first?.focus();
+}
+
+/** —— Deseret alphabet matching (#79) —— */
+const DESERET_PREVIEW_MS = 1000;
+let deseretState: DeseretState | null = null;
+let deseretRevealTimer = 0;
+let deseretPreviewTimer = 0;
+
+function isDeseretOpen(): boolean {
+  return !deseretRoot.classList.contains("hidden");
+}
+
+function clearDeseretTimers(): void {
+  window.clearTimeout(deseretRevealTimer);
+  window.clearTimeout(deseretPreviewTimer);
+}
+
+function deseretScoreLine(state: DeseretState): string {
+  if (state.phase === "preview") {
+    return `0 / ${DESERET_ROUND} · 0 correct`;
+  }
+  const shown =
+    state.phase === "won" || state.phase === "lost"
+      ? state.asked
+      : Math.min(state.asked + 1, DESERET_ROUND);
+  return `${shown} / ${DESERET_ROUND} · ${state.correct} correct`;
+}
+
+function renderDeseretChart(): void {
+  deseretChartEl.replaceChildren();
+  for (const g of DESERET_INVENTORY) {
+    const pair = document.createElement("div");
+    pair.className = "deseret-pair";
+    pair.setAttribute("role", "listitem");
+    pair.setAttribute("aria-label", `${g.name}, ${g.latin}`);
+    const glyph = document.createElement("span");
+    glyph.className = "deseret-pair-glyph";
+    glyph.textContent = glyphChar(g);
+    glyph.setAttribute("aria-hidden", "true");
+    const latin = document.createElement("span");
+    latin.className = "deseret-pair-latin";
+    latin.textContent = g.latin;
+    pair.append(glyph, latin);
+    deseretChartEl.appendChild(pair);
+  }
+}
+
+function renderDeseret(): void {
+  if (!deseretState) return;
+  const ended = deseretState.phase === "won" || deseretState.phase === "lost";
+  const previewing = deseretState.phase === "preview";
+  const revealing = deseretState.phase === "reveal";
+  deseretPreviewEl.classList.toggle("hidden", !previewing);
+  deseretPlayEl.classList.toggle("hidden", ended || previewing);
+  deseretEndEl.classList.toggle("hidden", !ended);
+  deseretScoreEl.textContent = deseretScoreLine(deseretState);
+  deseretGlyphEl.classList.toggle("is-reveal", revealing);
+
+  if (deseretState.phase === "won") {
+    deseretStatusEl.textContent = "Round complete";
+    deseretEndTitle.textContent = "Nice work";
+    deseretEndBlurb.textContent = `You matched ${deseretState.correct} of ${DESERET_ROUND} (need ${DESERET_WIN}).`;
+    return;
+  }
+  if (deseretState.phase === "lost") {
+    deseretStatusEl.textContent = "Round over";
+    deseretEndTitle.textContent = "That’s all for this run";
+    deseretEndBlurb.textContent = `You matched ${deseretState.correct} of ${DESERET_ROUND}. Eight wins the round — play again when you’re ready.`;
+    return;
+  }
+  if (previewing) {
+    deseretStatusEl.textContent = "Study the letters";
+    deseretCountdownEl.textContent = String(deseretState.previewCountdown);
+    renderDeseretChart();
+    return;
+  }
+
+  const g = deseretState.prompt.glyph;
+  const ch = glyphChar(g);
+  deseretGlyphEl.textContent = ch;
+  deseretGlyphEl.setAttribute("aria-label", `Deseret capital ${g.name}`);
+  if (revealing && deseretState.revealedLatin) {
+    deseretStatusEl.textContent = `That was ${deseretState.revealedLatin}`;
+  } else {
+    deseretStatusEl.textContent = "Match the letter";
+  }
+
+  deseretChoicesEl.replaceChildren();
+  for (const latin of deseretState.prompt.choices) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "deseret-choice";
+    btn.textContent = latin;
+    btn.setAttribute("aria-label", `Latin ${latin}`);
+    if (revealing) {
+      btn.disabled = true;
+      if (latin === deseretState.revealedLatin) btn.classList.add("is-correct");
+    }
+    const pick = latin;
+    btn.addEventListener("click", () => deseretChoose(pick));
+    deseretChoicesEl.appendChild(btn);
+  }
+}
+
+function armDeseretPreview(): void {
+  window.clearTimeout(deseretPreviewTimer);
+  deseretPreviewTimer = window.setTimeout(() => {
+    if (!deseretState || deseretState.phase !== "preview") return;
+    deseretState = tickPreview(deseretState);
+    renderDeseret();
+    if (deseretState.phase === "preview") {
+      armDeseretPreview();
+    } else {
+      const first = deseretChoicesEl.querySelector("button") as HTMLButtonElement | null;
+      first?.focus();
+    }
+  }, DESERET_PREVIEW_MS);
+}
+
+function deseretChoose(latin: string): void {
+  if (!deseretState || deseretState.phase !== "playing") return;
+  const next = applyDeseretChoice(deseretState, latin);
+  deseretState = next;
+  if (next.phase === "reveal") {
+    renderDeseret();
+    deseretChoicesEl.querySelectorAll(".deseret-choice").forEach((el) => {
+      if (el instanceof HTMLButtonElement && el.textContent === latin) {
+        el.classList.add("is-wrong");
+      }
+    });
+    window.clearTimeout(deseretRevealTimer);
+    deseretRevealTimer = window.setTimeout(() => {
+      if (!deseretState || deseretState.phase !== "reveal") return;
+      deseretState = advanceDeseret(deseretState);
+      renderDeseret();
+    }, 900);
+    return;
+  }
+  if (document.activeElement instanceof HTMLElement) {
+    document.activeElement.blur();
+  }
+  renderDeseret();
+}
+
+function openDeseret(): void {
+  clearDeseretTimers();
+  deseretState = startDeseretMatch();
+  renderDeseret();
+  deseretRoot.classList.remove("hidden");
+  deseretRoot.setAttribute("aria-hidden", "false");
+  document.body.classList.add("handbook-open");
+  armDeseretPreview();
+}
+
+function closeDeseret(): void {
+  deseretRoot.classList.add("hidden");
+  deseretRoot.setAttribute("aria-hidden", "true");
+  deseretState = null;
+  clearDeseretTimers();
+  if (
+    duelRoot.classList.contains("hidden") &&
+    labRoot.classList.contains("hidden") &&
+    eacRoot.classList.contains("hidden") &&
+    pipesRoot.classList.contains("hidden") &&
+    tilesRoot.classList.contains("hidden") &&
+    urpRoot.classList.contains("hidden") &&
+    botEvoRoot.classList.contains("hidden") &&
+    document.getElementById("handbook-root")?.classList.contains("hidden")
+  ) {
+    document.body.classList.remove("handbook-open");
+  }
+}
+
+function deseretPlayAgain(): void {
+  clearDeseretTimers();
+  deseretState = playAgainDeseret();
+  renderDeseret();
+  armDeseretPreview();
 }
 
 /** Which Lab accordion category is open (null = all collapsed). */
@@ -1854,6 +3124,27 @@ async function runLabScenario(id: string): Promise<void> {
   const sc = LAB_SCENARIOS.find((x) => x.id === id);
   if (!sc || !labScenarioAvailable(sc)) return;
   if (sc.kind === "standalone") {
+    if (sc.standaloneId === "egg-bot-evolution") {
+      openBotEvo();
+
+      return;
+    }
+    if (sc.standaloneId === "urinal-rule-parking") {
+      openUrp();
+      return;
+    }
+    if (sc.standaloneId === "backup-fuel-pipes") {
+      openPipes();
+      return;
+    }
+    if (sc.standaloneId === "hull-panel") {
+      openTiles();
+      return;
+    }
+    if (sc.standaloneId === "deseret-match") {
+      openDeseret();
+      return;
+    }
     const script = STANDALONE_TO_SCRIPT[sc.standaloneId];
     if (script) openNumberCompare(script);
     return;
@@ -1872,9 +3163,50 @@ document.getElementById("lab-close")?.addEventListener("click", () => closeLab()
 document.getElementById("lab-backdrop")?.addEventListener("click", () => closeLab());
 document.getElementById("eac-close")?.addEventListener("click", () => closeEasternArabicCompare());
 document.getElementById("eac-backdrop")?.addEventListener("click", () => closeEasternArabicCompare());
+document.getElementById("urp-close")?.addEventListener("click", () => closeUrp());
+document.getElementById("urp-backdrop")?.addEventListener("click", () => closeUrp());
+urpOrbitBtn.addEventListener("click", () => urpOrbit());
+urpHintBtn.addEventListener("click", () => urpHint());
+urpAreasEl.addEventListener("click", (e) => {
+  const btn = (e.target as HTMLElement).closest("[data-area]");
+  if (!(btn instanceof HTMLElement)) return;
+  const area = Number(btn.getAttribute("data-area"));
+  if (area === 0 || area === 1) urpPickArea(area);
+});
 document.getElementById("eac-again")?.addEventListener("click", () => eacPlayAgain());
 document.getElementById("eac-done")?.addEventListener("click", () => {
   closeEasternArabicCompare();
+  openLab();
+});
+document.getElementById("botevo-close")?.addEventListener("click", () => closeBotEvo());
+document.getElementById("botevo-backdrop")?.addEventListener("click", () => closeBotEvo());
+botEvoBeginBtn.addEventListener("click", () => startBotEvoPlay());
+document.getElementById("botevo-again")?.addEventListener("click", () => botEvoPlayAgain());
+document.getElementById("botevo-done")?.addEventListener("click", () => {
+  closeBotEvo();
+  openLab();
+});
+botEvoDropBtn.addEventListener("click", () => botEvoDrop());
+botEvoPauseBtn.addEventListener("click", () => toggleBotEvoPause());
+document.getElementById("pipes-close")?.addEventListener("click", () => closePipes());
+document.getElementById("pipes-backdrop")?.addEventListener("click", () => closePipes());
+document.getElementById("pipes-again")?.addEventListener("click", () => pipesPlayAgain());
+document.getElementById("pipes-done")?.addEventListener("click", () => {
+  closePipes();
+  openLab();
+});
+document.getElementById("tiles-close")?.addEventListener("click", () => closeTiles());
+document.getElementById("tiles-backdrop")?.addEventListener("click", () => closeTiles());
+document.getElementById("tiles-again")?.addEventListener("click", () => tilesPlayAgain());
+document.getElementById("tiles-done")?.addEventListener("click", () => {
+  closeTiles();
+  openLab();
+});
+document.getElementById("deseret-close")?.addEventListener("click", () => closeDeseret());
+document.getElementById("deseret-backdrop")?.addEventListener("click", () => closeDeseret());
+document.getElementById("deseret-again")?.addEventListener("click", () => deseretPlayAgain());
+document.getElementById("deseret-done")?.addEventListener("click", () => {
+  closeDeseret();
   openLab();
 });
 eacHintBtn.addEventListener("click", () => eacHint());
@@ -1883,6 +3215,32 @@ eacLeftBtn.addEventListener("click", () => eacChoose("left"));
 eacRightBtn.addEventListener("click", () => eacChoose("right"));
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
+    if (isBotEvoOpen()) {
+      e.preventDefault();
+      closeBotEvo();
+
+      return;
+    }
+    if (isUrpOpen()) {
+      e.preventDefault();
+      closeUrp();
+      return;
+    }
+    if (isDeseretOpen()) {
+      e.preventDefault();
+      closeDeseret();
+      return;
+    }
+    if (isTilesOpen()) {
+      e.preventDefault();
+      closeTiles();
+      return;
+    }
+    if (isPipesOpen()) {
+      e.preventDefault();
+      closePipes();
+      return;
+    }
     if (isEacOpen()) {
       e.preventDefault();
       closeEasternArabicCompare();
@@ -1890,6 +3248,31 @@ document.addEventListener("keydown", (e) => {
     }
     if (!labRoot.classList.contains("hidden")) closeLab();
     return;
+  }
+  if (isBotEvoOpen() && botEvoState && botEvoState.phase !== "lost") {
+    if (e.key === "p" || e.key === "P") {
+      e.preventDefault();
+      toggleBotEvoPause();
+      return;
+    }
+    if (botEvoPaused) return;
+    if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      botEvoState = aimColumn(botEvoState, botEvoState.aimCol - 1);
+      renderBotEvo();
+      return;
+    }
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      botEvoState = aimColumn(botEvoState, botEvoState.aimCol + 1);
+      renderBotEvo();
+      return;
+    }
+    if (e.key === "ArrowDown" || e.key === " ") {
+      e.preventDefault();
+      botEvoDrop();
+      return;
+    }
   }
   if (!isEacOpen() || !eacState || eacState.phase !== "playing") return;
   // Point-at-winner: < / ← = left larger; > / → = right larger
@@ -2607,37 +3990,6 @@ function hitRouteStopAt(sx: number, sy: number): RouteStopHit | null {
   return bestSeg;
 }
 
-/** Board token (#110): classic teardrop hull + three swept fins. */
-function drawRocketToken(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  color: string,
-  moving: boolean,
-): void {
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.beginPath();
-  ctx.moveTo(0, -11);
-  ctx.bezierCurveTo(2.8, -11, 4.2, -6, 4.0, 1.2);
-  ctx.bezierCurveTo(5.8, 2.4, 7.4, 5.0, 7.4, 8.0);
-  ctx.bezierCurveTo(5.6, 6.8, 4.0, 6.0, 2.6, 5.6);
-  ctx.bezierCurveTo(2.4, 7.2, 1.4, 8.8, 0, 9.6);
-  ctx.bezierCurveTo(-1.4, 8.8, -2.4, 7.2, -2.6, 5.6);
-  ctx.bezierCurveTo(-4.0, 6.0, -5.6, 6.8, -7.4, 8.0);
-  ctx.bezierCurveTo(-7.4, 5.0, -5.8, 2.4, -4.0, 1.2);
-  ctx.bezierCurveTo(-4.2, -6, -2.8, -11, 0, -11);
-  ctx.closePath();
-  ctx.fillStyle = color;
-  ctx.fill();
-  ctx.strokeStyle = moving ? "#ffc857" : "#fff";
-  ctx.lineWidth = moving ? 2 : 1.15;
-  ctx.lineJoin = "round";
-  ctx.lineCap = "round";
-  ctx.stroke();
-  ctx.restore();
-}
-
 function drawBoard(): void {
   const w = canvas.width;
   const h = canvas.height;
@@ -2930,11 +4282,7 @@ function drawBoard(): void {
       ? state?.players.find((p) => p.id === ownerId)
       : undefined;
     if (owner) {
-      ctx.beginPath();
-      ctx.arc(x, y, baseR + 6, 0, Math.PI * 2);
-      ctx.strokeStyle = owner.color;
-      ctx.lineWidth = 3.5;
-      ctx.stroke();
+      drawClaimHalo(ctx, x, y, baseR, owner.color);
     }
 
     const r = drawBodyIcon(ctx, node, x, y);

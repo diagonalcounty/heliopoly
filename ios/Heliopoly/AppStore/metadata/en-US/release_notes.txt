@@ -1,6 +1,6 @@
-First public release of Heliopoly on iPad.
+Heliopoly 1.3.0
 
-• Full offline solar-system strategy game (no account, no online multiplayer)
-• Name your rocket, choose methane or hydrogen, race AI rivals
-• Claims, fuel depots, Gravity Duels, and charter alerts
-• Built-in Helios Ops Manual
+• Phone and iPad play: Lab drills, Gravity Duel, auctions, and end-screen Rematch
+• Lab minigames: Bot Evolution, Deseret letters, Backup fuel, Hull panel
+• Expedition names Insight / Curiosity / Voyager / Opportunity
+• Offline solar-system strategy — no account, no online multiplayer

@@ -632,6 +632,8 @@ final class LoopbackWebServer {
 
     fileprivate static func cacheControl(for mime: String) -> String {
         if mime.hasPrefix("text/html") { return "no-store" }
+        // Unhashed /lab/botevo/*.svg kept cream eggs after a color pass.
+        if mime.hasPrefix("image/svg") { return "no-store" }
         return "public, max-age=86400"
     }
 

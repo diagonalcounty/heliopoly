@@ -11,6 +11,7 @@ playwright/.cache/
 scripts/backlog.env
 scripts/deploy.env
 ios/**/xcuserdata/
+ios/Heliopoly/build/
    **/xcuserdata/
    *.xcuserstate
 

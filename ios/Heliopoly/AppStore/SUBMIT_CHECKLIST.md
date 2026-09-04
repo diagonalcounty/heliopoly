@@ -1,4 +1,4 @@
-# Heliopoly 1.0.0 — submit checklist
+# Heliopoly 1.3.0 — submit checklist
 
 Use with [LISTING.md](./LISTING.md).
 

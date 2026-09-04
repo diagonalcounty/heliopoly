@@ -1,7 +1,7 @@
 # Heliopoly — App Store Connect listing copy
 
 Paste these fields into **App Store Connect → Heliopoly → App Information / Version**.  
-Version aligned with Xcode: **1.0.0** (build **1**).
+Version aligned with Xcode: **1.3.0** (build **3**).
 
 ---
 
@@ -55,15 +55,15 @@ Adjust legal entity name to match your Apple Developer account / DUNS if differe
 
 ---
 
-## Version 1.0.0 — What’s New
+## Version 1.3.0 — What’s New
 
 ```
-First public release of Heliopoly on iPad.
+Heliopoly 1.3.0
 
-• Full offline solar-system strategy game (no account, no online multiplayer)
-• Name your rocket, choose methane or hydrogen, race AI rivals
-• Claims, fuel depots, Gravity Duels, and charter alerts
-• Built-in Helios Ops Manual
+• Phone and iPad play: Lab drills, Gravity Duel, auctions, and end-screen Rematch
+• Lab minigames: Bot Evolution, Deseret letters, Backup fuel, Hull panel
+• Expedition names Insight / Curiosity / Voyager / Opportunity
+• Offline solar-system strategy — no account, no online multiplayer
 ```
 
 ---
@@ -135,7 +135,7 @@ Matches `PrivacyInfo.xcprivacy` for this native shell (no tracking domains; no d
 
 | Question | Answer |
 |----------|--------|
-| Do you or your third-party partners collect data? | **No** (for this 1.0.0 offline build) |
+| Do you or your third-party partners collect data? | **No** (for this 1.3.0 offline build) |
 | Tracking? | **No** |
 | Privacy Nutrition Labels | None — “Data Not Collected” |
 

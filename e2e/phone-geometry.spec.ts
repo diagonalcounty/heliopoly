@@ -18,6 +18,11 @@ const HIDDEN_SHEETS = [
   "#end-root",
   "#lab-root",
   "#eac-root",
+  "#botevo-root",
+  "#pipes-root",
+  "#tiles-root",
+  "#urp-root",
+  "#deseret-root",
 ];
 
 test.describe("phone setup #158", () => {
@@ -470,6 +475,109 @@ test.describe("phone Lab sheet #193", () => {
     await page.locator("#lab-root .handbook-close").click();
     await expect(page.locator("#lab-root")).toHaveClass(/hidden/);
 
+    const rollAfter = await hitAt(page, roll.x, roll.y);
+    expect(rollAfter?.id, "Roll tappable after Lab close").toBe("btn-roll");
+  });
+
+  test("minigame cards do not clip blurbs", async ({ page }) => {
+    await launch(page);
+    await page.locator("#btn-lab").click();
+    await page
+      .locator('.lab-group-toggle[aria-controls="lab-group-items-minigame"]')
+      .click();
+    await expect(page.locator("#lab-group-items-minigame")).toBeVisible();
+
+    const report = await page.evaluate(() => {
+      const cards = [
+        ...document.querySelectorAll("#lab-group-items-minigame .lab-scenario"),
+      ] as HTMLElement[];
+      return cards.map((el) => {
+        const blurb = el.querySelector(".lab-scenario-blurb") as HTMLElement | null;
+        return {
+          title: el.querySelector(".lab-scenario-title")?.textContent ?? "",
+          cardClips: el.scrollHeight > el.clientHeight + 1,
+          blurbClips: blurb ? blurb.scrollHeight > blurb.clientHeight + 1 : true,
+          blurb: blurb?.textContent?.trim() ?? "",
+        };
+      });
+    });
+    expect(report.length, "minigame cards").toBeGreaterThanOrEqual(5);
+    for (const row of report) {
+      expect(row.cardClips, `${row.title} card clips its copy`).toBe(false);
+      expect(row.blurbClips, `${row.title} blurb clips`).toBe(false);
+      expect(row.blurb.length, `${row.title} has a blurb`).toBeGreaterThan(12);
+    }
+
+    const last = page.locator("#lab-group-items-minigame .lab-scenario").last();
+    await last.scrollIntoViewIfNeeded();
+    const box = await boxOf(page, "#lab-group-items-minigame .lab-scenario:last-child");
+    expect(box.onControl, "last minigame card is tappable").toBe(true);
+  });
+});
+
+test.describe("phone Lab egg-bot-evolution #203", () => {
+  test.skip(({ viewport }) => (viewport?.width ?? 0) >= 900, "phone only");
+
+  test("5×8 grid; cells ≥40px; Close returns Roll", async ({ page }) => {
+    await launch(page);
+    const roll = await centerOf(page, "#btn-roll");
+    await page.locator("#btn-lab").click();
+    await expect(page.locator("#lab-root")).not.toHaveClass(/hidden/);
+    await page.locator('.lab-group-toggle[aria-controls="lab-group-items-minigame"]').click();
+    await page.locator('.lab-scenario[data-scenario="egg-bot-evolution"]').click();
+    await expect(page.locator("#botevo-root")).not.toHaveClass(/hidden/);
+    await expect(page.locator("#botevo-intro")).not.toHaveClass(/hidden/);
+    const begin = await boxOf(page, "#botevo-begin");
+    expect(begin.height, "Begin ≥44px tall").toBeGreaterThanOrEqual(44);
+    expect(begin.onControl, "elementFromPoint Begin").toBe(true);
+    await page.locator("#botevo-begin").click();
+    await expect(page.locator("#botevo-table")).not.toHaveClass(/hidden/);
+
+    const cells = page.locator("#botevo-grid .botevo-cell");
+    await expect(cells).toHaveCount(40);
+    const first = await boxOf(page, "#botevo-grid .botevo-cell");
+    expect(first.width, "egg cell ≥40px").toBeGreaterThanOrEqual(40);
+    expect(first.height, "egg cell ≥40px").toBeGreaterThanOrEqual(40);
+    expect(first.onControl, "elementFromPoint egg cell").toBe(true);
+    const drop = await boxOf(page, "#botevo-drop");
+    expect(drop.width, "Drop ≥44px wide").toBeGreaterThanOrEqual(44);
+    expect(drop.height, "Drop ≥44px tall").toBeGreaterThanOrEqual(44);
+    expect(drop.onControl, "elementFromPoint Drop").toBe(true);
+    const pause = await boxOf(page, "#botevo-pause");
+    expect(pause.width, "Pause ≥44px wide").toBeGreaterThanOrEqual(44);
+    expect(pause.height, "Pause ≥44px tall").toBeGreaterThanOrEqual(44);
+    expect(pause.onControl, "elementFromPoint Pause").toBe(true);
+
+    await page.locator("#botevo-root .handbook-close").click();
+    await expect(page.locator("#botevo-root")).toHaveClass(/hidden/);
+    await page.locator("#lab-root .handbook-close").click();
+    const rollAfter = await hitAt(page, roll.x, roll.y);
+    expect(rollAfter?.id, "Roll tappable after Lab close").toBe("btn-roll");
+  });
+});
+
+test.describe("phone Lab Backup fuel #201", () => {
+  test.skip(({ viewport }) => (viewport?.width ?? 0) >= 900, "phone only");
+
+  test("6×6 grid; cells ≥44px; Close returns Roll", async ({ page }) => {
+    await launch(page);
+    const roll = await centerOf(page, "#btn-roll");
+    await page.locator("#btn-lab").click();
+    await expect(page.locator("#lab-root")).not.toHaveClass(/hidden/);
+    await page.locator('.lab-group-toggle[aria-controls="lab-group-items-minigame"]').click();
+    await page.locator('.lab-scenario[data-scenario="backup-fuel-pipes"]').click();
+    await expect(page.locator("#pipes-root")).not.toHaveClass(/hidden/);
+
+    const cells = page.locator("#pipes-grid .pipe-cell");
+    await expect(cells).toHaveCount(36);
+    const first = await boxOf(page, "#pipes-grid .pipe-cell");
+    expect(first.width, "pipe cell ≥44px").toBeGreaterThanOrEqual(44);
+    expect(first.height, "pipe cell ≥44px").toBeGreaterThanOrEqual(44);
+    expect(first.onControl, "elementFromPoint pipe cell").toBe(true);
+
+    await page.locator("#pipes-root .handbook-close").click();
+    await expect(page.locator("#pipes-root")).toHaveClass(/hidden/);
+    await page.locator("#lab-root .handbook-close").click();
     const rollAfter = await hitAt(page, roll.x, roll.y);
     expect(rollAfter?.id, "Roll tappable after Lab close").toBe("btn-roll");
   });

@@ -25,7 +25,8 @@ Working title. Not RoboSockets. Lab-only matching / falling-block drill inspired
 ## Art direction (hybrid, not final)
 
 - Palette: Heliopoly navy / cream / gold / cyan.
-- Eggs: circuit-trace faces + gold glow on a live chain (Egg-Socket card comp).
+- Eggs: family shells (cream plus / cyan straight / apricot corner / mint tee). **Connectors are pistons** on live sides only; dead sides are smooth shell — no bumpers, no wall-plates, no extra hug-arms.
+- Gold glow on a live chain (Egg-Socket card comp).
 - Mascot: raccoon clerk (Kostka-dog card energy, suit, not oil-paint realism).
 - Playfield: simple 5×8 cell grid. Slot-table wells were too thick — connectors must meet through column gaps.
 - UI chrome: vintage card frame is attractive but **not locked**. Do not block build on pixel-perfect HUD.
@@ -45,6 +46,10 @@ Working title. Not RoboSockets. Lab-only matching / falling-block drill inspired
 | Gemini *Egg-Socket Connections* card | Chrome + circuit-egg + glow reference |
 | Hybrid *Bot Evolution* card mockup | Latest UI mashup — still not locked |
 
+## Implementation
+
+Lab standalone: `src/lab/botEvolution.ts` (engine + erased-plus grammar). Overlay `#botevo-root`. Tests: `npx tsx src/lab/botEvolution.test.ts`. Chrome is readable, not pixel-locked.
+
 ## Related issues
 
-See GitHub issues opened 2026-08-29 under Lab shelf [#153](https://github.com/diagonalcounty/heliopoly/issues/153).
+See GitHub issues opened 2026-08-29 under Lab shelf [#153](https://github.com/diagonalcounty/heliopoly/issues/153): parent [#203](https://github.com/diagonalcounty/heliopoly/issues/203), engine [#204](https://github.com/diagonalcounty/heliopoly/issues/204), grammar [#205](https://github.com/diagonalcounty/heliopoly/issues/205), UI [#206](https://github.com/diagonalcounty/heliopoly/issues/206).
