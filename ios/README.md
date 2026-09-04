@@ -31,39 +31,23 @@ In Xcode:
 
 ```text
 ios/Heliopoly/
-  Heliopoly.xcodeproj/     # project + shared scheme (Heliopoly); Phone prototype has no shared scheme
+  Heliopoly.xcodeproj/     # project + shared scheme (Heliopoly only)
   WebDist/                 # Vite production build (npm run ios:sync)
   Heliopoly/
-    HeliopolyApp.swift     # iPad @main
-    ContentView.swift      # iPad root shell
-    GameWebView.swift      # WKWebView → bundled WebDist/ (shared)
+    HeliopolyApp.swift     # @main
+    ContentView.swift      # root shell
+    GameWebView.swift      # WKWebView → bundled WebDist/
     PrivacyInfo.xcprivacy
     Assets.xcassets/
-  PhonePrototype/          # iPhone prototype @main (#120 / #121)
-  PhoneOverlay/            # CSS/JS injected only by HeliopolyPhone (#122)
 ```
 
-## iPhone prototype (does not change iPad)
+## Universal app (iPhone + iPad)
 
-Parent: GitHub **#120**. The shipping **Heliopoly** scheme stays iPad-only (`TARGETED_DEVICE_FAMILY = 2`). Overlay is **not** in `src/style.css`.
+Scheme **Heliopoly** only — bundle `heliopoly.live.Heliopoly`, TARGETED_DEVICE_FAMILY 1,2. The old **HeliopolyPhone** target was removed (do not recreate it for App Store).
 
-```bash
-npm run ios:sync
-open ios/Heliopoly/Heliopoly.xcodeproj
-```
+Legacy folders PhonePrototype/ and PhoneOverlay/ may still exist on disk for reference; they are not in the Xcode project.
 
-1. Select scheme **HeliopolyPhone**.
-2. Pick an **iPhone** simulator (iPhone 16 / 15, portrait).
-3. Run (⌘R).
-
-| Scheme | Device | What you get |
-|--------|--------|----------------|
-| **Heliopoly** | iPad | Unchanged shipping client |
-| **HeliopolyPhone** | iPhone | Same `WebDist/` + `PhoneOverlay/` (status strip, leftover board, fixed Roll bar) |
-
-`npm run ios:sync` still only refreshes `WebDist/`. Edit overlay in `PhoneOverlay/phone.css` + `phone.js`, then rebuild **HeliopolyPhone**.
-
-`WebDist/` lives **next to** the `.xcodeproj` (not inside the synced Swift sources). Xcode’s “Copy WebDist” Run Script phase packs it into the `.app` **with folder structure** so `./assets/` and `./handbook/` paths work.
+WebDist/ lives **next to** the `.xcodeproj` (not inside the synced Swift sources). Xcode’s “Copy WebDist” Run Script phase packs it into the `.app` **with folder structure** so `./assets/` and `./handbook/` paths work.
 
 ### Offline load path (important)
 
@@ -126,7 +110,7 @@ Full listing copy, privacy answers, review notes, screenshot checklist, and expo
 
 | Item | Status |
 |------|--------|
-| Display name / version | Heliopoly · **1.3.x** (set in Xcode before archive) |
+| Display name / version | Heliopoly · **1.3.0** (build 5 in project; bump build on each re-upload) |
 | Bundle ID | `heliopoly.live.Heliopoly` |
 | Category | Games |
 | App icon 1024 | `Heliopoly/Assets.xcassets/AppIcon.appiconset/` (+ marketing `AppStore/AppIcon-1024.png`) |
