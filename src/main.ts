@@ -98,6 +98,7 @@ import {
   DIR_S,
   DIR_W,
   aimColumn,
+  clearJustRecycled,
   fallingOccupies,
   gravityMs,
   hardDrop,
@@ -111,6 +112,7 @@ import {
   type BotGrid,
   type BotState,
   type PieceId,
+  type RecycledBot,
 } from "./lab/botEvolution";
 import { BOTEVO_SPRITES } from "./lab/botevoSprites";
 import {
@@ -2176,12 +2178,18 @@ function eacPlayAgain(): void {
 let botEvoState: BotState | null = null;
 let botEvoTimer: number | null = null;
 let botEvoMorphTimer: number | null = null;
+let botEvoRecycleTimer: number | null = null;
 let botEvoPaused = false;
 let botEvoMorphSig = "";
+let botEvoRecyclePending: RecycledBot[] = [];
+let botEvoRecycleFlying = false;
 let botEvoBarView = { level: 1, segments: 0, boxes: 0 };
 const BOTEVO_COMBINE_MS = 280;
 const BOTEVO_FLY_MS = 720;
 const BOTEVO_MORPH_MS = BOTEVO_COMBINE_MS + BOTEVO_FLY_MS;
+/** CSS twin of .botevo-fly (~280ms ease-out); muted recycle must not outshine battery. */
+const BOTEVO_RECYCLE_MS = 280;
+const BOTEVO_RECYCLE_STAGGER_MS = 40;
 const BOTEVO_JOIN_DIRS: Array<[number, string]> = [
   [DIR_N, "n"],
   [DIR_E, "e"],
@@ -2206,6 +2214,13 @@ function clearBotEvoMorphTimer(): void {
   if (botEvoMorphTimer !== null) {
     window.clearTimeout(botEvoMorphTimer);
     botEvoMorphTimer = null;
+  }
+}
+
+function clearBotEvoRecycleTimer(): void {
+  if (botEvoRecycleTimer !== null) {
+    window.clearTimeout(botEvoRecycleTimer);
+    botEvoRecycleTimer = null;
   }
 }
 
@@ -2269,6 +2284,69 @@ function flyMorphToBar(keys: string[]): void {
   }
 }
 
+function finishBotEvoRecycle(): void {
+  botEvoRecycleTimer = null;
+  botEvoRecycleFlying = false;
+  botEvoRecyclePending = [];
+  botEvoFxEl.replaceChildren();
+  if (!botEvoState || botEvoState.phase === "lost") return;
+  botEvoState = clearJustRecycled(botEvoState);
+  renderBotEvo();
+}
+
+function flyRecycleToQueue(items: RecycledBot[]): void {
+  if (!items.length || !botEvoState) return;
+  botEvoRecycleFlying = true;
+  // Ensure six slot shells exist so we can target rects while content is deferred.
+  renderBotEvo();
+  const slots = botEvoQueueEl.querySelectorAll<HTMLElement>(".botevo-queue-egg");
+  items.forEach((item, i) => {
+    const slotIndex = i + 1;
+    const slot = slots[slotIndex];
+    const cell = botEvoGridEl.querySelector(
+      `[data-r="${BOT_ROWS - 1}"][data-c="${item.col}"]`,
+    );
+    if (!slot || !cell) return;
+    const from = cell.getBoundingClientRect();
+    const to = slot.getBoundingClientRect();
+    const el = document.createElement("span");
+    el.className = "botevo-fly is-recycle";
+    el.style.left = `${from.left}px`;
+    el.style.top = `${from.top}px`;
+    el.style.width = `${from.width * 0.76}px`;
+    el.style.height = `${from.height * 0.76}px`;
+    el.style.marginLeft = `${from.width * 0.12}px`;
+    el.style.marginTop = `${from.height * 0.12}px`;
+    const img = document.createElement("img");
+    img.src = BOTEVO_SPRITES[item.piece];
+    img.alt = "";
+    img.draggable = false;
+    el.appendChild(img);
+    botEvoFxEl.appendChild(el);
+    const dx = to.left + to.width / 2 - (from.left + from.width / 2);
+    const dy = to.top + to.height / 2 - (from.top + from.height / 2);
+    const delay = i * BOTEVO_RECYCLE_STAGGER_MS;
+    window.setTimeout(() => {
+      requestAnimationFrame(() => {
+        el.style.transform = `translate(${dx}px, ${dy}px) scale(0.92)`;
+      });
+    }, delay);
+  });
+  const total =
+    BOTEVO_RECYCLE_MS +
+    Math.max(0, items.length - 1) * BOTEVO_RECYCLE_STAGGER_MS +
+    40;
+  clearBotEvoRecycleTimer();
+  botEvoRecycleTimer = window.setTimeout(() => finishBotEvoRecycle(), total);
+}
+
+function maybeStartBotEvoRecycle(): void {
+  if (!botEvoRecyclePending.length || botEvoRecycleFlying) return;
+  if (botEvoMorphTimer !== null) return;
+  const items = botEvoRecyclePending.slice();
+  flyRecycleToQueue(items);
+}
+
 function finishBotEvoMorph(): void {
   botEvoMorphTimer = null;
   botEvoMorphSig = "";
@@ -2278,16 +2356,23 @@ function finishBotEvoMorph(): void {
   botEvoState = resumeAfterMorph(botEvoState);
   renderBotEvo();
   if (!falling) armBotEvoTimer();
+  // Promotion mid-morph: finish battery fly, then muted recycle wave.
+  maybeStartBotEvoRecycle();
 }
 
 function afterBotEvoLand(): void {
   if (!botEvoState) return;
+  if (botEvoState.justRecycled.length) {
+    botEvoRecyclePending = botEvoState.justRecycled.map((r) => ({ ...r }));
+  }
   const sig = botEvoState.justMorphed.slice().sort().join(",");
   if (sig && sig !== botEvoMorphSig) {
     botEvoMorphSig = sig;
     flyMorphToBar(botEvoState.justMorphed);
     clearBotEvoMorphTimer();
     botEvoMorphTimer = window.setTimeout(() => finishBotEvoMorph(), BOTEVO_MORPH_MS);
+  } else {
+    maybeStartBotEvoRecycle();
   }
   if (botEvoState.phase === "falling") armBotEvoTimer();
 }
@@ -2459,20 +2544,37 @@ function renderBotEvo(): void {
   botEvoPrevJoins = landedJoins;
 
   botEvoQueueEl.replaceChildren();
-  for (const piece of botEvoState.queue) {
+  const recycledCount = Math.max(
+    botEvoState.justRecycled.length,
+    botEvoRecyclePending.length,
+  );
+  const deferRecycleSprites =
+    recycledCount > 0 || botEvoRecycleFlying;
+  botEvoState.queue.forEach((piece, index) => {
     const slot = document.createElement("div");
     slot.className = "botevo-queue-egg";
-    slot.setAttribute("aria-label", `Next ${piece}`);
-    appendBotSprite(slot, piece);
+    slot.dataset.slot = String(index + 1);
+    const hideRecycled =
+      deferRecycleSprites && index > 0 && index <= recycledCount;
+    if (hideRecycled) {
+      slot.classList.add("is-awaiting-recycle");
+      slot.setAttribute("aria-label", `Next slot ${index + 1}`);
+    } else {
+      slot.setAttribute("aria-label", `Next ${piece}`);
+      appendBotSprite(slot, piece);
+    }
     botEvoQueueEl.appendChild(slot);
-  }
+  });
 }
 
 function showBotEvoIntro(): void {
   clearBotEvoTimer();
   clearBotEvoMorphTimer();
+  clearBotEvoRecycleTimer();
   botEvoPaused = false;
   botEvoMorphSig = "";
+  botEvoRecyclePending = [];
+  botEvoRecycleFlying = false;
   botEvoState = null;
   botEvoIntroEl.classList.remove("hidden");
   botEvoTableEl.classList.add("hidden");
@@ -2481,8 +2583,11 @@ function showBotEvoIntro(): void {
 function startBotEvoPlay(): void {
   clearBotEvoTimer();
   clearBotEvoMorphTimer();
+  clearBotEvoRecycleTimer();
   botEvoPaused = false;
   botEvoMorphSig = "";
+  botEvoRecyclePending = [];
+  botEvoRecycleFlying = false;
   botEvoFxEl.replaceChildren();
   botEvoPrevOcc = new Set();
   botEvoPrevJoins = new Set();
@@ -2506,8 +2611,11 @@ function openBotEvo(): void {
 function closeBotEvo(): void {
   clearBotEvoTimer();
   clearBotEvoMorphTimer();
+  clearBotEvoRecycleTimer();
   botEvoPaused = false;
   botEvoMorphSig = "";
+  botEvoRecyclePending = [];
+  botEvoRecycleFlying = false;
   botEvoFxEl.replaceChildren();
   botEvoRoot.classList.add("hidden");
   botEvoRoot.setAttribute("aria-hidden", "true");

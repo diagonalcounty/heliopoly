@@ -758,6 +758,22 @@ html.native-shell #app {
   transition:
     transform 280ms ease-out,
     opacity 280ms linear;
+  overflow: hidden;
+}
+
+/* Muted twin of battery fly — cooler, less bloom; reward beat stays brighter. */
+.botevo-fly.is-recycle {
+  background: linear-gradient(180deg, #9aacc4 0%, #5c6d86 100%);
+  border-color: #3d4a5e;
+  box-shadow: 0 0 7px rgba(140, 160, 190, 0.4);
+}
+
+.botevo-fly.is-recycle img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
 }
 
 .botevo-hint {
@@ -1032,7 +1048,7 @@ html.native-shell #app {
 .botevo-queue {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
 .botevo-queue-egg {
@@ -1043,6 +1059,11 @@ html.native-shell #app {
   border: 1px solid #2a3555;
   background: rgba(18, 26, 44, 0.45);
   overflow: visible;
+}
+
+.botevo-queue-egg.is-awaiting-recycle {
+  background: rgba(18, 26, 44, 0.28);
+  border-style: dashed;
 }
 
 .botevo-toolbar {

@@ -10,7 +10,7 @@
 
 export const BOT_COLS = 5;
 export const BOT_ROWS = 8;
-export const BOT_QUEUE = 3;
+export const BOT_QUEUE = 6;
 export const BASE_QUOTA = 5;
 export const SPEED_MUL = 1.1;
 export const BASE_GRAVITY_MS = 700;
@@ -110,6 +110,12 @@ export type BotPhase = "aiming" | "falling" | "morphing" | "lost";
 
 export type BotGrid = (PieceId | null)[][];
 
+/** Bottom-row bot cleared on level promotion (chrome fly → Next 2–6). */
+export interface RecycledBot {
+  col: number;
+  piece: PieceId;
+}
+
 export interface BotState {
   grid: BotGrid;
   queue: PieceId[];
@@ -127,6 +133,15 @@ export interface BotState {
   lockTicks: number;
   /** Cells that morphed on the last land (for box flash). */
   justMorphed: string[];
+  /**
+   * Per-slot sharp flag for queue pixelation (#219).
+   * Recycled occupants in indices 1–5 start true; do not infer from piece id.
+   */
+  recycleSharp: boolean[];
+  /** Bottom-row bots recycled on the last promotion (chrome FX). */
+  justRecycled: RecycledBot[];
+  /** Level-ups during the current morph resolve; applied after spawnNext. */
+  pendingPromotions: number;
 }
 
 export function socketsOf(id: PieceId): number {
@@ -171,6 +186,8 @@ function cloneState(state: BotState): BotState {
     queue: state.queue.slice(),
     bag: state.bag.slice(),
     justMorphed: state.justMorphed.slice(),
+    recycleSharp: state.recycleSharp.slice(),
+    justRecycled: state.justRecycled.map((r) => ({ ...r })),
   };
 }
 
@@ -248,6 +265,9 @@ export function startBotEvo(seed?: number): BotState {
     bag: filled.bag,
     lockTicks: 0,
     justMorphed: [],
+    recycleSharp: Array.from({ length: BOT_QUEUE }, () => false),
+    justRecycled: [],
+    pendingPromotions: 0,
   };
   startFall(state);
   return state;
@@ -420,7 +440,7 @@ export function liveChainCells(grid: BotGrid): Set<string> {
   return out;
 }
 
-function applyColumnGravity(grid: BotGrid): BotGrid {
+export function applyColumnGravity(grid: BotGrid): BotGrid {
   const next = emptyGrid();
   for (let c = 0; c < BOT_COLS; c++) {
     const stack: PieceId[] = [];
@@ -443,7 +463,75 @@ function creditBoxes(state: BotState, n: number): void {
   while (state.segments >= quotaForLevel(state.level)) {
     state.segments -= quotaForLevel(state.level);
     state.level += 1;
+    state.pendingPromotions += 1;
   }
+}
+
+/**
+ * Clear the bottom playfield row into the bag and rewrite Next slots 2–6.
+ * Keeps queue[0]. Empty bottom cells are skipped. Call after spawnNext on
+ * promotion so the falling piece is not stolen and slot 1 stays next-to-drop.
+ */
+export function recycleBottomRow(state: BotState): BotState {
+  const next = cloneState(state);
+  recycleBottomRowInPlace(next);
+  return next;
+}
+
+function recycleBottomRowInPlace(state: BotState): void {
+  const bottom = BOT_ROWS - 1;
+  const recycled: RecycledBot[] = [];
+  const grid = cloneGrid(state.grid);
+  for (let c = 0; c < BOT_COLS; c++) {
+    const piece = grid[bottom]![c];
+    if (!piece) continue;
+    recycled.push({ col: c, piece });
+    grid[bottom]![c] = null;
+  }
+
+  for (const item of recycled) {
+    state.bag.push(item.piece);
+  }
+
+  state.grid = applyColumnGravity(grid);
+
+  const keep = state.queue[0];
+  if (!keep) return;
+  const priorTail = state.queue.slice(1);
+  const slots: PieceId[] = [];
+  for (const item of recycled) {
+    if (slots.length >= BOT_QUEUE - 1) break;
+    slots.push(item.piece);
+  }
+  let ti = 0;
+  while (slots.length < BOT_QUEUE - 1 && ti < priorTail.length) {
+    slots.push(priorTail[ti++]!);
+  }
+  while (slots.length < BOT_QUEUE - 1) {
+    const drawn = drawPiece(state.rng, state.bag);
+    state.rng = drawn.rng;
+    state.bag = drawn.bag;
+    slots.push(drawn.piece);
+  }
+
+  const nRecycled = Math.min(recycled.length, BOT_QUEUE - 1);
+  const sharp = state.recycleSharp.slice();
+  sharp[0] = false;
+  for (let i = 1; i < BOT_QUEUE; i++) {
+    sharp[i] = i <= nRecycled;
+  }
+
+  state.queue = [keep, ...slots];
+  state.recycleSharp = sharp;
+  state.justRecycled = recycled;
+}
+
+/** Clear recycle FX flash after muted flies settle. */
+export function clearJustRecycled(state: BotState): BotState {
+  if (!state.justRecycled.length) return state;
+  const next = cloneState(state);
+  next.justRecycled = [];
+  return next;
 }
 
 function resolveMorphs(state: BotState): void {
@@ -492,6 +580,10 @@ function spawnNext(state: BotState): void {
   const picked = drawPiece(state.rng, state.bag);
   q.push(picked.piece);
   state.queue = q;
+  const sharp = state.recycleSharp.slice();
+  sharp.shift();
+  sharp.push(false);
+  state.recycleSharp = sharp;
   state.current = next;
   state.rng = picked.rng;
   state.bag = picked.bag;
@@ -522,8 +614,16 @@ function landFalling(state: BotState): void {
   state.grid = cloneGrid(state.grid);
   state.grid[r]![c] = state.current;
   state.fallRow = null;
+  state.justRecycled = [];
+  state.pendingPromotions = 0;
   resolveMorphs(state);
+  const promotions = state.pendingPromotions;
+  state.pendingPromotions = 0;
   spawnNext(state);
+  // Recycle after spawn so queue[0] is the live next-to-drop (slot 1 stays).
+  for (let i = 0; i < promotions; i++) {
+    recycleBottomRowInPlace(state);
+  }
 }
 
 export function aimColumn(state: BotState, col: number): BotState {

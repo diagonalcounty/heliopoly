@@ -27,6 +27,7 @@ import {
   LOCK_GRACE_TICKS,
   quotaForLevel,
   pieceArt,
+  recycleBottomRow,
   SHELL_FILL,
   connectorKind,
   eggTokenSvg,
@@ -70,7 +71,7 @@ function lowestPiece(grid: BotGrid, col: number): PieceId | null {
 }
 
 assert(BOT_COLS === 5 && BOT_ROWS === 8, "playfield is 5×8");
-assert(BOT_QUEUE === 3, "preview queue is 3");
+assert(BOT_QUEUE === 6, "preview queue is 6");
 assert(MORPH_SIZE === 5, "morph at 5");
 assert(quotaForLevel(1) === 5, "L1 quota is 5");
 assert(quotaForLevel(2) === 6, "L2 quota is 6");
@@ -121,7 +122,9 @@ assert(!socketsMeet("l-ne", "i", DIR_S), "L-NE has no south pin");
   const b = startBotEvo(203);
   assert(a.current === b.current, "same seed: current piece");
   assert(a.queue.join() === b.queue.join(), "same seed: queue");
-  assert(a.queue.length === BOT_QUEUE, "queue length 3");
+  assert(a.queue.length === BOT_QUEUE, "queue length 6");
+  assert(a.recycleSharp.length === BOT_QUEUE, "recycleSharp length 6");
+  assert(a.recycleSharp.every((v) => v === false), "start not sharp");
   assert(a.phase === "falling", "starts falling");
   assert(a.fallRow === 0, "spawn at the top row");
   assert(a.grid.length === BOT_ROWS && a.grid[0]!.length === BOT_COLS, "grid shape");
@@ -224,8 +227,93 @@ assert(!socketsMeet("l-ne", "i", DIR_S), "L-NE has no south pin");
   const q = s.queue.slice();
   s = dropPiece(s, 2, "plus");
   assert(s.current === q[0], "next current comes from the queue");
-  assert(s.queue.length === BOT_QUEUE, "queue stays length 3");
-  assert(s.queue[2] !== undefined, "queue refilled");
+  assert(s.queue.length === BOT_QUEUE, "queue stays length 6");
+  assert(s.queue[5] !== undefined, "queue refilled");
+}
+
+{
+  let s = startBotEvo(20);
+  const slot0 = s.queue[0]!;
+  const bottom = BOT_ROWS - 1;
+  // Stack a plus above col 1 so gravity is observable after recycle.
+  s = {
+    ...s,
+    grid: s.grid.map((row) => row.slice()),
+    queue: s.queue.slice(),
+    bag: s.bag.slice(),
+    recycleSharp: s.recycleSharp.slice(),
+    justRecycled: [],
+  };
+  s.grid[bottom]![0] = "dash";
+  s.grid[bottom]![1] = "i";
+  s.grid[bottom]![2] = "plus";
+  s.grid[bottom]![3] = "t-n";
+  s.grid[bottom]![4] = "l-ne";
+  s.grid[bottom - 1]![1] = "dash";
+  const bagBefore = s.bag.length;
+  const recycled = recycleBottomRow(s);
+  assert(recycled.queue[0] === slot0, "recycle keeps slot 1 / queue[0]");
+  assert(recycled.queue.length === BOT_QUEUE, "recycle queue stays length 6");
+  assert(
+    recycled.queue.slice(1, 6).join() === "dash,i,plus,t-n,l-ne",
+    "recycled bots fill slots 2–6 L→R",
+  );
+  assert(
+    recycled.grid[bottom]!.every((c) => c === null) ||
+      recycled.grid[bottom]![1] === "dash",
+    "bottom row cleared then gravity fills from above",
+  );
+  assert(recycled.grid[bottom]![1] === "dash", "column gravity after recycle");
+  assert(recycled.grid[bottom - 1]![1] === null, "stack above dropped");
+  assert(recycled.bag.length === bagBefore + 5, "bag received returned ids");
+  for (const id of ["dash", "i", "plus", "t-n", "l-ne"] as PieceId[]) {
+    assert(recycled.bag.includes(id), `bag includes returned ${id}`);
+  }
+  assert(recycled.justRecycled.length === 5, "justRecycled lists five bots");
+  assert(recycled.recycleSharp[0] === false, "slot 1 not marked sharp");
+  assert(
+    recycled.recycleSharp.slice(1).every(Boolean),
+    "recycled slots 2–6 start sharp",
+  );
+}
+
+{
+  let s = startBotEvo(21);
+  const slot0 = s.queue[0]!;
+  const priorTail = s.queue.slice(1);
+  const bottom = BOT_ROWS - 1;
+  s = {
+    ...s,
+    grid: s.grid.map((row) => row.slice()),
+    queue: s.queue.slice(),
+    bag: s.bag.slice(),
+    recycleSharp: s.recycleSharp.slice(),
+    justRecycled: [],
+  };
+  s.grid[bottom]![0] = "plus";
+  s.grid[bottom]![2] = "dash";
+  // cols 1,3,4 empty — skip, no ghost bots
+  const recycled = recycleBottomRow(s);
+  assert(recycled.queue[0] === slot0, "partial recycle keeps slot 1");
+  assert(recycled.queue[1] === "plus" && recycled.queue[2] === "dash", "L→R occupied only");
+  assert(
+    recycled.queue.slice(3).join() === priorTail.slice(0, 3).join(),
+    "remaining slots 4–6 fill from prior queue tail (no holes)",
+  );
+  assert(recycled.justRecycled.length === 2, "empty bottom cells skipped");
+  assert(recycled.recycleSharp[1] && recycled.recycleSharp[2], "recycled slots sharp");
+  assert(!recycled.recycleSharp[3], "tail-filled slot not sharp");
+}
+
+{
+  let s = startBotEvo(8);
+  for (let n = 0; n < BASE_QUOTA; n++) {
+    for (let i = 0; i < 5; i++) s = dropPiece(s, 0, "i");
+  }
+  assert(s.level === 2, "promotion still reaches L2");
+  // After the promoting morph, bottom row was recycled (column may be empty).
+  assert(s.queue.length === BOT_QUEUE, "promoted game keeps 6-slot queue");
+  assert(s.recycleSharp.length === BOT_QUEUE, "promoted recycleSharp length 6");
 }
 
 {
