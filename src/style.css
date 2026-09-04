@@ -960,69 +960,45 @@ html.native-shell #app {
   pointer-events: none;
 }
 
-/* Idle face overlay (#218) — hidden at rest (PNG face shows); visible only while expressing. */
+/* Idle face overlay (#218) — pupils always in PNG sockets; mouth only while expressing.
+   No face-plate / fake glass rings (those stacked into a second face on HITL). */
 .botevo-face {
   position: absolute;
-  /* Centered on glasses+mouth; sized for 390 readability; clear of rim pistons. */
-  left: 29%;
-  top: 34%;
-  width: 42%;
-  height: 36%;
+  /* Aligned to glass/visor sockets on 256px botevo-art (~42%/58% x, ~42% y). */
+  left: 30%;
+  top: 30%;
+  width: 40%;
+  height: 38%;
   z-index: 3;
   pointer-events: none;
   display: block;
-  opacity: 0;
-}
-
-.botevo-face.is-blink,
-.botevo-face.is-look,
-.botevo-face.is-excite {
   opacity: 1;
-}
-
-.botevo-face-plate {
-  position: absolute;
-  left: 14%;
-  top: 10%;
-  width: 72%;
-  height: 70%;
-  border-radius: 50%;
-  opacity: 0.98;
 }
 
 .botevo-eye {
   position: absolute;
-  top: 14%;
-  width: 34%;
-  height: 40%;
+  top: 12%;
+  width: 28%;
+  height: 32%;
   z-index: 2;
 }
 
 .botevo-eye.left {
-  left: 12%;
+  left: 14%;
 }
 
 .botevo-eye.right {
-  right: 12%;
-}
-
-.botevo-glass {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  border: 2px solid #222;
-  background: #fff;
-  box-sizing: border-box;
+  right: 14%;
 }
 
 .botevo-pupil {
   position: absolute;
   left: 50%;
-  top: 54%;
-  width: 48%;
-  height: 48%;
-  margin-left: -24%;
-  margin-top: -24%;
+  top: 52%;
+  width: 42%;
+  height: 42%;
+  margin-left: -21%;
+  margin-top: -21%;
   border-radius: 50%;
   background: #1a1a1a;
   z-index: 1;
@@ -1031,9 +1007,9 @@ html.native-shell #app {
 
 .botevo-lid {
   position: absolute;
-  left: 2%;
-  right: 2%;
-  top: 2%;
+  left: 0;
+  right: 0;
+  top: 0;
   height: 0;
   border-radius: 50% 50% 40% 40%;
   background: #2a2218;
@@ -1045,18 +1021,24 @@ html.native-shell #app {
 .botevo-mouth {
   position: absolute;
   left: 30%;
-  top: 66%;
+  top: 68%;
   width: 40%;
-  height: 22%;
+  height: 20%;
   z-index: 2;
   border-radius: 0 0 60% 60%;
-  border: 2.5px solid #222;
+  border: 2px solid #222;
   border-top: none;
   background: transparent;
   box-sizing: border-box;
+  opacity: 0;
 }
 
-/* Blink — full face patch + lids (PNG face briefly covered so lids align). */
+.botevo-face.is-look .botevo-mouth,
+.botevo-face.is-excite .botevo-mouth {
+  opacity: 1;
+}
+
+/* Blink — lids only over cleared sockets (no plate cover). */
 .botevo-face.is-blink .botevo-lid {
   animation: botevo-blink-lid var(--botevo-blink-ms, 150ms) ease-in-out forwards;
   background: #1a1410;
@@ -1181,20 +1163,16 @@ html.native-shell #app {
   }
 }
 
-/* Queue excitement — mild wide eyes + micro-bounce; does not steal playfield. */
+/* Queue excitement — mild pupil widen + micro-bounce; does not steal playfield. */
 .botevo-face.is-excite {
   animation: botevo-queue-excite var(--botevo-excite-ms, 280ms) ease-out;
 }
 
-.botevo-face.is-excite .botevo-eye {
-  transform: scale(1.12);
-}
-
 .botevo-face.is-excite .botevo-pupil {
-  width: 44%;
-  height: 44%;
-  margin-left: -22%;
-  margin-top: -22%;
+  width: 52%;
+  height: 52%;
+  margin-left: -26%;
+  margin-top: -26%;
 }
 
 @keyframes botevo-queue-excite {
