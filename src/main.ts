@@ -2852,10 +2852,10 @@ function mountBotEvoTunePanel(): void {
     <label>blinkWeight <input type="number" data-k="blinkWeight" min="0" max="1" step="0.05" /></label>
     <label>queueExcitementRate <input type="number" data-k="queueExcitementRate" min="0.05" max="1" step="0.05" /></label>
     <label class="row"><input type="checkbox" data-k="exclusivePlayfield" /> exclusivePlayfield</label>
-    <h3>queue pixel (#219)</h3>
-    <label>px light (slot 4) <input type="number" data-px="light" min="1" max="16" step="1" /></label>
-    <label>px medium (slot 5) <input type="number" data-px="medium" min="1" max="16" step="1" /></label>
-    <label>px heavy (slot 6) <input type="number" data-px="heavy" min="1" max="16" step="1" /></label>
+    <h3>queue mosaic (#219)</h3>
+    <label>grid light (slot 4) <input type="number" data-px="light" min="2" max="24" step="1" /></label>
+    <label>grid medium (slot 5) <input type="number" data-px="medium" min="2" max="24" step="1" /></label>
+    <label>grid heavy (slot 6 ≈3) <input type="number" data-px="heavy" min="2" max="24" step="1" /></label>
     <label class="row"><input type="checkbox" data-force-recycle /> force recycle-sharp 2–6</label>
     <button type="button" data-act="apply">Apply</button>
     <button type="button" data-act="export">Export JSON</button>
@@ -2876,9 +2876,9 @@ function mountBotEvoTunePanel(): void {
     const pxLight = panel.querySelector<HTMLInputElement>('input[data-px="light"]')!;
     const pxMed = panel.querySelector<HTMLInputElement>('input[data-px="medium"]')!;
     const pxHeavy = panel.querySelector<HTMLInputElement>('input[data-px="heavy"]')!;
-    pxLight.value = String(readPx("--botevo-px-light", 3));
+    pxLight.value = String(readPx("--botevo-px-light", 8));
     pxMed.value = String(readPx("--botevo-px-medium", 5));
-    pxHeavy.value = String(readPx("--botevo-px-heavy", 8));
+    pxHeavy.value = String(readPx("--botevo-px-heavy", 3));
     const force = panel.querySelector<HTMLInputElement>("input[data-force-recycle]")!;
     force.checked = botEvoQueueEl.dataset.forceRecycleSharp === "1";
   };
@@ -2898,7 +2898,7 @@ function mountBotEvoTunePanel(): void {
       if (wrap) {
         for (const input of panel.querySelectorAll<HTMLInputElement>("input[data-px]")) {
           const key = input.dataset.px!;
-          const n = Math.max(1, Math.min(16, Number(input.value) || 1));
+          const n = Math.max(2, Math.min(24, Number(input.value) || 2));
           wrap.style.setProperty(`--botevo-px-${key}`, String(n));
         }
       }
@@ -2912,9 +2912,9 @@ function mountBotEvoTunePanel(): void {
       const out = panel.querySelector<HTMLElement>("[data-out]")!;
       out.hidden = false;
       const px = {
-        light: readPx("--botevo-px-light", 3),
+        light: readPx("--botevo-px-light", 8),
         medium: readPx("--botevo-px-medium", 5),
-        heavy: readPx("--botevo-px-heavy", 8),
+        heavy: readPx("--botevo-px-heavy", 3),
         forceRecycleSharp: botEvoQueueEl.dataset.forceRecycleSharp === "1",
       };
       out.textContent = `${botEvoFaces.exportTuneJson()}\n${JSON.stringify({ queuePixel: px }, null, 2)}`;

@@ -1353,10 +1353,12 @@ html.native-shell #app {
   align-items: center;
   gap: 6px;
   min-width: 52px;
-  /* Block sizes for Next-queue pixelation (#219); overridable via ?botevoTune=1. */
-  --botevo-px-light: 3;
+  /* Mosaic grid sizes (#219 HITL): N×N full-sprite mosaic, not zoom-crop.
+     Slot 4 light=8, slot 5 medium=5, slot 6 heavy=3 (≈3×3 full egg). */
+  --botevo-px-light: 8;
   --botevo-px-medium: 5;
-  --botevo-px-heavy: 8;
+  --botevo-px-heavy: 3;
+  --botevo-slot-px: 48;
 }
 
 .botevo-queue-label {
@@ -1390,7 +1392,9 @@ html.native-shell #app {
   border-style: dashed;
 }
 
-/* #219 — slots 4/5/6 pixelate the whole egg (sprite + face). Recycle-sharp clears data-pixel. */
+/* #219 HITL — full-frame N×N mosaic of the whole egg (sprite + face).
+   Downscale entire .botevo-bot to N×N, then scale up with image-rendering:pixelated.
+   Slot 6 ≈ 3×3; 5/4 finer. Not a zoom crop. Recycle-sharp clears data-pixel. */
 .botevo-queue-egg[data-pixel="light"] {
   --botevo-px: var(--botevo-px-light);
 }
@@ -1408,15 +1412,31 @@ html.native-shell #app {
 }
 
 .botevo-queue-egg[data-pixel] .botevo-bot {
-  /* Zoom-down then scale-up ≈ chunky pixels on sprite + CSS faces (WebKit/Chromium). */
+  /* Constrain whole character (pistons included) into the slot, then mosaic. */
+  inset: 0;
+  width: calc(var(--botevo-px) * 1px);
+  height: calc(var(--botevo-px) * 1px);
+  left: 50%;
+  top: 50%;
+  right: auto;
+  bottom: auto;
+  transform: translate(-50%, -50%)
+    scale(calc(var(--botevo-slot-px) / var(--botevo-px)));
+  transform-origin: center center;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
-  zoom: calc(1 / var(--botevo-px));
-  transform: scale(var(--botevo-px));
-  transform-origin: center center;
+  zoom: 1;
 }
 
 .botevo-queue-egg[data-pixel] .botevo-sprite {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.botevo-queue-egg[data-pixel] .botevo-face {
   image-rendering: pixelated;
   image-rendering: crisp-edges;
 }

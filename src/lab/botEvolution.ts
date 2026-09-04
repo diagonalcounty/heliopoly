@@ -150,6 +150,7 @@ export interface BotState {
  * Default Next-queue pixelation for a 0-based slot index (#219).
  * Slot 1 (index 0) is always sharp. Recycle-sharp occupants stay sharp.
  * Otherwise slots 4/5/6 → light/medium/heavy; 2–3 stay sharp.
+ * CSS mosaic grids (full sprite, not zoom-crop): light≈8×8, medium≈5×5, heavy≈3×3.
  */
 export function queuePixelStrength(
   slotIndex: number,
