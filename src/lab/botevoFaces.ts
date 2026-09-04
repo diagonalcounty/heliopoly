@@ -1,6 +1,6 @@
 /**
  * Bot Evolution idle faces (#218).
- * Overlay eyes + mouth on existing PNGs; exclusive playfield director.
+ * Thin pupil+mouth overlay on cleared PNG sockets; exclusive playfield director.
  */
 import {
   BOT_COLS,
@@ -10,8 +10,6 @@ import {
   DIR_S,
   DIR_W,
   PIECE_SOCKETS,
-  SHELL_FILL,
-  connectorKind,
   type PieceId,
 } from "./botEvolution";
 
@@ -153,28 +151,23 @@ function lerpRandom(lo: number, hi: number, rng: () => number): number {
   return lo + (hi - lo) * rng();
 }
 
-/** Append eyes+mouth overlay covering the baked PNG face. */
+/**
+ * Append a thin face overlay: one pupil pair (+ lids) + mouth, aligned to
+ * PNG glass/visor sockets. No face-plate or fake glass rings (#218 HITL).
+ */
 export function appendBotFace(wrap: HTMLElement, piece: PieceId): HTMLElement {
   const face = document.createElement("span");
   face.className = "botevo-face";
   face.dataset.piece = piece;
   face.setAttribute("aria-hidden", "true");
 
-  const plate = document.createElement("span");
-  plate.className = "botevo-face-plate";
-  plate.style.background = SHELL_FILL[connectorKind(piece)];
-  face.appendChild(plate);
-
   for (const side of ["left", "right"] as const) {
     const eye = document.createElement("span");
     eye.className = `botevo-eye ${side}`;
-    const glass = document.createElement("span");
-    glass.className = "botevo-glass";
-    const lid = document.createElement("span");
-    lid.className = "botevo-lid";
     const pupil = document.createElement("span");
     pupil.className = "botevo-pupil";
-    eye.appendChild(glass);
+    const lid = document.createElement("span");
+    lid.className = "botevo-lid";
     eye.appendChild(pupil);
     eye.appendChild(lid);
     face.appendChild(eye);
