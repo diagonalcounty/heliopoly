@@ -18,10 +18,13 @@ struct ContentView: View {
             if let loadError {
                 errorPanel(message: loadError)
             } else {
+                // Do NOT ignoreSafeArea on the web view — WKWebView reports
+                // zero insets when edge-to-edge, so CSS safe-area padding fails
+                // and Lab/title sit under the status bar / Dynamic Island.
+                // Background color still fills the notch; chrome stays in-bounds.
                 GameWebView { message in
                     loadError = message
                 }
-                .ignoresSafeArea()
             }
         }
     }
