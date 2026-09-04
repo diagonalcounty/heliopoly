@@ -955,14 +955,14 @@ html.native-shell #app {
   display: block;
   /* Face overlay is a descendant; shared transforms (fall/land) apply here. */
   transform-origin: 50% 50%;
-  /* Locked face puppet (board-previews HITL) — units map to SVG viewBox 0 0 100 100. */
-  --botevo-eye-sep: 34;
-  --botevo-eye-size: 14;
-  --botevo-pupil-size: 5.5;
+  /* Face puppet (HITL readability on cells) — units map to SVG viewBox 0 0 100 100. */
+  --botevo-eye-sep: 42;
+  --botevo-eye-size: 20;
+  --botevo-pupil-size: 8;
   --botevo-look-ox: 0.25;
   --botevo-look-oy: 0;
   --botevo-stroke-weight: 3;
-  --botevo-glasses-rim: 2.25;
+  --botevo-glasses-rim: 2.6;
   --botevo-blink-ms: 310ms;
   --botevo-lid-travel: 1;
   --botevo-mouth-scale: 0.9;
@@ -1448,7 +1448,7 @@ html.native-shell #app {
 .botevo-queue {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
 }
 
 .botevo-queue-egg {
@@ -1458,7 +1458,15 @@ html.native-shell #app {
   border-radius: 10px;
   border: 1px solid #2a3555;
   background: rgba(18, 26, 44, 0.45);
-  overflow: visible;
+  /* Clip tall-blue N/S arms so NEXT column items never pierce neighbors. */
+  overflow: hidden;
+}
+
+/* Queue-only: no negative inset (playfield keeps mild inset for claw hooking). */
+.botevo-queue-egg .botevo-bot {
+  inset: 2%;
+  transform: scale(0.9);
+  transform-origin: 50% 50%;
 }
 
 .botevo-queue-egg.is-awaiting-recycle {

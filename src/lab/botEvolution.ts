@@ -277,7 +277,7 @@ export function playAgainBotEvo(seed?: number): BotState {
   return startBotEvo(seed);
 }
 
-/** Blank-shell body geometry (HITL retune: shell fills most of the cell). Units: viewBox 0 0 100 100. */
+/** Blank-shell body geometry (HITL: near-circular shells; tall blues). Units: viewBox 0 0 100 100. */
 export interface EggBodyTune {
   eggRx: number;
   eggRy: number;
@@ -298,14 +298,14 @@ export interface EggBodyTune {
 }
 
 export const EGG_BODY_DEFAULTS: EggBodyTune = {
-  eggRx: 39.5,
-  eggRy: 37.5,
+  eggRx: 41,
+  eggRy: 41,
   eggCx: 50,
   eggCy: 51.5,
   armLength: 10.5,
   armThickness: 5.5,
   endCapSize: 7.5,
-  endCapAspect: 0.28,
+  endCapAspect: 0.36,
   socketSize: 8,
   bodyStroke: 2.4,
   armRoundness: 2.5,
@@ -316,12 +316,12 @@ export const EGG_BODY_DEFAULTS: EggBodyTune = {
 };
 
 /**
- * Straight / blueish family is clearly taller than the wide shell
- * (scaled with the larger body size). Plus / T / L keep the locked wide egg.
+ * Straight / blueish family is clearly taller than the near-circular shell.
+ * Plus / T / L keep the round egg; I / dash stay taller without sausage proportions.
  */
 export const EGG_BODY_STRAIGHT: Pick<EggBodyTune, "eggRx" | "eggRy"> = {
-  eggRx: 37,
-  eggRy: 47,
+  eggRx: 38,
+  eggRy: 48,
 };
 
 /** Unique illustrated bot for this piece; faces stay upright. */
