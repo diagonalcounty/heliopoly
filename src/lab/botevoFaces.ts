@@ -1,6 +1,6 @@
 /**
  * Bot Evolution idle faces (#218).
- * Thin pupil+mouth overlay on cleared PNG sockets; exclusive playfield director.
+ * Thin pupil+mouth overlay on blank SVG shells; exclusive playfield director.
  */
 import {
   BOT_COLS,
@@ -49,7 +49,7 @@ export const BOTEVO_FACE_DEFAULTS: BotevoFaceTune = {
   longQuietChance: 0.12,
   longQuietMinMs: 7000,
   longQuietMaxMs: 9500,
-  blinkMs: 150,
+  blinkMs: 310,
   lookMs: 550,
   blinkWeight: 0.65,
   fallingWeight: 0.32,
@@ -153,7 +153,7 @@ function lerpRandom(lo: number, hi: number, rng: () => number): number {
 
 /**
  * Append a thin face overlay: one pupil pair (+ lids) + mouth, aligned to
- * PNG glass/visor sockets. No face-plate or fake glass rings (#218 HITL).
+ * blank SVG egg shells. Eye whites + rim live in CSS; lids match shell fill.
  */
 export function appendBotFace(wrap: HTMLElement, piece: PieceId): HTMLElement {
   const face = document.createElement("span");

@@ -277,92 +277,179 @@ export function playAgainBotEvo(seed?: number): BotState {
   return startBotEvo(seed);
 }
 
+/** Locked blank-shell body geometry (board-previews HITL). Units: viewBox 0 0 100 100. */
+export interface EggBodyTune {
+  eggRx: number;
+  eggRy: number;
+  eggCx: number;
+  eggCy: number;
+  armLength: number;
+  armThickness: number;
+  endCapSize: number;
+  /** Flat-disc thickness as fraction of endCapSize (minor axis). */
+  endCapAspect: number;
+  socketSize: number;
+  bodyStroke: number;
+  armRoundness: number;
+  connectorMetal: string;
+  endCapFill: string;
+  endCapStroke: string;
+  bodyOutline: string;
+}
+
+export const EGG_BODY_DEFAULTS: EggBodyTune = {
+  eggRx: 30,
+  eggRy: 28.5,
+  eggCx: 50,
+  eggCy: 51.5,
+  armLength: 18,
+  armThickness: 6,
+  endCapSize: 9.5,
+  endCapAspect: 0.42,
+  socketSize: 10,
+  bodyStroke: 2.1,
+  armRoundness: 2.9,
+  connectorMetal: "#8a96a4",
+  endCapFill: "#c9a24a",
+  endCapStroke: "#8a6a28",
+  bodyOutline: "#1a2744",
+};
+
+/**
+ * Straight / blueish family is clearly taller (≈ rotate the wide egg 90°
+ * with a bit of extra height bias). Plus / T / L keep the locked wide egg.
+ */
+export const EGG_BODY_STRAIGHT: Pick<EggBodyTune, "eggRx" | "eggRy"> = {
+  eggRx: 28.5,
+  eggRy: 36,
+};
+
 /** Unique illustrated bot for this piece; faces stay upright. */
 export function pieceArt(id: PieceId): string {
   return `/lab/botevo/${id}.png`;
 }
 
-/** Cream token SVG: Kostka face, gold pegs, shell tinted by connector family. */
+export function eggBodyFor(id: PieceId): EggBodyTune {
+  const kind = connectorKind(id);
+  if (kind === "straight") {
+    return { ...EGG_BODY_DEFAULTS, ...EGG_BODY_STRAIGHT };
+  }
+  return EGG_BODY_DEFAULTS;
+}
+
+function svgNum(n: number): string {
+  const r = Math.round(n * 100) / 100;
+  return Number.isInteger(r) ? String(r) : String(r);
+}
+
+type ArmGeom = {
+  ex: number;
+  ey: number;
+  tipX: number;
+  tipY: number;
+  horiz: boolean;
+};
+
+function armGeom(
+  dir: number,
+  body: EggBodyTune,
+  rx: number,
+  ry: number,
+): ArmGeom {
+  const { eggCx: cx, eggCy: cy } = body;
+  let ex = cx;
+  let ey = cy;
+  let alongX = 0;
+  let alongY = 0;
+  if (dir === DIR_N) {
+    ey = cy - ry;
+    alongY = -1;
+  } else if (dir === DIR_S) {
+    ey = cy + ry;
+    alongY = 1;
+  } else if (dir === DIR_E) {
+    ex = cx + rx;
+    alongX = 1;
+  } else {
+    ex = cx - rx;
+    alongX = -1;
+  }
+  return {
+    ex,
+    ey,
+    tipX: ex + alongX * body.armLength,
+    tipY: ey + alongY * body.armLength,
+    horiz: alongX !== 0,
+  };
+}
+
+function appendArmRod(parts: string[], dir: number, body: EggBodyTune, rx: number, ry: number): void {
+  const { eggCx: cx, eggCy: cy } = body;
+  const g = armGeom(dir, body, rx, ry);
+  const thick = body.armThickness;
+  const round = body.armRoundness;
+  const metal = body.connectorMetal;
+  if (g.horiz) {
+    parts.push(
+      `<rect x="${svgNum(Math.min(g.ex, g.tipX))}" y="${svgNum(cy - thick / 2)}" width="${svgNum(body.armLength)}" height="${svgNum(thick)}" rx="${svgNum(round)}" fill="${metal}"/>`,
+    );
+  } else {
+    parts.push(
+      `<rect x="${svgNum(cx - thick / 2)}" y="${svgNum(Math.min(g.ey, g.tipY))}" width="${svgNum(thick)}" height="${svgNum(body.armLength)}" rx="${svgNum(round)}" fill="${metal}"/>`,
+    );
+  }
+}
+
+function appendArmHardware(parts: string[], dir: number, body: EggBodyTune, rx: number, ry: number): void {
+  const { eggCx: cx, eggCy: cy } = body;
+  const g = armGeom(dir, body, rx, ry);
+  const sock = body.socketSize;
+  const round = body.armRoundness;
+  const metal = body.connectorMetal;
+  const outline = body.bodyOutline;
+  const capMaj = body.endCapSize;
+  const capMin = body.endCapSize * body.endCapAspect;
+  if (g.horiz) {
+    parts.push(
+      `<rect x="${svgNum(g.ex - sock / 2)}" y="${svgNum(cy - sock / 2)}" width="${svgNum(sock)}" height="${svgNum(sock)}" rx="${svgNum(round)}" fill="${metal}" stroke="${outline}" stroke-width="1"/>`,
+      `<ellipse cx="${svgNum(g.tipX)}" cy="${svgNum(cy)}" rx="${svgNum(capMin)}" ry="${svgNum(capMaj / 2)}" fill="${body.endCapFill}" stroke="${body.endCapStroke}" stroke-width="1.1"/>`,
+    );
+  } else {
+    parts.push(
+      `<rect x="${svgNum(cx - sock / 2)}" y="${svgNum(g.ey - sock / 2)}" width="${svgNum(sock)}" height="${svgNum(sock)}" rx="${svgNum(round)}" fill="${metal}" stroke="${outline}" stroke-width="1"/>`,
+      `<ellipse cx="${svgNum(cx)}" cy="${svgNum(g.tipY)}" rx="${svgNum(capMaj / 2)}" ry="${svgNum(capMin)}" fill="${body.endCapFill}" stroke="${body.endCapStroke}" stroke-width="1.1"/>`,
+    );
+  }
+}
+
+/**
+ * Blank SVG egg shell + retro arms (socket → rod → flat end-cap).
+ * No baked face — CSS face puppet overlays pupils / lids / mouth.
+ * Shell tint by connector family; straight (blue) eggs are taller.
+ */
 export function eggTokenSvg(id: PieceId): string {
   const mask = PIECE_SOCKETS[id];
   const kind = connectorKind(id);
   const fill = SHELL_FILL[kind];
-  const nsOnly = kind === "straight" && (mask & DIR_N) !== 0;
-  const ewOnly = kind === "straight" && (mask & DIR_E) !== 0;
-  const rx = nsOnly ? 30 : ewOnly ? 50 : 38;
-  const ry = nsOnly ? 50 : ewOnly ? 32 : 46;
-  const cx = 64;
-  const cy = 64;
-  const hx = cx;
-  const hy = cy + 14;
-  const arm = 16;
-  const thick = 6;
-  const navy = "#1a2744";
-  const gold = "#c9a227";
-  const goldDk = "#8a7340";
-  const cyan = "#5aa8d4";
+  const body = eggBodyFor(id);
+  const { eggCx: cx, eggCy: cy, eggRx: rx, eggRy: ry } = body;
+  const dirs = [DIR_N, DIR_E, DIR_S, DIR_W].filter((d) => (mask & d) !== 0);
   const parts: string[] = [
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">',
-    `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${fill}" stroke="${navy}" stroke-width="3"/>`,
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" overflow="visible">',
   ];
-  if (mask & DIR_N) {
-    parts.push(
-      `<rect x="${hx - thick / 2}" y="${hy - arm}" width="${thick}" height="${arm}" fill="${gold}"/>`,
-    );
-  }
-  if (mask & DIR_S) {
-    parts.push(
-      `<rect x="${hx - thick / 2}" y="${hy}" width="${thick}" height="${arm}" fill="${gold}"/>`,
-    );
-  }
-  if (mask & DIR_W) {
-    parts.push(
-      `<rect x="${hx - arm}" y="${hy - thick / 2}" width="${arm}" height="${thick}" fill="${gold}"/>`,
-    );
-  }
-  if (mask & DIR_E) {
-    parts.push(
-      `<rect x="${hx}" y="${hy - thick / 2}" width="${arm}" height="${thick}" fill="${gold}"/>`,
-    );
-  }
+  // Rods under shell; sockets + flat caps on top so they read as rim hardware.
+  for (const dir of dirs) appendArmRod(parts, dir, body, rx, ry);
   parts.push(
-    `<rect x="${hx - 5}" y="${hy - 5}" width="10" height="10" rx="1.5" fill="${gold}"/>`,
+    `<ellipse class="botevo-shell" cx="${svgNum(cx)}" cy="${svgNum(cy)}" rx="${svgNum(rx)}" ry="${svgNum(ry)}" fill="${fill}" stroke="${body.bodyOutline}" stroke-width="${svgNum(body.bodyStroke)}"/>`,
   );
-  if (kind === "four") {
-    parts.push(
-      `<rect x="${hx - 1.5}" y="${hy - 6}" width="3" height="12" fill="${cyan}"/>`,
-      `<rect x="${hx - 6}" y="${hy - 1.5}" width="12" height="3" fill="${cyan}"/>`,
-    );
-  }
-  const pegL = 15;
-  const pegT = 10;
-  if (mask & DIR_N) {
-    parts.push(
-      `<rect x="${cx - pegT / 2}" y="${cy - ry - 10}" width="${pegT}" height="${pegL}" rx="3.5" fill="${gold}" stroke="${goldDk}" stroke-width="1.1"/>`,
-    );
-  }
-  if (mask & DIR_S) {
-    parts.push(
-      `<rect x="${cx - pegT / 2}" y="${cy + ry - 5}" width="${pegT}" height="${pegL}" rx="3.5" fill="${gold}" stroke="${goldDk}" stroke-width="1.1"/>`,
-    );
-  }
-  if (mask & DIR_E) {
-    parts.push(
-      `<rect x="${cx + rx - 5}" y="${cy - pegT / 2}" width="${pegL}" height="${pegT}" rx="3.5" fill="${gold}" stroke="${goldDk}" stroke-width="1.1"/>`,
-    );
-  }
-  if (mask & DIR_W) {
-    parts.push(
-      `<rect x="${cx - rx - 10}" y="${cy - pegT / 2}" width="${pegL}" height="${pegT}" rx="3.5" fill="${gold}" stroke="${goldDk}" stroke-width="1.1"/>`,
-    );
-  }
-  parts.push(
-    `<ellipse cx="${cx - 11}" cy="${cy - 12}" rx="5.2" ry="6.6" fill="${navy}"/>`,
-    `<ellipse cx="${cx + 11}" cy="${cy - 12}" rx="5.2" ry="6.6" fill="${navy}"/>`,
-    `<path d="M ${cx - 9} ${cy + 4} Q ${cx} ${cy + 10} ${cx + 9} ${cy + 4}" fill="none" stroke="${navy}" stroke-width="2.3" stroke-linecap="round"/>`,
-    "</svg>",
-  );
+  for (const dir of dirs) appendArmHardware(parts, dir, body, rx, ry);
+  parts.push("</svg>");
   return parts.join("\n") + "\n";
+}
+
+/** data: URL for recycle flies / img fallbacks. */
+export function eggTokenDataUrl(id: PieceId): string {
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(eggTokenSvg(id))}`;
 }
 
 /** Directions on `r,c` that currently plug into a neighbor. */

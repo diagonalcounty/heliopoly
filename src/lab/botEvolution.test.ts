@@ -31,6 +31,9 @@ import {
   SHELL_FILL,
   connectorKind,
   eggTokenSvg,
+  eggBodyFor,
+  EGG_BODY_DEFAULTS,
+  EGG_BODY_STRAIGHT,
   socketCount,
   socketJoins,
   socketsMeet,
@@ -113,6 +116,26 @@ assert(eggTokenSvg("dash").includes(SHELL_FILL.straight), "dash uses the straigh
 assert(eggTokenSvg("t-e").includes(SHELL_FILL.three), "T shell is mint");
 assert(eggTokenSvg("plus").includes(SHELL_FILL.four), "plus shell is cream");
 assert(eggTokenSvg("l-es").includes(SHELL_FILL.corner), "L shell is apricot");
+
+{
+  const wide = eggBodyFor("plus");
+  const tall = eggBodyFor("i");
+  const tallDash = eggBodyFor("dash");
+  assert(wide.eggRx === EGG_BODY_DEFAULTS.eggRx && wide.eggRy === EGG_BODY_DEFAULTS.eggRy, "plus keeps locked wide egg");
+  assert(tall.eggRy > tall.eggRx, "straight I egg is taller than wide");
+  assert(tallDash.eggRy === EGG_BODY_STRAIGHT.eggRy && tallDash.eggRx === EGG_BODY_STRAIGHT.eggRx, "dash shares tall straight body");
+  assert(tall.eggRy > wide.eggRy, "blue straight is taller than cream shell");
+  const svgI = eggTokenSvg("i");
+  const svgPlus = eggTokenSvg("plus");
+  assert(svgI.includes(`ry="${EGG_BODY_STRAIGHT.eggRy}"`), "I SVG bakes tall ry");
+  assert(svgPlus.includes(`ry="${EGG_BODY_DEFAULTS.eggRy}"`), "plus SVG bakes wide ry");
+  assert(!svgI.includes("Q ") && !svgPlus.includes("Q "), "blank shells have no baked smile path");
+  assert(svgI.includes(EGG_BODY_DEFAULTS.connectorMetal), "arms use connector metal");
+  assert(svgI.includes(EGG_BODY_DEFAULTS.endCapFill), "arms use gold flat end-caps");
+  // Topology: I has N/S arms only → two end-caps; dash has E/W.
+  assert((svgI.match(/<ellipse cx=/g) || []).length >= 1, "I has shell ellipse");
+  assert((eggTokenSvg("plus").match(/endCapFill|c9a24a/g) || []).length >= 4, "plus has four gold caps");
+}
 
 assert(socketsMeet("plus", "plus", DIR_E), "plus-plus meet east");
 assert(socketsMeet("i", "i", DIR_S), "I-I meet south");

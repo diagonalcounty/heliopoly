@@ -954,25 +954,59 @@ html.native-shell #app {
   display: block;
   /* Face overlay is a descendant; shared transforms (fall/land) apply here. */
   transform-origin: 50% 50%;
+  /* Locked face puppet (board-previews HITL) — units map to SVG viewBox 0 0 100 100. */
+  --botevo-eye-sep: 34;
+  --botevo-eye-size: 14;
+  --botevo-pupil-size: 5.5;
+  --botevo-look-ox: 0.25;
+  --botevo-look-oy: 0;
+  --botevo-stroke-weight: 3;
+  --botevo-glasses-rim: 2.25;
+  --botevo-blink-ms: 310ms;
+  --botevo-lid-travel: 1;
+  --botevo-mouth-scale: 0.9;
+  --botevo-face-y: 1.5;
+  --botevo-look-step: 6;
+  --botevo-shell: #f3ead2;
+}
+
+.botevo-bot.is-four {
+  --botevo-shell: #f3ead2;
+}
+.botevo-bot.is-three {
+  --botevo-shell: #b5d9c4;
+}
+.botevo-bot.is-straight {
+  --botevo-shell: #9ec9e8;
+}
+.botevo-bot.is-corner {
+  --botevo-shell: #e8c4a0;
 }
 
 .botevo-sprite {
   width: 100%;
   height: 100%;
   display: block;
-  object-fit: contain;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.botevo-sprite > svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
   pointer-events: none;
 }
 
-/* Idle face overlay (#218) — pupils always in PNG sockets; mouth only while expressing.
-   No face-plate / fake glass rings (those stacked into a second face on HITL). */
+/* Idle face overlay (#218) on blank SVG shells — pupils/lids/mouth only.
+   Geometry from locked face JSON (eyeSeparation / eyeSize / faceY). */
 .botevo-face {
   position: absolute;
-  /* Aligned to glass/visor sockets on 256px botevo-art (~42%/58% x, ~42% y). */
-  left: 30%;
-  top: 30%;
-  width: 40%;
-  height: 38%;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
   z-index: 3;
   pointer-events: none;
   display: block;
@@ -981,33 +1015,43 @@ html.native-shell #app {
 
 .botevo-eye {
   position: absolute;
-  top: 12%;
-  width: 28%;
-  height: 32%;
+  /* Center of egg + faceY, then half eye size. */
+  top: calc((51.5 + var(--botevo-face-y) - var(--botevo-eye-size) / 2) * 1%);
+  width: calc(var(--botevo-eye-size) * 1%);
+  height: calc(var(--botevo-eye-size) * 1%);
   z-index: 2;
+  border-radius: 50%;
+  background: rgba(255, 252, 245, 0.96);
+  border: calc(var(--botevo-glasses-rim) * 1px) solid rgba(26, 39, 68, 0.55);
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .botevo-eye.left {
-  left: 14%;
+  left: calc((50 - var(--botevo-eye-sep) / 2 - var(--botevo-eye-size) / 2) * 1%);
+  right: auto;
 }
 
 .botevo-eye.right {
-  right: 14%;
+  left: calc((50 + var(--botevo-eye-sep) / 2 - var(--botevo-eye-size) / 2) * 1%);
+  right: auto;
 }
 
 .botevo-pupil {
   position: absolute;
   left: 50%;
   top: 52%;
-  width: 42%;
-  height: 42%;
-  margin-left: -21%;
-  margin-top: -21%;
+  width: calc(var(--botevo-pupil-size) / var(--botevo-eye-size) * 100%);
+  height: calc(var(--botevo-pupil-size) / var(--botevo-eye-size) * 100%);
+  margin-left: calc(var(--botevo-pupil-size) / var(--botevo-eye-size) * -50%);
+  margin-top: calc(var(--botevo-pupil-size) / var(--botevo-eye-size) * -50%);
   border-radius: 50%;
   background: #1a1a1a;
   z-index: 1;
-  /* Rest glue offsets (px) from face-review export; look anim adds --botevo-look-*. */
-  transform: translate(var(--botevo-pupil-x, 0px), var(--botevo-pupil-y, 0px))
+  transform: translate(
+      calc(var(--botevo-pupil-x, 0px) + var(--botevo-look-ox) * 1px),
+      calc(var(--botevo-pupil-y, 0px) + var(--botevo-look-oy) * 1px)
+    )
     scale(var(--botevo-pupil-scale, 1));
 }
 
@@ -1018,7 +1062,8 @@ html.native-shell #app {
   top: 0;
   height: 0;
   border-radius: 50% 50% 40% 40%;
-  background: #2a2218;
+  /* Match this bot's shell fill (not cream) unless cream/plus. */
+  background: var(--botevo-shell);
   z-index: 3;
   transform-origin: 50% 0%;
   pointer-events: none;
@@ -1026,13 +1071,14 @@ html.native-shell #app {
 
 .botevo-mouth {
   position: absolute;
-  left: 30%;
-  top: 68%;
-  width: 40%;
-  height: 20%;
+  left: 50%;
+  top: calc((51.5 + var(--botevo-face-y) + var(--botevo-eye-size) * 0.55) * 1%);
+  width: calc(18% * var(--botevo-mouth-scale));
+  height: calc(8% * var(--botevo-mouth-scale));
+  margin-left: calc(18% * var(--botevo-mouth-scale) / -2);
   z-index: 2;
   border-radius: 0 0 60% 60%;
-  border: 2px solid #222;
+  border: calc(var(--botevo-stroke-weight) * 0.55px) solid #222;
   border-top: none;
   background: transparent;
   box-sizing: border-box;
@@ -1044,10 +1090,10 @@ html.native-shell #app {
   opacity: 1;
 }
 
-/* Blink — lids only over cleared sockets (no plate cover). */
+/* Blink — lids match shell fill; travel from locked lidTravel. */
 .botevo-face.is-blink .botevo-lid {
-  animation: botevo-blink-lid var(--botevo-blink-ms, 150ms) ease-in-out forwards;
-  background: #1a1410;
+  animation: botevo-blink-lid var(--botevo-blink-ms, 310ms) ease-in-out forwards;
+  background: var(--botevo-shell);
 }
 
 @keyframes botevo-blink-lid {
@@ -1055,7 +1101,7 @@ html.native-shell #app {
     height: 0;
   }
   40% {
-    height: 85%;
+    height: calc(100% * var(--botevo-lid-travel, 1));
   }
   100% {
     height: 0;
@@ -1070,45 +1116,63 @@ html.native-shell #app {
 
 .botevo-face.is-look-n .botevo-pupil {
   --botevo-look-x: 0px;
-  --botevo-look-y: -5px;
+  --botevo-look-y: calc(var(--botevo-look-step, 6) * -1px);
 }
 
 .botevo-face.is-look-e .botevo-pupil {
-  --botevo-look-x: 5px;
+  --botevo-look-x: calc(var(--botevo-look-step, 6) * 1px);
   --botevo-look-y: 0px;
 }
 
 .botevo-face.is-look-s .botevo-pupil {
   --botevo-look-x: 0px;
-  --botevo-look-y: 5px;
+  --botevo-look-y: calc(var(--botevo-look-step, 6) * 1px);
 }
 
 .botevo-face.is-look-w .botevo-pupil {
-  --botevo-look-x: -5px;
+  --botevo-look-x: calc(var(--botevo-look-step, 6) * -1px);
   --botevo-look-y: 0px;
 }
 
 @keyframes botevo-look-pupil {
   0% {
-    transform: translate(var(--botevo-pupil-x, 0px), var(--botevo-pupil-y, 0px))
+    transform: translate(
+        calc(var(--botevo-pupil-x, 0px) + var(--botevo-look-ox, 0) * 1px),
+        calc(var(--botevo-pupil-y, 0px) + var(--botevo-look-oy, 0) * 1px)
+      )
       scale(var(--botevo-pupil-scale, 1));
   }
   22% {
     transform: translate(
-        calc(var(--botevo-pupil-x, 0px) + var(--botevo-look-x, 0px)),
-        calc(var(--botevo-pupil-y, 0px) + var(--botevo-look-y, 0px))
+        calc(
+          var(--botevo-pupil-x, 0px) + var(--botevo-look-ox, 0) * 1px +
+            var(--botevo-look-x, 0px)
+        ),
+        calc(
+          var(--botevo-pupil-y, 0px) + var(--botevo-look-oy, 0) * 1px +
+            var(--botevo-look-y, 0px)
+        )
       )
       scale(var(--botevo-pupil-scale, 1));
   }
   78% {
     transform: translate(
-        calc(var(--botevo-pupil-x, 0px) + var(--botevo-look-x, 0px)),
-        calc(var(--botevo-pupil-y, 0px) + var(--botevo-look-y, 0px))
+        calc(
+          var(--botevo-pupil-x, 0px) + var(--botevo-look-ox, 0) * 1px +
+            var(--botevo-look-x, 0px)
+        ),
+        calc(
+          var(--botevo-pupil-y, 0px) + var(--botevo-look-oy, 0) * 1px +
+            var(--botevo-look-y, 0px)
+        )
       )
       scale(var(--botevo-pupil-scale, 1));
   }
   100% {
-    transform: translate(var(--botevo-pupil-x, 0px), var(--botevo-pupil-y, 0px))
+    transform: translate(
+        calc(var(--botevo-pupil-x, 0px) + var(--botevo-look-ox, 0) * 1px),
+        calc(var(--botevo-pupil-y, 0px) + var(--botevo-look-oy, 0) * 1px)
+      )
       scale(var(--botevo-pupil-scale, 1));
   }
 }
