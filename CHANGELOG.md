@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.3.0] — 2026-09-06
+
+Weekly **https://heliopoly.live/** promote at **Sunday 00:01 UTC** (`2026-09-06T00:01:00.000Z`). Preview, localhost, and iOS show **1.3.0** now. Live stays on 1.1.0 until that window.
+
+### Play / UX
+- **Phone play sheet:** Lab, Book, thumbs, Gravity Duel, auction Bid/Pass, Refuel, and end-screen Rematch / New Game fit 390×844 and receive the tap.
+- **Expedition names (#195):** Insight / Curiosity / Voyager / Opportunity; duration µ meter removed.
+
+### iOS
+- **Universal 1.3.0:** one Heliopoly target for iPhone + iPad; HeliopolyPhone dropped; GameWebView respects the status-bar / Dynamic Island safe area.
+
+### Meta
+- Version **1.3.0** (package, badge, Ops Manual welcome, README)
+- **Live window:** Sunday **00:01 UTC** — staged as `heliopoly-releases/1.3.0`
+
 ## [1.1.0] — 2026-08-23
 
 Weekly **https://heliopoly.live/** promote at **Sunday 00:01 UTC** (`2026-08-23T00:01:00.000Z`).
