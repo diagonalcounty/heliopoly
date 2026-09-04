@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Bot Evolution — Egg face review</title>
+<style>
+  :root {
+    color-scheme: dark;
+    font-family: system-ui, sans-serif;
+    --bg: #0b1020;
+    --panel: #141b2f;
+    --border: #2a3555;
+    --text: #e8eefc;
+    --muted: #9aa8c7;
+    --accent: #6ec8ff;
+    --accent-2: #ffc857;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); }
+  .nav {
+    display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center;
+    padding: 8px 14px; border-bottom: 1px solid var(--border);
+    font-size: 0.78rem; background: #0a0f1a;
+  }
+  .nav a { color: var(--accent); text-decoration: none; }
+  .nav a:hover { text-decoration: underline; }
+  .nav .here { color: var(--accent-2); font-weight: 600; }
+  .nav span.sep { color: var(--border); }
+  header { padding: 12px 16px; border-bottom: 1px solid var(--border); }
+  header h1 { margin: 0 0 6px; font-size: 1.1rem; }
+  header p { margin: 0; color: var(--muted); font-size: 0.86rem; max-width: 90ch; line-height: 1.45; }
+  .tabs { display: flex; gap: 8px; padding: 10px 16px; border-bottom: 1px solid var(--border); }
+  .tab {
+    border: 1px solid var(--border); background: #121a2c; color: var(--text);
+    border-radius: 8px; padding: 7px 12px; cursor: pointer; font-size: 0.82rem;
+  }
+  .tab.is-active { border-color: var(--accent-2); background: #1a2438; }
+  .tab:disabled { opacity: 0.45; cursor: not-allowed; }
+  .layout {
+    display: grid; grid-template-columns: minmax(260px, 320px) 1fr;
+    min-height: calc(100vh - 160px);
+  }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+  aside {
+    padding: 10px 12px 24px; border-right: 1px solid var(--border);
+    overflow-y: auto; font-size: 0.8rem; color: var(--muted);
+  }
+  aside h2 {
+    margin: 14px 0 8px; font-size: 0.7rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--accent-2);
+  }
+  aside h2:first-child { margin-top: 4px; }
+  label.row {
+    display: grid; grid-template-columns: 1fr auto; gap: 2px 8px;
+    align-items: center; margin-bottom: 8px;
+  }
+  label.row span.name { grid-column: 1 / -1; color: var(--text); font-size: 0.78rem; }
+  label.row input[type="range"] { width: 100%; grid-column: 1 / -1; }
+  label.row .val {
+    grid-column: 2; grid-row: 1; font-variant-numeric: tabular-nums;
+    color: var(--accent-2); min-width: 2.6rem; text-align: right;
+  }
+  select, button.btn, textarea {
+    border: 1px solid var(--border); background: #182238; color: var(--text);
+    border-radius: 6px; padding: 6px 10px; font: inherit;
+  }
+  button.btn { cursor: pointer; }
+  button.btn:hover { border-color: var(--accent); }
+  .io { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+  textarea.fr-json {
+    width: 100%; min-height: 140px; font-family: ui-monospace, Menlo, monospace;
+    font-size: 0.72rem; background: #0a1020; margin-top: 8px;
+  }
+  main { padding: 16px; background: radial-gradient(ellipse at top, #152044 0%, var(--bg) 55%); }
+  .fr-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px;
+  }
+  .fr-card {
+    border: 1px solid var(--border); border-radius: 12px; background: var(--panel);
+    padding: 10px; display: grid; gap: 8px;
+  }
+  .fr-card.is-selected {
+    border-color: var(--accent-2);
+    box-shadow: 0 0 0 1px rgba(255, 200, 87, 0.35);
+  }
+  .fr-card-title { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+  .fr-stage {
+    position: relative; width: 100%; aspect-ratio: 1; border-radius: 10px;
+    border: 1px solid var(--border);
+    background: radial-gradient(circle at 50% 40%, #1a2438 0%, #0a1020 70%);
+    overflow: visible;
+  }
+  /* Face DOM mirrors game: .botevo-bot contains sprite + .botevo-face */
+  .botevo-bot {
+    position: absolute; inset: 4%; display: block; pointer-events: none;
+    transform-origin: 50% 50%;
+  }
+  .botevo-sprite {
+    width: 100%; height: 100%; display: block; object-fit: contain; pointer-events: none;
+  }
+  .botevo-face {
+    position: absolute; left: 30%; top: 30%; width: 40%; height: 38%;
+    z-index: 3; pointer-events: none; display: block; opacity: 1;
+  }
+  .botevo-eye { position: absolute; top: 12%; width: 28%; height: 32%; z-index: 2; }
+  .botevo-eye.left { left: 14%; }
+  .botevo-eye.right { right: 14%; }
+  .botevo-pupil {
+    position: absolute; left: 50%; top: 52%; width: 42%; height: 42%;
+    margin-left: -21%; margin-top: -21%; border-radius: 50%; background: #1a1a1a; z-index: 1;
+    transform: translate(var(--botevo-pupil-x, 0px), var(--botevo-pupil-y, 0px))
+      scale(var(--botevo-pupil-scale, 1));
+  }
+  .botevo-lid {
+    position: absolute; left: 0; right: 0; top: 0; height: 0;
+    border-radius: 50% 50% 40% 40%; background: #2a2218; z-index: 3;
+    transform-origin: 50% 0%; pointer-events: none;
+  }
+  .botevo-mouth {
+    position: absolute; left: 30%; top: 68%; width: 40%; height: 20%; z-index: 2;
+    border-radius: 0 0 60% 60%; border: 2px solid #222; border-top: none;
+    background: transparent; box-sizing: border-box; opacity: 0;
+  }
+  .botevo-face.is-look .botevo-mouth { opacity: 1; }
+  .botevo-face.is-blink .botevo-lid {
+    animation: botevo-blink-lid var(--botevo-blink-ms, 150ms) ease-in-out forwards;
+    background: #1a1410;
+  }
+  @keyframes botevo-blink-lid {
+    0% { height: 0; } 40% { height: 85%; } 100% { height: 0; }
+  }
+  .botevo-face.is-look .botevo-pupil {
+    animation: botevo-look-pupil var(--botevo-look-ms, 550ms) ease-in-out forwards;
+  }
+  .botevo-face.is-look-n .botevo-pupil { --botevo-look-x: 0px; --botevo-look-y: -5px; }
+  .botevo-face.is-look-e .botevo-pupil { --botevo-look-x: 5px; --botevo-look-y: 0px; }
+  .botevo-face.is-look-s .botevo-pupil { --botevo-look-x: 0px; --botevo-look-y: 5px; }
+  .botevo-face.is-look-w .botevo-pupil { --botevo-look-x: -5px; --botevo-look-y: 0px; }
+  @keyframes botevo-look-pupil {
+    0% {
+      transform: translate(var(--botevo-pupil-x, 0px), var(--botevo-pupil-y, 0px))
+        scale(var(--botevo-pupil-scale, 1));
+    }
+    22%, 78% {
+      transform: translate(
+          calc(var(--botevo-pupil-x, 0px) + var(--botevo-look-x, 0px)),
+          calc(var(--botevo-pupil-y, 0px) + var(--botevo-look-y, 0px))
+        ) scale(var(--botevo-pupil-scale, 1));
+    }
+    100% {
+      transform: translate(var(--botevo-pupil-x, 0px), var(--botevo-pupil-y, 0px))
+        scale(var(--botevo-pupil-scale, 1));
+    }
+  }
+  .botevo-face.is-look.is-smile .botevo-mouth {
+    animation: botevo-mouth-smile var(--botevo-look-ms, 550ms) ease-in-out forwards;
+  }
+  .botevo-face.is-look.is-hope .botevo-mouth {
+    animation: botevo-mouth-hope var(--botevo-look-ms, 550ms) ease-in-out forwards;
+  }
+  @keyframes botevo-mouth-smile {
+    0%, 100% { width: 36%; left: 32%; height: 18%; border-radius: 0 0 60% 60%; }
+    25%, 75% { width: 48%; left: 26%; height: 26%; border-radius: 0 0 70% 70%; }
+  }
+  @keyframes botevo-mouth-hope {
+    0%, 100% {
+      width: 36%; left: 32%; height: 18%; top: 68%;
+      border-radius: 0 0 60% 60%; border: 2.5px solid #2a2a2a; border-top: none; background: transparent;
+    }
+    25%, 75% {
+      width: 28%; left: 36%; height: 28%; top: 64%; border-radius: 50%;
+      border: 2.5px solid #2a2a2a; background: rgba(42, 42, 42, 0.2);
+    }
+  }
+  .fr-actions { display: flex; flex-wrap: wrap; gap: 4px; }
+  .fr-actions button {
+    font-size: 0.7rem; padding: 4px 6px; border-radius: 5px;
+    border: 1px solid var(--border); background: #182238; color: var(--text); cursor: pointer;
+  }
+  .fr-stub { opacity: 0.7; padding: 24px; border: 1px dashed var(--border); border-radius: 12px; margin: 16px; }
+  .hint { font-size: 0.75rem; color: var(--muted); margin-top: 10px; line-height: 1.4; }
+  kbd { font-size: 0.72rem; background: #0a1020; padding: 1px 5px; border-radius: 4px; border: 1px solid var(--border); }
+</style>
+</head>
+<body>
+<nav class="nav" aria-label="Board previews">
+  <a href="./difficulty-duration.html">Duration</a>
+  <span class="sep">·</span>
+  <a href="./elliptical-lanes.html">Lanes</a>
+  <span class="sep">·</span>
+  <a href="./ring-colors.html">Rings</a>
+  <span class="sep">·</span>
+  <a href="./board-mapper.html">Mapper</a>
+  <span class="sep">·</span>
+  <a href="./ledger-cards.html">Ledger cards</a>
+  <span class="sep">·</span>
+  <span class="here">Egg faces</span>
+  <span class="sep">·</span>
+  <a href="./README.md">README</a>
+</nav>
+<header>
+  <h1>Bot Evolution — Egg face review <span style="color:var(--muted);font-weight:500">(Faces v1)</span></h1>
+  <p>
+    Lab only, not .live. Nudge pupil X/Y/scale until glued to egg sockets, then Export JSON.
+    Face overlay is a descendant of <code>.botevo-bot</code> (same classes as the game).
+    Art: pupil-cleared PNGs from <kbd>src/lab/botevo-art/</kbd> via relative path.
+  </p>
+</header>
+<nav class="tabs" role="tablist" aria-label="Tune panels">
+  <button type="button" class="tab is-active" role="tab" aria-selected="true" id="tab-faces">Faces</button>
+  <button type="button" class="tab" role="tab" aria-selected="false" disabled title="Soon">Mosaic (soon)</button>
+  <button type="button" class="tab" role="tab" aria-selected="false" disabled title="Soon">Timing (soon)</button>
+</nav>
+<div class="layout" id="panel-faces">
+  <aside>
+    <h2>Target</h2>
+    <label class="row"><span class="name">Offset target</span>
+      <select id="fr-target" style="grid-column:1/-1">
+        <option value="global">Global (all pieces)</option>
+        <option value="plus">plus</option>
+        <option value="i">i</option>
+        <option value="dash">dash</option>
+        <option value="l-ne">l-ne</option>
+        <option value="l-es">l-es</option>
+        <option value="l-sw">l-sw</option>
+        <option value="l-wn">l-wn</option>
+        <option value="t-n">t-n</option>
+        <option value="t-e">t-e</option>
+        <option value="t-s">t-s</option>
+        <option value="t-w">t-w</option>
+      </select>
+    </label>
+    <h2>Pupil glue</h2>
+    <label class="row"><span class="name">Pupil X (px)</span><span class="val" id="fr-ox-out">0</span>
+      <input type="range" id="fr-ox" min="-20" max="20" step="0.5" value="0"/></label>
+    <label class="row"><span class="name">Pupil Y (px)</span><span class="val" id="fr-oy-out">0</span>
+      <input type="range" id="fr-oy" min="-20" max="20" step="0.5" value="0"/></label>
+    <label class="row"><span class="name">Scale</span><span class="val" id="fr-scale-out">1</span>
+      <input type="range" id="fr-scale" min="0.5" max="1.8" step="0.05" value="1"/></label>
+    <div class="io">
+      <button type="button" class="btn" id="fr-reset-target">Reset target</button>
+    </div>
+    <h2>Export</h2>
+    <div class="io">
+      <button type="button" class="btn" id="fr-export">Refresh JSON</button>
+      <button type="button" class="btn" id="fr-copy">Copy JSON</button>
+      <button type="button" class="btn" id="fr-import">Import JSON</button>
+      <button type="button" class="btn" id="fr-clear">Clear saved</button>
+      <button type="button" class="btn" id="fr-download">Download JSON</button>
+    </div>
+    <textarea id="fr-json" class="fr-json" spellcheck="false" aria-label="Offset JSON"></textarea>
+    <p class="hint">
+      Persists to <kbd>localStorage</kbd> key <kbd>heliopoly.botevo.faceOffsets.v1</kbd>.
+      Open: <kbd>open tools/board-previews/botevo-face-review.html</kbd> after git pull.
+      Shared game CSS float fix: fall/land animate <code>.botevo-bot</code>, not sprite alone.
+    </p>
+  </aside>
+  <main>
+    <div class="fr-grid" id="fr-grid"></div>
+  </main>
+</div>
+<section class="fr-stub" id="panel-mosaic" hidden>
+  <p>Mosaic tune panel — stub for later (#219).</p>
+</section>
+<section class="fr-stub" id="panel-timing" hidden>
+  <p>Timing tune panel — stub for later (blink/look gaps).</p>
+</section>
+<script>
+
+const PIECE_IDS = ['plus', 'i', 'dash', 'l-ne', 'l-es', 'l-sw', 'l-wn', 't-n', 't-e', 't-s', 't-w'];
+const KINDS = {'plus': 'four', 'i': 'straight', 'dash': 'straight', 'l-ne': 'corner', 'l-es': 'corner', 'l-sw': 'corner', 'l-wn': 'corner', 't-n': 'three', 't-e': 'three', 't-s': 'three', 't-w': 'three'};
+const ART = '../../src/lab/botevo-art';
+const STORAGE_KEY = "heliopoly.botevo.faceOffsets.v1";
+const ZERO = { pupilX: 0, pupilY: 0, pupilScale: 1 };
+
+function clone(o) { return { pupilX: o.pupilX, pupilY: o.pupilY, pupilScale: o.pupilScale }; }
+
+function loadStored() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return { version: 1, global: clone(ZERO), pieces: {} };
+    const parsed = JSON.parse(raw);
+    if (!parsed || parsed.version !== 1) return { version: 1, global: clone(ZERO), pieces: {} };
+    return { version: 1, global: { ...ZERO, ...parsed.global }, pieces: parsed.pieces || {} };
+  } catch {
+    return { version: 1, global: clone(ZERO), pieces: {} };
+  }
+}
+
+function saveStored(data) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+function merged(data, piece) {
+  const g = data.global;
+  const p = data.pieces[piece] || ZERO;
+  return {
+    pupilX: g.pupilX + p.pupilX,
+    pupilY: g.pupilY + p.pupilY,
+    pupilScale: g.pupilScale * p.pupilScale,
+  };
+}
+
+function applyVars(el, o) {
+  el.style.setProperty("--botevo-pupil-x", o.pupilX + "px");
+  el.style.setProperty("--botevo-pupil-y", o.pupilY + "px");
+  el.style.setProperty("--botevo-pupil-scale", String(o.pupilScale));
+}
+
+function clearExpr(face) {
+  face.classList.remove(
+    "is-blink", "is-look", "is-smile", "is-hope", "is-excite",
+    "is-look-n", "is-look-e", "is-look-s", "is-look-w"
+  );
+  face.style.removeProperty("--botevo-blink-ms");
+  face.style.removeProperty("--botevo-look-ms");
+}
+
+function playBlink(face) {
+  clearExpr(face);
+  face.style.setProperty("--botevo-blink-ms", "180ms");
+  void face.offsetWidth;
+  face.classList.add("is-blink");
+  setTimeout(() => clearExpr(face), 200);
+}
+
+function playLook(face, dir, mouth) {
+  clearExpr(face);
+  face.style.setProperty("--botevo-look-ms", "700ms");
+  void face.offsetWidth;
+  face.classList.add("is-look", "is-look-" + dir, mouth === "smile" ? "is-smile" : "is-hope");
+  setTimeout(() => clearExpr(face), 720);
+}
+
+function appendBotFace(wrap, piece) {
+  const face = document.createElement("span");
+  face.className = "botevo-face";
+  face.dataset.piece = piece;
+  face.setAttribute("aria-hidden", "true");
+  for (const side of ["left", "right"]) {
+    const eye = document.createElement("span");
+    eye.className = "botevo-eye " + side;
+    const pupil = document.createElement("span");
+    pupil.className = "botevo-pupil";
+    const lid = document.createElement("span");
+    lid.className = "botevo-lid";
+    eye.appendChild(pupil);
+    eye.appendChild(lid);
+    face.appendChild(eye);
+  }
+  const mouth = document.createElement("span");
+  mouth.className = "botevo-mouth";
+  face.appendChild(mouth);
+  wrap.appendChild(face);
+  return face;
+}
+
+function fmt(n) { return Number.isInteger(n) ? String(n) : n.toFixed(2); }
+
+let data = loadStored();
+let selected = "global";
+const cardBots = new Map();
+const grid = document.getElementById("fr-grid");
+const targetSel = document.getElementById("fr-target");
+const ox = document.getElementById("fr-ox");
+const oy = document.getElementById("fr-oy");
+const scale = document.getElementById("fr-scale");
+const oxOut = document.getElementById("fr-ox-out");
+const oyOut = document.getElementById("fr-oy-out");
+const scaleOut = document.getElementById("fr-scale-out");
+const jsonArea = document.getElementById("fr-json");
+
+function currentOffset() {
+  if (selected === "global") return clone(data.global);
+  return clone(data.pieces[selected] || ZERO);
+}
+
+function writeOffset(o) {
+  if (selected === "global") data.global = clone(o);
+  else data.pieces[selected] = clone(o);
+  saveStored(data);
+  refreshJson();
+  applyAll();
+  syncUi();
+}
+
+function syncUi() {
+  const o = currentOffset();
+  ox.value = String(o.pupilX);
+  oy.value = String(o.pupilY);
+  scale.value = String(o.pupilScale);
+  oxOut.textContent = fmt(o.pupilX);
+  oyOut.textContent = fmt(o.pupilY);
+  scaleOut.textContent = fmt(o.pupilScale);
+  for (const card of grid.querySelectorAll(".fr-card")) {
+    card.classList.toggle("is-selected", selected === card.dataset.piece);
+  }
+}
+
+function refreshJson() {
+  jsonArea.value = JSON.stringify(data, null, 2);
+}
+
+function applyAll() {
+  for (const id of PIECE_IDS) {
+    const bot = cardBots.get(id);
+    if (bot) applyVars(bot, merged(data, id));
+  }
+}
+
+function buildCard(piece) {
+  const card = document.createElement("article");
+  card.className = "fr-card";
+  card.dataset.piece = piece;
+  const title = document.createElement("div");
+  title.className = "fr-card-title";
+  title.textContent = piece + " · " + (KINDS[piece] || "");
+  const stage = document.createElement("div");
+  stage.className = "fr-stage";
+  stage.addEventListener("click", () => {
+    selected = piece;
+    targetSel.value = piece;
+    syncUi();
+  });
+  const wrap = document.createElement("span");
+  wrap.className = "botevo-bot is-" + (KINDS[piece] || "four");
+  wrap.setAttribute("aria-hidden", "true");
+  const img = document.createElement("img");
+  img.className = "botevo-sprite";
+  img.src = ART + "/" + piece + ".png";
+  img.alt = "";
+  img.draggable = false;
+  wrap.appendChild(img);
+  const face = appendBotFace(wrap, piece);
+  stage.appendChild(wrap);
+  cardBots.set(piece, wrap);
+  const actions = document.createElement("div");
+  actions.className = "fr-actions";
+  function mk(label, fn) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = label;
+    b.addEventListener("click", (e) => { e.stopPropagation(); fn(); });
+    return b;
+  }
+  actions.append(
+    mk("Blink", () => playBlink(face)),
+    mk("N", () => playLook(face, "n", "smile")),
+    mk("E", () => playLook(face, "e", "smile")),
+    mk("S", () => playLook(face, "s", "smile")),
+    mk("W", () => playLook(face, "w", "smile")),
+    mk("Hope", () => playLook(face, "n", "hope")),
+    mk("Smile", () => playLook(face, "e", "smile")),
+    mk("Reset", () => clearExpr(face))
+  );
+  card.append(title, stage, actions);
+  return card;
+}
+
+for (const id of PIECE_IDS) grid.appendChild(buildCard(id));
+
+targetSel.addEventListener("change", () => {
+  selected = targetSel.value;
+  syncUi();
+});
+
+function onSlider() {
+  writeOffset({
+    pupilX: Number(ox.value),
+    pupilY: Number(oy.value),
+    pupilScale: Number(scale.value),
+  });
+}
+ox.addEventListener("input", onSlider);
+oy.addEventListener("input", onSlider);
+scale.addEventListener("input", onSlider);
+
+document.getElementById("fr-reset-target").addEventListener("click", () => writeOffset(clone(ZERO)));
+document.getElementById("fr-export").addEventListener("click", refreshJson);
+document.getElementById("fr-copy").addEventListener("click", async () => {
+  refreshJson();
+  try { await navigator.clipboard.writeText(jsonArea.value); }
+  catch { jsonArea.select(); document.execCommand("copy"); }
+});
+document.getElementById("fr-import").addEventListener("click", () => {
+  try {
+    const parsed = JSON.parse(jsonArea.value);
+    if (!parsed || parsed.version !== 1 || !parsed.global) throw new Error("bad");
+    data = { version: 1, global: { ...ZERO, ...parsed.global }, pieces: parsed.pieces || {} };
+    saveStored(data);
+    refreshJson();
+    applyAll();
+    syncUi();
+  } catch {
+    alert("Import failed — paste a version:1 FaceOffsetExport JSON.");
+  }
+});
+document.getElementById("fr-clear").addEventListener("click", () => {
+  localStorage.removeItem(STORAGE_KEY);
+  data = { version: 1, global: clone(ZERO), pieces: {} };
+  refreshJson();
+  applyAll();
+  syncUi();
+});
+document.getElementById("fr-download").addEventListener("click", () => {
+  refreshJson();
+  const blob = new Blob([jsonArea.value], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "botevo-face-offsets-export.json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+refreshJson();
+applyAll();
+syncUi();
+</script>
+</body>
+</html>

@@ -10,6 +10,7 @@ Open any file in a browser (double-click or `open path.html`). Each page has a *
 | [ring-colors.html](./ring-colors.html) | System ring bands, dashed tints, legacy blue, lane opacity | #101 |
 | [board-mapper.html](./board-mapper.html) | **Drag nodes**, tune curves, copy `onRing` export for board.ts | #102 |
 | [ledger-cards.html](./ledger-cards.html) | **Ledger event cards** + **Welcome on board** (`#welcome`) — pin/width/art crop against a New game screenshot | #113 #118 |
+| [botevo-face-review.html](./botevo-face-review.html) | **Egg face review** — pupil X/Y/scale glue, blink/look, export offsets JSON (Faces v1; Mosaic/Timing stubs) | #218 |
 
 Production constants (lanes / rings) live in:
 
