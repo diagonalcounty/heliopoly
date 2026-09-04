@@ -277,7 +277,7 @@ export function playAgainBotEvo(seed?: number): BotState {
   return startBotEvo(seed);
 }
 
-/** Locked blank-shell body geometry (board-previews HITL). Units: viewBox 0 0 100 100. */
+/** Blank-shell body geometry (HITL retune: shell fills most of the cell). Units: viewBox 0 0 100 100. */
 export interface EggBodyTune {
   eggRx: number;
   eggRy: number;
@@ -298,17 +298,17 @@ export interface EggBodyTune {
 }
 
 export const EGG_BODY_DEFAULTS: EggBodyTune = {
-  eggRx: 30,
-  eggRy: 28.5,
+  eggRx: 39.5,
+  eggRy: 37.5,
   eggCx: 50,
   eggCy: 51.5,
-  armLength: 18,
-  armThickness: 6,
-  endCapSize: 9.5,
-  endCapAspect: 0.42,
-  socketSize: 10,
-  bodyStroke: 2.1,
-  armRoundness: 2.9,
+  armLength: 10.5,
+  armThickness: 5.5,
+  endCapSize: 7.5,
+  endCapAspect: 0.28,
+  socketSize: 8,
+  bodyStroke: 2.4,
+  armRoundness: 2.5,
   connectorMetal: "#8a96a4",
   endCapFill: "#c9a24a",
   endCapStroke: "#8a6a28",
@@ -316,12 +316,12 @@ export const EGG_BODY_DEFAULTS: EggBodyTune = {
 };
 
 /**
- * Straight / blueish family is clearly taller (≈ rotate the wide egg 90°
- * with a bit of extra height bias). Plus / T / L keep the locked wide egg.
+ * Straight / blueish family is clearly taller than the wide shell
+ * (scaled with the larger body size). Plus / T / L keep the locked wide egg.
  */
 export const EGG_BODY_STRAIGHT: Pick<EggBodyTune, "eggRx" | "eggRy"> = {
-  eggRx: 28.5,
-  eggRy: 36,
+  eggRx: 37,
+  eggRy: 47,
 };
 
 /** Unique illustrated bot for this piece; faces stay upright. */

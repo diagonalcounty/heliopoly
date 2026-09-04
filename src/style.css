@@ -948,7 +948,8 @@ html.native-shell #app {
 .botevo-bot {
   /* Containing block for .botevo-face / pupils — never sibling of the cell. */
   position: absolute;
-  inset: -22%;
+  /* Mild overflow so short arms can still meet neighbors; shell fills the cell. */
+  inset: -11%;
   z-index: 2;
   pointer-events: none;
   display: block;
