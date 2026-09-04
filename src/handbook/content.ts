@@ -29,7 +29,7 @@ const LORE_TOPICS: HandbookTopic[] = [
     id: "welcome",
     title: "Read this first",
     html: `
-<p><strong>Heliopoly</strong> — <em>Orbital Economics</em> (1.1.0).</p>
+<p><strong>Heliopoly</strong> — <em>Orbital Economics</em> (1.3.0).</p>
 <p>You fly a rocket. You buy claims. You try not to go broke.</p>
 <p>Every buy, every rent, every duel is written to the <strong>ledger</strong>. The ledger is the official book of the Mainline. It is a contract book. It is also a history book.</p>
 <p>When you are the last rocket flying, the ledger writes your name as one of the <strong>greatest of all kind</strong>.</p>
