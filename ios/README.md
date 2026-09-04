@@ -23,7 +23,7 @@ open ios/Heliopoly/Heliopoly.xcodeproj
 In Xcode:
 
 1. Select the **Heliopoly** scheme (shared).
-2. Pick an **iPad** simulator (or iPhone).
+2. Pick an **iPhone or iPad** simulator (universal).
 3. Set your **Team** under Signing & Capabilities if needed (empty `DEVELOPMENT_TEAM` in project until you pick one).
 4. **Run** (⌘R).
 
@@ -31,39 +31,23 @@ In Xcode:
 
 ```text
 ios/Heliopoly/
-  Heliopoly.xcodeproj/     # project + shared schemes (Heliopoly, HeliopolyPhone)
+  Heliopoly.xcodeproj/     # project + shared scheme (Heliopoly only)
   WebDist/                 # Vite production build (npm run ios:sync)
   Heliopoly/
-    HeliopolyApp.swift     # iPad @main
-    ContentView.swift      # iPad root shell
-    GameWebView.swift      # WKWebView → bundled WebDist/ (shared)
+    HeliopolyApp.swift     # @main
+    ContentView.swift      # root shell
+    GameWebView.swift      # WKWebView → bundled WebDist/
     PrivacyInfo.xcprivacy
     Assets.xcassets/
-  PhonePrototype/          # iPhone prototype @main (#120 / #121)
-  PhoneOverlay/            # CSS/JS injected only by HeliopolyPhone (#122)
 ```
 
-## iPhone prototype (does not change iPad)
+## Universal app (iPhone + iPad)
 
-Parent: GitHub **#120**. The shipping **Heliopoly** scheme stays iPad-only (`TARGETED_DEVICE_FAMILY = 2`). Overlay is **not** in `src/style.css`.
+Scheme **Heliopoly** only — bundle `heliopoly.live.Heliopoly`, TARGETED_DEVICE_FAMILY 1,2. The old **HeliopolyPhone** target was removed (do not recreate it for App Store).
 
-```bash
-npm run ios:sync
-open ios/Heliopoly/Heliopoly.xcodeproj
-```
+Legacy folders PhonePrototype/ and PhoneOverlay/ may still exist on disk for reference; they are not in the Xcode project.
 
-1. Select scheme **HeliopolyPhone**.
-2. Pick an **iPhone** simulator (iPhone 16 / 15, portrait).
-3. Run (⌘R).
-
-| Scheme | Device | What you get |
-|--------|--------|----------------|
-| **Heliopoly** | iPad | Unchanged shipping client |
-| **HeliopolyPhone** | iPhone | Same `WebDist/` + `PhoneOverlay/` (status strip, leftover board, fixed Roll bar) |
-
-`npm run ios:sync` still only refreshes `WebDist/`. Edit overlay in `PhoneOverlay/phone.css` + `phone.js`, then rebuild **HeliopolyPhone**.
-
-`WebDist/` lives **next to** the `.xcodeproj` (not inside the synced Swift sources). Xcode’s “Copy WebDist” Run Script phase packs it into the `.app` **with folder structure** so `./assets/` and `./handbook/` paths work.
+WebDist/ lives **next to** the `.xcodeproj` (not inside the synced Swift sources). Xcode’s “Copy WebDist” Run Script phase packs it into the `.app` **with folder structure** so `./assets/` and `./handbook/` paths work.
 
 ### Offline load path (important)
 
@@ -118,13 +102,15 @@ Mini layout CSS: portrait `max-width: 780px`; landscape mini height band `max-he
 
 ## App Store
 
+Archive the **Heliopoly** scheme only (bundle `heliopoly.live.Heliopoly`). Do not archive HeliopolyPhone — different bundle; creates a duplicate ASC app. See `Heliopoly/APP_STORE_ARCHIVE.md`.
+
 Full listing copy, privacy answers, review notes, screenshot checklist, and export-compliance answers live in:
 
 **[`Heliopoly/AppStore/LISTING.md`](Heliopoly/AppStore/LISTING.md)**
 
 | Item | Status |
 |------|--------|
-| Display name / version | Heliopoly · **1.3.0** (build 3) |
+| Display name / version | Heliopoly · **1.3.0** (build 5 in project; bump build on each re-upload) |
 | Bundle ID | `heliopoly.live.Heliopoly` |
 | Category | Games |
 | App icon 1024 | `Heliopoly/Assets.xcassets/AppIcon.appiconset/` (+ marketing `AppStore/AppIcon-1024.png`) |
@@ -132,7 +118,7 @@ Full listing copy, privacy answers, review notes, screenshot checklist, and expo
 | Privacy Manifest | `PrivacyInfo.xcprivacy` — no tracking / no collected types |
 | Privacy Policy URL | https://heliopoly.live/privacy.html (`public/privacy.html` in monorepo — deploy before submit) |
 | Support URL | https://github.com/diagonalcounty/heliopoly/issues |
-| Devices | Currently **iPad** (`TARGETED_DEVICE_FAMILY = 2`) |
+| Devices | **iPhone + iPad** (`TARGETED_DEVICE_FAMILY = 1,2`) |
 | Review notes | Offline bundled game via `heliopoly://` — not a remote browser |
 
 Paid Apple Developer Program required to upload. See issue **#66**.

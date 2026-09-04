@@ -12,11 +12,6 @@
 		A10000010000000000000003 /* GameWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000003 /* GameWebView.swift */; };
 		A10000010000000000000004 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000004 /* Assets.xcassets */; };
 		A10000010000000000000005 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000005 /* PrivacyInfo.xcprivacy */; };
-		B10000010000000000000001 /* HeliopolyPhoneApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000010000000000000001 /* HeliopolyPhoneApp.swift */; };
-		B10000010000000000000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000010000000000000002 /* ContentView.swift */; };
-		B10000010000000000000003 /* GameWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000010000000000000003 /* GameWebView.swift */; };
-		B10000010000000000000004 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000004 /* Assets.xcassets */; };
-		B10000010000000000000005 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000005 /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,21 +21,10 @@
 		A20000010000000000000003 /* GameWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameWebView.swift; sourceTree = "<group>"; };
 		A20000010000000000000004 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A20000010000000000000005 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		B4CC6C54E301AC13100288A42 /* HeliopolyPhone.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HeliopolyPhone.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		B20000010000000000000001 /* HeliopolyPhoneApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeliopolyPhoneApp.swift; sourceTree = "<group>"; };
-		B20000010000000000000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		B20000010000000000000003 /* GameWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameWebView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		4CC6C54B301AC13100288A41 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		B4CC6C54B301AC13100288A42 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -54,7 +38,6 @@
 			isa = PBXGroup;
 			children = (
 				4CC6C550301AC13100288A41 /* Heliopoly */,
-				B4CC6C550301AC13100288A42 /* PhonePrototype */,
 				4CC6C54F301AC13100288A41 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -63,7 +46,6 @@
 			isa = PBXGroup;
 			children = (
 				4CC6C54E301AC13100288A41 /* Heliopoly.app */,
-				B4CC6C54E301AC13100288A42 /* HeliopolyPhone.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -78,16 +60,6 @@
 				A20000010000000000000005 /* PrivacyInfo.xcprivacy */,
 			);
 			path = Heliopoly;
-			sourceTree = "<group>";
-		};
-		B4CC6C550301AC13100288A42 /* PhonePrototype */ = {
-			isa = PBXGroup;
-			children = (
-				B20000010000000000000001 /* HeliopolyPhoneApp.swift */,
-				B20000010000000000000002 /* ContentView.swift */,
-				B20000010000000000000003 /* GameWebView.swift */,
-			);
-			path = PhonePrototype;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -109,25 +81,6 @@
 			name = Heliopoly;
 			productName = Heliopoly;
 			productReference = 4CC6C54E301AC13100288A41 /* Heliopoly.app */;
-			productType = "com.apple.product-type.application";
-		};
-		B4CC6C54D301AC13100288A42 /* HeliopolyPhone */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = B4CC6C559301AC13200288A42 /* Build configuration list for PBXNativeTarget "HeliopolyPhone" */;
-			buildPhases = (
-				B4CC6C54A301AC13100288A42 /* Sources */,
-				B4CC6C54B301AC13100288A42 /* Frameworks */,
-				B4CC6C54C301AC13100288A42 /* Resources */,
-				B4CC6C560301AC20000288A42 /* Copy WebDist */,
-				B4CC6C561301AC20000288A42 /* Copy PhoneOverlay */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = HeliopolyPhone;
-			productName = HeliopolyPhone;
-			productReference = B4CC6C54E301AC13100288A42 /* HeliopolyPhone.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -162,7 +115,6 @@
 			projectRoot = "";
 			targets = (
 				4CC6C54D301AC13100288A41 /* Heliopoly */,
-				B4CC6C54D301AC13100288A42 /* HeliopolyPhone */,
 			);
 		};
 /* End PBXProject section */
@@ -174,15 +126,6 @@
 			files = (
 				A10000010000000000000004 /* Assets.xcassets in Resources */,
 				A10000010000000000000005 /* PrivacyInfo.xcprivacy in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		B4CC6C54C301AC13100288A42 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				B10000010000000000000004 /* Assets.xcassets in Resources */,
-				B10000010000000000000005 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -207,42 +150,6 @@
 			shellScript = "set -e\nWEB=\"${SRCROOT}/WebDist\"\nDEST=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/WebDist\"\nif [ ! -f \"${WEB}/index.html\" ]; then\n  echo \"error: WebDist/index.html missing. From repo root run: npm run ios:sync\" >&2\n  exit 1\nfi\nrm -rf \"${DEST}\"\nmkdir -p \"${DEST}\"\n# Preserve assets/ handbook/ hierarchy for Vite base './'\n/usr/bin/rsync -a \"${WEB}/\" \"${DEST}/\"\necho \"Copied WebDist → ${DEST}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		B4CC6C560301AC20000288A42 /* Copy WebDist */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${SRCROOT}/WebDist",
-			);
-			name = "Copy WebDist";
-			outputPaths = (
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/WebDist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "set -e\nWEB=\"${SRCROOT}/WebDist\"\nDEST=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/WebDist\"\nif [ ! -f \"${WEB}/index.html\" ]; then\n  echo \"error: WebDist/index.html missing. From repo root run: npm run ios:sync\" >&2\n  exit 1\nfi\nrm -rf \"${DEST}\"\nmkdir -p \"${DEST}\"\n/usr/bin/rsync -a \"${WEB}/\" \"${DEST}/\"\necho \"Copied WebDist → ${DEST}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		B4CC6C561301AC20000288A42 /* Copy PhoneOverlay */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${SRCROOT}/PhoneOverlay",
-			);
-			name = "Copy PhoneOverlay";
-			outputPaths = (
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/WebDist/phone-overlay",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "set -e\nSRC=\"${SRCROOT}/PhoneOverlay\"\nDEST=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/WebDist/phone-overlay\"\nif [ ! -f \"${SRC}/phone.css\" ] || [ ! -f \"${SRC}/phone.js\" ]; then\n  echo \"error: PhoneOverlay/phone.css or phone.js missing\" >&2\n  exit 1\nfi\nrm -rf \"${DEST}\"\nmkdir -p \"${DEST}\"\n/usr/bin/rsync -a \"${SRC}/\" \"${DEST}/\"\necho \"Copied PhoneOverlay → ${DEST}\"\n";
-			showEnvVarsInLog = 0;
-		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -253,16 +160,6 @@
 				A10000010000000000000001 /* HeliopolyApp.swift in Sources */,
 				A10000010000000000000002 /* ContentView.swift in Sources */,
 				A10000010000000000000003 /* GameWebView.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		B4CC6C54A301AC13100288A42 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				B10000010000000000000001 /* HeliopolyPhoneApp.swift in Sources */,
-				B10000010000000000000002 /* ContentView.swift in Sources */,
-				B10000010000000000000003 /* GameWebView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -395,7 +292,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_TEAM = 3RNW8JKN4S;
 				ENABLE_MODULE_VERIFIER = YES;
 				ENABLE_PREVIEWS = YES;
@@ -424,7 +321,7 @@
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 2;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -434,7 +331,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_TEAM = 3RNW8JKN4S;
 				ENABLE_MODULE_VERIFIER = YES;
 				ENABLE_PREVIEWS = YES;
@@ -463,85 +360,7 @@
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 2;
-			};
-			name = Release;
-		};
-		B4CC6C55A301AC13200288A42 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
-				DEVELOPMENT_TEAM = 3RNW8JKN4S;
-				ENABLE_MODULE_VERIFIER = YES;
-				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = PhonePrototype/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Heliopoly Phone";
-				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.games";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleLightContent;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				MARKETING_VERSION = 1.3.0;
-				PRODUCT_BUNDLE_IDENTIFIER = heliopoly.live.HeliopolyPhone;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
-			};
-			name = Debug;
-		};
-		B4CC6C55B301AC13200288A42 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
-				DEVELOPMENT_TEAM = 3RNW8JKN4S;
-				ENABLE_MODULE_VERIFIER = YES;
-				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = PhonePrototype/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Heliopoly Phone";
-				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.games";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleLightContent;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				MARKETING_VERSION = 1.3.0;
-				PRODUCT_BUNDLE_IDENTIFIER = heliopoly.live.HeliopolyPhone;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
@@ -562,15 +381,6 @@
 			buildConfigurations = (
 				4CC6C55A301AC13200288A41 /* Debug */,
 				4CC6C55B301AC13200288A41 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		B4CC6C559301AC13200288A42 /* Build configuration list for PBXNativeTarget "HeliopolyPhone" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				B4CC6C55A301AC13200288A42 /* Debug */,
-				B4CC6C55B301AC13200288A42 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

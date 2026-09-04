@@ -52,12 +52,29 @@ struct GameWebView: UIViewRepresentable {
             )
         }
 
+        // Seed CSS safe-area vars before first paint when UIKit already
+        // knows insets (avoid writing 0px and clobbering CSS env() defaults).
+        let bootInsets = Self.resolvedSafeAreaInsets(for: UIView())
+        if bootInsets.top > 0 || bootInsets.bottom > 0 || bootInsets.left > 0
+            || bootInsets.right > 0
+        {
+            let bootJS = Self.safeAreaCSSJavaScript(insets: bootInsets)
+            config.userContentController.addUserScript(
+                WKUserScript(
+                    source: bootJS,
+                    injectionTime: .atDocumentStart,
+                    forMainFrameOnly: true
+                )
+            )
+        }
+
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.navigationDelegate = context.coordinator
         webView.uiDelegate = context.coordinator
         webView.isOpaque = false
         webView.backgroundColor = Self.spaceBackground
         webView.scrollView.backgroundColor = Self.spaceBackground
+        // Keep .never so zoom lock / layout stay stable; CSS vars carry insets.
         webView.scrollView.contentInsetAdjustmentBehavior = injectPhoneOverlay
             ? .automatic
             : .never
@@ -95,6 +112,55 @@ struct GameWebView: UIViewRepresentable {
     private static var spaceBackground: UIColor {
         UIColor(red: 0.043, green: 0.063, blue: 0.125, alpha: 1) // #0b1020
     }
+
+
+    /// UIKit insets → CSS --sat/--sar/--sab/--sal (WKWebView env() is often 0
+    /// with custom schemes + ignoresSafeArea, so the web UI must be told).
+    static func safeAreaCSSJavaScript(insets: UIEdgeInsets) -> String {
+        let top = max(0, insets.top)
+        let right = max(0, insets.right)
+        let bottom = max(0, insets.bottom)
+        let left = max(0, insets.left)
+        return """
+        (function(){
+          var r = document.documentElement;
+          if (!r || !r.style) return;
+          r.style.setProperty('--sat', '\(top)px');
+          r.style.setProperty('--sar', '\(right)px');
+          r.style.setProperty('--sab', '\(bottom)px');
+          r.style.setProperty('--sal', '\(left)px');
+        })();
+        """
+    }
+
+    static func resolvedSafeAreaInsets(for view: UIView) -> UIEdgeInsets {
+        var insets = view.safeAreaInsets
+        if let window = view.window {
+            let w = window.safeAreaInsets
+            insets = UIEdgeInsets(
+                top: max(insets.top, w.top),
+                left: max(insets.left, w.left),
+                bottom: max(insets.bottom, w.bottom),
+                right: max(insets.right, w.right)
+            )
+        } else if let scene = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .first(where: { $0.activationState == .foregroundActive })
+            ?? UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }).first
+        {
+            let w = scene.keyWindow?.safeAreaInsets
+                ?? scene.windows.first?.safeAreaInsets
+                ?? .zero
+            insets = UIEdgeInsets(
+                top: max(insets.top, w.top),
+                left: max(insets.left, w.left),
+                bottom: max(insets.bottom, w.bottom),
+                right: max(insets.right, w.right)
+            )
+        }
+        return insets
+    }
+
 
     final class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         var onLoadFailed: ((String) -> Void)?
@@ -181,6 +247,13 @@ struct GameWebView: UIViewRepresentable {
                     """
                 )
             }
+            Self.pushSafeAreaCSSVariables(to: webView)
+        }
+
+        static func pushSafeAreaCSSVariables(to webView: WKWebView) {
+            let insets = GameWebView.resolvedSafeAreaInsets(for: webView)
+            let js = GameWebView.safeAreaCSSJavaScript(insets: insets)
+            webView.evaluateJavaScript(js, completionHandler: nil)
         }
 
         func webView(
@@ -368,9 +441,21 @@ final class SizedWebHost: UIView {
 
     override func layoutSubviews() {
         super.layoutSubviews()
+        pushSafeAreaCSSVariables()
         guard !announced, bounds.width > 1, bounds.height > 1 else { return }
         announced = true
         onReady?(webView)
+    }
+
+    override func safeAreaInsetsDidChange() {
+        super.safeAreaInsetsDidChange()
+        pushSafeAreaCSSVariables()
+    }
+
+    private func pushSafeAreaCSSVariables() {
+        let insets = GameWebView.resolvedSafeAreaInsets(for: self)
+        let js = GameWebView.safeAreaCSSJavaScript(insets: insets)
+        webView.evaluateJavaScript(js, completionHandler: nil)
     }
 }
 
