@@ -15,6 +15,12 @@
 
 :root {
   color-scheme: dark;
+  /* Safe-area: env() when the browser provides it; native WKWebView may
+     report 0 — GameWebView injects the same vars from UIKit insets. */
+  --sat: env(safe-area-inset-top, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
   --bg: #0b1020;
   --panel: #141b2f;
   --border: #2a3555;
@@ -69,16 +75,21 @@ html.native-shell #app {
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  /* Clear status bar / Dynamic Island on iPhone WKWebView (UIKit sets --sat). */
+  padding-top: max(12px, var(--sat));
+  padding-right: max(16px, var(--sar));
+  padding-bottom: max(24px, var(--sab));
+  padding-left: max(16px, var(--sal));
 }
 
 #app {
   max-width: 1400px;
   margin: 0 auto;
   padding: 12px 16px 32px;
-  padding-top: max(12px, env(safe-area-inset-top, 0px));
-  padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-bottom: max(24px, env(safe-area-inset-bottom, 0px));
-  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-top: max(12px, var(--sat));
+  padding-right: max(16px, var(--sar));
+  padding-bottom: max(24px, var(--sab));
+  padding-left: max(16px, var(--sal));
 }
 
 .top-row {
@@ -1110,9 +1121,9 @@ body.handbook-open {
   }
 
   #handbook-root .handbook-header {
-    padding-top: max(10px, env(safe-area-inset-top, 0px));
-    padding-left: max(12px, env(safe-area-inset-left, 0px));
-    padding-right: max(12px, env(safe-area-inset-right, 0px));
+    padding-top: max(10px, var(--sat));
+    padding-left: max(12px, var(--sal));
+    padding-right: max(12px, var(--sar));
     gap: 8px;
   }
 
@@ -1139,8 +1150,8 @@ body.handbook-open {
     overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
-    padding-left: max(10px, env(safe-area-inset-left, 0px));
-    padding-right: max(10px, env(safe-area-inset-right, 0px));
+    padding-left: max(10px, var(--sal));
+    padding-right: max(10px, var(--sar));
   }
 
   #handbook-root .handbook-section-tab {
@@ -1149,7 +1160,7 @@ body.handbook-open {
   }
 
   #handbook-root .handbook-article {
-    padding: 12px 14px max(28px, env(safe-area-inset-bottom, 0px));
+    padding: 12px 14px max(28px, var(--sab));
   }
 
   #handbook-root .handbook-article-icon {
@@ -1182,7 +1193,7 @@ body.handbook-open {
 
 .dossier-body {
   overflow-y: auto;
-  padding: 12px 16px max(20px, env(safe-area-inset-bottom, 0px));
+  padding: 12px 16px max(20px, var(--sab));
   min-height: 0;
 }
 
@@ -1316,7 +1327,7 @@ body.handbook-open {
   }
 
   #dossier-root .handbook-header {
-    padding-top: max(10px, env(safe-area-inset-top, 0px));
+    padding-top: max(10px, var(--sat));
   }
 }
 
@@ -1647,8 +1658,8 @@ body.handbook-open {
 @media (max-width: 1100px) {
   #app {
     max-width: none;
-    padding-top: max(8px, env(safe-area-inset-top, 0px));
-    padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
+    padding-top: max(8px, var(--sat));
+    padding-bottom: max(12px, var(--sab));
   }
 
   .top h1 {
@@ -1710,7 +1721,7 @@ body.handbook-open {
   /* Pilot controls stay reachable while scrolling the column */
   .pilot-controls {
     position: sticky;
-    bottom: max(0px, env(safe-area-inset-bottom, 0px));
+    bottom: max(0px, var(--sab));
     z-index: 20;
     box-shadow: 0 -10px 28px rgba(0, 0, 0, 0.45);
     border-color: #3d5080;
@@ -1754,9 +1765,9 @@ body.handbook-open {
  */
 @media (max-width: 780px) and (orientation: portrait) {
   #app {
-    padding-left: max(8px, env(safe-area-inset-left, 0px));
-    padding-right: max(8px, env(safe-area-inset-right, 0px));
-    padding-bottom: max(8px, env(safe-area-inset-bottom, 0px));
+    padding-left: max(8px, var(--sal));
+    padding-right: max(8px, var(--sar));
+    padding-bottom: max(8px, var(--sab));
   }
 
   .top h1 {
@@ -1848,10 +1859,10 @@ body.handbook-open {
     max-height: 100dvh;
     box-sizing: border-box;
     overflow: hidden;
-    padding-top: max(4px, env(safe-area-inset-top, 0px));
-    padding-right: max(8px, env(safe-area-inset-right, 0px));
-    padding-bottom: max(4px, env(safe-area-inset-bottom, 0px));
-    padding-left: max(8px, env(safe-area-inset-left, 0px));
+    padding-top: max(4px, var(--sat));
+    padding-right: max(8px, var(--sar));
+    padding-bottom: max(4px, var(--sab));
+    padding-left: max(8px, var(--sal));
   }
 
   .top {
@@ -3291,7 +3302,7 @@ button:not(:disabled):active {
 .path-flash {
   position: fixed;
   left: 50%;
-  bottom: max(24px, env(safe-area-inset-bottom, 0px));
+  bottom: max(24px, var(--sab));
   transform: translateX(-50%);
   z-index: 80;
   padding: 8px 14px;
@@ -3364,10 +3375,10 @@ button:not(:disabled):active {
 
   /* Setup only — :has(.mode-setup) drops when standings take the slot. */
   #app:has(.fleet-card.mode-setup) {
-    padding-top: max(8px, env(safe-area-inset-top, 0px));
-    padding-right: max(10px, env(safe-area-inset-right, 0px));
-    padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
-    padding-left: max(10px, env(safe-area-inset-left, 0px));
+    padding-top: max(8px, var(--sat));
+    padding-right: max(10px, var(--sar));
+    padding-bottom: max(12px, var(--sab));
+    padding-left: max(10px, var(--sal));
   }
 
   html.native-shell:has(.fleet-card.mode-setup),
@@ -3779,7 +3790,7 @@ button:not(:disabled):active {
     /* Break 48px + Refuel/depot slot 48px always — circle must not rescale
        when those rows arm. Course still grows when legal. */
     --play-thumbs-h: calc(
-      var(--play-roster-h) + 8px + 56px + 96px + env(safe-area-inset-bottom, 0px)
+      var(--play-roster-h) + 8px + 56px + 96px + var(--sab)
     );
     max-width: none;
     width: 100%;
@@ -3796,7 +3807,7 @@ button:not(:disabled):active {
   #app:has(.fleet-card.mode-standings):has(#dir-row:not(.hidden-vis)) {
     --play-thumbs-h: calc(
       var(--play-roster-h) + 8px + 56px + 144px +
-        env(safe-area-inset-bottom, 0px)
+        var(--sab)
     );
   }
 
@@ -4109,7 +4120,7 @@ button:not(:disabled):active {
     height: calc(var(--play-thumbs-h) - var(--play-roster-h) - 8px);
     min-height: calc(var(--play-thumbs-h) - var(--play-roster-h) - 8px);
     margin: 0;
-    padding: 0 8px env(safe-area-inset-bottom, 0px);
+    padding: 0 8px var(--sab);
     border: none;
     border-radius: 0;
     background: transparent;
@@ -4241,7 +4252,7 @@ button:not(:disabled):active {
   #app:has(.fleet-card.mode-standings) #btn-handbook-header {
     left: calc(8px + (100% - 32px) / 3 + 8px);
     width: calc((100% - 32px) / 3);
-    bottom: env(safe-area-inset-bottom, 0px);
+    bottom: var(--sab);
     height: 56px;
     min-height: 56px;
     padding: 0 6px;
@@ -4381,9 +4392,9 @@ button:not(:disabled):active {
   #duel-root:not(.hidden) .handbook-header,
   #lab-root:not(.hidden) .handbook-header,
   #eac-root:not(.hidden) .handbook-header {
-    padding-top: max(10px, env(safe-area-inset-top, 0px));
-    padding-left: max(12px, env(safe-area-inset-left, 0px));
-    padding-right: max(12px, env(safe-area-inset-right, 0px));
+    padding-top: max(10px, var(--sat));
+    padding-left: max(12px, var(--sal));
+    padding-right: max(12px, var(--sar));
   }
 
   #handbook-root:not(.hidden) .handbook-close,
@@ -4400,7 +4411,7 @@ button:not(:disabled):active {
     min-height: 0;
     overflow: auto;
     -webkit-overflow-scrolling: touch;
-    padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
+    padding-bottom: max(16px, var(--sab));
   }
 
   #lab-root:not(.hidden) .lab-scenarios {
@@ -4446,8 +4457,8 @@ button:not(:disabled):active {
     max-height: 28dvh;
     width: 100%;
     gap: 6px;
-    padding: 8px max(10px, env(safe-area-inset-right, 0px)) 8px
-      max(10px, env(safe-area-inset-left, 0px));
+    padding: 8px max(10px, var(--sar)) 8px
+      max(10px, var(--sal));
     -webkit-overflow-scrolling: touch;
   }
 
@@ -4463,7 +4474,7 @@ button:not(:disabled):active {
     min-height: 0;
     overflow: auto;
     -webkit-overflow-scrolling: touch;
-    padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
+    padding-bottom: max(16px, var(--sab));
   }
 
   #dossier-root:not(.hidden) .dossier-body,
@@ -4471,7 +4482,7 @@ button:not(:disabled):active {
     min-height: 0;
     overflow: auto;
     -webkit-overflow-scrolling: touch;
-    padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
+    padding-bottom: max(16px, var(--sab));
   }
 
   #dossier-root:not(.hidden) .dossier-row-roi {
@@ -4489,7 +4500,7 @@ button:not(:disabled):active {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
+    padding-bottom: max(16px, var(--sab));
   }
 
   #announce-root:not(.hidden) #announce-ok,
@@ -4513,8 +4524,8 @@ button:not(:disabled):active {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding: max(16px, env(safe-area-inset-top, 0px)) 16px
-      max(16px, env(safe-area-inset-bottom, 0px));
+    padding: max(16px, var(--sat)) 16px
+      max(16px, var(--sab));
   }
 
   /**
@@ -4530,7 +4541,7 @@ button:not(:disabled):active {
   }
 
   #duel-root:not(.hidden) .duel-panel .handbook-header {
-    padding-top: max(8px, env(safe-area-inset-top, 0px));
+    padding-top: max(8px, var(--sat));
     padding-bottom: 8px;
     gap: 8px;
   }
@@ -4549,9 +4560,9 @@ button:not(:disabled):active {
     flex: 1 1 auto;
     min-height: 0;
     overflow: hidden;
-    padding: 8px max(12px, env(safe-area-inset-right, 0px))
-      max(12px, env(safe-area-inset-bottom, 0px))
-      max(12px, env(safe-area-inset-left, 0px));
+    padding: 8px max(12px, var(--sar))
+      max(12px, var(--sab))
+      max(12px, var(--sal));
     gap: 6px;
   }
 
@@ -4694,10 +4705,10 @@ button:not(:disabled):active {
     max-height: 100dvh;
     overflow: hidden;
     justify-content: flex-start;
-    padding: max(12px, env(safe-area-inset-top, 0px))
-      max(16px, env(safe-area-inset-right, 0px))
-      max(12px, env(safe-area-inset-bottom, 0px))
-      max(16px, env(safe-area-inset-left, 0px));
+    padding: max(12px, var(--sat))
+      max(16px, var(--sar))
+      max(12px, var(--sab))
+      max(16px, var(--sal));
   }
 
   #auction-root:not(.hidden) .announce-copy {
@@ -4780,10 +4791,10 @@ button:not(:disabled):active {
     max-height: 100dvh;
     overflow: hidden;
     justify-content: flex-start;
-    padding: max(12px, env(safe-area-inset-top, 0px))
-      max(16px, env(safe-area-inset-right, 0px))
-      max(12px, env(safe-area-inset-bottom, 0px))
-      max(16px, env(safe-area-inset-left, 0px));
+    padding: max(12px, var(--sat))
+      max(16px, var(--sar))
+      max(12px, var(--sab))
+      max(16px, var(--sal));
   }
 
   #end-root:not(.hidden) .end-kicker {
