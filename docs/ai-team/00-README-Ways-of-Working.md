@@ -46,8 +46,9 @@ An issue is Ready when:
 4. The Product Owner has marked whether human testing is required.
 5. The issue references the SpaceX 5-step algorithm (or the relevant steps).
 6. The issue is sized so a single focused Grok Build chat can complete it (or a clear sub-set of it).
+7. The issue body is **human- and AI-friendly**: a person can follow it, and Grok Build can treat the issue (plus linked comments) as the prompt — no second rewrite into a separate paste required.
 
-**Why**: Poorly defined work is the #1 source of wasted tokens and rework. A strict DoR protects both the human and the AI agents.
+**Why**: Poorly defined work is the #1 source of wasted tokens and rework. A strict DoR protects both the human and the AI agents. The diamond-lane idea applies here: one handbook-shaped issue qualifies both readers for the same Build chat.
 
 **GitHub**: New issues use `.github/ISSUE_TEMPLATE/` (bug / feature) with this DoR checklist. **Swithin** (Scrum Master) owns the Ready gate — coach authors, comment Ready / Not Ready, and keep Evander off vague work. Evander does **not** own DoR; he builds Ready items (or stops and surfaces gaps per Grok Build guidelines).
 

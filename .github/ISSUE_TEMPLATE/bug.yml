@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Issues should meet **Definition of Ready** before Evander / Grok Build starts.
+        Issues should meet **Definition of Ready** before Evander / Grok Build starts. A Ready issue is the prompt: human-readable and AI-executable.
         DoR: [docs/ai-team/00-README-Ways-of-Working.md](https://github.com/diagonalcounty/heliopoly/blob/main/docs/ai-team/00-README-Ways-of-Working.md#3-definition-of-ready-dor)
         **Swithin** owns the DoR gate. Evander builds only Ready work.
   - type: textarea
@@ -72,6 +72,8 @@ body:
         - label: Human-testing flag set
           required: true
         - label: Sized for one focused Grok Build chat (or a clear subset)
+          required: true
+        - label: Issue body is the Build prompt (human- and AI-readable; no second rewrite needed)
           required: true
         - label: SpaceX 5-step considered (delete / simplify / accelerate) — note in comments if N/A
           required: false
