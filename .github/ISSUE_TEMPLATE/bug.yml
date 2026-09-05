@@ -1,0 +1,77 @@
+name: Bug
+description: Something broken in play, Lab, iOS, or web
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Issues should meet **Definition of Ready** before Evander / Grok Build starts.
+        DoR: [docs/ai-team/00-README-Ways-of-Working.md](https://github.com/diagonalcounty/heliopoly/blob/main/docs/ai-team/00-README-Ways-of-Working.md#3-definition-of-ready-dor)
+        **Swithin** owns the DoR gate. Evander builds only Ready work.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Desired outcome (human-readable)
+      description: What should be true when this is fixed?
+      placeholder: e.g. On iPad landscape, urinal-rule-parking shows all pads tappable at ≥44px.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Repro steps
+      description: How to see the bug (device / viewport / Lab path).
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected vs actual
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria (testable)
+      description: Checklist Evander can complete without guessing.
+      placeholder: |
+        - [ ] …
+        - [ ] HITL on preview.heliopoly.live if UI
+    validations:
+      required: true
+  - type: dropdown
+    id: human_testing
+    attributes:
+      label: Human testing required?
+      options:
+        - "Yes — preview.heliopoly.live HITL before Done"
+        - "No — automated / obvious non-UI"
+      default: 0
+    validations:
+      required: true
+  - type: textarea
+    id: deps
+    attributes:
+      label: Dependencies
+      description: Blockers, related issues, or “none”.
+      value: none
+    validations:
+      required: true
+  - type: checkboxes
+    id: dor
+    attributes:
+      label: Definition of Ready (author checklist)
+      options:
+        - label: Clear outcome written above
+          required: true
+        - label: Acceptance criteria are explicit and testable
+          required: true
+        - label: Dependencies logged (or “none”)
+          required: true
+        - label: Human-testing flag set
+          required: true
+        - label: Sized for one focused Grok Build chat (or a clear subset)
+          required: true
+        - label: SpaceX 5-step considered (delete / simplify / accelerate) — note in comments if N/A
+          required: false

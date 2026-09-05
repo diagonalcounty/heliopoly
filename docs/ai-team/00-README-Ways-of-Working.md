@@ -49,6 +49,8 @@ An issue is Ready when:
 
 **Why**: Poorly defined work is the #1 source of wasted tokens and rework. A strict DoR protects both the human and the AI agents.
 
+**GitHub**: New issues use `.github/ISSUE_TEMPLATE/` (bug / feature) with this DoR checklist. **Swithin** (Scrum Master) owns the Ready gate — coach authors, comment Ready / Not Ready, and keep Evander off vague work. Evander does **not** own DoR; he builds Ready items (or stops and surfaces gaps per Grok Build guidelines).
+
 ---
 
 ## 4. Definition of Done (DoD)
