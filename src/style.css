@@ -2132,7 +2132,15 @@ html.native-shell #app {
       "hatch areas"
       "hatch pads"
       "go pads";
+    /* Hatch/go stay compact; stretch only the pad field (abs-pos children
+       give it 0 content height, so align-items:center collapsed it). */
     align-items: center;
+  }
+
+  .urp-field {
+    align-self: stretch;
+    height: 100%;
+    min-height: 0;
   }
 
   .urp-hatch {

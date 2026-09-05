@@ -753,6 +753,68 @@ test.describe("phone Gravity Duel #179", () => {
   });
 });
 
+async function openUrpFromLab(page: Page) {
+  await bootSetup(page);
+  await page.locator("#btn-lab").click();
+  await expect(page.locator("#lab-root")).not.toHaveClass(/hidden/);
+  await page
+    .locator('.lab-group-toggle[aria-controls="lab-group-items-minigame"]')
+    .click();
+  await page.locator('.lab-scenario[data-scenario="urinal-rule-parking"]').click();
+  await expect(page.locator("#urp-root")).not.toHaveClass(/hidden/);
+}
+
+test.describe("urinal-rule-parking pads #225", () => {
+  test("landscape / wide: field has height; pads ≥44px; hatch left", async ({
+    page,
+    viewport,
+  }) => {
+    test.skip((viewport?.width ?? 0) < 1100, "wide only");
+    await page.setViewportSize({ width: 1200, height: 800 });
+    await openUrpFromLab(page);
+
+    const field = await boxOf(page, ".urp-field");
+    expect(field.height, "landscape pad field has height").toBeGreaterThan(8);
+    expect(field.width, "landscape pad field has width").toBeGreaterThan(8);
+
+    const pads = page.locator("#urp-pads .urp-pad");
+    await expect(pads.first()).toBeVisible();
+    const n = await pads.count();
+    expect(n, "pads rendered").toBeGreaterThanOrEqual(2);
+    for (let i = 0; i < n; i++) {
+      const pad = await boxOf(page, `#urp-pads .urp-pad:nth-child(${i + 1})`);
+      expect(pad.width, `pad ${i} width`).toBeGreaterThanOrEqual(44);
+      expect(pad.height, `pad ${i} height`).toBeGreaterThanOrEqual(44);
+    }
+    const empty = await boxOf(page, "#urp-pads .urp-pad.is-empty");
+    expect(empty.onControl, "empty pad tappable").toBe(true);
+
+    const hatch = await boxOf(page, "#urp-root .urp-hatch");
+    expect(hatch.x, "hatch left of pads").toBeLessThan(field.x);
+  });
+
+  test("phone portrait: pads still ≥44px; hatch below field", async ({
+    page,
+    viewport,
+  }) => {
+    test.skip((viewport?.width ?? 0) >= 900, "phone only");
+    await openUrpFromLab(page);
+
+    const field = await boxOf(page, ".urp-field");
+    expect(field.height, "portrait pad field has height").toBeGreaterThan(8);
+
+    const pads = page.locator("#urp-pads .urp-pad");
+    await expect(pads.first()).toBeVisible();
+    const empty = await boxOf(page, "#urp-pads .urp-pad.is-empty");
+    expect(empty.width).toBeGreaterThanOrEqual(44);
+    expect(empty.height).toBeGreaterThanOrEqual(44);
+    expect(empty.onControl, "portrait empty pad tappable").toBe(true);
+
+    const hatch = await boxOf(page, "#urp-root .urp-hatch");
+    expect(hatch.top, "hatch below pads").toBeGreaterThan(field.top);
+  });
+});
+
 test.describe("wide handbook", () => {
   test.skip(({ viewport }) => (viewport?.width ?? 0) < 1100, "wide only");
 
