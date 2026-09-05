@@ -116,6 +116,11 @@ import {
 } from "./lab/botEvolution";
 import { BOTEVO_SPRITES } from "./lab/botevoSprites";
 import {
+  BotEvoFaceDirector,
+  appendBotFace,
+  type FaceHost,
+} from "./lab/botevoFaces";
+import {
   PIPE_GRID,
   cellKind,
   flowFromTank,
@@ -2198,6 +2203,15 @@ const BOTEVO_JOIN_DIRS: Array<[number, string]> = [
 ];
 let botEvoPrevOcc = new Set<string>();
 let botEvoPrevJoins = new Set<string>();
+let botEvoFaceHosts: FaceHost[] = [];
+const botEvoFaces = new BotEvoFaceDirector({
+  getPaused: () => botEvoPaused,
+  getActive: () =>
+    isBotEvoOpen() &&
+    !!botEvoState &&
+    botEvoState.phase !== "lost" &&
+    botEvoIntroEl.classList.contains("hidden"),
+});
 
 function isBotEvoOpen(): boolean {
   return !botEvoRoot.classList.contains("hidden");
@@ -2377,7 +2391,8 @@ function afterBotEvoLand(): void {
   if (botEvoState.phase === "falling") armBotEvoTimer();
 }
 
-function appendBotSprite(host: HTMLElement, piece: PieceId): void {
+/** Returns the face overlay element for the idle director. */
+function appendBotSprite(host: HTMLElement, piece: PieceId): HTMLElement {
   const wrap = document.createElement("span");
   wrap.className = `botevo-bot is-${connectorKind(piece)}`;
   wrap.setAttribute("aria-hidden", "true");
@@ -2387,7 +2402,9 @@ function appendBotSprite(host: HTMLElement, piece: PieceId): void {
   img.alt = "";
   img.draggable = false;
   wrap.appendChild(img);
+  const face = appendBotFace(wrap, piece);
   host.appendChild(wrap);
+  return face;
 }
 
 function appendJoins(
@@ -2493,6 +2510,7 @@ function renderBotEvo(): void {
   const newLand = new Set<string>();
   for (const k of occ) if (!botEvoPrevOcc.has(k)) newLand.add(k);
 
+  botEvoFaceHosts = [];
   botEvoGridEl.replaceChildren();
   for (let r = 0; r < BOT_ROWS; r++) {
     for (let c = 0; c < BOT_COLS; c++) {
@@ -2510,7 +2528,16 @@ function renderBotEvo(): void {
       if (morphing) btn.classList.add("is-morph");
       if (newLand.has(`${r},${c}`)) btn.classList.add("is-land");
       if (landed) {
-        appendBotSprite(btn, landed);
+        const face = appendBotSprite(btn, landed);
+        botEvoFaceHosts.push({
+          key: `land:${r},${c}`,
+          piece: landed,
+          kind: "landed",
+          row: r,
+          col: c,
+          face,
+          morphing,
+        });
         appendJoins(
           btn,
           socketJoins(botEvoState.grid, r, c),
@@ -2518,7 +2545,16 @@ function renderBotEvo(): void {
           `${r},${c}`,
         );
       } else if (falling && botEvoState.phase !== "morphing") {
-        appendBotSprite(btn, botEvoState.current);
+        const face = appendBotSprite(btn, botEvoState.current);
+        botEvoFaceHosts.push({
+          key: `fall:${c}`,
+          piece: botEvoState.current,
+          kind: "falling",
+          row: botEvoState.fallRow ?? 0,
+          col: c,
+          face,
+          morphing: false,
+        });
       }
       const label = morphing
         ? `Morphing box ${r + 1},${c + 1}`
@@ -2561,16 +2597,28 @@ function renderBotEvo(): void {
       slot.setAttribute("aria-label", `Next slot ${index + 1}`);
     } else {
       slot.setAttribute("aria-label", `Next ${piece}`);
-      appendBotSprite(slot, piece);
+      const face = appendBotSprite(slot, piece);
+      botEvoFaceHosts.push({
+        key: `queue:${index}`,
+        piece,
+        kind: "queue",
+        row: -1,
+        col: index,
+        face,
+        morphing: false,
+      });
     }
     botEvoQueueEl.appendChild(slot);
   });
+
+  botEvoFaces.syncHosts(botEvoFaceHosts);
 }
 
 function showBotEvoIntro(): void {
   clearBotEvoTimer();
   clearBotEvoMorphTimer();
   clearBotEvoRecycleTimer();
+  botEvoFaces.stop();
   botEvoPaused = false;
   botEvoMorphSig = "";
   botEvoRecyclePending = [];
@@ -2584,6 +2632,7 @@ function startBotEvoPlay(): void {
   clearBotEvoTimer();
   clearBotEvoMorphTimer();
   clearBotEvoRecycleTimer();
+  botEvoFaces.stop();
   botEvoPaused = false;
   botEvoMorphSig = "";
   botEvoRecyclePending = [];
@@ -2596,6 +2645,7 @@ function startBotEvoPlay(): void {
   botEvoIntroEl.classList.add("hidden");
   botEvoTableEl.classList.remove("hidden");
   renderBotEvo();
+  botEvoFaces.start();
   armBotEvoTimer();
   botEvoDropBtn.focus();
 }
@@ -2612,6 +2662,7 @@ function closeBotEvo(): void {
   clearBotEvoTimer();
   clearBotEvoMorphTimer();
   clearBotEvoRecycleTimer();
+  botEvoFaces.stop();
   botEvoPaused = false;
   botEvoMorphSig = "";
   botEvoRecyclePending = [];
@@ -2766,6 +2817,67 @@ function toggleBotEvoPause(): void {
   renderBotEvo();
   if (!botEvoPaused) armBotEvoTimer();
 }
+
+/** Lab-only face tuner when `?botevoTune=1` (#218). */
+function mountBotEvoTunePanel(): void {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("botevoTune") !== "1") return;
+  if (document.getElementById("botevo-tune")) return;
+
+  const panel = document.createElement("aside");
+  panel.id = "botevo-tune";
+  panel.className = "botevo-tune";
+  panel.innerHTML = `
+    <h3>botevo face tune</h3>
+    <label>minGapMs <input type="number" data-k="minGapMs" step="100" /></label>
+    <label>maxGapMs <input type="number" data-k="maxGapMs" step="100" /></label>
+    <label>blinkMs <input type="number" data-k="blinkMs" step="10" /></label>
+    <label>lookMs <input type="number" data-k="lookMs" step="10" /></label>
+    <label>blinkWeight <input type="number" data-k="blinkWeight" min="0" max="1" step="0.05" /></label>
+    <label>queueExcitementRate <input type="number" data-k="queueExcitementRate" min="0.05" max="1" step="0.05" /></label>
+    <label class="row"><input type="checkbox" data-k="exclusivePlayfield" /> exclusivePlayfield</label>
+    <button type="button" data-act="apply">Apply</button>
+    <button type="button" data-act="export">Export JSON</button>
+    <pre data-out hidden></pre>
+  `;
+  document.body.appendChild(panel);
+
+  const fill = (): void => {
+    const t = botEvoFaces.tune;
+    for (const input of panel.querySelectorAll<HTMLInputElement>("input[data-k]")) {
+      const k = input.dataset.k as keyof typeof t;
+      if (input.type === "checkbox") {
+        input.checked = Boolean(t[k]);
+      } else {
+        input.value = String(t[k]);
+      }
+    }
+  };
+  fill();
+
+  panel.addEventListener("click", (e) => {
+    const btn = (e.target as HTMLElement).closest("button[data-act]");
+    if (!(btn instanceof HTMLButtonElement)) return;
+    if (btn.dataset.act === "apply") {
+      const partial: Record<string, number | boolean> = {};
+      for (const input of panel.querySelectorAll<HTMLInputElement>("input[data-k]")) {
+        const k = input.dataset.k!;
+        if (input.type === "checkbox") partial[k] = input.checked;
+        else partial[k] = Number(input.value);
+      }
+      botEvoFaces.setTune(partial);
+      fill();
+    }
+    if (btn.dataset.act === "export") {
+      const out = panel.querySelector<HTMLElement>("[data-out]")!;
+      out.hidden = false;
+      out.textContent = botEvoFaces.exportTuneJson();
+      void navigator.clipboard?.writeText(out.textContent);
+    }
+  });
+}
+
+mountBotEvoTunePanel();
 
 
 

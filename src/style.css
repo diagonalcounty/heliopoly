@@ -960,6 +960,313 @@ html.native-shell #app {
   pointer-events: none;
 }
 
+/* Idle face overlay (#218) — pupils always in PNG sockets; mouth only while expressing.
+   No face-plate / fake glass rings (those stacked into a second face on HITL). */
+.botevo-face {
+  position: absolute;
+  /* Aligned to glass/visor sockets on 256px botevo-art (~42%/58% x, ~42% y). */
+  left: 30%;
+  top: 30%;
+  width: 40%;
+  height: 38%;
+  z-index: 3;
+  pointer-events: none;
+  display: block;
+  opacity: 1;
+}
+
+.botevo-eye {
+  position: absolute;
+  top: 12%;
+  width: 28%;
+  height: 32%;
+  z-index: 2;
+}
+
+.botevo-eye.left {
+  left: 14%;
+}
+
+.botevo-eye.right {
+  right: 14%;
+}
+
+.botevo-pupil {
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  width: 42%;
+  height: 42%;
+  margin-left: -21%;
+  margin-top: -21%;
+  border-radius: 50%;
+  background: #1a1a1a;
+  z-index: 1;
+  transform: translate(0, 0);
+}
+
+.botevo-lid {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 0;
+  border-radius: 50% 50% 40% 40%;
+  background: #2a2218;
+  z-index: 3;
+  transform-origin: 50% 0%;
+  pointer-events: none;
+}
+
+.botevo-mouth {
+  position: absolute;
+  left: 30%;
+  top: 68%;
+  width: 40%;
+  height: 20%;
+  z-index: 2;
+  border-radius: 0 0 60% 60%;
+  border: 2px solid #222;
+  border-top: none;
+  background: transparent;
+  box-sizing: border-box;
+  opacity: 0;
+}
+
+.botevo-face.is-look .botevo-mouth,
+.botevo-face.is-excite .botevo-mouth {
+  opacity: 1;
+}
+
+/* Blink — lids only over cleared sockets (no plate cover). */
+.botevo-face.is-blink .botevo-lid {
+  animation: botevo-blink-lid var(--botevo-blink-ms, 150ms) ease-in-out forwards;
+  background: #1a1410;
+}
+
+@keyframes botevo-blink-lid {
+  0% {
+    height: 0;
+  }
+  40% {
+    height: 85%;
+  }
+  100% {
+    height: 0;
+  }
+}
+
+/* Look — pupils shift toward socket dir; mouth smile or hope.
+   Pixel offsets (not %) so motion stays readable at ~30px faces. */
+.botevo-face.is-look .botevo-pupil {
+  animation: botevo-look-pupil var(--botevo-look-ms, 550ms) ease-in-out forwards;
+}
+
+.botevo-face.is-look-n .botevo-pupil {
+  --botevo-look-x: 0px;
+  --botevo-look-y: -5px;
+}
+
+.botevo-face.is-look-e .botevo-pupil {
+  --botevo-look-x: 5px;
+  --botevo-look-y: 0px;
+}
+
+.botevo-face.is-look-s .botevo-pupil {
+  --botevo-look-x: 0px;
+  --botevo-look-y: 5px;
+}
+
+.botevo-face.is-look-w .botevo-pupil {
+  --botevo-look-x: -5px;
+  --botevo-look-y: 0px;
+}
+
+@keyframes botevo-look-pupil {
+  0% {
+    transform: translate(0, 0);
+  }
+  22% {
+    transform: translate(var(--botevo-look-x, 0px), var(--botevo-look-y, 0px));
+  }
+  78% {
+    transform: translate(var(--botevo-look-x, 0px), var(--botevo-look-y, 0px));
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+.botevo-face.is-look.is-smile .botevo-mouth {
+  animation: botevo-mouth-smile var(--botevo-look-ms, 550ms) ease-in-out forwards;
+}
+
+.botevo-face.is-look.is-hope .botevo-mouth {
+  animation: botevo-mouth-hope var(--botevo-look-ms, 550ms) ease-in-out forwards;
+}
+
+@keyframes botevo-mouth-smile {
+  0% {
+    width: 36%;
+    left: 32%;
+    height: 18%;
+    border-radius: 0 0 60% 60%;
+    background: transparent;
+  }
+  25%,
+  75% {
+    width: 48%;
+    left: 26%;
+    height: 26%;
+    border-radius: 0 0 70% 70%;
+    background: transparent;
+  }
+  100% {
+    width: 36%;
+    left: 32%;
+    height: 18%;
+    border-radius: 0 0 60% 60%;
+    background: transparent;
+  }
+}
+
+/* Hopeful: small open oval — expectant, not sad. */
+@keyframes botevo-mouth-hope {
+  0% {
+    width: 36%;
+    left: 32%;
+    height: 18%;
+    border-radius: 0 0 60% 60%;
+    border: 2.5px solid #2a2a2a;
+    border-top: none;
+    background: transparent;
+  }
+  25%,
+  75% {
+    width: 28%;
+    left: 36%;
+    height: 28%;
+    top: 64%;
+    border-radius: 50%;
+    border: 2.5px solid #2a2a2a;
+    background: rgba(42, 42, 42, 0.2);
+  }
+  100% {
+    width: 36%;
+    left: 32%;
+    height: 18%;
+    top: 68%;
+    border-radius: 0 0 60% 60%;
+    border: 2.5px solid #2a2a2a;
+    border-top: none;
+    background: transparent;
+  }
+}
+
+/* Queue excitement — mild pupil widen + micro-bounce; does not steal playfield. */
+.botevo-face.is-excite {
+  animation: botevo-queue-excite var(--botevo-excite-ms, 280ms) ease-out;
+}
+
+.botevo-face.is-excite .botevo-pupil {
+  width: 52%;
+  height: 52%;
+  margin-left: -26%;
+  margin-top: -26%;
+}
+
+@keyframes botevo-queue-excite {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  40% {
+    transform: translateY(-6%) scale(1.04);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+#botevo-root.is-face-paused .botevo-face,
+#botevo-root.is-face-paused .botevo-face .botevo-lid,
+#botevo-root.is-face-paused .botevo-face .botevo-pupil,
+#botevo-root.is-face-paused .botevo-face .botevo-mouth {
+  animation-play-state: paused !important;
+}
+
+.botevo-tune {
+  position: fixed;
+  right: 8px;
+  bottom: 8px;
+  z-index: 80;
+  width: min(260px, calc(100vw - 16px));
+  max-height: min(70vh, 420px);
+  overflow: auto;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #3d5a80;
+  background: rgba(12, 18, 32, 0.94);
+  color: #e8eef8;
+  font-size: 0.72rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.botevo-tune.hidden {
+  display: none;
+}
+
+.botevo-tune h3 {
+  margin: 0 0 8px;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #c9a227;
+}
+
+.botevo-tune label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 6px;
+}
+
+.botevo-tune label.row {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.botevo-tune input[type="number"] {
+  width: 100%;
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid #2a3555;
+  background: #10182c;
+  color: inherit;
+}
+
+.botevo-tune button {
+  margin-top: 4px;
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid #3d5a80;
+  background: #1a2744;
+  color: inherit;
+  cursor: pointer;
+}
+
+.botevo-tune pre {
+  margin: 8px 0 0;
+  padding: 6px;
+  max-height: 120px;
+  overflow: auto;
+  border-radius: 6px;
+  background: #0a1020;
+  font-size: 0.65rem;
+  white-space: pre-wrap;
+}
+
 .botevo-cell.is-live .botevo-sprite {
   filter: drop-shadow(0 0 6px rgba(255, 217, 120, 0.95));
 }
