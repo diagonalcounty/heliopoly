@@ -946,268 +946,96 @@ html.native-shell #app {
 }
 
 .botevo-bot {
-  /* Containing block for .botevo-face / pupils — never sibling of the cell. */
+  /* Containing block for .botevo-face — never sibling of the cell. */
   position: absolute;
-  inset: -22%;
+  /*
+   * Review-tool geometry stays in viewBox 0 0 100 100 (eggRx ~30).
+   * Mild enlarge so the shell fills the cell without arms spearing deep
+   * into neighbor cells. Fall nudge still transforms this wrap.
+   */
+  inset: -14%;
   z-index: 2;
   pointer-events: none;
   display: block;
-  /* Face overlay is a descendant; shared transforms (fall/land) apply here. */
   transform-origin: 50% 50%;
+  --botevo-ink: #1a1410;
+  --botevo-face-y: 1.5%;
+  --botevo-blink-ms: 310ms;
+  --botevo-look-ms: 550ms;
+  --botevo-shell: #f3ead2;
+}
+
+.botevo-bot.is-four {
+  --botevo-shell: #f3ead2;
+}
+.botevo-bot.is-three {
+  --botevo-shell: #b5d9c4;
+}
+.botevo-bot.is-straight {
+  --botevo-shell: #9ec9e8;
+}
+.botevo-bot.is-corner {
+  --botevo-shell: #e8c4a0;
 }
 
 .botevo-sprite {
   width: 100%;
   height: 100%;
   display: block;
-  object-fit: contain;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.botevo-sprite > svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
   pointer-events: none;
 }
 
-/* Idle face overlay (#218) — pupils always in PNG sockets; mouth only while expressing.
-   No face-plate / fake glass rings (those stacked into a second face on HITL). */
+/* Full 100×100 viewBox overlay on .botevo-bot (same space as chassis SVG). */
 .botevo-face {
   position: absolute;
-  /* Aligned to glass/visor sockets on 256px botevo-art (~42%/58% x, ~42% y). */
-  left: 30%;
-  top: 30%;
-  width: 40%;
-  height: 38%;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  left: auto;
+  top: auto;
+  /* Small vertical nudge only — eyes already sit at cy≈46 in the SVG. */
+  transform: translateY(var(--botevo-face-y, 1.5%));
   z-index: 3;
   pointer-events: none;
   display: block;
   opacity: 1;
 }
 
-.botevo-eye {
-  position: absolute;
-  top: 12%;
-  width: 28%;
-  height: 32%;
-  z-index: 2;
-}
-
-.botevo-eye.left {
-  left: 14%;
-}
-
-.botevo-eye.right {
-  right: 14%;
-}
-
-.botevo-pupil {
-  position: absolute;
-  left: 50%;
-  top: 52%;
-  width: 42%;
-  height: 42%;
-  margin-left: -21%;
-  margin-top: -21%;
-  border-radius: 50%;
-  background: #1a1a1a;
-  z-index: 1;
-  /* Rest glue offsets (px) from face-review export; look anim adds --botevo-look-*. */
-  transform: translate(var(--botevo-pupil-x, 0px), var(--botevo-pupil-y, 0px))
-    scale(var(--botevo-pupil-scale, 1));
-}
-
-.botevo-lid {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  height: 0;
-  border-radius: 50% 50% 40% 40%;
-  background: #2a2218;
-  z-index: 3;
-  transform-origin: 50% 0%;
+.botevo-face > svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
   pointer-events: none;
 }
 
-.botevo-mouth {
-  position: absolute;
-  left: 30%;
-  top: 68%;
-  width: 40%;
-  height: 20%;
-  z-index: 2;
-  border-radius: 0 0 60% 60%;
-  border: 2px solid #222;
-  border-top: none;
-  background: transparent;
-  box-sizing: border-box;
-  opacity: 0;
-}
-
-.botevo-face.is-look .botevo-mouth,
-.botevo-face.is-excite .botevo-mouth {
-  opacity: 1;
-}
-
-/* Blink — lids only over cleared sockets (no plate cover). */
-.botevo-face.is-blink .botevo-lid {
-  animation: botevo-blink-lid var(--botevo-blink-ms, 150ms) ease-in-out forwards;
-  background: #1a1410;
-}
-
-@keyframes botevo-blink-lid {
-  0% {
-    height: 0;
-  }
-  40% {
-    height: 85%;
-  }
-  100% {
-    height: 0;
-  }
-}
-
-/* Look — pupils shift toward socket dir; mouth smile or hope.
-   Pixel offsets (not %) so motion stays readable at ~30px faces. */
-.botevo-face.is-look .botevo-pupil {
-  animation: botevo-look-pupil var(--botevo-look-ms, 550ms) ease-in-out forwards;
-}
-
-.botevo-face.is-look-n .botevo-pupil {
-  --botevo-look-x: 0px;
-  --botevo-look-y: -5px;
-}
-
-.botevo-face.is-look-e .botevo-pupil {
-  --botevo-look-x: 5px;
-  --botevo-look-y: 0px;
-}
-
-.botevo-face.is-look-s .botevo-pupil {
-  --botevo-look-x: 0px;
-  --botevo-look-y: 5px;
-}
-
-.botevo-face.is-look-w .botevo-pupil {
-  --botevo-look-x: -5px;
-  --botevo-look-y: 0px;
-}
-
-@keyframes botevo-look-pupil {
-  0% {
-    transform: translate(var(--botevo-pupil-x, 0px), var(--botevo-pupil-y, 0px))
-      scale(var(--botevo-pupil-scale, 1));
-  }
-  22% {
-    transform: translate(
-        calc(var(--botevo-pupil-x, 0px) + var(--botevo-look-x, 0px)),
-        calc(var(--botevo-pupil-y, 0px) + var(--botevo-look-y, 0px))
-      )
-      scale(var(--botevo-pupil-scale, 1));
-  }
-  78% {
-    transform: translate(
-        calc(var(--botevo-pupil-x, 0px) + var(--botevo-look-x, 0px)),
-        calc(var(--botevo-pupil-y, 0px) + var(--botevo-look-y, 0px))
-      )
-      scale(var(--botevo-pupil-scale, 1));
-  }
-  100% {
-    transform: translate(var(--botevo-pupil-x, 0px), var(--botevo-pupil-y, 0px))
-      scale(var(--botevo-pupil-scale, 1));
-  }
-}
-
-.botevo-face.is-look.is-smile .botevo-mouth {
-  animation: botevo-mouth-smile var(--botevo-look-ms, 550ms) ease-in-out forwards;
-}
-
-.botevo-face.is-look.is-hope .botevo-mouth {
-  animation: botevo-mouth-hope var(--botevo-look-ms, 550ms) ease-in-out forwards;
-}
-
-@keyframes botevo-mouth-smile {
-  0% {
-    width: 36%;
-    left: 32%;
-    height: 18%;
-    border-radius: 0 0 60% 60%;
-    background: transparent;
-  }
-  25%,
-  75% {
-    width: 48%;
-    left: 26%;
-    height: 26%;
-    border-radius: 0 0 70% 70%;
-    background: transparent;
-  }
-  100% {
-    width: 36%;
-    left: 32%;
-    height: 18%;
-    border-radius: 0 0 60% 60%;
-    background: transparent;
-  }
-}
-
-/* Hopeful: small open oval — expectant, not sad. */
-@keyframes botevo-mouth-hope {
-  0% {
-    width: 36%;
-    left: 32%;
-    height: 18%;
-    border-radius: 0 0 60% 60%;
-    border: 2.5px solid #2a2a2a;
-    border-top: none;
-    background: transparent;
-  }
-  25%,
-  75% {
-    width: 28%;
-    left: 36%;
-    height: 28%;
-    top: 64%;
-    border-radius: 50%;
-    border: 2.5px solid #2a2a2a;
-    background: rgba(42, 42, 42, 0.2);
-  }
-  100% {
-    width: 36%;
-    left: 32%;
-    height: 18%;
-    top: 68%;
-    border-radius: 0 0 60% 60%;
-    border: 2.5px solid #2a2a2a;
-    border-top: none;
-    background: transparent;
-  }
-}
-
-/* Queue excitement — mild pupil widen + micro-bounce; does not steal playfield. */
 .botevo-face.is-excite {
   animation: botevo-queue-excite var(--botevo-excite-ms, 280ms) ease-out;
 }
 
-.botevo-face.is-excite .botevo-pupil {
-  width: 52%;
-  height: 52%;
-  margin-left: -26%;
-  margin-top: -26%;
-}
-
 @keyframes botevo-queue-excite {
   0% {
-    transform: translateY(0) scale(1);
+    transform: translateY(var(--botevo-face-y, 1.5%)) scale(1);
   }
   40% {
-    transform: translateY(-6%) scale(1.04);
+    transform: translateY(var(--botevo-face-y, 1.5%)) scale(1.08);
   }
   100% {
-    transform: translateY(0) scale(1);
+    transform: translateY(var(--botevo-face-y, 1.5%)) scale(1);
   }
 }
 
-#botevo-root.is-face-paused .botevo-face,
-#botevo-root.is-face-paused .botevo-face .botevo-lid,
-#botevo-root.is-face-paused .botevo-face .botevo-pupil,
-#botevo-root.is-face-paused .botevo-face .botevo-mouth {
-  animation-play-state: paused !important;
+#botevo-root.is-face-paused .botevo-face {
+  animation-play-state: paused;
 }
 
 .botevo-tune {
@@ -1383,17 +1211,23 @@ html.native-shell #app {
 .botevo-queue {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
 }
 
 .botevo-queue-egg {
   position: relative;
-  width: 48px;
-  height: 48px;
+  width: 52px;
+  height: 52px;
   border-radius: 10px;
   border: 1px solid #2a3555;
   background: rgba(18, 26, 44, 0.45);
+  /* Padded square slot — avoid circular/hard clip that shears arms. */
   overflow: visible;
+}
+
+/* Queue: mild uniform scale; keep proportions (no transform fight with playfield fall). */
+.botevo-queue-egg .botevo-bot {
+  inset: -4%;
 }
 
 .botevo-queue-egg.is-awaiting-recycle {

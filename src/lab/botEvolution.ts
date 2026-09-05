@@ -277,92 +277,196 @@ export function playAgainBotEvo(seed?: number): BotState {
   return startBotEvo(seed);
 }
 
+/** Blank-shell body geometry from face-review HITL (viewBox 0 0 100 100). */
+export interface EggBodyTune {
+  eggRx: number;
+  eggRy: number;
+  eggCx: number;
+  eggCy: number;
+  armLength: number;
+  armThickness: number;
+  endCapSize: number;
+  /** Flat-disc thickness as fraction of endCapSize (minor axis). */
+  endCapAspect: number;
+  socketSize: number;
+  bodyStroke: number;
+  armRoundness: number;
+  connectorMetal: string;
+  endCapFill: string;
+  endCapStroke: string;
+  bodyOutline: string;
+  highlightOpacity: number;
+}
+
+/** Review-tool body defaults — do not re-inflate eggRx to fill cells. */
+export const EGG_BODY_DEFAULTS: EggBodyTune = {
+  eggRx: 30,
+  eggRy: 28.5,
+  eggCx: 50,
+  eggCy: 51.5,
+  armLength: 12,
+  armThickness: 6,
+  endCapSize: 8,
+  endCapAspect: 0.42,
+  socketSize: 9,
+  bodyStroke: 2.1,
+  armRoundness: 2.9,
+  connectorMetal: "#8a96a4",
+  endCapFill: "#c9a24a",
+  endCapStroke: "#8a6a28",
+  bodyOutline: "rgba(20,16,12,0.4)",
+  highlightOpacity: 0.18,
+};
+
+/**
+ * Straight / blueish family is clearly taller than the near-circular shell.
+ * Same arm/face language; only rx/ry bias changes.
+ */
+export const EGG_BODY_STRAIGHT: Pick<EggBodyTune, "eggRx" | "eggRy"> = {
+  eggRx: 26.5,
+  eggRy: 36,
+};
+
 /** Unique illustrated bot for this piece; faces stay upright. */
 export function pieceArt(id: PieceId): string {
   return `/lab/botevo/${id}.png`;
 }
 
-/** Cream token SVG: Kostka face, gold pegs, shell tinted by connector family. */
+export function eggBodyFor(id: PieceId): EggBodyTune {
+  const kind = connectorKind(id);
+  if (kind === "straight") {
+    return { ...EGG_BODY_DEFAULTS, ...EGG_BODY_STRAIGHT };
+  }
+  return EGG_BODY_DEFAULTS;
+}
+
+export function shadeHex(hex: string, amount: number): string {
+  const n = hex.replace("#", "");
+  const r = Math.max(0, Math.min(255, parseInt(n.slice(0, 2), 16) + amount));
+  const g = Math.max(0, Math.min(255, parseInt(n.slice(2, 4), 16) + amount));
+  const b = Math.max(0, Math.min(255, parseInt(n.slice(4, 6), 16) + amount));
+  return (
+    "#" +
+    [r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("")
+  );
+}
+
+function svgNum(n: number): string {
+  const r = Math.round(n * 100) / 100;
+  return Number.isInteger(r) ? String(r) : String(r);
+}
+
+type ArmDirName = "N" | "E" | "S" | "W";
+
+const DIR_NAME: Record<number, ArmDirName> = {
+  [DIR_N]: "N",
+  [DIR_E]: "E",
+  [DIR_S]: "S",
+  [DIR_W]: "W",
+};
+
+/** Retro connector: socket at body, rod, flatter rect end-cap (face-review). */
+function connectorArm(
+  dir: ArmDirName,
+  cx: number,
+  cy: number,
+  rx: number,
+  ry: number,
+  body: EggBodyTune,
+): string {
+  const L = body.armLength;
+  const t = body.armThickness;
+  const capW = body.endCapSize;
+  const capD = Math.max(0.5, body.endCapSize * body.endCapAspect);
+  const sock = body.socketSize;
+  const rr = body.armRoundness;
+  const metal = body.connectorMetal;
+  const capF = body.endCapFill;
+  const capS = body.endCapStroke;
+  const sockFill = shadeHex(metal, 28);
+  const halfT = t / 2;
+  const halfSock = sock / 2;
+  const halfCapW = capW / 2;
+  const capRx = Math.min(rr, halfCapW, capD / 2);
+  const rodRx = Math.min(rr, halfT);
+
+  if (dir === "N") {
+    const y0 = cy - ry;
+    return (
+      `<rect x="${svgNum(cx - halfSock)}" y="${svgNum(y0 - sock * 0.35)}" width="${svgNum(sock)}" height="${svgNum(sock * 0.7)}" rx="${svgNum(rr)}" fill="${sockFill}" stroke="rgba(20,16,12,0.35)" stroke-width="0.5"/>` +
+      `<rect x="${svgNum(cx - halfT)}" y="${svgNum(y0 - L)}" width="${svgNum(t)}" height="${svgNum(L)}" rx="${svgNum(rodRx)}" fill="${metal}"/>` +
+      `<rect x="${svgNum(cx - halfCapW)}" y="${svgNum(y0 - L - capD)}" width="${svgNum(capW)}" height="${svgNum(capD)}" rx="${svgNum(capRx)}" fill="${capF}" stroke="${capS}" stroke-width="0.65"/>`
+    );
+  }
+  if (dir === "S") {
+    const y0 = cy + ry;
+    return (
+      `<rect x="${svgNum(cx - halfSock)}" y="${svgNum(y0 - sock * 0.35)}" width="${svgNum(sock)}" height="${svgNum(sock * 0.7)}" rx="${svgNum(rr)}" fill="${sockFill}" stroke="rgba(20,16,12,0.35)" stroke-width="0.5"/>` +
+      `<rect x="${svgNum(cx - halfT)}" y="${svgNum(y0)}" width="${svgNum(t)}" height="${svgNum(L)}" rx="${svgNum(rodRx)}" fill="${metal}"/>` +
+      `<rect x="${svgNum(cx - halfCapW)}" y="${svgNum(y0 + L)}" width="${svgNum(capW)}" height="${svgNum(capD)}" rx="${svgNum(capRx)}" fill="${capF}" stroke="${capS}" stroke-width="0.65"/>`
+    );
+  }
+  if (dir === "W") {
+    const x0 = cx - rx;
+    return (
+      `<rect x="${svgNum(x0 - sock * 0.35)}" y="${svgNum(cy - halfSock)}" width="${svgNum(sock * 0.7)}" height="${svgNum(sock)}" rx="${svgNum(rr)}" fill="${sockFill}" stroke="rgba(20,16,12,0.35)" stroke-width="0.5"/>` +
+      `<rect x="${svgNum(x0 - L)}" y="${svgNum(cy - halfT)}" width="${svgNum(L)}" height="${svgNum(t)}" rx="${svgNum(rodRx)}" fill="${metal}"/>` +
+      `<rect x="${svgNum(x0 - L - capD)}" y="${svgNum(cy - halfCapW)}" width="${svgNum(capD)}" height="${svgNum(capW)}" rx="${svgNum(capRx)}" fill="${capF}" stroke="${capS}" stroke-width="0.65"/>`
+    );
+  }
+  // E
+  const x0 = cx + rx;
+  return (
+    `<rect x="${svgNum(x0 - sock * 0.35)}" y="${svgNum(cy - halfSock)}" width="${svgNum(sock * 0.7)}" height="${svgNum(sock)}" rx="${svgNum(rr)}" fill="${sockFill}" stroke="rgba(20,16,12,0.35)" stroke-width="0.5"/>` +
+    `<rect x="${svgNum(x0)}" y="${svgNum(cy - halfT)}" width="${svgNum(L)}" height="${svgNum(t)}" rx="${svgNum(rodRx)}" fill="${metal}"/>` +
+    `<rect x="${svgNum(x0 + L)}" y="${svgNum(cy - halfCapW)}" width="${svgNum(capD)}" height="${svgNum(capW)}" rx="${svgNum(capRx)}" fill="${capF}" stroke="${capS}" stroke-width="0.65"/>`
+  );
+}
+
+let eggSvgSeq = 0;
+
+/**
+ * Blank SVG egg shell + retro arms matching face-review chassisSVG.
+ * Gradient shell + soft highlight; rect gold end-caps. No baked face.
+ */
 export function eggTokenSvg(id: PieceId): string {
   const mask = PIECE_SOCKETS[id];
   const kind = connectorKind(id);
   const fill = SHELL_FILL[kind];
-  const nsOnly = kind === "straight" && (mask & DIR_N) !== 0;
-  const ewOnly = kind === "straight" && (mask & DIR_E) !== 0;
-  const rx = nsOnly ? 30 : ewOnly ? 50 : 38;
-  const ry = nsOnly ? 50 : ewOnly ? 32 : 46;
-  const cx = 64;
-  const cy = 64;
-  const hx = cx;
-  const hy = cy + 14;
-  const arm = 16;
-  const thick = 6;
-  const navy = "#1a2744";
-  const gold = "#c9a227";
-  const goldDk = "#8a7340";
-  const cyan = "#5aa8d4";
-  const parts: string[] = [
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">',
-    `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${fill}" stroke="${navy}" stroke-width="3"/>`,
-  ];
-  if (mask & DIR_N) {
-    parts.push(
-      `<rect x="${hx - thick / 2}" y="${hy - arm}" width="${thick}" height="${arm}" fill="${gold}"/>`,
-    );
-  }
-  if (mask & DIR_S) {
-    parts.push(
-      `<rect x="${hx - thick / 2}" y="${hy}" width="${thick}" height="${arm}" fill="${gold}"/>`,
-    );
-  }
-  if (mask & DIR_W) {
-    parts.push(
-      `<rect x="${hx - arm}" y="${hy - thick / 2}" width="${arm}" height="${thick}" fill="${gold}"/>`,
-    );
-  }
-  if (mask & DIR_E) {
-    parts.push(
-      `<rect x="${hx}" y="${hy - thick / 2}" width="${arm}" height="${thick}" fill="${gold}"/>`,
-    );
-  }
-  parts.push(
-    `<rect x="${hx - 5}" y="${hy - 5}" width="10" height="10" rx="1.5" fill="${gold}"/>`,
+  const body = eggBodyFor(id);
+  const { eggCx: cx, eggCy: cy, eggRx: rx, eggRy: ry } = body;
+  const dirs = [DIR_N, DIR_E, DIR_S, DIR_W].filter((d) => (mask & d) !== 0);
+  eggSvgSeq += 1;
+  const gid = `body-${id}-${eggSvgSeq}`;
+  const hi = shadeHex(fill, 36);
+  const mid = fill;
+  const mid2 = shadeHex(fill, -22);
+  const deep = shadeHex(fill, -48);
+  const arms = dirs
+    .map((d) => connectorArm(DIR_NAME[d]!, cx, cy, rx, ry, body))
+    .join("");
+  const hiOp = body.highlightOpacity;
+
+  return (
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" overflow="visible">` +
+    `<defs>` +
+    `<radialGradient id="${gid}" cx="40%" cy="32%" r="70%">` +
+    `<stop offset="0%" stop-color="${hi}"/>` +
+    `<stop offset="45%" stop-color="${mid}"/>` +
+    `<stop offset="78%" stop-color="${mid2}"/>` +
+    `<stop offset="100%" stop-color="${deep}"/>` +
+    `</radialGradient>` +
+    `</defs>` +
+    arms +
+    `<ellipse class="botevo-shell" cx="${svgNum(cx)}" cy="${svgNum(cy)}" rx="${svgNum(rx)}" ry="${svgNum(ry)}" fill="url(#${gid})" stroke="${body.bodyOutline}" stroke-width="${svgNum(body.bodyStroke)}"/>` +
+    `<ellipse cx="${svgNum(cx - rx * 0.28)}" cy="${svgNum(cy - ry * 0.35)}" rx="${svgNum(rx * 0.38)}" ry="${svgNum(ry * 0.22)}" fill="rgba(255,255,255,${hiOp})"/>` +
+    `</svg>\n`
   );
-  if (kind === "four") {
-    parts.push(
-      `<rect x="${hx - 1.5}" y="${hy - 6}" width="3" height="12" fill="${cyan}"/>`,
-      `<rect x="${hx - 6}" y="${hy - 1.5}" width="12" height="3" fill="${cyan}"/>`,
-    );
-  }
-  const pegL = 15;
-  const pegT = 10;
-  if (mask & DIR_N) {
-    parts.push(
-      `<rect x="${cx - pegT / 2}" y="${cy - ry - 10}" width="${pegT}" height="${pegL}" rx="3.5" fill="${gold}" stroke="${goldDk}" stroke-width="1.1"/>`,
-    );
-  }
-  if (mask & DIR_S) {
-    parts.push(
-      `<rect x="${cx - pegT / 2}" y="${cy + ry - 5}" width="${pegT}" height="${pegL}" rx="3.5" fill="${gold}" stroke="${goldDk}" stroke-width="1.1"/>`,
-    );
-  }
-  if (mask & DIR_E) {
-    parts.push(
-      `<rect x="${cx + rx - 5}" y="${cy - pegT / 2}" width="${pegL}" height="${pegT}" rx="3.5" fill="${gold}" stroke="${goldDk}" stroke-width="1.1"/>`,
-    );
-  }
-  if (mask & DIR_W) {
-    parts.push(
-      `<rect x="${cx - rx - 10}" y="${cy - pegT / 2}" width="${pegL}" height="${pegT}" rx="3.5" fill="${gold}" stroke="${goldDk}" stroke-width="1.1"/>`,
-    );
-  }
-  parts.push(
-    `<ellipse cx="${cx - 11}" cy="${cy - 12}" rx="5.2" ry="6.6" fill="${navy}"/>`,
-    `<ellipse cx="${cx + 11}" cy="${cy - 12}" rx="5.2" ry="6.6" fill="${navy}"/>`,
-    `<path d="M ${cx - 9} ${cy + 4} Q ${cx} ${cy + 10} ${cx + 9} ${cy + 4}" fill="none" stroke="${navy}" stroke-width="2.3" stroke-linecap="round"/>`,
-    "</svg>",
-  );
-  return parts.join("\n") + "\n";
+}
+
+/** data: URL for recycle flies / img fallbacks. */
+export function eggTokenDataUrl(id: PieceId): string {
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(eggTokenSvg(id))}`;
 }
 
 /** Directions on `r,c` that currently plug into a neighbor. */

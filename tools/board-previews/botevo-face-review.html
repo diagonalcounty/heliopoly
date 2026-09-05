@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Bot Evolution — Egg face review</title>
+<title>Bot Evolution — face + body mechanics</title>
 <style>
   :root {
     color-scheme: dark;
-    font-family: system-ui, sans-serif;
+    font-family: system-ui, -apple-system, sans-serif;
     --bg: #0b1020;
     --panel: #141b2f;
     --border: #2a3555;
@@ -15,6 +15,12 @@
     --muted: #9aa8c7;
     --accent: #6ec8ff;
     --accent-2: #ffc857;
+    --ink: #1a1410;
+    --cream: #f0e4c8;
+    --ew: #5a9898;
+    --ns: #9cbca2;
+    --glass: #a8c4d4;
+    --glass-deep: #6a8aa0;
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--text); }
@@ -27,160 +33,169 @@
   .nav a:hover { text-decoration: underline; }
   .nav .here { color: var(--accent-2); font-weight: 600; }
   .nav span.sep { color: var(--border); }
-  header { padding: 12px 16px; border-bottom: 1px solid var(--border); }
-  header h1 { margin: 0 0 6px; font-size: 1.1rem; }
-  header p { margin: 0; color: var(--muted); font-size: 0.86rem; max-width: 90ch; line-height: 1.45; }
-  .tabs { display: flex; gap: 8px; padding: 10px 16px; border-bottom: 1px solid var(--border); }
-  .tab {
-    border: 1px solid var(--border); background: #121a2c; color: var(--text);
-    border-radius: 8px; padding: 7px 12px; cursor: pointer; font-size: 0.82rem;
+  header { padding: 14px 18px; border-bottom: 1px solid var(--border); }
+  header h1 { margin: 0 0 6px; font-size: 1.15rem; }
+  header p { margin: 0; color: var(--muted); font-size: 0.86rem; max-width: 98ch; line-height: 1.45; }
+  header code { font-size: 0.8em; color: var(--accent-2); }
+  .global-bar {
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    padding: 10px 18px; border-bottom: 1px solid var(--border); background: #0d1324;
   }
-  .tab.is-active { border-color: var(--accent-2); background: #1a2438; }
-  .tab:disabled { opacity: 0.45; cursor: not-allowed; }
-  .layout {
-    display: grid; grid-template-columns: minmax(260px, 320px) 1fr;
-    min-height: calc(100vh - 160px);
-  }
-  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
-  aside {
-    padding: 10px 12px 24px; border-right: 1px solid var(--border);
-    overflow-y: auto; font-size: 0.8rem; color: var(--muted);
-  }
-  aside h2 {
-    margin: 14px 0 8px; font-size: 0.7rem; letter-spacing: 0.1em;
-    text-transform: uppercase; color: var(--accent-2);
-  }
-  aside h2:first-child { margin-top: 4px; }
-  label.row {
-    display: grid; grid-template-columns: 1fr auto; gap: 2px 8px;
-    align-items: center; margin-bottom: 8px;
-  }
-  label.row span.name { grid-column: 1 / -1; color: var(--text); font-size: 0.78rem; }
-  label.row input[type="range"] { width: 100%; grid-column: 1 / -1; }
-  label.row .val {
-    grid-column: 2; grid-row: 1; font-variant-numeric: tabular-nums;
-    color: var(--accent-2); min-width: 2.6rem; text-align: right;
-  }
-  select, button.btn, textarea {
+  .global-bar .label { font-size: 0.75rem; color: var(--muted); margin-right: 4px; }
+  button.btn {
     border: 1px solid var(--border); background: #182238; color: var(--text);
-    border-radius: 6px; padding: 6px 10px; font: inherit;
+    border-radius: 6px; padding: 6px 11px; font: inherit; font-size: 0.78rem; cursor: pointer;
   }
-  button.btn { cursor: pointer; }
   button.btn:hover { border-color: var(--accent); }
-  .io { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
-  textarea.fr-json {
-    width: 100%; min-height: 140px; font-family: ui-monospace, Menlo, monospace;
-    font-size: 0.72rem; background: #0a1020; margin-top: 8px;
-  }
-  main { padding: 16px; background: radial-gradient(ellipse at top, #152044 0%, var(--bg) 55%); }
-  .fr-grid {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px;
-  }
-  .fr-card {
-    border: 1px solid var(--border); border-radius: 12px; background: var(--panel);
-    padding: 10px; display: grid; gap: 8px;
-  }
-  .fr-card.is-selected {
+  button.btn:active { transform: translateY(1px); }
+  button.btn.is-on {
     border-color: var(--accent-2);
-    box-shadow: 0 0 0 1px rgba(255, 200, 87, 0.35);
+    box-shadow: 0 0 0 1px rgba(255, 200, 87, 0.25);
+    background: #1e2a42;
   }
-  .fr-card-title { font-size: 0.85rem; font-weight: 600; color: var(--text); }
-  .fr-stage {
-    position: relative; width: 100%; aspect-ratio: 1; border-radius: 10px;
-    border: 1px solid var(--border);
+  button.btn.tab {
+    min-width: 4.5rem;
+  }
+  main {
+    padding: 16px 18px 48px;
+    background: radial-gradient(ellipse at top, #152044 0%, var(--bg) 55%);
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
+    gap: 16px;
+    align-items: start;
+  }
+  @media (max-width: 980px) {
+    main { grid-template-columns: 1fr; }
+  }
+  .stage-panel, .tweak-panel {
+    border: 1px solid var(--border); border-radius: 12px; background: var(--panel);
+    padding: 12px 14px 14px;
+  }
+  .stage-panel h2, .tweak-panel h2 {
+    margin: 0 0 4px; font-size: 0.92rem; font-weight: 650;
+  }
+  .sub { margin: 0 0 12px; font-size: 0.78rem; color: var(--muted); line-height: 1.4; }
+  .eggs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+  @media (min-width: 1100px) {
+    .eggs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  @media (max-width: 720px) {
+    .eggs { grid-template-columns: 1fr; }
+  }
+  .egg-card {
+    border: 1px solid var(--border); border-radius: 10px; background: #10182a;
+    padding: 8px; display: flex; flex-direction: column; gap: 8px;
+  }
+  .egg-card .tag {
+    font-size: 0.68rem; letter-spacing: 0.05em; text-transform: uppercase;
+    color: var(--accent-2); font-weight: 700;
+  }
+  .egg-card .name { font-size: 0.8rem; color: var(--muted); margin-top: -4px; }
+  .stage {
+    position: relative; width: 100%; aspect-ratio: 1; border-radius: 8px;
+    border: 1px solid var(--border); overflow: hidden;
     background: radial-gradient(circle at 50% 40%, #1a2438 0%, #0a1020 70%);
-    overflow: visible;
   }
-  /* Face DOM mirrors game: .botevo-bot contains sprite + .botevo-face */
-  .botevo-bot {
-    position: absolute; inset: 4%; display: block; pointer-events: none;
-    transform-origin: 50% 50%;
+  .chassis {
+    position: absolute; inset: 8%;
+    display: grid; place-items: center;
   }
-  .botevo-sprite {
-    width: 100%; height: 100%; display: block; object-fit: contain; pointer-events: none;
+  .chassis svg { width: 100%; height: 100%; display: block; overflow: visible; }
+  .face-layer {
+    position: absolute; left: 50%; top: 50%;
+    width: 46%; height: 46%;
+    transform: translate(-50%, calc(-50% + var(--face-y, 0%)));
+    z-index: 4; pointer-events: none;
   }
-  .botevo-face {
-    position: absolute; left: 30%; top: 30%; width: 40%; height: 38%;
-    z-index: 3; pointer-events: none; display: block; opacity: 1;
-  }
-  .botevo-eye { position: absolute; top: 12%; width: 28%; height: 32%; z-index: 2; }
-  .botevo-eye.left { left: 14%; }
-  .botevo-eye.right { right: 14%; }
-  .botevo-pupil {
-    position: absolute; left: 50%; top: 52%; width: 42%; height: 42%;
-    margin-left: -21%; margin-top: -21%; border-radius: 50%; background: #1a1a1a; z-index: 1;
-    transform: translate(var(--botevo-pupil-x, 0px), var(--botevo-pupil-y, 0px))
-      scale(var(--botevo-pupil-scale, 1));
-  }
-  .botevo-lid {
-    position: absolute; left: 0; right: 0; top: 0; height: 0;
-    border-radius: 50% 50% 40% 40%; background: #2a2218; z-index: 3;
-    transform-origin: 50% 0%; pointer-events: none;
-  }
-  .botevo-mouth {
-    position: absolute; left: 30%; top: 68%; width: 40%; height: 20%; z-index: 2;
-    border-radius: 0 0 60% 60%; border: 2px solid #222; border-top: none;
-    background: transparent; box-sizing: border-box; opacity: 0;
-  }
-  .botevo-face.is-look .botevo-mouth { opacity: 1; }
-  .botevo-face.is-blink .botevo-lid {
-    animation: botevo-blink-lid var(--botevo-blink-ms, 150ms) ease-in-out forwards;
-    background: #1a1410;
-  }
-  @keyframes botevo-blink-lid {
-    0% { height: 0; } 40% { height: 85%; } 100% { height: 0; }
-  }
-  .botevo-face.is-look .botevo-pupil {
-    animation: botevo-look-pupil var(--botevo-look-ms, 550ms) ease-in-out forwards;
-  }
-  .botevo-face.is-look-n .botevo-pupil { --botevo-look-x: 0px; --botevo-look-y: -5px; }
-  .botevo-face.is-look-e .botevo-pupil { --botevo-look-x: 5px; --botevo-look-y: 0px; }
-  .botevo-face.is-look-s .botevo-pupil { --botevo-look-x: 0px; --botevo-look-y: 5px; }
-  .botevo-face.is-look-w .botevo-pupil { --botevo-look-x: -5px; --botevo-look-y: 0px; }
-  @keyframes botevo-look-pupil {
-    0% {
-      transform: translate(var(--botevo-pupil-x, 0px), var(--botevo-pupil-y, 0px))
-        scale(var(--botevo-pupil-scale, 1));
-    }
-    22%, 78% {
-      transform: translate(
-          calc(var(--botevo-pupil-x, 0px) + var(--botevo-look-x, 0px)),
-          calc(var(--botevo-pupil-y, 0px) + var(--botevo-look-y, 0px))
-        ) scale(var(--botevo-pupil-scale, 1));
-    }
-    100% {
-      transform: translate(var(--botevo-pupil-x, 0px), var(--botevo-pupil-y, 0px))
-        scale(var(--botevo-pupil-scale, 1));
-    }
-  }
-  .botevo-face.is-look.is-smile .botevo-mouth {
-    animation: botevo-mouth-smile var(--botevo-look-ms, 550ms) ease-in-out forwards;
-  }
-  .botevo-face.is-look.is-hope .botevo-mouth {
-    animation: botevo-mouth-hope var(--botevo-look-ms, 550ms) ease-in-out forwards;
-  }
-  @keyframes botevo-mouth-smile {
-    0%, 100% { width: 36%; left: 32%; height: 18%; border-radius: 0 0 60% 60%; }
-    25%, 75% { width: 48%; left: 26%; height: 26%; border-radius: 0 0 70% 70%; }
-  }
-  @keyframes botevo-mouth-hope {
-    0%, 100% {
-      width: 36%; left: 32%; height: 18%; top: 68%;
-      border-radius: 0 0 60% 60%; border: 2.5px solid #2a2a2a; border-top: none; background: transparent;
-    }
-    25%, 75% {
-      width: 28%; left: 36%; height: 28%; top: 64%; border-radius: 50%;
-      border: 2.5px solid #2a2a2a; background: rgba(42, 42, 42, 0.2);
-    }
-  }
-  .fr-actions { display: flex; flex-wrap: wrap; gap: 4px; }
-  .fr-actions button {
-    font-size: 0.7rem; padding: 4px 6px; border-radius: 5px;
+  .face-layer svg { width: 100%; height: 100%; display: block; overflow: visible; }
+  .actions { display: flex; flex-wrap: wrap; gap: 5px; }
+  .actions button {
+    font-size: 0.68rem; padding: 4px 7px; border-radius: 5px;
     border: 1px solid var(--border); background: #182238; color: var(--text); cursor: pointer;
   }
-  .fr-stub { opacity: 0.7; padding: 24px; border: 1px dashed var(--border); border-radius: 12px; margin: 16px; }
-  .hint { font-size: 0.75rem; color: var(--muted); margin-top: 10px; line-height: 1.4; }
-  kbd { font-size: 0.72rem; background: #0a1020; padding: 1px 5px; border-radius: 4px; border: 1px solid var(--border); }
+  .actions button:hover { border-color: var(--accent); }
+  .actions button.is-on {
+    border-color: var(--accent-2);
+    box-shadow: 0 0 0 1px rgba(255, 200, 87, 0.22);
+    background: #1e2a42;
+  }
+  .size-row {
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border);
+  }
+  .size-row label { font-size: 0.72rem; color: var(--muted); }
+  .size-row select {
+    background: #182238; color: var(--text); border: 1px solid var(--border);
+    border-radius: 5px; padding: 4px 8px; font: inherit; font-size: 0.75rem;
+  }
+  .preview-scale {
+    margin-left: auto; display: flex; gap: 8px; align-items: center;
+  }
+  .mini-stages {
+    display: none; gap: 10px; margin-top: 10px;
+  }
+  .mini-stages.show { display: flex; flex-wrap: wrap; }
+  .mini {
+    width: 128px; height: 128px; border-radius: 8px; border: 1px solid var(--border);
+    position: relative; overflow: hidden;
+    background: radial-gradient(circle at 50% 40%, #1a2438 0%, #0a1020 70%);
+  }
+  .mini[data-px="256"] { width: 256px; height: 256px; }
+  .mini .chassis { inset: 6%; }
+  .mini .face-layer { width: 46%; height: 46%; }
+
+  .tweak-panel { position: sticky; top: 10px; max-height: calc(100vh - 20px); overflow: auto; }
+  .mode-tabs {
+    display: flex; gap: 6px; margin-bottom: 10px;
+  }
+  .lock-banner {
+    font-size: 0.72rem; color: var(--accent-2); background: rgba(255,200,87,0.08);
+    border: 1px solid rgba(255,200,87,0.28); border-radius: 6px;
+    padding: 6px 8px; margin-bottom: 10px; line-height: 1.35;
+  }
+  .tweak-section { margin-bottom: 14px; }
+  .tweak-section h3 {
+    margin: 0 0 8px; font-size: 0.72rem; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--accent); font-weight: 700;
+  }
+  .tweak-section[hidden], .mode-pane[hidden] { display: none !important; }
+  .slider-row {
+    display: grid; grid-template-columns: 1fr auto; gap: 4px 10px;
+    align-items: center; margin-bottom: 8px;
+  }
+  .slider-row label {
+    font-size: 0.74rem; color: var(--muted); grid-column: 1 / -1;
+  }
+  .slider-row input[type="range"] {
+    width: 100%; accent-color: var(--accent); cursor: pointer;
+  }
+  .slider-row input[type="color"] {
+    width: 100%; height: 28px; border: 1px solid var(--border); border-radius: 5px;
+    background: #0a1020; cursor: pointer; padding: 2px;
+  }
+  .slider-row .val {
+    font-size: 0.72rem; font-variant-numeric: tabular-nums;
+    color: var(--accent-2); min-width: 3.2ch; text-align: right;
+  }
+  .export-box {
+    margin-top: 4px; border-top: 1px solid var(--border); padding-top: 12px;
+  }
+  .export-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  textarea#export-json {
+    width: 100%; min-height: 140px; resize: vertical;
+    background: #0a1020; color: var(--text); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 10px; font: 0.7rem/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  .toast {
+    font-size: 0.72rem; color: var(--accent-2); min-height: 1.2em; margin-top: 4px;
+  }
+  .footnote {
+    margin: 10px 0 0; font-size: 0.72rem; color: var(--muted); line-height: 1.35;
+  }
 </style>
 </head>
 <body>
@@ -195,327 +210,882 @@
   <span class="sep">·</span>
   <a href="./ledger-cards.html">Ledger cards</a>
   <span class="sep">·</span>
-  <span class="here">Egg faces</span>
+  <span class="here">Face + body</span>
+  <span class="sep">·</span>
+  <a href="./botevo-vector-proof/index.html">Vector proof</a>
   <span class="sep">·</span>
   <a href="./README.md">README</a>
 </nav>
+
 <header>
-  <h1>Bot Evolution — Egg face review <span style="color:var(--muted);font-weight:500">(Faces v1)</span></h1>
+  <h1>Bot Evolution — face + body mechanics</h1>
   <p>
-    Lab only, not .live. Nudge pupil X/Y/scale until glued to egg sockets, then Export JSON.
-    Face overlay is a descendant of <code>.botevo-bot</code> (same classes as the game).
-    Art: pupil-cleared PNGs from <kbd>src/lab/botevo-art/</kbd> via relative path.
+    Face params are <strong>locked baseline</strong> (sliders still available; use Reset face to locked).
+    Focus is simpler egg bodies with retro connector arms (rods, sockets, flatter end-cap discs)
+    across 2-, 3-, and 4-connector topologies (Plus, EW/NS, T, L). Blink lids match each egg fill.
+    Lab only — not <code>.live</code>.
   </p>
 </header>
-<nav class="tabs" role="tablist" aria-label="Tune panels">
-  <button type="button" class="tab is-active" role="tab" aria-selected="true" id="tab-faces">Faces</button>
-  <button type="button" class="tab" role="tab" aria-selected="false" disabled title="Soon">Mosaic (soon)</button>
-  <button type="button" class="tab" role="tab" aria-selected="false" disabled title="Soon">Timing (soon)</button>
-</nav>
-<div class="layout" id="panel-faces">
-  <aside>
-    <h2>Target</h2>
-    <label class="row"><span class="name">Offset target</span>
-      <select id="fr-target" style="grid-column:1/-1">
-        <option value="global">Global (all pieces)</option>
-        <option value="plus">plus</option>
-        <option value="i">i</option>
-        <option value="dash">dash</option>
-        <option value="l-ne">l-ne</option>
-        <option value="l-es">l-es</option>
-        <option value="l-sw">l-sw</option>
-        <option value="l-wn">l-wn</option>
-        <option value="t-n">t-n</option>
-        <option value="t-e">t-e</option>
-        <option value="t-s">t-s</option>
-        <option value="t-w">t-w</option>
-      </select>
-    </label>
-    <h2>Pupil glue</h2>
-    <label class="row"><span class="name">Pupil X (px)</span><span class="val" id="fr-ox-out">0</span>
-      <input type="range" id="fr-ox" min="-20" max="20" step="0.5" value="0"/></label>
-    <label class="row"><span class="name">Pupil Y (px)</span><span class="val" id="fr-oy-out">0</span>
-      <input type="range" id="fr-oy" min="-20" max="20" step="0.5" value="0"/></label>
-    <label class="row"><span class="name">Scale</span><span class="val" id="fr-scale-out">1</span>
-      <input type="range" id="fr-scale" min="0.5" max="1.8" step="0.05" value="1"/></label>
-    <div class="io">
-      <button type="button" class="btn" id="fr-reset-target">Reset target</button>
-    </div>
-    <h2>Export</h2>
-    <div class="io">
-      <button type="button" class="btn" id="fr-export">Refresh JSON</button>
-      <button type="button" class="btn" id="fr-copy">Copy JSON</button>
-      <button type="button" class="btn" id="fr-import">Import JSON</button>
-      <button type="button" class="btn" id="fr-clear">Clear saved</button>
-      <button type="button" class="btn" id="fr-download">Download JSON</button>
-    </div>
-    <textarea id="fr-json" class="fr-json" spellcheck="false" aria-label="Offset JSON"></textarea>
-    <p class="hint">
-      Persists to <kbd>localStorage</kbd> key <kbd>heliopoly.botevo.faceOffsets.v1</kbd>.
-      Open: <kbd>open tools/board-previews/botevo-face-review.html</kbd> after git pull.
-      Shared game CSS float fix: fall/land animate <code>.botevo-bot</code>, not sprite alone.
-    </p>
-  </aside>
-  <main>
-    <div class="fr-grid" id="fr-grid"></div>
-  </main>
+
+<div class="global-bar">
+  <span class="label">All eggs</span>
+  <button type="button" class="btn" data-all="blink">Blink</button>
+  <button type="button" class="btn" data-all="lookL">Look L</button>
+  <button type="button" class="btn" data-all="lookR">Look R</button>
+  <button type="button" class="btn" data-all="neutral">Neutral</button>
+  <button type="button" class="btn" data-all="smile">Smile</button>
+  <button type="button" class="btn" data-all="excited">Excited</button>
+  <button type="button" class="btn" data-all="reset">Reset looks</button>
 </div>
-<section class="fr-stub" id="panel-mosaic" hidden>
-  <p>Mosaic tune panel — stub for later (#219).</p>
-</section>
-<section class="fr-stub" id="panel-timing" hidden>
-  <p>Timing tune panel — stub for later (blink/look gaps).</p>
-</section>
+
+<main>
+  <section class="stage-panel">
+    <h2>Chassis + face puppet</h2>
+    <p class="sub">
+      Plus (4), EW/NS (2), T-N / T-E (3), L-NE (2). Shared retro arms; lids tint to each chassis fill.
+      Face uses locked/current face params.
+    </p>
+    <div class="eggs" id="eggs"></div>
+    <div class="size-row">
+      <label for="readability">Readability check</label>
+      <select id="readability">
+        <option value="off">Off</option>
+        <option value="128">128px</option>
+        <option value="256">256px</option>
+        <option value="both">128 + 256</option>
+      </select>
+      <span class="preview-scale">
+        <label for="stage-scale">Stage size</label>
+        <select id="stage-scale">
+          <option value="1">Default</option>
+          <option value="0.85">Compact</option>
+          <option value="1.15">Large</option>
+        </select>
+      </span>
+    </div>
+    <div class="mini-stages" id="mini-stages" aria-hidden="true"></div>
+    <p class="footnote">
+      Bodies are parametric eggs + connector stubs. Palette: cream / teal / sage / lilac (T) /
+      peach (L). End-cap aspect makes flatter retro discs.
+    </p>
+  </section>
+
+  <aside class="tweak-panel">
+    <h2>Mechanics</h2>
+    <div class="mode-tabs" role="tablist" aria-label="Tweak mode">
+      <button type="button" class="btn tab is-on" id="tab-face" data-mode="face" role="tab" aria-selected="true">Face</button>
+      <button type="button" class="btn tab" id="tab-body" data-mode="body" role="tab" aria-selected="false">Body</button>
+    </div>
+    <p class="sub" id="mode-sub">Live sliders. Face + body persist in separate <code>localStorage</code> keys.</p>
+
+    <div class="mode-pane" id="pane-face" role="tabpanel">
+      <div class="lock-banner">
+        Locked face baseline seeded when no face localStorage exists. Tweaks persist under
+        <code>heliopoly.botevo.faceMech.v1</code>. Use “Reset face to locked” to restore the bake-in.
+      </div>
+      <div class="tweak-section" id="face-sliders"></div>
+    </div>
+
+    <div class="mode-pane" id="pane-body" role="tabpanel" hidden>
+      <div class="tweak-section" id="body-sliders"></div>
+    </div>
+
+    <div class="export-box">
+      <h3 style="margin:0 0 8px;font-size:0.72rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--accent);font-weight:700;">Export</h3>
+      <div class="export-actions">
+        <button type="button" class="btn" id="btn-refresh">Refresh JSON</button>
+        <button type="button" class="btn" id="btn-copy">Copy combined</button>
+        <button type="button" class="btn" id="btn-download">Download combined</button>
+        <button type="button" class="btn" id="btn-copy-face">Copy face</button>
+        <button type="button" class="btn" id="btn-copy-body">Copy body</button>
+        <button type="button" class="btn" id="btn-reset-face">Reset face to locked</button>
+        <button type="button" class="btn" id="btn-reset-body">Reset body to Jacob HITL</button>
+      </div>
+      <textarea id="export-json" readonly spellcheck="false"></textarea>
+      <div class="toast" id="toast"></div>
+    </div>
+  </aside>
+</main>
+
 <script>
+(function () {
+  "use strict";
 
-const PIECE_IDS = ['plus', 'i', 'dash', 'l-ne', 'l-es', 'l-sw', 'l-wn', 't-n', 't-e', 't-s', 't-w'];
-const KINDS = {'plus': 'four', 'i': 'straight', 'dash': 'straight', 'l-ne': 'corner', 'l-es': 'corner', 'l-sw': 'corner', 'l-wn': 'corner', 't-n': 'three', 't-e': 'three', 't-s': 'three', 't-w': 'three'};
-const ART = '../../src/lab/botevo-art';
-const STORAGE_KEY = "heliopoly.botevo.faceOffsets.v1";
-const ZERO = { pupilX: 0, pupilY: 0, pupilScale: 1 };
+  const FACE_KEY = "heliopoly.botevo.faceMech.v1";
+  const BODY_KEY = "heliopoly.botevo.bodyMech.v2";
+  const VERSION = 2;
 
-function clone(o) { return { pupilX: o.pupilX, pupilY: o.pupilY, pupilScale: o.pupilScale }; }
-
-function loadStored() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { version: 1, global: clone(ZERO), pieces: {} };
-    const parsed = JSON.parse(raw);
-    if (!parsed || parsed.version !== 1) return { version: 1, global: clone(ZERO), pieces: {} };
-    return { version: 1, global: { ...ZERO, ...parsed.global }, pieces: parsed.pieces || {} };
-  } catch {
-    return { version: 1, global: clone(ZERO), pieces: {} };
-  }
-}
-
-function saveStored(data) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-}
-
-function merged(data, piece) {
-  const g = data.global;
-  const p = data.pieces[piece] || ZERO;
-  return {
-    pupilX: g.pupilX + p.pupilX,
-    pupilY: g.pupilY + p.pupilY,
-    pupilScale: g.pupilScale * p.pupilScale,
+  /** Locked face bake-in — exact values Jacob locked */
+  const LOCKED_FACE = {
+    eyeSeparation: 34,
+    eyeSize: 14,
+    pupilSize: 5.5,
+    lookOffsetX: 0.25,
+    lookOffsetY: 0,
+    strokeWeight: 3,
+    glassesRim: 2.25,
+    blinkDuration: 310,
+    lidTravel: 1,
+    mouthScale: 0.9,
+    faceY: 1.5,
+    lookStep: 6,
   };
-}
 
-function applyVars(el, o) {
-  el.style.setProperty("--botevo-pupil-x", o.pupilX + "px");
-  el.style.setProperty("--botevo-pupil-y", o.pupilY + "px");
-  el.style.setProperty("--botevo-pupil-scale", String(o.pupilScale));
-}
+  const FACE_SLIDER_META = [
+    { key: "eyeSeparation", label: "Eye separation", min: 18, max: 40, step: 0.5 },
+    { key: "eyeSize", label: "Eye size (well radius)", min: 8, max: 22, step: 0.25 },
+    { key: "pupilSize", label: "Pupil size", min: 2.5, max: 10, step: 0.25 },
+    { key: "lookOffsetX", label: "Look offset X", min: -8, max: 8, step: 0.25 },
+    { key: "lookOffsetY", label: "Look offset Y", min: -6, max: 6, step: 0.25 },
+    { key: "strokeWeight", label: "Face stroke / outline", min: 0.75, max: 4, step: 0.05 },
+    { key: "glassesRim", label: "Glasses rim thickness", min: 0.5, max: 4, step: 0.05 },
+    { key: "blinkDuration", label: "Blink duration (ms)", min: 80, max: 500, step: 10 },
+    { key: "lidTravel", label: "Lid travel", min: 0.4, max: 1.15, step: 0.05 },
+    { key: "mouthScale", label: "Mouth style scale", min: 0.6, max: 1.5, step: 0.05 },
+    { key: "faceY", label: "Face vertical position (%)", min: -12, max: 12, step: 0.5 },
+    { key: "lookStep", label: "Look L/R pupil step", min: 2, max: 10, step: 0.25 },
+  ];
 
-function clearExpr(face) {
-  face.classList.remove(
-    "is-blink", "is-look", "is-smile", "is-hope", "is-excite",
-    "is-look-n", "is-look-e", "is-look-s", "is-look-w"
-  );
-  face.style.removeProperty("--botevo-blink-ms");
-  face.style.removeProperty("--botevo-look-ms");
-}
+  /** Jacob HITL body export + flatter end-cap aspect + T/L fills */
+  const BODY_DEFAULTS = {
+    eggRx: 30,
+    eggRy: 28.5,
+    eggCy: 51.5,
+    armLength: 18,
+    armThickness: 6,
+    endCapSize: 9.5,
+    endCapAspect: 0.42,
+    socketSize: 10,
+    bodyStroke: 2.1,
+    armRoundness: 2.9,
+    highlightOpacity: 0.18,
+    plusFill: "#f0e4c8",
+    ewFill: "#5a9898",
+    nsFill: "#9cbca2",
+    tFill: "#c4a0d8",
+    lFill: "#e8c4a0",
+    connectorMetal: "#8a96a4",
+    endCapFill: "#c9a24a",
+    endCapStroke: "#8a6a28",
+  };
 
-function playBlink(face) {
-  clearExpr(face);
-  face.style.setProperty("--botevo-blink-ms", "180ms");
-  void face.offsetWidth;
-  face.classList.add("is-blink");
-  setTimeout(() => clearExpr(face), 200);
-}
+  const BODY_SLIDER_META = [
+    { key: "eggRx", label: "Egg width (rx)", min: 20, max: 38, step: 0.5 },
+    { key: "eggRy", label: "Egg height (ry)", min: 22, max: 42, step: 0.5 },
+    { key: "eggCy", label: "Egg center Y", min: 46, max: 58, step: 0.5 },
+    { key: "armLength", label: "Arm length (rod)", min: 10, max: 28, step: 0.5 },
+    { key: "armThickness", label: "Arm thickness (rod)", min: 3, max: 10, step: 0.25 },
+    { key: "endCapSize", label: "End-cap width (across arm)", min: 3, max: 18, step: 0.25 },
+    { key: "endCapAspect", label: "End-cap aspect (depth/width · lower = flatter)", min: 0.15, max: 1.0, step: 0.05 },
+    { key: "socketSize", label: "Socket size", min: 4, max: 14, step: 0.25 },
+    { key: "bodyStroke", label: "Body stroke weight", min: 0.5, max: 3.5, step: 0.05 },
+    { key: "armRoundness", label: "Arm / cap roundness", min: 0.5, max: 4, step: 0.1 },
+    { key: "highlightOpacity", label: "Egg highlight opacity", min: 0, max: 0.35, step: 0.01 },
+    { key: "plusFill", label: "Plus fill (cream)", type: "color" },
+    { key: "ewFill", label: "EW fill (teal)", type: "color" },
+    { key: "nsFill", label: "NS fill (sage)", type: "color" },
+    { key: "tFill", label: "T fill (lilac · 3-connector)", type: "color" },
+    { key: "lFill", label: "L fill (peach · corner)", type: "color" },
+    { key: "connectorMetal", label: "Connector metal", type: "color" },
+    { key: "endCapFill", label: "End-cap fill", type: "color" },
+    { key: "endCapStroke", label: "End-cap stroke", type: "color" },
+  ];
 
-function playLook(face, dir, mouth) {
-  clearExpr(face);
-  face.style.setProperty("--botevo-look-ms", "700ms");
-  void face.offsetWidth;
-  face.classList.add("is-look", "is-look-" + dir, mouth === "smile" ? "is-smile" : "is-hope");
-  setTimeout(() => clearExpr(face), 720);
-}
+  const CHASSIS = [
+    { id: "plus", tag: "Plus", name: "Cream · N/E/S/W · 4 connectors", kind: "plus", dirs: ["N", "E", "S", "W"], fillKey: "plusFill" },
+    { id: "ew", tag: "EW / dash", name: "Teal · E–W · 2 connectors", kind: "ew", dirs: ["E", "W"], fillKey: "ewFill" },
+    { id: "ns", tag: "NS / i", name: "Sage · N–S · 2 connectors", kind: "ns", dirs: ["N", "S"], fillKey: "nsFill" },
+    { id: "t-n", tag: "T-N", name: "Lilac · N+E+W · 3 connectors (stem N)", kind: "t", dirs: ["N", "E", "W"], fillKey: "tFill" },
+    { id: "t-e", tag: "T-E", name: "Lilac · N+E+S · 3 connectors (stem E)", kind: "t", dirs: ["N", "E", "S"], fillKey: "tFill" },
+    { id: "l-ne", tag: "L-NE", name: "Peach · N+E · 2 connectors (corner)", kind: "l", dirs: ["N", "E"], fillKey: "lFill" },
+  ];
 
-function appendBotFace(wrap, piece) {
-  const face = document.createElement("span");
-  face.className = "botevo-face";
-  face.dataset.piece = piece;
-  face.setAttribute("aria-hidden", "true");
-  for (const side of ["left", "right"]) {
-    const eye = document.createElement("span");
-    eye.className = "botevo-eye " + side;
-    const pupil = document.createElement("span");
-    pupil.className = "botevo-pupil";
-    const lid = document.createElement("span");
-    lid.className = "botevo-lid";
-    eye.appendChild(pupil);
-    eye.appendChild(lid);
-    face.appendChild(eye);
-  }
-  const mouth = document.createElement("span");
-  mouth.className = "botevo-mouth";
-  face.appendChild(mouth);
-  wrap.appendChild(face);
-  return face;
-}
+  /** @type {typeof LOCKED_FACE} */
+  let face = loadFace();
+  /** @type {typeof BODY_DEFAULTS} */
+  let body = loadBody();
+  /** @type {Record<string, { look: 'C'|'L'|'R', mouth: 'smile'|'neutral'|'excited', blink: boolean }>} */
+  const eggState = {};
+  const blinkTimers = {};
+  let uiMode = "face";
+  let faceSvgSeq = 0;
 
-function fmt(n) { return Number.isInteger(n) ? String(n) : n.toFixed(2); }
-
-let data = loadStored();
-let selected = "global";
-const cardBots = new Map();
-const grid = document.getElementById("fr-grid");
-const targetSel = document.getElementById("fr-target");
-const ox = document.getElementById("fr-ox");
-const oy = document.getElementById("fr-oy");
-const scale = document.getElementById("fr-scale");
-const oxOut = document.getElementById("fr-ox-out");
-const oyOut = document.getElementById("fr-oy-out");
-const scaleOut = document.getElementById("fr-scale-out");
-const jsonArea = document.getElementById("fr-json");
-
-function currentOffset() {
-  if (selected === "global") return clone(data.global);
-  return clone(data.pieces[selected] || ZERO);
-}
-
-function writeOffset(o) {
-  if (selected === "global") data.global = clone(o);
-  else data.pieces[selected] = clone(o);
-  saveStored(data);
-  refreshJson();
-  applyAll();
-  syncUi();
-}
-
-function syncUi() {
-  const o = currentOffset();
-  ox.value = String(o.pupilX);
-  oy.value = String(o.pupilY);
-  scale.value = String(o.pupilScale);
-  oxOut.textContent = fmt(o.pupilX);
-  oyOut.textContent = fmt(o.pupilY);
-  scaleOut.textContent = fmt(o.pupilScale);
-  for (const card of grid.querySelectorAll(".fr-card")) {
-    card.classList.toggle("is-selected", selected === card.dataset.piece);
-  }
-}
-
-function refreshJson() {
-  jsonArea.value = JSON.stringify(data, null, 2);
-}
-
-function applyAll() {
-  for (const id of PIECE_IDS) {
-    const bot = cardBots.get(id);
-    if (bot) applyVars(bot, merged(data, id));
-  }
-}
-
-function buildCard(piece) {
-  const card = document.createElement("article");
-  card.className = "fr-card";
-  card.dataset.piece = piece;
-  const title = document.createElement("div");
-  title.className = "fr-card-title";
-  title.textContent = piece + " · " + (KINDS[piece] || "");
-  const stage = document.createElement("div");
-  stage.className = "fr-stage";
-  stage.addEventListener("click", () => {
-    selected = piece;
-    targetSel.value = piece;
-    syncUi();
+  CHASSIS.forEach((c) => {
+    eggState[c.id] = { look: "C", mouth: "smile", blink: false };
   });
-  const wrap = document.createElement("span");
-  wrap.className = "botevo-bot is-" + (KINDS[piece] || "four");
-  wrap.setAttribute("aria-hidden", "true");
-  const img = document.createElement("img");
-  img.className = "botevo-sprite";
-  img.src = ART + "/" + piece + ".png";
-  img.alt = "";
-  img.draggable = false;
-  wrap.appendChild(img);
-  const face = appendBotFace(wrap, piece);
-  stage.appendChild(wrap);
-  cardBots.set(piece, wrap);
-  const actions = document.createElement("div");
-  actions.className = "fr-actions";
-  function mk(label, fn) {
-    const b = document.createElement("button");
-    b.type = "button";
-    b.textContent = label;
-    b.addEventListener("click", (e) => { e.stopPropagation(); fn(); });
-    return b;
+
+  function loadFace() {
+    try {
+      const raw = localStorage.getItem(FACE_KEY);
+      if (!raw) return { ...LOCKED_FACE };
+      const parsed = JSON.parse(raw);
+      const p = { ...LOCKED_FACE };
+      const src = (parsed && parsed.params) || (parsed && parsed.face) || parsed;
+      if (src && typeof src === "object") {
+        for (const k of Object.keys(LOCKED_FACE)) {
+          if (typeof src[k] === "number" && Number.isFinite(src[k])) p[k] = src[k];
+        }
+      }
+      return p;
+    } catch (_) {
+      return { ...LOCKED_FACE };
+    }
   }
-  actions.append(
-    mk("Blink", () => playBlink(face)),
-    mk("N", () => playLook(face, "n", "smile")),
-    mk("E", () => playLook(face, "e", "smile")),
-    mk("S", () => playLook(face, "s", "smile")),
-    mk("W", () => playLook(face, "w", "smile")),
-    mk("Hope", () => playLook(face, "n", "hope")),
-    mk("Smile", () => playLook(face, "e", "smile")),
-    mk("Reset", () => clearExpr(face))
-  );
-  card.append(title, stage, actions);
-  return card;
-}
 
-for (const id of PIECE_IDS) grid.appendChild(buildCard(id));
+  function loadBody() {
+    try {
+      const raw = localStorage.getItem(BODY_KEY);
+      if (!raw) return { ...BODY_DEFAULTS };
+      const parsed = JSON.parse(raw);
+      const p = { ...BODY_DEFAULTS };
+      const src = (parsed && parsed.params) || (parsed && parsed.body) || parsed;
+      if (src && typeof src === "object") {
+        for (const k of Object.keys(BODY_DEFAULTS)) {
+          const v = src[k];
+          if (typeof BODY_DEFAULTS[k] === "number") {
+            if (typeof v === "number" && Number.isFinite(v)) p[k] = v;
+          } else if (typeof v === "string" && /^#[0-9a-fA-F]{6}$/.test(v)) {
+            p[k] = v;
+          }
+        }
+      }
+      return p;
+    } catch (_) {
+      return { ...BODY_DEFAULTS };
+    }
+  }
 
-targetSel.addEventListener("change", () => {
-  selected = targetSel.value;
-  syncUi();
-});
+  function shade(hex, amount) {
+    const n = hex.replace("#", "");
+    const r = Math.max(0, Math.min(255, parseInt(n.slice(0, 2), 16) + amount));
+    const g = Math.max(0, Math.min(255, parseInt(n.slice(2, 4), 16) + amount));
+    const b = Math.max(0, Math.min(255, parseInt(n.slice(4, 6), 16) + amount));
+    return "#" + [r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("");
+  }
 
-function onSlider() {
-  writeOffset({
-    pupilX: Number(ox.value),
-    pupilY: Number(oy.value),
-    pupilScale: Number(scale.value),
+  function faceExportObject() {
+    return {
+      version: VERSION,
+      key: FACE_KEY,
+      lockedBaseline: true,
+      savedAt: new Date().toISOString(),
+      params: { ...face },
+      notes: "Bot Evolution locked face baseline / face mechanics.",
+    };
+  }
+
+  function bodyExportObject() {
+    return {
+      version: VERSION,
+      key: BODY_KEY,
+      savedAt: new Date().toISOString(),
+      params: { ...body },
+      notes: "Jacob HITL body + flatter endCapAspect + T/L fills. Lids use per-egg fill.",
+    };
+  }
+
+  function combinedExportObject() {
+    return {
+      version: VERSION,
+      savedAt: new Date().toISOString(),
+      face: faceExportObject(),
+      body: bodyExportObject(),
+      notes: "Combined face + body export. face.key and body.key are the localStorage keys.",
+    };
+  }
+
+  function persistFace() {
+    try {
+      localStorage.setItem(FACE_KEY, JSON.stringify(faceExportObject()));
+    } catch (_) { /* ignore */ }
+  }
+
+  function persistBody() {
+    try {
+      localStorage.setItem(BODY_KEY, JSON.stringify(bodyExportObject()));
+    } catch (_) { /* ignore */ }
+  }
+
+  function persistAll() {
+    persistFace();
+    persistBody();
+    const ta = document.getElementById("export-json");
+    if (ta) ta.value = JSON.stringify(combinedExportObject(), null, 2);
+  }
+
+  /** Retro connector: socket at body, rod, flatter end-cap disc. dirs: N E S W */
+  function connectorArm(dir, cx, cy, rx, ry) {
+    const L = body.armLength;
+    const t = body.armThickness;
+    const capW = body.endCapSize;
+    const capD = Math.max(0.5, body.endCapSize * body.endCapAspect);
+    const sock = body.socketSize;
+    const rr = body.armRoundness;
+    const metal = body.connectorMetal;
+    const capF = body.endCapFill;
+    const capS = body.endCapStroke;
+    const sockFill = shade(metal, 28);
+    const rodFill = metal;
+    const halfT = t / 2;
+    const halfSock = sock / 2;
+    const halfCapW = capW / 2;
+    const capRx = Math.min(rr, halfCapW, capD / 2);
+
+    let socket = "";
+    let rod = "";
+    let tip = "";
+
+    if (dir === "N") {
+      const y0 = cy - ry;
+      socket =
+        '<rect x="' + (cx - halfSock) + '" y="' + (y0 - sock * 0.35) + '" width="' + sock +
+        '" height="' + (sock * 0.7) + '" rx="' + rr + '" fill="' + sockFill +
+        '" stroke="rgba(20,16,12,0.35)" stroke-width="0.5"/>';
+      rod =
+        '<rect x="' + (cx - halfT) + '" y="' + (y0 - L) + '" width="' + t +
+        '" height="' + L + '" rx="' + Math.min(rr, halfT) + '" fill="' + rodFill + '"/>';
+      tip =
+        '<rect x="' + (cx - halfCapW) + '" y="' + (y0 - L - capD) + '" width="' + capW +
+        '" height="' + capD + '" rx="' + capRx + '" fill="' + capF +
+        '" stroke="' + capS + '" stroke-width="0.65"/>';
+    } else if (dir === "S") {
+      const y0 = cy + ry;
+      socket =
+        '<rect x="' + (cx - halfSock) + '" y="' + (y0 - sock * 0.35) + '" width="' + sock +
+        '" height="' + (sock * 0.7) + '" rx="' + rr + '" fill="' + sockFill +
+        '" stroke="rgba(20,16,12,0.35)" stroke-width="0.5"/>';
+      rod =
+        '<rect x="' + (cx - halfT) + '" y="' + y0 + '" width="' + t +
+        '" height="' + L + '" rx="' + Math.min(rr, halfT) + '" fill="' + rodFill + '"/>';
+      tip =
+        '<rect x="' + (cx - halfCapW) + '" y="' + (y0 + L) + '" width="' + capW +
+        '" height="' + capD + '" rx="' + capRx + '" fill="' + capF +
+        '" stroke="' + capS + '" stroke-width="0.65"/>';
+    } else if (dir === "W") {
+      const x0 = cx - rx;
+      socket =
+        '<rect x="' + (x0 - sock * 0.35) + '" y="' + (cy - halfSock) + '" width="' + (sock * 0.7) +
+        '" height="' + sock + '" rx="' + rr + '" fill="' + sockFill +
+        '" stroke="rgba(20,16,12,0.35)" stroke-width="0.5"/>';
+      rod =
+        '<rect x="' + (x0 - L) + '" y="' + (cy - halfT) + '" width="' + L +
+        '" height="' + t + '" rx="' + Math.min(rr, halfT) + '" fill="' + rodFill + '"/>';
+      tip =
+        '<rect x="' + (x0 - L - capD) + '" y="' + (cy - halfCapW) + '" width="' + capD +
+        '" height="' + capW + '" rx="' + capRx + '" fill="' + capF +
+        '" stroke="' + capS + '" stroke-width="0.65"/>';
+    } else if (dir === "E") {
+      const x0 = cx + rx;
+      socket =
+        '<rect x="' + (x0 - sock * 0.35) + '" y="' + (cy - halfSock) + '" width="' + (sock * 0.7) +
+        '" height="' + sock + '" rx="' + rr + '" fill="' + sockFill +
+        '" stroke="rgba(20,16,12,0.35)" stroke-width="0.5"/>';
+      rod =
+        '<rect x="' + x0 + '" y="' + (cy - halfT) + '" width="' + L +
+        '" height="' + t + '" rx="' + Math.min(rr, halfT) + '" fill="' + rodFill + '"/>';
+      tip =
+        '<rect x="' + (x0 + L) + '" y="' + (cy - halfCapW) + '" width="' + capD +
+        '" height="' + capW + '" rx="' + capRx + '" fill="' + capF +
+        '" stroke="' + capS + '" stroke-width="0.65"/>';
+    }
+    return socket + rod + tip;
+  }
+
+  function chassisSVG(c) {
+    const fill = body[c.fillKey];
+    const hi = shade(fill, 36);
+    const mid = fill;
+    const mid2 = shade(fill, -22);
+    const deep = shade(fill, -48);
+    faceSvgSeq += 1;
+    const gid = "body-" + c.id + "-" + faceSvgSeq;
+    const cx = 50;
+    const cy = body.eggCy;
+    const rx = body.eggRx;
+    const ry = body.eggRy;
+    const dirs = c.dirs || [];
+    const arms = dirs.map((d) => connectorArm(d, cx, cy, rx, ry)).join("");
+    const hiOp = body.highlightOpacity;
+
+    return (
+      '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
+      "<defs>" +
+      '<radialGradient id="' + gid + '" cx="40%" cy="32%" r="70%">' +
+      '<stop offset="0%" stop-color="' + hi + '"/>' +
+      '<stop offset="45%" stop-color="' + mid + '"/>' +
+      '<stop offset="78%" stop-color="' + mid2 + '"/>' +
+      '<stop offset="100%" stop-color="' + deep + '"/>' +
+      "</radialGradient>" +
+      "</defs>" +
+      arms +
+      '<ellipse cx="' + cx + '" cy="' + cy + '" rx="' + rx + '" ry="' + ry +
+      '" fill="url(#' + gid + ')" stroke="rgba(20,16,12,0.4)" stroke-width="' +
+      body.bodyStroke + '"/>' +
+      '<ellipse cx="' + (cx - rx * 0.28) + '" cy="' + (cy - ry * 0.35) +
+      '" rx="' + (rx * 0.38) + '" ry="' + (ry * 0.22) +
+      '" fill="rgba(255,255,255,' + hiOp + ')"/>' +
+      "</svg>"
+    );
+  }
+
+  function lookDelta(look) {
+    const s = face.lookStep;
+    if (look === "L") return { x: -s, y: 0 };
+    if (look === "R") return { x: s, y: 0 };
+    return { x: 0, y: 0 };
+  }
+
+  function mouthPath(mouth, scale) {
+    const s = scale;
+    if (mouth === "neutral") {
+      const w = 10 * s;
+      return (
+        '<rect x="' + (50 - w / 2) + '" y="' + (72 - 1.1 * s) + '" width="' + w +
+        '" height="' + (2.2 * s) + '" rx="' + (1.1 * s) + '" fill="var(--ink)"/>'
+      );
+    }
+    if (mouth === "excited") {
+      const r = 7.5 * s;
+      return (
+        '<circle cx="50" cy="' + (70 + 1 * s) + '" r="' + r +
+        '" fill="rgba(30,20,15,0.22)" stroke="var(--ink)" stroke-width="' +
+        face.strokeWeight + '" stroke-linecap="round"/>'
+      );
+    }
+    const half = 14 * s;
+    const dip = 10 * s;
+    return (
+      '<path d="M' + (50 - half) + " " + 70 + " Q50 " + (70 + dip) + " " + (50 + half) +
+      " " + 70 + '" fill="rgba(30,20,15,0.12)" stroke="var(--ink)" stroke-width="' +
+      face.strokeWeight + '" stroke-linecap="round"/>'
+    );
+  }
+
+  function faceSVG(state, chassisId, fillHex) {
+    faceSvgSeq += 1;
+    const sep = face.eyeSeparation;
+    const cxL = 50 - sep / 2;
+    const cxR = 50 + sep / 2;
+    const cy = 46;
+    const er = face.eyeSize;
+    const pr = face.pupilSize;
+    const rim = face.glassesRim;
+    const stroke = face.strokeWeight;
+    const ld = lookDelta(state.look);
+    const px = ld.x + face.lookOffsetX;
+    const py = ld.y + face.lookOffsetY;
+    const maxOff = Math.max(0, er - pr - rim * 0.4);
+    const clamp = (v) => Math.max(-maxOff, Math.min(maxOff, v));
+    const plx = cxL + clamp(px);
+    const ply = cy + clamp(py);
+    const prx = cxR + clamp(px);
+    const pry = cy + clamp(py);
+    const bridgeW = Math.max(2, sep - er * 2 - 1);
+    const bridgeX = 50 - bridgeW / 2;
+    const bridgeH = Math.max(2.5, rim * 1.6);
+
+    const eggFill = fillHex || body.plusFill;
+    const lidId = "lid-" + (chassisId || "x") + "-" + faceSvgSeq;
+    const lidHi = shade(eggFill, 22);
+    const lidLo = shade(eggFill, -30);
+    let lids = "";
+    if (state.blink) {
+      const cover = er * 2 * face.lidTravel;
+      const lidY = cy - er;
+      lids =
+        '<rect x="' + (cxL - er) + '" y="' + lidY + '" width="' + er * 2 +
+        '" height="' + cover + '" rx="' + er + '" fill="url(#' + lidId + ')" opacity="0.97"/>' +
+        '<rect x="' + (cxR - er) + '" y="' + lidY + '" width="' + er * 2 +
+        '" height="' + cover + '" rx="' + er + '" fill="url(#' + lidId + ')" opacity="0.97"/>' +
+        '<path d="M' + (cxL - er * 0.85) + " " + (cy - er * 0.15) +
+        " Q" + cxL + " " + (cy - er * 0.45) + " " + (cxL + er * 0.85) + " " +
+        (cy - er * 0.15) + '" fill="none" stroke="var(--ink)" stroke-width="' +
+        (stroke * 0.85) + '" stroke-linecap="round"/>' +
+        '<path d="M' + (cxR - er * 0.85) + " " + (cy - er * 0.15) +
+        " Q" + cxR + " " + (cy - er * 0.45) + " " + (cxR + er * 0.85) + " " +
+        (cy - er * 0.15) + '" fill="none" stroke="var(--ink)" stroke-width="' +
+        (stroke * 0.85) + '" stroke-linecap="round"/>';
+    }
+
+    return (
+      '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
+      "<defs>" +
+      '<radialGradient id="eyeWell" cx="38%" cy="32%" r="70%">' +
+      '<stop offset="0%" stop-color="#d8ecf8"/>' +
+      '<stop offset="55%" stop-color="#9bb8c8"/>' +
+      '<stop offset="100%" stop-color="#6a8aa0"/>' +
+      "</radialGradient>" +
+      '<linearGradient id="' + lidId + '" x1="0" y1="0" x2="0" y2="1">' +
+      '<stop offset="0%" stop-color="' + lidHi + '"/>' +
+      '<stop offset="100%" stop-color="' + lidLo + '"/>' +
+      "</linearGradient>" +
+      "</defs>" +
+      '<ellipse cx="' + cxL + '" cy="' + cy + '" rx="' + er + '" ry="' + er +
+      '" fill="url(#eyeWell)" stroke="var(--ink)" stroke-width="' + rim + '"/>' +
+      '<ellipse cx="' + cxR + '" cy="' + cy + '" rx="' + er + '" ry="' + er +
+      '" fill="url(#eyeWell)" stroke="var(--ink)" stroke-width="' + rim + '"/>' +
+      '<rect x="' + bridgeX + '" y="' + (cy - bridgeH / 2) + '" width="' + bridgeW +
+      '" height="' + bridgeH + '" rx="' + (bridgeH / 2) + '" fill="var(--ink)"/>' +
+      '<circle cx="' + plx + '" cy="' + ply + '" r="' + pr + '" fill="var(--ink)"/>' +
+      '<circle cx="' + prx + '" cy="' + pry + '" r="' + pr + '" fill="var(--ink)"/>' +
+      '<circle cx="' + (plx - pr * 0.28) + '" cy="' + (ply - pr * 0.28) +
+      '" r="' + (pr * 0.28) + '" fill="rgba(255,255,255,0.55)"/>' +
+      '<circle cx="' + (prx - pr * 0.28) + '" cy="' + (pry - pr * 0.28) +
+      '" r="' + (pr * 0.28) + '" fill="rgba(255,255,255,0.55)"/>' +
+      lids +
+      mouthPath(state.mouth, face.mouthScale) +
+      "</svg>"
+    );
+  }
+
+  function renderEggFace(root, chassisId) {
+    const faceEl = root.querySelector(".face-layer");
+    if (!faceEl) return;
+    const c = CHASSIS.find((x) => x.id === chassisId);
+    const fill = c ? body[c.fillKey] : body.plusFill;
+    faceEl.style.setProperty("--face-y", face.faceY + "%");
+    faceEl.innerHTML = faceSVG(eggState[chassisId], chassisId, fill);
+  }
+
+  function renderEggChassis(root, chassis) {
+    const ch = root.querySelector(".chassis");
+    if (!ch) return;
+    ch.innerHTML = chassisSVG(chassis);
+  }
+
+  function renderAllFaces() {
+    document.querySelectorAll("[data-egg]").forEach((el) => {
+      const id = el.dataset.egg;
+      if (!eggState[id]) return;
+      renderEggFace(el, id);
+    });
+  }
+
+  function renderAllChassis() {
+    document.querySelectorAll("[data-egg]").forEach((el) => {
+      const id = el.dataset.egg;
+      const c = CHASSIS.find((x) => x.id === id);
+      if (c) renderEggChassis(el, c);
+    });
+  }
+
+  function setMouth(id, mouth) {
+    eggState[id].mouth = mouth;
+    const card = document.querySelector('[data-egg="' + id + '"]');
+    if (card) {
+      card.querySelectorAll(".actions [data-act]").forEach((b) => {
+        const a = b.dataset.act;
+        if (a === "smile" || a === "neutral" || a === "excited") {
+          b.classList.toggle("is-on", a === mouth);
+        }
+      });
+      renderEggFace(card, id);
+    }
+  }
+
+  function setLook(id, look) {
+    eggState[id].look = look;
+    const card = document.querySelector('[data-egg="' + id + '"]');
+    if (card) {
+      card.querySelectorAll(".actions [data-act]").forEach((b) => {
+        const a = b.dataset.act;
+        if (a === "lookL" || a === "lookR" || a === "lookC") {
+          const map = { lookL: "L", lookR: "R", lookC: "C" };
+          b.classList.toggle("is-on", map[a] === look);
+        }
+      });
+      renderEggFace(card, id);
+    }
+  }
+
+  function blink(id) {
+    if (blinkTimers[id]) {
+      clearTimeout(blinkTimers[id]);
+      blinkTimers[id] = null;
+    }
+    eggState[id].blink = true;
+    const card = document.querySelector('[data-egg="' + id + '"]');
+    if (card) renderEggFace(card, id);
+    blinkTimers[id] = setTimeout(() => {
+      eggState[id].blink = false;
+      blinkTimers[id] = null;
+      const c2 = document.querySelector('[data-egg="' + id + '"]');
+      if (c2) renderEggFace(c2, id);
+    }, face.blinkDuration);
+  }
+
+  function applyAct(id, act) {
+    if (act === "blink") blink(id);
+    else if (act === "lookL") setLook(id, "L");
+    else if (act === "lookR") setLook(id, "R");
+    else if (act === "lookC" || act === "reset") setLook(id, "C");
+    else if (act === "smile" || act === "neutral" || act === "excited") setMouth(id, act);
+  }
+
+  function buildEggs() {
+    const host = document.getElementById("eggs");
+    host.innerHTML = "";
+    CHASSIS.forEach((c) => {
+      const card = document.createElement("article");
+      card.className = "egg-card";
+      card.dataset.egg = c.id;
+      card.innerHTML =
+        '<div class="tag">' + c.tag + '</div>' +
+        '<div class="name">' + c.name + "</div>" +
+        '<div class="stage">' +
+        '<div class="chassis">' + chassisSVG(c) + "</div>" +
+        '<div class="face-layer"></div>' +
+        "</div>" +
+        '<div class="actions">' +
+        '<button type="button" data-act="blink">Blink</button>' +
+        '<button type="button" data-act="lookL">Look L</button>' +
+        '<button type="button" data-act="lookR">Look R</button>' +
+        '<button type="button" data-act="lookC">Center</button>' +
+        '<button type="button" data-act="neutral">Neutral</button>' +
+        '<button type="button" data-act="smile" class="is-on">Smile</button>' +
+        '<button type="button" data-act="excited">Excited</button>' +
+        "</div>";
+      card.querySelector(".actions").addEventListener("click", (e) => {
+        const btn = e.target.closest("button[data-act]");
+        if (!btn) return;
+        applyAct(c.id, btn.dataset.act);
+        rebuildMinis();
+      });
+      host.appendChild(card);
+      renderEggFace(card, c.id);
+    });
+  }
+
+  function formatVal(v, m) {
+    if (m.type === "color") return String(v).toUpperCase();
+    if (m.step >= 1) return String(Math.round(v));
+    if (m.step >= 0.5) return (Math.round(v * 2) / 2).toFixed(1);
+    return (Math.round(v * 100) / 100).toFixed(2).replace(/\.?0+$/, "") || "0";
+  }
+
+  function buildFaceSliders() {
+    const host = document.getElementById("face-sliders");
+    host.innerHTML = '<h3>Face tweakables (locked baseline)</h3>';
+    FACE_SLIDER_META.forEach((m) => {
+      const row = document.createElement("div");
+      row.className = "slider-row";
+      const id = "sl-face-" + m.key;
+      row.innerHTML =
+        '<label for="' + id + '">' + m.label + "</label>" +
+        '<input type="range" id="' + id + '" min="' + m.min + '" max="' + m.max +
+        '" step="' + m.step + '" value="' + face[m.key] + '"/>' +
+        '<span class="val" data-for="face-' + m.key + '">' + formatVal(face[m.key], m) + "</span>";
+      const input = row.querySelector("input");
+      input.addEventListener("input", () => {
+        face[m.key] = Number(input.value);
+        row.querySelector(".val").textContent = formatVal(face[m.key], m);
+        renderAllFaces();
+        rebuildMinis();
+        persistAll();
+      });
+      host.appendChild(row);
+    });
+  }
+
+  function buildBodySliders() {
+    const host = document.getElementById("body-sliders");
+    host.innerHTML = '<h3>Body / arm tweakables</h3>';
+    BODY_SLIDER_META.forEach((m) => {
+      const row = document.createElement("div");
+      row.className = "slider-row";
+      const id = "sl-body-" + m.key;
+      if (m.type === "color") {
+        row.innerHTML =
+          '<label for="' + id + '">' + m.label + "</label>" +
+          '<input type="color" id="' + id + '" value="' + body[m.key] + '"/>' +
+          '<span class="val" data-for="body-' + m.key + '">' + formatVal(body[m.key], m) + "</span>";
+        const input = row.querySelector("input");
+        input.addEventListener("input", () => {
+          body[m.key] = input.value;
+          row.querySelector(".val").textContent = formatVal(body[m.key], m);
+          renderAllChassis();
+          rebuildMinis();
+          persistAll();
+        });
+      } else {
+        row.innerHTML =
+          '<label for="' + id + '">' + m.label + "</label>" +
+          '<input type="range" id="' + id + '" min="' + m.min + '" max="' + m.max +
+          '" step="' + m.step + '" value="' + body[m.key] + '"/>' +
+          '<span class="val" data-for="body-' + m.key + '">' + formatVal(body[m.key], m) + "</span>";
+        const input = row.querySelector("input");
+        input.addEventListener("input", () => {
+          body[m.key] = Number(input.value);
+          row.querySelector(".val").textContent = formatVal(body[m.key], m);
+          renderAllChassis();
+          rebuildMinis();
+          persistAll();
+        });
+      }
+      host.appendChild(row);
+    });
+  }
+
+  function syncFaceSliderUI() {
+    FACE_SLIDER_META.forEach((m) => {
+      const input = document.getElementById("sl-face-" + m.key);
+      const val = document.querySelector('.val[data-for="face-' + m.key + '"]');
+      if (input) input.value = String(face[m.key]);
+      if (val) val.textContent = formatVal(face[m.key], m);
+    });
+  }
+
+  function syncBodySliderUI() {
+    BODY_SLIDER_META.forEach((m) => {
+      const input = document.getElementById("sl-body-" + m.key);
+      const val = document.querySelector('.val[data-for="body-' + m.key + '"]');
+      if (input) input.value = String(body[m.key]);
+      if (val) val.textContent = formatVal(body[m.key], m);
+    });
+  }
+
+  function setMode(mode) {
+    uiMode = mode;
+    const faceTab = document.getElementById("tab-face");
+    const bodyTab = document.getElementById("tab-body");
+    const paneFace = document.getElementById("pane-face");
+    const paneBody = document.getElementById("pane-body");
+    const isFace = mode === "face";
+    faceTab.classList.toggle("is-on", isFace);
+    bodyTab.classList.toggle("is-on", !isFace);
+    faceTab.setAttribute("aria-selected", isFace ? "true" : "false");
+    bodyTab.setAttribute("aria-selected", isFace ? "false" : "true");
+    paneFace.hidden = !isFace;
+    paneBody.hidden = isFace;
+    document.getElementById("mode-sub").innerHTML = isFace
+      ? 'Face locked baseline. Tweaks persist under <code>' + FACE_KEY + "</code>."
+      : 'Body/arm focus. Tweaks persist under <code>' + BODY_KEY + "</code>.";
+  }
+
+  function rebuildMinis() {
+    const mode = document.getElementById("readability").value;
+    const host = document.getElementById("mini-stages");
+    host.innerHTML = "";
+    if (mode === "off") {
+      host.classList.remove("show");
+      host.setAttribute("aria-hidden", "true");
+      return;
+    }
+    host.classList.add("show");
+    host.setAttribute("aria-hidden", "false");
+    const sizes = mode === "both" ? [128, 256] : [Number(mode)];
+    sizes.forEach((px) => {
+      CHASSIS.forEach((c) => {
+        const mini = document.createElement("div");
+        mini.className = "mini";
+        mini.dataset.px = String(px);
+        mini.title = c.tag + " @ " + px + "px";
+        mini.innerHTML =
+          '<div class="chassis">' + chassisSVG(c) + "</div>" +
+          '<div class="face-layer"></div>';
+        const faceEl = mini.querySelector(".face-layer");
+        faceEl.style.setProperty("--face-y", face.faceY + "%");
+        faceEl.innerHTML = faceSVG(eggState[c.id], c.id, body[c.fillKey]);
+        host.appendChild(mini);
+      });
+    });
+  }
+
+  document.querySelector(".global-bar").addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-all]");
+    if (!btn) return;
+    const act = btn.dataset.all;
+    CHASSIS.forEach((c) => {
+      if (act === "reset") applyAct(c.id, "lookC");
+      else applyAct(c.id, act);
+    });
+    rebuildMinis();
   });
-}
-ox.addEventListener("input", onSlider);
-oy.addEventListener("input", onSlider);
-scale.addEventListener("input", onSlider);
 
-document.getElementById("fr-reset-target").addEventListener("click", () => writeOffset(clone(ZERO)));
-document.getElementById("fr-export").addEventListener("click", refreshJson);
-document.getElementById("fr-copy").addEventListener("click", async () => {
-  refreshJson();
-  try { await navigator.clipboard.writeText(jsonArea.value); }
-  catch { jsonArea.select(); document.execCommand("copy"); }
-});
-document.getElementById("fr-import").addEventListener("click", () => {
-  try {
-    const parsed = JSON.parse(jsonArea.value);
-    if (!parsed || parsed.version !== 1 || !parsed.global) throw new Error("bad");
-    data = { version: 1, global: { ...ZERO, ...parsed.global }, pieces: parsed.pieces || {} };
-    saveStored(data);
-    refreshJson();
-    applyAll();
-    syncUi();
-  } catch {
-    alert("Import failed — paste a version:1 FaceOffsetExport JSON.");
+  document.getElementById("tab-face").addEventListener("click", () => setMode("face"));
+  document.getElementById("tab-body").addEventListener("click", () => setMode("body"));
+
+  document.getElementById("readability").addEventListener("change", rebuildMinis);
+  document.getElementById("stage-scale").addEventListener("change", (e) => {
+    const s = e.target.value;
+    document.getElementById("eggs").style.transform = s === "1" ? "" : "scale(" + s + ")";
+    document.getElementById("eggs").style.transformOrigin = "top center";
+  });
+
+  document.getElementById("btn-refresh").addEventListener("click", () => {
+    persistAll();
+    toast("Combined JSON refreshed");
+  });
+  document.getElementById("btn-copy").addEventListener("click", async () => {
+    persistAll();
+    await copyText(document.getElementById("export-json").value, "Combined copied");
+  });
+  document.getElementById("btn-download").addEventListener("click", () => {
+    persistAll();
+    const blob = new Blob([document.getElementById("export-json").value], {
+      type: "application/json",
+    });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "botevo-face-body-mech-v2.json";
+    a.click();
+    URL.revokeObjectURL(a.href);
+    toast("Download started");
+  });
+  document.getElementById("btn-copy-face").addEventListener("click", async () => {
+    persistFace();
+    await copyText(JSON.stringify(faceExportObject(), null, 2), "Face JSON copied");
+  });
+  document.getElementById("btn-copy-body").addEventListener("click", async () => {
+    persistBody();
+    await copyText(JSON.stringify(bodyExportObject(), null, 2), "Body JSON copied");
+  });
+  document.getElementById("btn-reset-face").addEventListener("click", () => {
+    face = { ...LOCKED_FACE };
+    syncFaceSliderUI();
+    renderAllFaces();
+    rebuildMinis();
+    persistAll();
+    toast("Face reset to locked baseline");
+  });
+  document.getElementById("btn-reset-body").addEventListener("click", () => {
+    body = { ...BODY_DEFAULTS };
+    syncBodySliderUI();
+    renderAllChassis();
+    rebuildMinis();
+    persistAll();
+    toast("Body reset to Jacob HITL");
+  });
+
+  async function copyText(text, okMsg) {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast(okMsg);
+    } catch (_) {
+      document.getElementById("export-json").value = text;
+      document.getElementById("export-json").select();
+      toast("Select + ⌘C to copy");
+    }
   }
-});
-document.getElementById("fr-clear").addEventListener("click", () => {
-  localStorage.removeItem(STORAGE_KEY);
-  data = { version: 1, global: clone(ZERO), pieces: {} };
-  refreshJson();
-  applyAll();
-  syncUi();
-});
-document.getElementById("fr-download").addEventListener("click", () => {
-  refreshJson();
-  const blob = new Blob([jsonArea.value], { type: "application/json" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "botevo-face-offsets-export.json";
-  a.click();
-  URL.revokeObjectURL(a.href);
-});
 
-refreshJson();
-applyAll();
-syncUi();
+  let toastTimer = null;
+  function toast(msg) {
+    const el = document.getElementById("toast");
+    el.textContent = msg;
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      el.textContent = "";
+    }, 1800);
+  }
+
+  // Init — default to Body tab since that is the new focus
+  buildEggs();
+  buildFaceSliders();
+  buildBodySliders();
+  setMode("body");
+  persistAll();
+  rebuildMinis();
+})();
 </script>
 </body>
 </html>

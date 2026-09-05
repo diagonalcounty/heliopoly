@@ -104,6 +104,9 @@ import {
   hardDrop,
   liveChainCells,
   connectorKind,
+  eggTokenSvg,
+  eggTokenDataUrl,
+  SHELL_FILL,
   quotaForLevel,
   resumeAfterMorph,
   socketJoins,
@@ -114,7 +117,6 @@ import {
   type PieceId,
   type RecycledBot,
 } from "./lab/botEvolution";
-import { BOTEVO_SPRITES } from "./lab/botevoSprites";
 import {
   BotEvoFaceDirector,
   appendBotFace,
@@ -2332,7 +2334,7 @@ function flyRecycleToQueue(items: RecycledBot[]): void {
     el.style.marginLeft = `${from.width * 0.12}px`;
     el.style.marginTop = `${from.height * 0.12}px`;
     const img = document.createElement("img");
-    img.src = BOTEVO_SPRITES[item.piece];
+    img.src = eggTokenDataUrl(item.piece);
     img.alt = "";
     img.draggable = false;
     el.appendChild(img);
@@ -2393,15 +2395,15 @@ function afterBotEvoLand(): void {
 
 /** Returns the face overlay element for the idle director. */
 function appendBotSprite(host: HTMLElement, piece: PieceId): HTMLElement {
+  const kind = connectorKind(piece);
   const wrap = document.createElement("span");
-  wrap.className = `botevo-bot is-${connectorKind(piece)}`;
+  wrap.className = `botevo-bot is-${kind}`;
+  wrap.style.setProperty("--botevo-shell", SHELL_FILL[kind]);
   wrap.setAttribute("aria-hidden", "true");
-  const img = document.createElement("img");
-  img.className = "botevo-sprite";
-  img.src = BOTEVO_SPRITES[piece];
-  img.alt = "";
-  img.draggable = false;
-  wrap.appendChild(img);
+  const sprite = document.createElement("span");
+  sprite.className = "botevo-sprite";
+  sprite.innerHTML = eggTokenSvg(piece);
+  wrap.appendChild(sprite);
   const face = appendBotFace(wrap, piece);
   host.appendChild(wrap);
   return face;

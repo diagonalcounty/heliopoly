@@ -31,6 +31,9 @@ import {
   SHELL_FILL,
   connectorKind,
   eggTokenSvg,
+  eggBodyFor,
+  EGG_BODY_DEFAULTS,
+  EGG_BODY_STRAIGHT,
   socketCount,
   socketJoins,
   socketsMeet,
@@ -43,7 +46,9 @@ import {
 import {
   availableLookKinds,
   blankDirs,
+  botFaceSvg,
   liveDirs,
+  LOCKED_FACE,
   pickLookDir,
 } from "./botevoFaces";
 
@@ -113,6 +118,38 @@ assert(eggTokenSvg("dash").includes(SHELL_FILL.straight), "dash uses the straigh
 assert(eggTokenSvg("t-e").includes(SHELL_FILL.three), "T shell is mint");
 assert(eggTokenSvg("plus").includes(SHELL_FILL.four), "plus shell is cream");
 assert(eggTokenSvg("l-es").includes(SHELL_FILL.corner), "L shell is apricot");
+
+{
+  const wide = eggBodyFor("plus");
+  const tall = eggBodyFor("i");
+  const tallDash = eggBodyFor("dash");
+  assert(wide.eggRx === EGG_BODY_DEFAULTS.eggRx && wide.eggRy === EGG_BODY_DEFAULTS.eggRy, "plus keeps review-tool egg");
+  assert(wide.eggRx === 30 && wide.eggRy === 28.5, "review-tool body defaults (not inflated rx=41)");
+  assert(Math.abs(wide.eggRx - wide.eggRy) <= 2, "non-blue shells stay near-round");
+  assert(EGG_BODY_DEFAULTS.armLength === 12, "shortened arm length (caps near rim)");
+  assert(EGG_BODY_DEFAULTS.endCapSize === 8, "slightly smaller gold end-caps");
+  assert(EGG_BODY_DEFAULTS.endCapAspect === 0.42, "review-tool end-cap aspect");
+  assert(EGG_BODY_DEFAULTS.highlightOpacity === 0.18, "soft shell highlight");
+  assert(tall.eggRy > tall.eggRx, "straight I egg is taller than wide");
+  assert(tallDash.eggRy === EGG_BODY_STRAIGHT.eggRy && tallDash.eggRx === EGG_BODY_STRAIGHT.eggRx, "dash shares tall straight body");
+  assert(tall.eggRy > wide.eggRy, "blue straight is taller than cream shell");
+  assert(tall.eggRx < wide.eggRx, "straight swaps/bias rx smaller");
+  const svgI = eggTokenSvg("i");
+  const svgPlus = eggTokenSvg("plus");
+  assert(svgI.includes(`ry="${EGG_BODY_STRAIGHT.eggRy}"`), "I SVG bakes tall ry");
+  assert(svgI.includes(`rx="${EGG_BODY_STRAIGHT.eggRx}"`), "I SVG bakes tall rx");
+  assert(svgPlus.includes(`ry="${EGG_BODY_DEFAULTS.eggRy}"`), "plus SVG bakes review ry");
+  assert(svgPlus.includes(`rx="${EGG_BODY_DEFAULTS.eggRx}"`), "plus SVG bakes review rx");
+
+  assert(svgPlus.includes("radialGradient"), "shell uses radial gradient");
+  assert(svgPlus.includes("rgba(255,255,255,"), "shell has soft white highlight");
+  assert(!svgI.includes("Q ") && !svgPlus.includes("Q "), "blank shells have no baked smile path");
+  assert(svgI.includes(EGG_BODY_DEFAULTS.connectorMetal), "arms use connector metal");
+  assert(svgI.includes(EGG_BODY_DEFAULTS.endCapFill), "arms use gold flat end-caps");
+  // Topology: rect end-caps (not ellipses) — plus has four gold caps.
+  assert((svgPlus.match(/c9a24a/g) || []).length >= 4, "plus has four gold rect caps");
+  assert(!/<ellipse[^>]*fill="#c9a24a"/.test(svgPlus), "end-caps are rects not ellipses");
+}
 
 assert(socketsMeet("plus", "plus", DIR_E), "plus-plus meet east");
 assert(socketsMeet("i", "i", DIR_S), "I-I meet south");
@@ -409,6 +446,20 @@ assert(!socketsMeet("l-ne", "i", DIR_S), "L-NE has no south pin");
   );
   assert(pickLookDir("dash", "blank", () => 0)?.name === "n", "dash blank can be N");
 }
+
+{
+  const face = botFaceSvg(SHELL_FILL.four, { look: "c", mouth: "smile", blink: false }, "plus-test");
+  assert(face.includes("radialGradient"), "face has eye-well gradient");
+  assert(face.includes("eyeWell-"), "face gradient id is unique-prefixed");
+  assert(face.includes(`rx="${LOCKED_FACE.eyeSize}"`), "glasses use locked eye size");
+  assert(face.includes("botevo-pupil"), "face has pupils");
+  assert(face.includes("botevo-mouth"), "face has mouth");
+  const blink = botFaceSvg(SHELL_FILL.four, { look: "c", mouth: "smile", blink: true }, "plus-blink");
+  assert(blink.includes("botevo-lid"), "blink paints lids");
+  const look = botFaceSvg(SHELL_FILL.straight, { look: "e", mouth: "hope", blink: false }, "i-look");
+  assert(look.includes("botevo-mouth"), "hope mouth present");
+}
+
 
 if (failed) {
   throw new Error(`${failed} botEvolution assertion(s) failed`);
