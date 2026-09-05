@@ -8,6 +8,7 @@ Weekly **https://heliopoly.live/** promote at **Sunday 00:01 UTC** (`2026-09-07T
 - **Phone play sheet:** Lab, Book, thumbs, Gravity Duel, auction Bid/Pass, and end-screen Rematch / New Game fit 390×844 and receive the tap.
 - **Expedition names (#195):** Insight / Curiosity / Voyager / Opportunity; duration µ meter removed.
 - **Lab minigames:** egg-bot-evolution (#203), Deseret letters (2-choice, #79), Backup fuel 6×6, Hull panel, urinal-rule-parking. Lab list blurbs no longer clip on phone.
+- **urinal-rule-parking (#225):** landscape / wide viewports show tappable pads (pad field no longer collapses).
 - **Bot Evolution:** 5×8 egg-socket matching, pause, piston art, morph fly-up that does not block the next drop.
 
 ### iOS
