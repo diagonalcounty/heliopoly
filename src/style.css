@@ -950,10 +950,10 @@ html.native-shell #app {
   position: absolute;
   /*
    * Review-tool geometry stays in viewBox 0 0 100 100 (eggRx ~30).
-   * Enlarge the bot box so the shell fills the cell like the old rx=41 look
-   * without re-inflating eggRx. Fall nudge still transforms this wrap.
+   * Mild enlarge so the shell fills the cell without arms spearing deep
+   * into neighbor cells. Fall nudge still transforms this wrap.
    */
-  inset: -24%;
+  inset: -14%;
   z-index: 2;
   pointer-events: none;
   display: block;
@@ -1227,7 +1227,7 @@ html.native-shell #app {
 
 /* Queue: mild uniform scale; keep proportions (no transform fight with playfield fall). */
 .botevo-queue-egg .botevo-bot {
-  inset: -6%;
+  inset: -4%;
 }
 
 .botevo-queue-egg.is-awaiting-recycle {
