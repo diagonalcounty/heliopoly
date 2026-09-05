@@ -46,7 +46,9 @@ import {
 import {
   availableLookKinds,
   blankDirs,
+  botFaceSvg,
   liveDirs,
+  LOCKED_FACE,
   pickLookDir,
 } from "./botevoFaces";
 
@@ -121,28 +123,31 @@ assert(eggTokenSvg("l-es").includes(SHELL_FILL.corner), "L shell is apricot");
   const wide = eggBodyFor("plus");
   const tall = eggBodyFor("i");
   const tallDash = eggBodyFor("dash");
-  assert(wide.eggRx === EGG_BODY_DEFAULTS.eggRx && wide.eggRy === EGG_BODY_DEFAULTS.eggRy, "plus keeps near-circular egg");
-  assert(wide.eggRx >= 40 && wide.eggRx <= 42 && wide.eggRy >= 40 && wide.eggRy <= 42, "near-circular egg diameter ~80–84% of viewBox");
-  assert(Math.abs(wide.eggRx - wide.eggRy) <= 1, "non-blue shells are near-circular");
-  assert(EGG_BODY_DEFAULTS.armLength >= 9 && EGG_BODY_DEFAULTS.armLength <= 12, "arms short relative to shell");
-  assert(EGG_BODY_DEFAULTS.endCapAspect >= 0.34 && EGG_BODY_DEFAULTS.endCapAspect <= 0.38, "end-caps are thin discs not dashes");
+  assert(wide.eggRx === EGG_BODY_DEFAULTS.eggRx && wide.eggRy === EGG_BODY_DEFAULTS.eggRy, "plus keeps review-tool egg");
+  assert(wide.eggRx === 30 && wide.eggRy === 28.5, "review-tool body defaults (not inflated rx=41)");
+  assert(Math.abs(wide.eggRx - wide.eggRy) <= 2, "non-blue shells stay near-round");
+  assert(EGG_BODY_DEFAULTS.armLength === 18, "review-tool arm length");
+  assert(EGG_BODY_DEFAULTS.endCapAspect === 0.42, "review-tool end-cap aspect");
+  assert(EGG_BODY_DEFAULTS.highlightOpacity === 0.18, "soft shell highlight");
   assert(tall.eggRy > tall.eggRx, "straight I egg is taller than wide");
   assert(tallDash.eggRy === EGG_BODY_STRAIGHT.eggRy && tallDash.eggRx === EGG_BODY_STRAIGHT.eggRx, "dash shares tall straight body");
   assert(tall.eggRy > wide.eggRy, "blue straight is taller than cream shell");
-  assert(tall.eggRx >= 37 && tall.eggRx <= 39 && tall.eggRy >= 47 && tall.eggRy <= 49, "straight tall bias without sausage proportions");
+  assert(tall.eggRx < wide.eggRx, "straight swaps/bias rx smaller");
   const svgI = eggTokenSvg("i");
   const svgPlus = eggTokenSvg("plus");
   assert(svgI.includes(`ry="${EGG_BODY_STRAIGHT.eggRy}"`), "I SVG bakes tall ry");
   assert(svgI.includes(`rx="${EGG_BODY_STRAIGHT.eggRx}"`), "I SVG bakes tall rx");
-  assert(svgPlus.includes(`ry="${EGG_BODY_DEFAULTS.eggRy}"`), "plus SVG bakes wide ry");
-  assert(svgPlus.includes(`rx="${EGG_BODY_DEFAULTS.eggRx}"`), "plus SVG bakes wide rx");
+  assert(svgPlus.includes(`ry="${EGG_BODY_DEFAULTS.eggRy}"`), "plus SVG bakes review ry");
+  assert(svgPlus.includes(`rx="${EGG_BODY_DEFAULTS.eggRx}"`), "plus SVG bakes review rx");
 
+  assert(svgPlus.includes("radialGradient"), "shell uses radial gradient");
+  assert(svgPlus.includes("rgba(255,255,255,"), "shell has soft white highlight");
   assert(!svgI.includes("Q ") && !svgPlus.includes("Q "), "blank shells have no baked smile path");
   assert(svgI.includes(EGG_BODY_DEFAULTS.connectorMetal), "arms use connector metal");
   assert(svgI.includes(EGG_BODY_DEFAULTS.endCapFill), "arms use gold flat end-caps");
-  // Topology: I has N/S arms only → two end-caps; dash has E/W.
-  assert((svgI.match(/<ellipse cx=/g) || []).length >= 1, "I has shell ellipse");
-  assert((eggTokenSvg("plus").match(/endCapFill|c9a24a/g) || []).length >= 4, "plus has four gold caps");
+  // Topology: rect end-caps (not ellipses) — plus has four gold caps.
+  assert((svgPlus.match(/c9a24a/g) || []).length >= 4, "plus has four gold rect caps");
+  assert(!/<ellipse[^>]*fill="#c9a24a"/.test(svgPlus), "end-caps are rects not ellipses");
 }
 
 assert(socketsMeet("plus", "plus", DIR_E), "plus-plus meet east");
@@ -440,6 +445,20 @@ assert(!socketsMeet("l-ne", "i", DIR_S), "L-NE has no south pin");
   );
   assert(pickLookDir("dash", "blank", () => 0)?.name === "n", "dash blank can be N");
 }
+
+{
+  const face = botFaceSvg(SHELL_FILL.four, { look: "c", mouth: "smile", blink: false }, "plus-test");
+  assert(face.includes("radialGradient"), "face has eye-well gradient");
+  assert(face.includes("eyeWell-"), "face gradient id is unique-prefixed");
+  assert(face.includes(`rx="${LOCKED_FACE.eyeSize}"`), "glasses use locked eye size");
+  assert(face.includes("botevo-pupil"), "face has pupils");
+  assert(face.includes("botevo-mouth"), "face has mouth");
+  const blink = botFaceSvg(SHELL_FILL.four, { look: "c", mouth: "smile", blink: true }, "plus-blink");
+  assert(blink.includes("botevo-lid"), "blink paints lids");
+  const look = botFaceSvg(SHELL_FILL.straight, { look: "e", mouth: "hope", blink: false }, "i-look");
+  assert(look.includes("botevo-mouth"), "hope mouth present");
+}
+
 
 if (failed) {
   throw new Error(`${failed} botEvolution assertion(s) failed`);

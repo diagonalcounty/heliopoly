@@ -277,7 +277,7 @@ export function playAgainBotEvo(seed?: number): BotState {
   return startBotEvo(seed);
 }
 
-/** Blank-shell body geometry (HITL: near-circular shells; tall blues). Units: viewBox 0 0 100 100. */
+/** Blank-shell body geometry from face-review HITL (viewBox 0 0 100 100). */
 export interface EggBodyTune {
   eggRx: number;
   eggRy: number;
@@ -295,33 +295,36 @@ export interface EggBodyTune {
   endCapFill: string;
   endCapStroke: string;
   bodyOutline: string;
+  highlightOpacity: number;
 }
 
+/** Review-tool body defaults — do not re-inflate eggRx to fill cells. */
 export const EGG_BODY_DEFAULTS: EggBodyTune = {
-  eggRx: 41,
-  eggRy: 41,
+  eggRx: 30,
+  eggRy: 28.5,
   eggCx: 50,
   eggCy: 51.5,
-  armLength: 10.5,
-  armThickness: 5.5,
-  endCapSize: 7.5,
-  endCapAspect: 0.36,
-  socketSize: 8,
-  bodyStroke: 2.4,
-  armRoundness: 2.5,
+  armLength: 18,
+  armThickness: 6,
+  endCapSize: 9.5,
+  endCapAspect: 0.42,
+  socketSize: 10,
+  bodyStroke: 2.1,
+  armRoundness: 2.9,
   connectorMetal: "#8a96a4",
   endCapFill: "#c9a24a",
   endCapStroke: "#8a6a28",
-  bodyOutline: "#1a2744",
+  bodyOutline: "rgba(20,16,12,0.4)",
+  highlightOpacity: 0.18,
 };
 
 /**
  * Straight / blueish family is clearly taller than the near-circular shell.
- * Plus / T / L keep the round egg; I / dash stay taller without sausage proportions.
+ * Same arm/face language; only rx/ry bias changes.
  */
 export const EGG_BODY_STRAIGHT: Pick<EggBodyTune, "eggRx" | "eggRy"> = {
-  eggRx: 38,
-  eggRy: 48,
+  eggRx: 26.5,
+  eggRy: 36,
 };
 
 /** Unique illustrated bot for this piece; faces stay upright. */
@@ -337,95 +340,94 @@ export function eggBodyFor(id: PieceId): EggBodyTune {
   return EGG_BODY_DEFAULTS;
 }
 
+export function shadeHex(hex: string, amount: number): string {
+  const n = hex.replace("#", "");
+  const r = Math.max(0, Math.min(255, parseInt(n.slice(0, 2), 16) + amount));
+  const g = Math.max(0, Math.min(255, parseInt(n.slice(2, 4), 16) + amount));
+  const b = Math.max(0, Math.min(255, parseInt(n.slice(4, 6), 16) + amount));
+  return (
+    "#" +
+    [r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("")
+  );
+}
+
 function svgNum(n: number): string {
   const r = Math.round(n * 100) / 100;
   return Number.isInteger(r) ? String(r) : String(r);
 }
 
-type ArmGeom = {
-  ex: number;
-  ey: number;
-  tipX: number;
-  tipY: number;
-  horiz: boolean;
+type ArmDirName = "N" | "E" | "S" | "W";
+
+const DIR_NAME: Record<number, ArmDirName> = {
+  [DIR_N]: "N",
+  [DIR_E]: "E",
+  [DIR_S]: "S",
+  [DIR_W]: "W",
 };
 
-function armGeom(
-  dir: number,
-  body: EggBodyTune,
+/** Retro connector: socket at body, rod, flatter rect end-cap (face-review). */
+function connectorArm(
+  dir: ArmDirName,
+  cx: number,
+  cy: number,
   rx: number,
   ry: number,
-): ArmGeom {
-  const { eggCx: cx, eggCy: cy } = body;
-  let ex = cx;
-  let ey = cy;
-  let alongX = 0;
-  let alongY = 0;
-  if (dir === DIR_N) {
-    ey = cy - ry;
-    alongY = -1;
-  } else if (dir === DIR_S) {
-    ey = cy + ry;
-    alongY = 1;
-  } else if (dir === DIR_E) {
-    ex = cx + rx;
-    alongX = 1;
-  } else {
-    ex = cx - rx;
-    alongX = -1;
-  }
-  return {
-    ex,
-    ey,
-    tipX: ex + alongX * body.armLength,
-    tipY: ey + alongY * body.armLength,
-    horiz: alongX !== 0,
-  };
-}
-
-function appendArmRod(parts: string[], dir: number, body: EggBodyTune, rx: number, ry: number): void {
-  const { eggCx: cx, eggCy: cy } = body;
-  const g = armGeom(dir, body, rx, ry);
-  const thick = body.armThickness;
-  const round = body.armRoundness;
-  const metal = body.connectorMetal;
-  if (g.horiz) {
-    parts.push(
-      `<rect x="${svgNum(Math.min(g.ex, g.tipX))}" y="${svgNum(cy - thick / 2)}" width="${svgNum(body.armLength)}" height="${svgNum(thick)}" rx="${svgNum(round)}" fill="${metal}"/>`,
-    );
-  } else {
-    parts.push(
-      `<rect x="${svgNum(cx - thick / 2)}" y="${svgNum(Math.min(g.ey, g.tipY))}" width="${svgNum(thick)}" height="${svgNum(body.armLength)}" rx="${svgNum(round)}" fill="${metal}"/>`,
-    );
-  }
-}
-
-function appendArmHardware(parts: string[], dir: number, body: EggBodyTune, rx: number, ry: number): void {
-  const { eggCx: cx, eggCy: cy } = body;
-  const g = armGeom(dir, body, rx, ry);
+  body: EggBodyTune,
+): string {
+  const L = body.armLength;
+  const t = body.armThickness;
+  const capW = body.endCapSize;
+  const capD = Math.max(0.5, body.endCapSize * body.endCapAspect);
   const sock = body.socketSize;
-  const round = body.armRoundness;
+  const rr = body.armRoundness;
   const metal = body.connectorMetal;
-  const outline = body.bodyOutline;
-  const capMaj = body.endCapSize;
-  const capMin = body.endCapSize * body.endCapAspect;
-  if (g.horiz) {
-    parts.push(
-      `<rect x="${svgNum(g.ex - sock / 2)}" y="${svgNum(cy - sock / 2)}" width="${svgNum(sock)}" height="${svgNum(sock)}" rx="${svgNum(round)}" fill="${metal}" stroke="${outline}" stroke-width="1"/>`,
-      `<ellipse cx="${svgNum(g.tipX)}" cy="${svgNum(cy)}" rx="${svgNum(capMin)}" ry="${svgNum(capMaj / 2)}" fill="${body.endCapFill}" stroke="${body.endCapStroke}" stroke-width="1.1"/>`,
-    );
-  } else {
-    parts.push(
-      `<rect x="${svgNum(cx - sock / 2)}" y="${svgNum(g.ey - sock / 2)}" width="${svgNum(sock)}" height="${svgNum(sock)}" rx="${svgNum(round)}" fill="${metal}" stroke="${outline}" stroke-width="1"/>`,
-      `<ellipse cx="${svgNum(cx)}" cy="${svgNum(g.tipY)}" rx="${svgNum(capMaj / 2)}" ry="${svgNum(capMin)}" fill="${body.endCapFill}" stroke="${body.endCapStroke}" stroke-width="1.1"/>`,
+  const capF = body.endCapFill;
+  const capS = body.endCapStroke;
+  const sockFill = shadeHex(metal, 28);
+  const halfT = t / 2;
+  const halfSock = sock / 2;
+  const halfCapW = capW / 2;
+  const capRx = Math.min(rr, halfCapW, capD / 2);
+  const rodRx = Math.min(rr, halfT);
+
+  if (dir === "N") {
+    const y0 = cy - ry;
+    return (
+      `<rect x="${svgNum(cx - halfSock)}" y="${svgNum(y0 - sock * 0.35)}" width="${svgNum(sock)}" height="${svgNum(sock * 0.7)}" rx="${svgNum(rr)}" fill="${sockFill}" stroke="rgba(20,16,12,0.35)" stroke-width="0.5"/>` +
+      `<rect x="${svgNum(cx - halfT)}" y="${svgNum(y0 - L)}" width="${svgNum(t)}" height="${svgNum(L)}" rx="${svgNum(rodRx)}" fill="${metal}"/>` +
+      `<rect x="${svgNum(cx - halfCapW)}" y="${svgNum(y0 - L - capD)}" width="${svgNum(capW)}" height="${svgNum(capD)}" rx="${svgNum(capRx)}" fill="${capF}" stroke="${capS}" stroke-width="0.65"/>`
     );
   }
+  if (dir === "S") {
+    const y0 = cy + ry;
+    return (
+      `<rect x="${svgNum(cx - halfSock)}" y="${svgNum(y0 - sock * 0.35)}" width="${svgNum(sock)}" height="${svgNum(sock * 0.7)}" rx="${svgNum(rr)}" fill="${sockFill}" stroke="rgba(20,16,12,0.35)" stroke-width="0.5"/>` +
+      `<rect x="${svgNum(cx - halfT)}" y="${svgNum(y0)}" width="${svgNum(t)}" height="${svgNum(L)}" rx="${svgNum(rodRx)}" fill="${metal}"/>` +
+      `<rect x="${svgNum(cx - halfCapW)}" y="${svgNum(y0 + L)}" width="${svgNum(capW)}" height="${svgNum(capD)}" rx="${svgNum(capRx)}" fill="${capF}" stroke="${capS}" stroke-width="0.65"/>`
+    );
+  }
+  if (dir === "W") {
+    const x0 = cx - rx;
+    return (
+      `<rect x="${svgNum(x0 - sock * 0.35)}" y="${svgNum(cy - halfSock)}" width="${svgNum(sock * 0.7)}" height="${svgNum(sock)}" rx="${svgNum(rr)}" fill="${sockFill}" stroke="rgba(20,16,12,0.35)" stroke-width="0.5"/>` +
+      `<rect x="${svgNum(x0 - L)}" y="${svgNum(cy - halfT)}" width="${svgNum(L)}" height="${svgNum(t)}" rx="${svgNum(rodRx)}" fill="${metal}"/>` +
+      `<rect x="${svgNum(x0 - L - capD)}" y="${svgNum(cy - halfCapW)}" width="${svgNum(capD)}" height="${svgNum(capW)}" rx="${svgNum(capRx)}" fill="${capF}" stroke="${capS}" stroke-width="0.65"/>`
+    );
+  }
+  // E
+  const x0 = cx + rx;
+  return (
+    `<rect x="${svgNum(x0 - sock * 0.35)}" y="${svgNum(cy - halfSock)}" width="${svgNum(sock * 0.7)}" height="${svgNum(sock)}" rx="${svgNum(rr)}" fill="${sockFill}" stroke="rgba(20,16,12,0.35)" stroke-width="0.5"/>` +
+    `<rect x="${svgNum(x0)}" y="${svgNum(cy - halfT)}" width="${svgNum(L)}" height="${svgNum(t)}" rx="${svgNum(rodRx)}" fill="${metal}"/>` +
+    `<rect x="${svgNum(x0 + L)}" y="${svgNum(cy - halfCapW)}" width="${svgNum(capD)}" height="${svgNum(capW)}" rx="${svgNum(capRx)}" fill="${capF}" stroke="${capS}" stroke-width="0.65"/>`
+  );
 }
+
+let eggSvgSeq = 0;
 
 /**
- * Blank SVG egg shell + retro arms (socket → rod → flat end-cap).
- * No baked face — CSS face puppet overlays pupils / lids / mouth.
- * Shell tint by connector family; straight (blue) eggs are taller.
+ * Blank SVG egg shell + retro arms matching face-review chassisSVG.
+ * Gradient shell + soft highlight; rect gold end-caps. No baked face.
  */
 export function eggTokenSvg(id: PieceId): string {
   const mask = PIECE_SOCKETS[id];
@@ -434,17 +436,32 @@ export function eggTokenSvg(id: PieceId): string {
   const body = eggBodyFor(id);
   const { eggCx: cx, eggCy: cy, eggRx: rx, eggRy: ry } = body;
   const dirs = [DIR_N, DIR_E, DIR_S, DIR_W].filter((d) => (mask & d) !== 0);
-  const parts: string[] = [
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" overflow="visible">',
-  ];
-  // Rods under shell; sockets + flat caps on top so they read as rim hardware.
-  for (const dir of dirs) appendArmRod(parts, dir, body, rx, ry);
-  parts.push(
-    `<ellipse class="botevo-shell" cx="${svgNum(cx)}" cy="${svgNum(cy)}" rx="${svgNum(rx)}" ry="${svgNum(ry)}" fill="${fill}" stroke="${body.bodyOutline}" stroke-width="${svgNum(body.bodyStroke)}"/>`,
+  eggSvgSeq += 1;
+  const gid = `body-${id}-${eggSvgSeq}`;
+  const hi = shadeHex(fill, 36);
+  const mid = fill;
+  const mid2 = shadeHex(fill, -22);
+  const deep = shadeHex(fill, -48);
+  const arms = dirs
+    .map((d) => connectorArm(DIR_NAME[d]!, cx, cy, rx, ry, body))
+    .join("");
+  const hiOp = body.highlightOpacity;
+
+  return (
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" overflow="visible">` +
+    `<defs>` +
+    `<radialGradient id="${gid}" cx="40%" cy="32%" r="70%">` +
+    `<stop offset="0%" stop-color="${hi}"/>` +
+    `<stop offset="45%" stop-color="${mid}"/>` +
+    `<stop offset="78%" stop-color="${mid2}"/>` +
+    `<stop offset="100%" stop-color="${deep}"/>` +
+    `</radialGradient>` +
+    `</defs>` +
+    arms +
+    `<ellipse class="botevo-shell" cx="${svgNum(cx)}" cy="${svgNum(cy)}" rx="${svgNum(rx)}" ry="${svgNum(ry)}" fill="url(#${gid})" stroke="${body.bodyOutline}" stroke-width="${svgNum(body.bodyStroke)}"/>` +
+    `<ellipse cx="${svgNum(cx - rx * 0.28)}" cy="${svgNum(cy - ry * 0.35)}" rx="${svgNum(rx * 0.38)}" ry="${svgNum(ry * 0.22)}" fill="rgba(255,255,255,${hiOp})"/>` +
+    `</svg>\n`
   );
-  for (const dir of dirs) appendArmHardware(parts, dir, body, rx, ry);
-  parts.push("</svg>");
-  return parts.join("\n") + "\n";
 }
 
 /** data: URL for recycle flies / img fallbacks. */
