@@ -2736,6 +2736,11 @@ body.handbook-open {
   border-top: 1px solid var(--border);
 }
 
+.dossier-row-focus {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  border-top-color: var(--accent);
+}
+
 .dossier-row-main {
   display: flex;
   flex-direction: column;
