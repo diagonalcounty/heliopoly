@@ -7,6 +7,7 @@ import {
   assetSheetLine,
   bestBooksLine,
   buildDossierView,
+  chooseAuctionBid,
   claimEarnings,
   claimRoi,
   formatAuctionResult,
@@ -16,7 +17,7 @@ import {
 import { applyAction, getLegalActions, netWorth } from "./rules";
 import { createGame, currentPlayer } from "./state";
 import { teslaTargetClaims } from "./turnClock";
-import type { GameState } from "./types";
+import type { GameState, PendingAuction } from "./types";
 
 let failed = 0;
 function assert(cond: unknown, msg: string): void {
@@ -248,6 +249,160 @@ assert(elonReserve === 275, "Elon reserve is half of 550");
   const hits = teslaTargetClaims(s);
   assert(!hits.includes("io"), "Easy Tesla will not hit the human's Io");
   assert(hits.includes("europa"), "Easy Tesla can still hit an AI Europa");
+}
+
+function listing(
+  s: GameState,
+  seller: GameState["players"][number],
+  nodeId: string,
+  bids: Record<string, number> = {},
+): PendingAuction {
+  const list = s.board.nodes[nodeId]?.price ?? 0;
+  return {
+    sellerId: seller.id,
+    nodeId,
+    reserve: bankSellValue(list),
+    bids,
+    awaitingBidderId: s.players.find((p) => p.id !== seller.id)?.id ?? null,
+  };
+}
+
+{
+  const s = createGame({
+    playerCount: 4,
+    humanSeat: true,
+    humanName: "Venture",
+    seed: 11,
+    aiDifficulty: "normal",
+  });
+  grantClaim(s, s.players[0].id, "venus");
+  s.players[1].cash = 2000;
+  s.players[2].cash = 2000;
+  s.players[3].cash = 2000;
+  const floor = bankSellValue(500);
+  const auction = listing(s, s.players[0], "venus");
+  const open = chooseAuctionBid(s, s.players[1], auction, "normal");
+  assert(open > floor, `normal opens above floor on Venus (${open} > ${floor})`);
+  assert(
+    open >= floor + 1,
+    "normal fights a human reserve+1 snipe on Venus-class",
+  );
+  const snipe = listing(s, s.players[0], "venus", {
+    [s.players[2].id]: floor + 1,
+  });
+  const chase = chooseAuctionBid(s, s.players[1], snipe, "normal");
+  assert(
+    chase > floor + 1,
+    `normal beats an existing floor+1 bid on Venus (${chase} > ${floor + 1})`,
+  );
+  const easySame = chooseAuctionBid(s, s.players[1], auction, "easy");
+  assert(easySame === floor, "easy flush set-complete bids exactly the floor");
+  assert(open > easySame, "per-seat normal contests above easy on the same listing");
+}
+
+{
+  const s = createGame({
+    playerCount: 3,
+    humanSeat: true,
+    humanName: "Venture",
+    seed: 19,
+    aiDifficulty: "easy",
+  });
+  grantClaim(s, s.players[0].id, "mimas");
+  s.players[1].cash = 600;
+  const floor = bankSellValue(280);
+  const bid = chooseAuctionBid(s, s.players[1], listing(s, s.players[0], "mimas"), "easy");
+  assert(bid === 0, `easy passes junk Mimas (bid ${bid}, floor ${floor})`);
+}
+
+{
+  const s = createGame({
+    playerCount: 3,
+    humanSeat: true,
+    humanName: "Venture",
+    seed: 23,
+    aiDifficulty: "expert",
+  });
+  grantClaim(s, s.players[0].id, "elon");
+  grantClaim(s, s.players[0].id, "mars");
+  grantClaim(s, s.players[0].id, "phobos");
+  grantClaim(s, s.players[2].id, "deimos");
+  s.players[1].cash = 1800;
+  const floor = bankSellValue(250);
+  const snipe = listing(s, s.players[2], "deimos", {
+    [s.players[0].id]: floor + 1,
+  });
+  const bid = chooseAuctionBid(s, s.players[1], snipe, "expert");
+  assert(
+    bid > floor + 1,
+    `expert blocks monopoly-critical Deimos above floor+1 (${bid} > ${floor + 1})`,
+  );
+}
+
+{
+  const s = createGame({
+    playerCount: 4,
+    humanSeat: true,
+    humanName: "Venture",
+    seed: 40,
+    aiDifficulty: "normal",
+  });
+  grantClaim(s, s.players[1].id, "deimos");
+  s.players[2].cash = 350;
+  const floor = bankSellValue(250);
+  const snipe = listing(s, s.players[1], "deimos", {
+    [s.players[0].id]: 131,
+  });
+  const bid = chooseAuctionBid(s, s.players[2], snipe, "normal");
+  assert(
+    bid >= 131,
+    `normal contests human Deimos 131 without list+cushion cash (bid ${bid}, cash 350, floor ${floor})`,
+  );
+}
+
+{
+  const s = createGame({
+    playerCount: 4,
+    humanSeat: true,
+    humanName: "Venture",
+    seed: 41,
+    aiDifficulty: "normal",
+  });
+  grantClaim(s, s.players[1].id, "deimos");
+  s.players[2].cash = 800;
+  const snipe = listing(s, s.players[1], "deimos", {
+    [s.players[0].id]: 131,
+  });
+  const bid = chooseAuctionBid(s, s.players[2], snipe, "normal");
+  assert(
+    bid >= 131,
+    `normal contests human Deimos 131 even when junk (bid ${bid}, cash 800)`,
+  );
+}
+
+{
+  const s = createGame({
+    playerCount: 4,
+    humanSeat: true,
+    humanName: "Venture",
+    seed: 60,
+    aiDifficulty: "normal",
+  });
+  grantClaim(s, s.players[1].id, "daktulios");
+  s.players[2].cash = 700;
+  const floor = bankSellValue(800);
+  const snipe = listing(s, s.players[1], "daktulios", {
+    [s.players[0].id]: 405,
+  });
+  const bid = chooseAuctionBid(s, s.players[2], snipe, "normal");
+  assert(
+    bid >= 405,
+    `normal contests Daktulios standing 405 without list+cushion (bid ${bid}, cash 700, floor ${floor})`,
+  );
+  assert(
+    bid > 405,
+    `normal beats Daktulios 405 when liquidity and fairCap allow (${bid} > 405)`,
+  );
 }
 
 if (failed) {
