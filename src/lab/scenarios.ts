@@ -3,7 +3,7 @@
  * Not used in normal Launch flow.
  *
  * Menu UX: top-level **categories** expand to show items under them
- * (Which is larger? → numbering packs; Minigames → Gravity Duel; …).
+ * (Which is larger? → numbering packs; Minigames → most mature first).
  */
 import { grantClaim } from "../core/claimLedger";
 import { forceGravityDuel } from "../core/rules";
@@ -13,7 +13,7 @@ import type { GameState } from "../core/types";
 /**
  * Lab accordion categories (stable order for the menu).
  * `which-is-larger` = multi-script compare drills (#76; EA pack = #81).
- * `minigame` = other drills (e.g. single Gravity Duel entry).
+ * `minigame` = Lab drills, listed most mature first (egg-bot-evolution on top).
  */
 export type LabScenarioGroup = "which-is-larger" | "minigame" | "end" | "economy";
 
@@ -35,7 +35,7 @@ export const LAB_GROUP_BLURBS: Record<LabScenarioGroup, string> = {
   "which-is-larger":
     "Literacy drills: pick the larger of two numbers in a target numbering system.",
   minigame:
-    "Standalone practice modes (urinal-rule-parking, Backup fuel, Hull panel, Deseret letters, egg-bot-evolution, Gravity Duel).",
+    "Standalone practice modes (egg-bot-evolution, Gravity Duel, Deseret letters, Backup fuel, Hull panel, urinal-rule-parking).",
   end: "Canned end screens for UI / copy checks.",
   economy: "Economy and risk edge cases.",
 };
@@ -141,46 +141,7 @@ export const LAB_SCENARIOS: LabScenario[] = [
     standaloneId: "binary-compare",
   },
 
-  // —— Other minigames ——
-  {
-    id: "urinal-rule-parking",
-    title: "urinal-rule-parking",
-    blurb: "Circular pads. Tap an empty circle.",
-    group: "minigame",
-    kind: "standalone",
-    available: true,
-    standaloneId: "urinal-rule-parking",
-  },
-  {
-    id: "backup-fuel-pipes",
-    title: "Backup fuel",
-    blurb:
-      "Reroute backup fuel: rotate pipe segments on a 6×6 until tank feeds the engine. Untimed Lab practice; expedition stays put.",
-    group: "minigame",
-    kind: "standalone",
-    available: true,
-    standaloneId: "backup-fuel-pipes",
-  },
-  {
-    id: "hull-panel",
-    title: "Hull panel",
-    blurb:
-      "Slide numbered hull plates 1–8 back into order. Untimed Lab practice; expedition stays put.",
-    group: "minigame",
-    kind: "standalone",
-    available: true,
-    standaloneId: "hull-panel",
-  },
-  {
-    id: "deseret-match",
-    title: "Deseret letters",
-    blurb:
-      "Twelve Deseret capitals. Two Latin letters: pick the match. Eight of ten wins; misses show the answer.",
-    group: "minigame",
-    kind: "standalone",
-    available: true,
-    standaloneId: "deseret-match",
-  },
+  // —— Minigames, most mature first (menu order) ——
   {
     id: "egg-bot-evolution",
     title: "egg-bot-evolution",
@@ -206,6 +167,45 @@ export const LAB_SCENARIOS: LabScenario[] = [
       forceGravityDuel(s, you.id, ai.id, "belt2");
       return tagLab(s, `Duel ${you.name} (challenger) vs ${ai.name}`);
     },
+  },
+  {
+    id: "deseret-match",
+    title: "Deseret letters",
+    blurb:
+      "Twelve Deseret capitals. Two Latin letters: pick the match. Eight of ten wins; misses show the answer.",
+    group: "minigame",
+    kind: "standalone",
+    available: true,
+    standaloneId: "deseret-match",
+  },
+  {
+    id: "backup-fuel-pipes",
+    title: "Backup fuel",
+    blurb:
+      "Reroute backup fuel: rotate pipe segments on a 6×6 until tank feeds the engine. Untimed Lab practice; expedition stays put.",
+    group: "minigame",
+    kind: "standalone",
+    available: true,
+    standaloneId: "backup-fuel-pipes",
+  },
+  {
+    id: "hull-panel",
+    title: "Hull panel",
+    blurb:
+      "Slide numbered hull plates 1–8 back into order. Untimed Lab practice; expedition stays put.",
+    group: "minigame",
+    kind: "standalone",
+    available: true,
+    standaloneId: "hull-panel",
+  },
+  {
+    id: "urinal-rule-parking",
+    title: "urinal-rule-parking",
+    blurb: "Circular pads. Tap an empty circle.",
+    group: "minigame",
+    kind: "standalone",
+    available: true,
+    standaloneId: "urinal-rule-parking",
   },
   {
     id: "end-you-win",
