@@ -502,6 +502,7 @@ test.describe("phone Lab sheet #193", () => {
       });
     });
     expect(report.length, "minigame cards").toBeGreaterThanOrEqual(5);
+    expect(report[0]?.title, "most mature minigame first").toBe("egg-bot-evolution");
     for (const row of report) {
       expect(row.cardClips, `${row.title} card clips its copy`).toBe(false);
       expect(row.blurbClips, `${row.title} blurb clips`).toBe(false);
