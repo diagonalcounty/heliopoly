@@ -2,14 +2,30 @@
 # Build current tree and stage dist/ on the .live droplet for Sunday promote.
 # Does NOT write into /var/www/heliopoly (live). Only heliopoly-releases/.
 #
-# Usage (from Mac with deploy key):
-#   ./scripts/stage-release-for-live.sh 0.0.26 2026-08-16T00:01:00.000Z
+# Usage (from a machine with deploy key):
+#   ./scripts/stage-release-for-live.sh 1.3.0
+#   ./scripts/stage-release-for-live.sh 1.3.0 2026-09-13T00:01:00.000Z
+# Omit the ISO to compute the next Sunday 00:01 UTC (#231). A non-Sunday
+# timestamp is rejected unless HELIOPOLY_UNLOCK_FORCE=1.
 set -euo pipefail
 
-VERSION="${1:?version e.g. 0.0.26}"
-ENABLED_AFTER="${2:?ISO unlock e.g. 2026-08-16T00:01:00.000Z}"
+VERSION="${1:?version e.g. 1.3.0}"
+ENABLED_AFTER="${2:-}"
 # shellcheck disable=SC1091
 source "$(cd "$(dirname "$0")" && pwd)/deploy-common.sh"
+UNLOCK_PY="$REPO_ROOT/scripts/sunday-unlock.py"
+if [[ -z "$ENABLED_AFTER" ]]; then
+  ENABLED_AFTER="$(python3 "$UNLOCK_PY" next)"
+  echo "→ unlock (next Sunday 00:01 UTC): ${ENABLED_AFTER}"
+elif python3 "$UNLOCK_PY" validate "$ENABLED_AFTER"; then
+  :
+elif [[ "${HELIOPOLY_UNLOCK_FORCE:-}" == "1" ]]; then
+  echo "WARN: ${ENABLED_AFTER} is not Sunday 00:01 UTC; staging anyway (HELIOPOLY_UNLOCK_FORCE=1)" >&2
+else
+  echo "ERROR: enabledAfter must be Sunday 00:01 UTC (got ${ENABLED_AFTER})." >&2
+  echo "Omit the ISO to auto-compute, or set HELIOPOLY_UNLOCK_FORCE=1." >&2
+  exit 1
+fi
 REMOTE_RELEASES=/var/www/heliopoly-releases
 REMOTE_VER="${REMOTE_RELEASES}/${VERSION}"
 
@@ -45,17 +61,7 @@ echo "$PREVIEW_BANNER" | "${SSH[@]}" "$DEPLOY_TARGET" "cat > /etc/nginx/snippets
 "${SSH[@]}" "$DEPLOY_TARGET" "nginx -t && systemctl reload nginx"
 
 
-echo "→ install promote script + weekly cron (idempotent)"
-# Do not rsync -a into /etc/cron.d — archive mode preserves the Mac uid
-# (501:staff). Debian cron then rejects the file: WRONG FILE OWNER.
-rsync -vz --no-owner --no-group --no-perms -e "$RSYNC_RSH" \
-  scripts/heliopoly-promote-next.sh \
-  "${DEPLOY_TARGET}:/usr/local/bin/heliopoly-promote-next"
-"${SSH[@]}" "$DEPLOY_TARGET" "chown root:root /usr/local/bin/heliopoly-promote-next && chmod 755 /usr/local/bin/heliopoly-promote-next"
-rsync -vz --no-owner --no-group --no-perms -e "$RSYNC_RSH" \
-  scripts/heliopoly-promote.cron \
-  "${DEPLOY_TARGET}:/etc/cron.d/heliopoly-promote"
-"${SSH[@]}" "$DEPLOY_TARGET" "chown root:root /etc/cron.d/heliopoly-promote && chmod 644 /etc/cron.d/heliopoly-promote"
+heliopoly_install_promote_cron
 
 echo "→ verify stage (live web root unchanged)"
 "${SSH[@]}" "$DEPLOY_TARGET" "python3 - <<'PY'
@@ -69,4 +75,4 @@ PY
 grep -oE '[0-9]+\\.[0-9]+\\.[0-9]+' /var/www/heliopoly/index.html | head -1
 "
 
-echo "OK: ${VERSION} staged; live promotes at ${ENABLED_AFTER} via droplet cron (Sunday 00:01 UTC)."
+echo "OK: ${VERSION} staged; live promotes at ${ENABLED_AFTER} via droplet daily 00:01 UTC cron (enabledAfter is the gate)."

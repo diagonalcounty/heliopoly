@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Build current tree and rsync dist/ to heliopoly.live immediately.
 # Does not wait for Sunday cron. Sunday stage path:
-#   ./scripts/stage-release-for-live.sh <version> <enabledAfter>
+#   ./scripts/stage-release-for-live.sh <version> [enabledAfter]
 #
 # Usage (from repo root or this script's dir):
 #   ./scripts/deploy-live.sh
@@ -72,6 +72,11 @@ rsync -avz --delete -e "$RSYNC_RSH" \
   --exclude 'logs/' \
   --exclude '.promote-lock' \
   dist/ "${DEPLOY_TARGET}:${LIVE_ROOT}/"
+
+PKG_VERSION="$(python3 -c 'import json; print(json.load(open("package.json"))["version"])')"
+heliopoly_install_promote_cron
+echo "→ retire pending.json so a far-future stage cannot overwrite this ship (#231)"
+heliopoly_retire_pending_after_live "$PKG_VERSION" "deploy-live.sh issue 231"
 
 echo "→ verify ${LIVE_URL}"
 html="$(curl -fsS -H 'Cache-Control: no-cache' "$LIVE_URL")"

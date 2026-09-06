@@ -1,8 +1,12 @@
 # Changelog
 
-## [1.3.0] — 2026-09-07
+## [1.3.0] — 2026-09-06
 
-Weekly **https://heliopoly.live/** promote at **Sunday 00:01 UTC** (`2026-09-07T00:01:00.000Z`). Preview, simulation, localhost, and iOS show **1.3.0** now. Live stays on 1.1.0 until that window.
+**https://heliopoly.live/** is **1.3.0** as of **2026-09-06** (break-glass after #231). Preview / iOS were already 1.3.0.
+
+The 2026-09-06 00:01 UTC cron **did run** and skipped: droplet `pending.json` had `enabledAfter: 2026-12-31T00:01:00.000Z` (Thursday), so Mode B would have waited until year-end. `stage-release-for-live.sh` now computes the next Sunday 00:01 UTC (rejects non-Sunday timestamps). Droplet cron is **daily** 00:01 UTC; `enabledAfter` is the gate. `deploy-live.sh` retires `pending.json` so a far-future pending cannot overwrite a live ship.
+
+(CHANGELOG previously labeled the unlock `2026-09-07T00:01:00.000Z` as “Sunday”; that date is Monday, and it was not what the droplet actually had.)
 
 ### Play / UX
 - **Phone play sheet:** Lab, Book, thumbs, Gravity Duel, auction Bid/Pass, and end-screen Rematch / New Game fit 390×844 and receive the tap.

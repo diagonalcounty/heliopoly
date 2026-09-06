@@ -18,8 +18,8 @@
 #   install -o root -g root -m 644 scripts/heliopoly-promote.cron /etc/cron.d/heliopoly-promote
 #   # cron.d files MUST be root:root — Debian cron rejects any other owner.
 #
-# Cron runs at Sunday 00:01 UTC. Script no-ops if pending is missing, already
-# promoted, or now < enabledAfter (safety if cron fires early).
+# Cron runs daily 00:01 UTC (#231). Script no-ops if pending is missing or
+# now < enabledAfter. enabledAfter is the unlock gate (prefer Sunday 00:01 UTC).
 set -euo pipefail
 
 RELEASES_ROOT="${HELIOPOLY_RELEASES_ROOT:-/var/www/heliopoly-releases}"
@@ -64,6 +64,17 @@ PY
 if (( NOW_EPOCH < UNLOCK_EPOCH )); then
   log "pending ${VERSION} not yet unlocked (enabledAfter=${ENABLED_AFTER}, now=${STAMP_UTC}) — skip"
   exit 0
+fi
+
+UNLOCK_WEEKDAY="$(python3 - <<PY
+from datetime import datetime, timezone
+s = "${ENABLED_AFTER}".replace("Z", "+00:00")
+dt = datetime.fromisoformat(s).astimezone(timezone.utc)
+print("Sunday" if dt.weekday() == 6 and dt.hour == 0 and dt.minute == 1 else dt.strftime("%A %H:%M"))
+PY
+)"
+if [[ "$UNLOCK_WEEKDAY" != "Sunday" ]]; then
+  log "WARN: enabledAfter=${ENABLED_AFTER} is ${UNLOCK_WEEKDAY} UTC, not Sunday 00:01 (#231); promoting because now>=unlock"
 fi
 
 log "promoting ${VERSION} → ${LIVE_ROOT} (enabledAfter=${ENABLED_AFTER})"

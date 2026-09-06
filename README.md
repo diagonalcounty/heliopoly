@@ -30,7 +30,7 @@ In-game **Helios Ops Manual** (top right) has the full rules, glossary (turn / r
 
 | | |
 |--|--|
-| **Live** | https://heliopoly.live/ (Sunday 00:01 UTC unlock — #98) |
+| **Live** | https://heliopoly.live/ (Sunday 00:01 UTC unlock — #98 / #231) |
 | **Preview** | https://preview.heliopoly.live/ (next Sunday’s staged game — #134) |
 | **Simulation** | https://simulation.heliopoly.live/ (Sim Lab — #91 / #134) |
 | **Local** | `npm install && npm run dev` → http://localhost:5173/ |
