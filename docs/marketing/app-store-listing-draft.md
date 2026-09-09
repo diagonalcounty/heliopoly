@@ -34,11 +34,27 @@ Then keep scrubbed HOW AN EXPEDITION FEELS / PLAY YOUR WAY / OFFLINE blocks from
 
 At least one caption or in-frame UI shows `⍼` amounts.
 
-## Line bank (not promo)
+## Unique-aspect bullets (description body)
 
-From Jacob — use in description body or caption; **do not** replace P1 without an explicit promo swap (see WHY §5):
+**Why:** see WHY §5 — quirky specifics, not feature laundry. Promo stays P1 (Angzarr only).
 
-> As of 2026 this is the only space game where a rogue tesla can crash into your property and destroy your fuel pods.
+**Proposed block** (place after opener, before or instead of a trimmed HOW AN EXPEDITION FEELS):
+
+```
+ONLY ON THE MAINLINE
+• As of 2026, the only space game where a rogue Tesla can crash into your property and destroy your fuel pods
+• Currency is Angzarr (⍼) — every buy, rent, and duel hits the Automated Interplanetary Asset Ledger
+• Land free; leaving a gravity well costs propellant (CH₄ stable, H₂ cheaper but can leak)
+• Park too long and claims can go feral back to the bank
+• Meet on a blank lane → Gravity Duel (secret Low/High, 2d6)
+• Hub stations can move — that’s why a rogue Tesla never hits Elon, Holst, or Daktulios
+• Last rocket flying wins. No timer. No “enough Angzarr.”
+```
+
+**Trim options if too long:** drop hub/Tesla pairing to one Tesla bullet; keep Angzarr + win condition + one fuel + one feral or duel.
+
+**Not in this list:** offline, iPhone/iPad, AI difficulty packs (those stay in PLAY YOUR WAY / OFFLINE).
+
 
 ## Acceptance (#232)
 
@@ -46,6 +62,7 @@ From Jacob — use in description body or caption; **do not** replace P1 without
 - [x] Promo P1 locked — single Angzarr pitch (reason: WHY §1)
 - [x] Opener Helios + currency (reason: WHY §1)
 - [x] No public homeschool claim (reason: WHY §2)
+- [ ] Unique-aspect bullet block in description (WHY §5)
 - [ ] Screenshot shows `⍼`
 - [x] Price $3.99
 - [ ] ASC patch after Jacob says go (Steve)
