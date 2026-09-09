@@ -81,13 +81,13 @@ Implementation after approval:
 “As of 2026 this is the only space game where a rogue tesla can crash into your property and destroy your fuel pods.”
 
 **Bullet craft rules:**
-1. True in the rules / fiction (no invented features)
-2. Specific — names a Mainline thing (Tesla, Angzarr, AIL, Gravity Duel, feral claims)
-3. One joke or quirk per bullet; rest can be deadpan
-4. Cap ~5–7 bullets so the list stays scannable
-5. Logistics (offline, iPhone & iPad) stay in a separate OFFLINE / PLAY YOUR WAY block — not mixed into the quirky list
+1. **Marketing first** — punchy, sellable, clerk-gossip energy. Not a rules summary.
+2. **Facts only loosely align** — grounded enough that App Review / players won’t call bluff, but not “Land free; leaving costs propellant (CH₄…)” cheat-sheet tone.
+3. Specific Mainline nouns OK (Tesla, Angzarr, Gravity Duel) when they *sound* like a pitch, not a glossary.
+4. One quirk per bullet; cap ~5–7; scannable.
+5. Logistics (offline, iPhone & iPad) stay in a separate OFFLINE / PLAY YOUR WAY block.
 
-**Rejected:** “Immersive strategy gameplay”; “Hours of fun”; naming homeschool/pods in public bullets
+**Rejected:** Feature laundry; rulebook bullets; “Immersive strategy”; homeschool/pods in public copy; stacking extra promo-style “the only…” headers on top of P1 without intent.
 
 ## Change log (reasons)
 
