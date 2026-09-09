@@ -67,6 +67,24 @@ Implementation after approval:
 
 ---
 
+---
+
+## 5. Rogue Tesla line (banked 2026-09-09)
+
+**Jacob line:**  
+“As of 2026 this is the only space game where a rogue tesla can crash into your property and destroy your fuel pods.”
+
+**Why it works:** Diegetic, specific, funny without explaining the joke. It points at a real Mainline hazard (rogue Tesla vs fuel pods on moons — hubs are safe because stations can move). Sounds like clerk gossip, not a feature bullet.
+
+**Constraint:** Store promo already spent the one sharp “only …” on Angzarr (P1). Comp lesson from #232: **one** “only game that…” in the hook. Do not stack two “only” claims in subtitle + promo.
+
+**Where it should live (default):**
+- **Description body** or screenshot caption — yes
+- **Promo** — only if we deliberately retire P1 later
+- **Ops Manual / event copy** — natural home if the event already teaches the rule
+
+**Rejected use:** Second promo that also opens with “the only…”
+
 ## Change log (reasons)
 
 | When | What we learned |
@@ -76,3 +94,4 @@ Implementation after approval:
 | 2026-09-09 review | Subtitle A best; Helios in opener; currency not money |
 | 2026-09-09 review | Angzarr = post-quantum digital currency |
 | 2026-09-09 chat | Promo P1 locked (Angzarr-only) |
+| 2026-09-09 chat | Banked rogue-Tesla “only” line for description/Ops — do not stack with P1 |
