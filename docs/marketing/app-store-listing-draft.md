@@ -45,12 +45,12 @@ ONLY ON THE MAINLINE
 • As of 2026, the only space game where a rogue Tesla can trash your fuel pods
 • Trade in Angzarr (⍼) — the ledger remembers every bad decision
 • Bring enough propellant, or become a very expensive monument
-• Linger and the bank may reclaim what you thought you owned
+• The only space game where “feral” doesn’t just apply to cats
 • Blank lane? Gravity Duel. Smile for the 2d6.
 • Last rocket flying. No timer. The cosmos does not care about your schedule.
 ```
 
-**Under the hood (staff only — do not paste into ASC):** Tesla↔pods; Angzarr/AIL; leave-fuel / H₂ leak; feral claims; Gravity Duel; last-rocket win. Marketing lines above are looser on purpose.
+**Under the hood (staff only — do not paste into ASC):** Tesla↔pods; Angzarr/AIL; leave-fuel; feral claims (park too long); Gravity Duel; last-rocket win. Marketing lines above are looser on purpose.
 
 **Still separate:** OFFLINE / iPhone & iPad / PLAY YOUR WAY logistics block.
 
