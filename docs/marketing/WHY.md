@@ -69,21 +69,25 @@ Implementation after approval:
 
 ---
 
-## 5. Rogue Tesla line (banked 2026-09-09)
+## 5. Description bullets: unique Mainline facts (not a feature laundry)
 
-**Jacob line:**  
+**Direction (Jacob, 2026-09-09):** After the opener, use a short bullet list that highlights **unique** aspects of the game — the weird true things — not “• Strategy • Offline • Multiplayer.”
+
+**Why:** Feature laundry is generic board-game puffery. Quirky specificity sells Heliopoly (Angzarr, rogue Tesla, feral claims, Gravity Duel) the way a clerk would gossip, not the way a store template fills fields.
+
+**Constraint on “only …”:** Promo P1 already spent the sharp store-hook “only” on Angzarr. Bullets may still be specific and funny; prefer diegetic statements over stacking more “the only game that…” headers. One Tesla-style “as of 2026 / only space game…” line in the *bullet block* is fine; don’t also open promo with a second “only.”
+
+**Seed line (Jacob):**  
 “As of 2026 this is the only space game where a rogue tesla can crash into your property and destroy your fuel pods.”
 
-**Why it works:** Diegetic, specific, funny without explaining the joke. It points at a real Mainline hazard (rogue Tesla vs fuel pods on moons — hubs are safe because stations can move). Sounds like clerk gossip, not a feature bullet.
+**Bullet craft rules:**
+1. True in the rules / fiction (no invented features)
+2. Specific — names a Mainline thing (Tesla, Angzarr, AIL, Gravity Duel, feral claims)
+3. One joke or quirk per bullet; rest can be deadpan
+4. Cap ~5–7 bullets so the list stays scannable
+5. Logistics (offline, iPhone & iPad) stay in a separate OFFLINE / PLAY YOUR WAY block — not mixed into the quirky list
 
-**Constraint:** Store promo already spent the one sharp “only …” on Angzarr (P1). Comp lesson from #232: **one** “only game that…” in the hook. Do not stack two “only” claims in subtitle + promo.
-
-**Where it should live (default):**
-- **Description body** or screenshot caption — yes
-- **Promo** — only if we deliberately retire P1 later
-- **Ops Manual / event copy** — natural home if the event already teaches the rule
-
-**Rejected use:** Second promo that also opens with “the only…”
+**Rejected:** “Immersive strategy gameplay”; “Hours of fun”; naming homeschool/pods in public bullets
 
 ## Change log (reasons)
 
@@ -95,3 +99,4 @@ Implementation after approval:
 | 2026-09-09 review | Angzarr = post-quantum digital currency |
 | 2026-09-09 chat | Promo P1 locked (Angzarr-only) |
 | 2026-09-09 chat | Banked rogue-Tesla “only” line for description/Ops — do not stack with P1 |
+| 2026-09-09 chat | Unique-aspect bullets in description (Tesla-class lines); not feature laundry |
