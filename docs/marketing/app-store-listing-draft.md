@@ -36,24 +36,23 @@ At least one caption or in-frame UI shows `⍼` amounts.
 
 ## Unique-aspect bullets (description body)
 
-**Why:** see WHY §5 — quirky specifics, not feature laundry. Promo stays P1 (Angzarr only).
+**Why:** see WHY §5 — marketing voice; facts only loosely align. Not a rules cheat sheet. Promo stays P1.
 
-**Proposed block** (place after opener, before or instead of a trimmed HOW AN EXPEDITION FEELS):
+**Proposed block** (after opener):
 
 ```
 ONLY ON THE MAINLINE
-• As of 2026, the only space game where a rogue Tesla can crash into your property and destroy your fuel pods
-• Currency is Angzarr (⍼) — every buy, rent, and duel hits the Automated Interplanetary Asset Ledger
-• Land free; leaving a gravity well costs propellant (CH₄ stable, H₂ cheaper but can leak)
-• Park too long and claims can go feral back to the bank
-• Meet on a blank lane → Gravity Duel (secret Low/High, 2d6)
-• Hub stations can move — that’s why a rogue Tesla never hits Elon, Holst, or Daktulios
-• Last rocket flying wins. No timer. No “enough Angzarr.”
+• As of 2026, the only space game where a rogue Tesla can trash your fuel pods
+• Trade in Angzarr (⍼) — the ledger remembers every bad decision
+• Bring enough propellant, or become a very expensive monument
+• Linger and the bank may reclaim what you thought you owned
+• Blank lane? Gravity Duel. Smile for the 2d6.
+• Last rocket flying. No timer. The cosmos does not care about your schedule.
 ```
 
-**Trim options if too long:** drop hub/Tesla pairing to one Tesla bullet; keep Angzarr + win condition + one fuel + one feral or duel.
+**Under the hood (staff only — do not paste into ASC):** Tesla↔pods; Angzarr/AIL; leave-fuel / H₂ leak; feral claims; Gravity Duel; last-rocket win. Marketing lines above are looser on purpose.
 
-**Not in this list:** offline, iPhone/iPad, AI difficulty packs (those stay in PLAY YOUR WAY / OFFLINE).
+**Still separate:** OFFLINE / iPhone & iPad / PLAY YOUR WAY logistics block.
 
 
 ## Acceptance (#232)
