@@ -34,6 +34,12 @@ Then keep scrubbed HOW AN EXPEDITION FEELS / PLAY YOUR WAY / OFFLINE blocks from
 
 At least one caption or in-frame UI shows `⍼` amounts.
 
+## Line bank (not promo)
+
+From Jacob — use in description body or caption; **do not** replace P1 without an explicit promo swap (see WHY §5):
+
+> As of 2026 this is the only space game where a rogue tesla can crash into your property and destroy your fuel pods.
+
 ## Acceptance (#232)
 
 - [x] Subtitle A locked (reason: WHY §1)
