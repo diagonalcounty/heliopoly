@@ -100,3 +100,4 @@ Implementation after approval:
 | 2026-09-09 chat | Promo P1 locked (Angzarr-only) |
 | 2026-09-09 chat | Banked rogue-Tesla “only” line for description/Ops — do not stack with P1 |
 | 2026-09-09 chat | Unique-aspect bullets in description (Tesla-class lines); not feature laundry |
+| 2026-09-09 chat | Feral bullet: only space game where “feral” doesn’t just apply to cats |
