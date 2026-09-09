@@ -1,22 +1,10 @@
 # Ops Manual clerk voice draft (#233)
 
-**Source of truth today:** `src/handbook/content.ts` (HTML strings).  
-**This file:** rewrite samples only — do not paste into code until Jacob HITL + preview.heliopoly.live.
+**Read [WHY.md](./WHY.md) §3 first.** Samples below follow those principles; they are not code yet.
 
-## Voice principles (must pass)
+Source today: `src/handbook/content.ts`. Stage to preview.heliopoly.live before Done.
 
-1. Diegetic first — could be stamped RECEIVED  
-2. Deadpan, never cute — understatement; no exclamation piles  
-3. Invented terms as normal — Angzarr / Ops / insolvency without “fun currency!”  
-4. One quirk per screen  
-5. Second person = job role — “You will file…” not “Have fun!”  
-6. Ban puffery — immersive, epic, addictive, revolutionary  
-
-First Angzarr mention: **Angzarr (⍼)** once; later glyph-primary OK.
-
-## Decision log (from PR review 2026-09-09)
-
-- Angzarr line: **Angzarr is post-quantum digital currency. It still requires a ledger.**
+**Locked Angzarr line:** Angzarr is post-quantum digital currency. It still requires a ledger. (WHY §3)
 
 ---
 
@@ -77,12 +65,8 @@ First Angzarr mention: **Angzarr (⍼)** once; later glyph-primary OK.
 
 ---
 
-## Acceptance checklist (#233)
+## Acceptance (#233)
 
-- [ ] Read this first + ≥3 high-traffic chapters in clerk voice  
-- [x] First Angzarr = Angzarr (⍼); “post-quantum digital currency” wording locked  
-- [ ] No competing jokes on same panel  
-- [ ] Rules still correct  
-- [ ] Version string matches ship (1.3.0+)  
-- [ ] Staged to preview.heliopoly.live before Done  
-- [ ] Jacob HITL: clerk, not teacher app  
+- [ ] Samples approved as direction (not pixel-perfect)
+- [x] Angzarr = post-quantum digital currency (WHY §3)
+- [ ] Follow-up PR → preview.heliopoly.live HITL
