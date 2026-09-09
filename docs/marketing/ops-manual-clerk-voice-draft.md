@@ -14,13 +14,13 @@
 
 First Angzarr mention: **Angzarr (⍼)** once; later glyph-primary OK.
 
+## Decision log (from PR review 2026-09-09)
+
+- Angzarr line: **Angzarr is post-quantum digital currency. It still requires a ledger.**
+
 ---
 
 ## “Read this first” — draft
-
-**Current (summary):** Orbital Economics 1.3.0; fly rocket / buy claims / don’t go broke; ledger as contract + history; last rocket; Esc to close.
-
-**Proposed:**
 
 > **HELIOPOLY — ORBITAL ECONOMICS**  
 > Version 1.3.0. Filed for flight crews.
@@ -34,17 +34,13 @@ First Angzarr mention: **Angzarr (⍼)** once; later glyph-primary OK.
 > Source: github.com/diagonalcounty/heliopoly  
 > Close this manual with Esc, ✕, or the dim backdrop.
 
-*(One quirk: “greatest of all kind” — keep; rest procedural.)*
-
 ---
 
 ## “The ledger & Angzarr (⍼)” — draft
 
-**Proposed:**
-
 > On old Earth, public ledgers recorded who paid whom. Those books did not survive quantum machines.
 >
-> Currency on the Mainline is **Angzarr (⍼)**. You will see **⍼** before the amount (example: ⍼150). Angzarr is post-quantum settlement. It still requires a ledger.
+> Currency on the Mainline is **Angzarr (⍼)**. You will see **⍼** before the amount (example: ⍼150). Angzarr is post-quantum digital currency. It still requires a ledger.
 >
 > The book is the **AIL** — Automated Interplanetary Asset Ledger. It records:
 >
@@ -57,8 +53,6 @@ First Angzarr mention: **Angzarr (⍼)** once; later glyph-primary OK.
 
 ## “The Mainline” — draft
 
-**Proposed:**
-
 > Rockets fly one path. That path is the **Mainline**. You do not select a shortcut.
 >
 > Circuit order: Earth → Venus → Mercury → Mars system (Elon, Mars, Phobos, Deimos) → asteroid belt blanks → Jupiter (Holst + moons) → Saturn (Daktulios + moons) → home to Earth.
@@ -70,8 +64,6 @@ First Angzarr mention: **Angzarr (⍼)** once; later glyph-primary OK.
 ---
 
 ## “How to win” — draft
-
-**Proposed:**
 
 > **Last rocket flying wins.** Others exit by bankruptcy, stranding, or abandonment.
 >
@@ -88,14 +80,9 @@ First Angzarr mention: **Angzarr (⍼)** once; later glyph-primary OK.
 ## Acceptance checklist (#233)
 
 - [ ] Read this first + ≥3 high-traffic chapters in clerk voice  
-- [ ] First Angzarr = Angzarr (⍼); later glyph OK  
+- [x] First Angzarr = Angzarr (⍼); “post-quantum digital currency” wording locked  
 - [ ] No competing jokes on same panel  
-- [ ] Rules still correct (buy / leave / refuel without out-of-band help)  
+- [ ] Rules still correct  
 - [ ] Version string matches ship (1.3.0+)  
 - [ ] Staged to preview.heliopoly.live before Done  
 - [ ] Jacob HITL: clerk, not teacher app  
-
-## Decision log (Jacob)
-
-- Keep “greatest of all kind”: yes / no  
-- Tone too stiff / too soft: _pending_
