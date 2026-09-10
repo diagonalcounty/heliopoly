@@ -715,12 +715,21 @@ function waitForAnnouncementDismiss(): Promise<void> {
   });
 }
 
+function tableIsAllAi(s: GameState): boolean {
+  return s.players.every((p) => p.agent === "ai");
+}
+
 async function presentAnnouncementIfAny(s: GameState): Promise<GameState> {
   if (!s.pendingAnnouncement) return s;
   state = s;
   render();
   if (showAnnouncement(s)) {
-    await waitForAnnouncementDismiss();
+    if (tableIsAllAi(s)) {
+      await sleep(700);
+      hideAnnouncement();
+    } else {
+      await waitForAnnouncementDismiss();
+    }
   }
   return state ?? s;
 }
@@ -1221,7 +1230,12 @@ async function presentNewDuelResult(
   state = after;
   render();
   await maybeShowDuelResult(after);
-  await waitForDuelResultDismiss();
+  if (tableIsAllAi(after)) {
+    await sleep(700);
+    hideDuelResultSplash();
+  } else {
+    await waitForDuelResultDismiss();
+  }
   // hideDuelResultSplash nulls state.lastDuelResult; never re-hand callers a stale result
   const cleared: GameState = {
     ...(state ?? after),
@@ -1367,7 +1381,9 @@ async function applyActionAnimated(
 async function runAiUntilHumanOrEnd(s: GameState): Promise<GameState> {
   let cur = s;
   let guard = 0;
-  while (guard++ < 600 && cur.phase !== "game_over") {
+  const allAi = tableIsAllAi(s);
+  const maxSteps = allAi ? 8000 : 600;
+  while (guard++ < maxSteps && cur.phase !== "game_over") {
     const preResolve = cur;
     cur = resolveDuelAiFully(cur);
     cur = await presentNewDuelResult(preResolve, cur);

@@ -891,14 +891,16 @@ export function buildDossierView(
   };
 }
 
+/** Player-facing book so far: mark + income, not ROI%. */
+export function formatBookLine(row: DossierClaimRow): string {
+  const mark = row.bankValue;
+  const income = row.earnings;
+  return `book ${formatMoney(mark + income)} (mark ${formatMoney(mark)} + income ${formatMoney(income)})`;
+}
+
+/** @deprecated ROI% copy — kept for any leftover call sites. Prefer formatBookLine. */
 export function formatRoiLine(row: DossierClaimRow): string {
-  if (row.cashInvested <= 0) {
-    return row.earnings > 0
-      ? `no cash in · ${formatMoney(row.earnings)} earned`
-      : "no cash in";
-  }
-  const pct = Math.round((row.earnings / row.cashInvested) * 100);
-  return `${pct}% recovered (${formatMoney(row.earnings)} / ${formatMoney(row.cashInvested)})`;
+  return formatBookLine(row);
 }
 
 export function hubNetworkLabel(hubCount: number): string {

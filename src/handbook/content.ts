@@ -423,9 +423,9 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
   },
   {
     id: "claims-ledger",
-    title: "Dossier, ROI & selling",
+    title: "Dossier, mark & income",
     html: `
-<p>Click a rocket on <strong>On the ledger</strong> — name, cash, fuel, claims, anywhere on that seat’s row — to open its <strong>dossier</strong>. You get cash, fuel, claims grouped by system, current rent, and how much each claim has earned this owner (rent + fuel strikes vs cash you put in).</p>
+<p>Click a rocket on <strong>On the ledger</strong> — name, cash, fuel, claims, anywhere on that seat’s row — to open its <strong>dossier</strong>. Each held claim is an asset: <strong>mark</strong> is what the bank pays on a dump (half the sticker; depot scrapped). <strong>MSRP</strong> is the bank sticker to claim an unowned body, not what your Venus is worth. <strong>Income</strong> is rent + fuel strikes while this rocket held the book. Earth land/pass cash is investor capital, not property income.</p>
 <p>Rival dossiers are public. The board already shows who owns what; the dossier is the books.</p>
 <p>When the ledger closes, the winning story names up to three held claims by <strong>mark + income</strong> (bank half plus rent and strikes this owner). Sold or lost books drop off. Gifts and steals still count — they have a mark even with no cash in.</p>
 <h3>Sell</h3>

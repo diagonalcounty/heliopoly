@@ -6,6 +6,7 @@ import {
   bankSellValue,
   assetSheetLine,
   bestBooksLine,
+  formatBookLine,
   buildDossierView,
   chooseAuctionBid,
   claimEarnings,
@@ -14,6 +15,7 @@ import {
   grantClaim,
   tryConsumeLandingRight,
 } from "./claimLedger";
+import { formatMoney } from "./currency";
 import { applyAction, getLegalActions, netWorth } from "./rules";
 import { createGame, currentPlayer } from "./state";
 import { teslaTargetClaims } from "./turnClock";
@@ -72,6 +74,14 @@ assert(elonReserve === 275, "Elon reserve is half of 550");
   const rival = buildDossierView(s, s.players[1].id, netWorth);
   assert(rival && !rival.canSell, "Rival dossier is read-only");
   assert(rival && rival.groups.some((g) => g.rows.some((r) => r.nodeId === "mars" && r.hasDepot)), "Rival Mars shows depot");
+  const elonRow = view!.groups.flatMap((g) => g.rows).find((r) => r.nodeId === "elon");
+  assert(elonRow && elonRow.bankValue === 275, "Elon mark is bank half");
+  assert(
+    !!elonRow &&
+      formatBookLine(elonRow) ===
+        `book ${formatMoney(675)} (mark ${formatMoney(275)} + income ${formatMoney(400)})`,
+    `dossier book line is mark + income (${elonRow ? formatBookLine(elonRow) : "missing"})`,
+  );
 }
 
 {

@@ -3011,8 +3011,14 @@ body.handbook-open {
   flex: 1;
 }
 
+.dossier-row-mark {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
 .dossier-row-sub,
-.dossier-row-roi {
+.dossier-row-book {
   font-size: 0.8rem;
   color: var(--muted, #9aa7c2);
 }
@@ -6326,8 +6332,8 @@ button:not(:disabled):active {
     padding-bottom: max(16px, var(--sab));
   }
 
-  #dossier-root:not(.hidden) .dossier-row-roi {
-    display: none;
+  #dossier-root:not(.hidden) .dossier-row-book {
+    display: block;
   }
 
   #announce-root:not(.hidden) .announce-card,
