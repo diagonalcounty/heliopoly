@@ -188,7 +188,10 @@ export function playOneGame(opts: {
       continue;
     }
     if (state.pendingAuction) {
-      state = resolveAuctionIfAi(state);
+      state = resolveAuctionIfAi(state, (id) => {
+        const i = state.players.findIndex((p) => p.id === id);
+        return i >= 0 ? diffs[i] : undefined;
+      });
       turns++;
       continue;
     }

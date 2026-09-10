@@ -52,6 +52,7 @@ import {
   tickSeatTurn,
 } from "./turnClock";
 import type {
+  AiDifficulty,
   DuelStance,
   GameState,
   LastRoll,
@@ -1680,7 +1681,10 @@ function resolveAuction(state: GameState): void {
   };
 }
 
-function autoResolveAuctionAi(state: GameState): void {
+function autoResolveAuctionAi(
+  state: GameState,
+  difficultyForSeat?: (playerId: string) => AiDifficulty | undefined,
+): void {
   let guard = 0;
   while (state.pendingAuction && guard++ < 16) {
     const id = state.pendingAuction.awaitingBidderId;
@@ -1699,15 +1703,23 @@ function autoResolveAuctionAi(state: GameState): void {
       continue;
     }
     if (bidder.agent === "human") return;
-    const amount = chooseAuctionBid(state, bidder, state.pendingAuction);
+    const amount = chooseAuctionBid(
+      state,
+      bidder,
+      state.pendingAuction,
+      difficultyForSeat?.(bidder.id),
+    );
     applyAuctionBid(state, bidder.id, amount);
   }
 }
 
 /** Clone + fill AI auction bids / resolve if no human is waiting. */
-export function resolveAuctionIfAi(state: GameState): GameState {
+export function resolveAuctionIfAi(
+  state: GameState,
+  difficultyForSeat?: (playerId: string) => AiDifficulty | undefined,
+): GameState {
   const next = cloneState(state);
-  autoResolveAuctionAi(next);
+  autoResolveAuctionAi(next, difficultyForSeat);
   return next;
 }
 
