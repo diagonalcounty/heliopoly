@@ -427,7 +427,7 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     html: `
 <p>Click a rocket on <strong>On the ledger</strong> — name, cash, fuel, claims, anywhere on that seat’s row — to open its <strong>dossier</strong>. Each held claim is an asset: <strong>mark</strong> is what the bank pays on a dump (half the sticker; depot scrapped). <strong>MSRP</strong> is the bank sticker to claim an unowned body, not what your Venus is worth. <strong>Income</strong> is rent + fuel strikes while this rocket held the book. Earth land/pass cash is investor capital, not property income.</p>
 <p>Rival dossiers are public. The board already shows who owns what; the dossier is the books.</p>
-<p>When the ledger closes, the winning story names up to three held claims by <strong>mark + income</strong> (bank half plus rent and strikes this owner). Sold or lost books drop off. Gifts and steals still count — they have a mark even with no cash in.</p>
+<p>When the ledger closes, the winning card shows a short <strong>held books</strong> table: Claim · Mark · Income · Book (mark + income). Sold or lost books drop off. Gifts and steals still count — they have a mark even with no cash in.</p>
 <h3>Sell</h3>
 <p>Sell for <strong>half the deed price</strong>. The claim goes unowned. Any <strong>depot is scrapped</strong>. Use this when you would rather the body sit empty than go to a rival.</p>
 <h3>Auction</h3>

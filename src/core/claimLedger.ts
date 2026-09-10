@@ -193,19 +193,25 @@ export function claimBookValue(book: ClaimBook): number {
   return claimMark(book) + claimEarnings(book);
 }
 
+export interface AssetSheetRow {
+  name: string;
+  mark: number;
+  income: number;
+  total: number;
+}
+
 /**
  * End-screen profitability (#138): mark + income, not ROI%.
  * Held deeds only (closed books are gone). Gifts/steals still rank.
  */
-export function assetSheetLine(
+export function assetSheetRows(
   state: GameState,
   playerId: string,
   max = 3,
-): string {
+): AssetSheetRow[] {
   const p = state.players.find((x) => x.id === playerId);
-  if (!p) return "";
-  const ranked: { name: string; mark: number; income: number; total: number }[] =
-    [];
+  if (!p) return [];
+  const ranked: AssetSheetRow[] = [];
   for (const [nodeId, book] of Object.entries(p.claimBooks)) {
     const mark = claimMark(book);
     const income = claimEarnings(book);
@@ -216,10 +222,18 @@ export function assetSheetLine(
       total: mark + income,
     });
   }
-  if (ranked.length === 0) return "";
   ranked.sort((a, b) => b.total - a.total);
+  return ranked.slice(0, max);
+}
+
+export function assetSheetLine(
+  state: GameState,
+  playerId: string,
+  max = 3,
+): string {
+  const ranked = assetSheetRows(state, playerId, max);
+  if (ranked.length === 0) return "";
   return `Books: ${ranked
-    .slice(0, max)
     .map(
       (r) =>
         `${r.name} ${formatMoney(r.total)} (mark ${formatMoney(r.mark)} + income ${formatMoney(r.income)})`,

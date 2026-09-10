@@ -5,6 +5,7 @@
 import {
   bankSellValue,
   assetSheetLine,
+  assetSheetRows,
   bestBooksLine,
   formatBookLine,
   buildDossierView,
@@ -88,6 +89,10 @@ assert(elonReserve === 275, "Elon reserve is half of 550");
   const s = setupPortfolio();
   const you = s.players[0];
   // Elon list 550 → mark 275 + income 400 = 675; Venus still ranks on mark
+  const rows = assetSheetRows(s, you.id);
+  assert(rows.length === 2, "held books table has two rows");
+  assert(rows[0]?.name === "Elon" && rows[0].total === 675, "first row is Elon book");
+  assert(rows[0]?.mark === 275 && rows[0].income === 400, "Elon mark + income columns");
   const line = assetSheetLine(s, you.id);
   assert(
     line === "Books: Elon ⍼675 (mark ⍼275 + income ⍼400) · Venus ⍼250 (mark ⍼250 + income ⍼0).",
