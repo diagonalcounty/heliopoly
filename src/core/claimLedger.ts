@@ -573,7 +573,8 @@ function contestChip(
   const n = unitNoise(rngState, salt);
   if (difficulty === "normal") {
     const pct = 0.01 + n * 0.04;
-    return Math.max(1, Math.floor(floor * pct));
+    // Min 2 so a later human reserve+1 does not always clear (one-pass auction).
+    return Math.max(2, Math.floor(floor * pct));
   }
   if (difficulty === "hard") {
     const pct = 0.03 + n * 0.05;
@@ -683,7 +684,9 @@ export function chooseAuctionBid(
   const chip = contestChip(floor, difficulty, state.rngState, salt);
 
   if (contest) {
-    target = Math.max(target, Math.min(liquidity, floor + chip));
+    // Speak first: open above floor+1 so a later human snipe does not always win.
+    const open = floor + Math.max(chip, humanIn && standing === 0 ? 2 : 0);
+    target = Math.max(target, Math.min(liquidity, open));
   }
   if (aiWant >= 2) {
     const cap = Math.min(fairCap, liquidity);

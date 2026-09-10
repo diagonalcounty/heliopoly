@@ -405,6 +405,80 @@ function listing(
   );
 }
 
+{
+  const s = createGame({
+    playerCount: 4,
+    humanSeat: true,
+    humanName: "Venture",
+    seed: 71,
+    aiDifficulty: "normal",
+  });
+  grantClaim(s, s.players[1].id, "deimos");
+  s.players[2].cash = 800;
+  const floor = bankSellValue(250);
+  const open = chooseAuctionBid(
+    s,
+    s.players[2],
+    listing(s, s.players[1], "deimos"),
+    "normal",
+  );
+  assert(
+    open > floor + 1,
+    `normal opens above floor+1 on AI-listed Deimos before the human speaks (${open} > ${floor + 1})`,
+  );
+}
+
+{
+  const s = createGame({
+    playerCount: 4,
+    humanSeat: true,
+    humanName: "Venture",
+    seed: 72,
+    aiDifficulty: "normal",
+  });
+  grantClaim(s, s.players[1].id, "daktulios");
+  s.players[2].cash = 2000;
+  s.players[3].cash = 2000;
+  s.currentPlayerIndex = 1;
+  s.phase = "await_action";
+  const after = applyAction(s, { type: "auction_start", nodeId: "daktulios" });
+  const floor = bankSellValue(800);
+  const a = after.pendingAuction;
+  assert(a, "AI listing pauses for the human bidder");
+  assert(a!.awaitingBidderId === s.players[0].id, "human is next after AI seats");
+  const aiTop = Math.max(
+    a!.bids[s.players[2].id] ?? 0,
+    a!.bids[s.players[3].id] ?? 0,
+  );
+  assert(
+    aiTop > floor + 1,
+    `live path: at least one AI opens above Daktulios floor+1 (${aiTop} > ${floor + 1})`,
+  );
+}
+
+{
+  const s = createGame({
+    playerCount: 3,
+    humanSeat: true,
+    humanName: "Venture",
+    seed: 80,
+    aiDifficulty: "easy",
+  });
+  grantClaim(s, s.players[1].id, "venus");
+  s.players[2].cash = 2000;
+  const floor = bankSellValue(500);
+  const snipe = listing(s, s.players[1], "venus", {
+    [s.players[0].id]: floor + 1,
+  });
+  const easy = chooseAuctionBid(s, s.players[2], snipe, "easy");
+  const expert = chooseAuctionBid(s, s.players[2], snipe, "expert");
+  assert(easy === 0 || easy === floor, "easy still soft on a Venus snipe");
+  assert(
+    expert > floor + 1,
+    `per-seat expert contests Venus snipe on an easy table (${expert} > ${floor + 1})`,
+  );
+}
+
 if (failed) {
   throw new Error(`${failed} assertion(s) failed`);
 }
