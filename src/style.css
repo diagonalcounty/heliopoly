@@ -1198,6 +1198,12 @@ html.native-shell #app {
   align-items: center;
   gap: 6px;
   min-width: 52px;
+  /* Mosaic grids (#230): N×N full-egg, not zoom-crop. Slot 4=8, 5=5, 6=3. */
+  --botevo-px-light: 8;
+  --botevo-px-medium: 5;
+  --botevo-px-heavy: 3;
+  --botevo-slot-px: 52;
+  --botevo-mosaic-spin-ms: 12s;
 }
 
 .botevo-queue-label {
@@ -1233,6 +1239,101 @@ html.native-shell #app {
 .botevo-queue-egg.is-awaiting-recycle {
   background: rgba(18, 26, 44, 0.28);
   border-style: dashed;
+}
+
+/* #230 — full-frame N×N mosaic of SVG egg + face. Recycle-sharp omits data-pixel. */
+.botevo-queue-egg[data-pixel="light"] {
+  --botevo-px: var(--botevo-px-light);
+}
+.botevo-queue-egg[data-pixel="medium"] {
+  --botevo-px: var(--botevo-px-medium);
+}
+.botevo-queue-egg[data-pixel="heavy"] {
+  --botevo-px: var(--botevo-px-heavy);
+}
+
+.botevo-queue-egg[data-pixel] {
+  overflow: hidden;
+}
+
+.botevo-mosaic-up,
+.botevo-mosaic-down,
+.botevo-mosaic-spin {
+  pointer-events: none;
+}
+
+.botevo-mosaic-up {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.botevo-mosaic-down {
+  position: relative;
+  width: calc(var(--botevo-px) * 1px);
+  height: calc(var(--botevo-px) * 1px);
+  flex: none;
+  overflow: hidden;
+  transform: scale(calc(var(--botevo-slot-px) / var(--botevo-px)));
+  transform-origin: center center;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.botevo-mosaic-spin {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.botevo-queue-egg[data-pixel] .botevo-bot {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.botevo-queue-egg[data-pixel] .botevo-sprite,
+.botevo-queue-egg[data-pixel] .botevo-face {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* Pixel grid spins; inner counter-rotate keeps the egg upright. */
+.botevo-mosaic-up[data-mosaic-spin="cw"] {
+  animation: botevo-mosaic-cw var(--botevo-mosaic-spin-ms) linear infinite;
+}
+.botevo-mosaic-up[data-mosaic-spin="ccw"] {
+  animation: botevo-mosaic-ccw var(--botevo-mosaic-spin-ms) linear infinite;
+}
+.botevo-mosaic-spin[data-mosaic-spin="cw"] {
+  animation: botevo-mosaic-ccw var(--botevo-mosaic-spin-ms) linear infinite;
+}
+.botevo-mosaic-spin[data-mosaic-spin="ccw"] {
+  animation: botevo-mosaic-cw var(--botevo-mosaic-spin-ms) linear infinite;
+}
+
+@keyframes botevo-mosaic-cw {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes botevo-mosaic-ccw {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
 }
 
 .botevo-toolbar {

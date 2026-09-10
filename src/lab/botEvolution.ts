@@ -11,6 +11,10 @@
 export const BOT_COLS = 5;
 export const BOT_ROWS = 8;
 export const BOT_QUEUE = 6;
+/** Next-queue mosaic for slots 4 / 5 / 6 (#230). Full-frame, not zoom-crop. */
+export type QueuePixelStrength = "light" | "medium" | "heavy";
+/** Pixel-grid spin; egg stays upright. Slot 6 cw, 5 ccw, 4 cw. */
+export type QueueMosaicSpin = "cw" | "ccw";
 export const BASE_QUOTA = 5;
 export const SPEED_MUL = 1.1;
 export const BASE_GRAVITY_MS = 700;
@@ -134,7 +138,7 @@ export interface BotState {
   /** Cells that morphed on the last land (for box flash). */
   justMorphed: string[];
   /**
-   * Per-slot sharp flag for queue pixelation (#219).
+   * Per-slot sharp flag for queue mosaic (#230).
    * Recycled occupants in indices 1–5 start true; do not infer from piece id.
    */
   recycleSharp: boolean[];
@@ -142,6 +146,32 @@ export interface BotState {
   justRecycled: RecycledBot[];
   /** Level-ups during the current morph resolve; applied after spawnNext. */
   pendingPromotions: number;
+}
+
+/**
+ * Default Next-queue mosaic for a 0-based slot index (#230).
+ * Slot 1 (index 0) is always sharp. Recycle-sharp occupants stay sharp.
+ * Otherwise slots 4/5/6 → light/medium/heavy (≈8×8 / 5×5 / 3×3).
+ */
+export function queuePixelStrength(
+  slotIndex: number,
+  recycleSharp: readonly boolean[],
+): QueuePixelStrength | null {
+  if (slotIndex <= 0) return null;
+  if (recycleSharp[slotIndex]) return null;
+  if (slotIndex === 3) return "light";
+  if (slotIndex === 4) return "medium";
+  if (slotIndex === 5) return "heavy";
+  return null;
+}
+
+/** Rotating mosaic grid: odd slots clockwise, even anticlockwise. */
+export function queueMosaicSpin(
+  slotIndex: number,
+  strength: QueuePixelStrength | null,
+): QueueMosaicSpin | null {
+  if (!strength) return null;
+  return slotIndex % 2 === 1 ? "cw" : "ccw";
 }
 
 export function socketsOf(id: PieceId): number {

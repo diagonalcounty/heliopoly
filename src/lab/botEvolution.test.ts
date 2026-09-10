@@ -27,6 +27,8 @@ import {
   LOCK_GRACE_TICKS,
   quotaForLevel,
   pieceArt,
+  queueMosaicSpin,
+  queuePixelStrength,
   recycleBottomRow,
   SHELL_FILL,
   connectorKind,
@@ -346,6 +348,51 @@ assert(!socketsMeet("l-ne", "i", DIR_S), "L-NE has no south pin");
   assert(recycled.justRecycled.length === 2, "empty bottom cells skipped");
   assert(recycled.recycleSharp[1] && recycled.recycleSharp[2], "recycled slots sharp");
   assert(!recycled.recycleSharp[3], "tail-filled slot not sharp");
+}
+
+{
+  const sharp = [false, false, false, false, false, false];
+  assert(queuePixelStrength(0, sharp) === null, "slot 1 never mosaic");
+  assert(queuePixelStrength(1, sharp) === null, "slot 2 sharp in normal play");
+  assert(queuePixelStrength(2, sharp) === null, "slot 3 sharp in normal play");
+  assert(queuePixelStrength(3, sharp) === "light", "slot 4 light mosaic");
+  assert(queuePixelStrength(4, sharp) === "medium", "slot 5 medium mosaic");
+  assert(queuePixelStrength(5, sharp) === "heavy", "slot 6 heavy mosaic");
+  assert(queueMosaicSpin(5, "heavy") === "cw", "slot 6 pixel grid clockwise");
+  assert(queueMosaicSpin(4, "medium") === "ccw", "slot 5 pixel grid anticlockwise");
+  assert(queueMosaicSpin(3, "light") === "cw", "slot 4 pixel grid clockwise");
+  assert(queueMosaicSpin(0, null) === null, "no spin when sharp");
+  const recycledSharp = [false, true, true, true, true, true];
+  assert(queuePixelStrength(5, recycledSharp) === null, "recycled slot 6 stays sharp");
+  assert(queuePixelStrength(3, recycledSharp) === null, "recycled slot 4 stays sharp");
+}
+
+{
+  let s = startBotEvo(20);
+  const bottom = BOT_ROWS - 1;
+  s = {
+    ...s,
+    grid: s.grid.map((row) => row.slice()),
+    queue: s.queue.slice(),
+    bag: s.bag.slice(),
+    recycleSharp: s.recycleSharp.slice(),
+    justRecycled: [],
+  };
+  s.grid[bottom]![0] = "dash";
+  s.grid[bottom]![1] = "i";
+  s.grid[bottom]![2] = "plus";
+  s.grid[bottom]![3] = "t-n";
+  s.grid[bottom]![4] = "l-ne";
+  const recycled = recycleBottomRow(s);
+  assert(
+    recycled.recycleSharp.slice(1).every(Boolean),
+    "recycle marks 2–6 sharp",
+  );
+  const after = dropPiece(recycled, 0);
+  assert(after.recycleSharp[5] === false, "new bag draw at slot 6 is not sharp");
+  assert(queuePixelStrength(5, after.recycleSharp) === "heavy", "slot 6 mosaic returns first");
+  assert(after.recycleSharp[4] === true, "remaining recycle occupancy stays sharp");
+  assert(queuePixelStrength(4, after.recycleSharp) === null, "slot 5 still recycle-sharp");
 }
 
 {
