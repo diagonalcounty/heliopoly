@@ -12,6 +12,7 @@ Jacob reviews by commenting or chatting. Steve updates these files. Jacob does *
 
 | Draft | Issue | Role |
 |-------|-------|------|
+| [STRATEGY.md](./STRATEGY.md) | growth | **Steve-owned** executable marketing plan (north star, lanes, week 1) |
 | [WHY.md](./WHY.md) | all | **Primary** — reasons / principles / rejected approaches |
 | [app-store-listing-draft.md](./app-store-listing-draft.md) | #232 | Proposed lines + locked picks (downstream of WHY) |
 | [ops-manual-clerk-voice-draft.md](./ops-manual-clerk-voice-draft.md) | #233 | Sample rewrites shaped by voice principles |
