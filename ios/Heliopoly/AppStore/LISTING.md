@@ -63,7 +63,7 @@ Heliopoly 1.3.0
 • Phone and iPad play: Lab drills, Gravity Duel, auctions, and end-screen Rematch
 • Lab minigames: Bot Evolution, Deseret letters, Backup fuel, Hull panel
 • Expedition names Insight / Curiosity / Voyager / Opportunity
-• Offline solar-system strategy — no account, no online multiplayer
+• Solar-system strategy that needs no Wi‑Fi — no account, no online multiplayer
 ```
 
 ---
@@ -91,7 +91,7 @@ PLAY YOUR WAY
 • Easy through Expert AI packs
 • Full Helios Ops Manual in-app: rules, glossary, rival-rocket civilopedia
 
-OFFLINE ON IPAD
+NO WI‑FI NEEDED
 Heliopoly for iPad ships the complete game in the app package. It is not a thin wrapper around a website. Open the app and play without an account or network.
 
 Also free in the browser at heliopoly.live — same rules engine, open source (MIT).
@@ -104,7 +104,7 @@ Not affiliated with Solarquest or any commercial board game.
 ## Promotional Text (170 chars max)
 
 ```
-Solar-system strategy: buy claims, burn propellant, duel rivals. Offline on iPad — orbital economics.
+Solar-system strategy: buy claims, burn propellant, duel rivals. No Wi‑Fi needed — orbital economics.
 ```
 
 ---

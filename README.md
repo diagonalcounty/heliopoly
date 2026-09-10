@@ -17,7 +17,7 @@ There is **no turn limit**. You win by eliminating every other rocket — bankru
 
 ## Support the game
 
-Heliopoly stays free in the browser. If you want to support development, buy it on the [App Store](https://apps.apple.com/us/app/heliopoly/id6801637953) for iPhone & iPad ($3.99, offline). Same rules engine. Ideas welcome as [GitHub issues](https://github.com/diagonalcounty/heliopoly/issues).
+Heliopoly stays free in the browser. If you want to support development, buy it on the [App Store](https://apps.apple.com/us/app/heliopoly/id6801637953) for iPhone & iPad ($3.99, no Wi‑Fi needed). Same rules engine. Ideas welcome as [GitHub issues](https://github.com/diagonalcounty/heliopoly/issues).
 
 ## How an expedition feels
 

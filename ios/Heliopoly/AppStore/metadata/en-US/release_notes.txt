@@ -3,4 +3,4 @@ Heliopoly 1.3.0
 • Phone and iPad play: Lab drills, Gravity Duel, auctions, and end-screen Rematch
 • Lab minigames: Bot Evolution, Deseret letters, Backup fuel, Hull panel
 • Expedition names Insight / Curiosity / Voyager / Opportunity
-• Offline solar-system strategy — no account, no online multiplayer
+• Solar-system strategy that needs no Wi‑Fi — no account, no online multiplayer

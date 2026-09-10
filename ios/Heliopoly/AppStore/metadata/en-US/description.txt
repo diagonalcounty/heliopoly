@@ -18,7 +18,7 @@ PLAY YOUR WAY
 • Easy through Expert AI packs
 • Full Helios Ops Manual in-app: rules, glossary, rival-rocket civilopedia
 
-OFFLINE ON IPAD
+NO WI‑FI NEEDED
 Heliopoly for iPad ships the complete game in the app package. It is not a thin wrapper around a website. Open the app and play without an account or network.
 
 Also free in the browser at heliopoly.live — same rules engine, open source (MIT).
