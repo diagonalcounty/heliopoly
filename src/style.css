@@ -6601,3 +6601,21 @@ button:not(:disabled):active {
     width: 100%;
   }
 }
+
+/* App Store support ask — free play stays primary */
+.support-strip {
+  margin: 0.35rem 0 0;
+  padding: 0 0.15rem;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: rgba(220, 230, 255, 0.72);
+  max-width: 52rem;
+}
+.support-strip a {
+  color: #9ec1ff;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.support-strip a:hover {
+  color: #c9dbff;
+}
