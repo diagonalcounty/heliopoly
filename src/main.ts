@@ -106,6 +106,8 @@ import {
   connectorKind,
   eggTokenSvg,
   eggTokenDataUrl,
+  queueMosaicSpin,
+  queuePixelStrength,
   SHELL_FILL,
   quotaForLevel,
   resumeAfterMorph,
@@ -115,6 +117,7 @@ import {
   type BotGrid,
   type BotState,
   type PieceId,
+  type QueueMosaicSpin,
   type RecycledBot,
 } from "./lab/botEvolution";
 import {
@@ -2393,6 +2396,43 @@ function afterBotEvoLand(): void {
   if (botEvoState.phase === "falling") armBotEvoTimer();
 }
 
+/** Keep mosaic CSS spin in phase across queue rebuilds. */
+let botevoMosaicOriginMs = 0;
+const BOTEVO_MOSAIC_SPIN_MS = 12000;
+
+function queueMosaicDelay(): string {
+  if (!botevoMosaicOriginMs) botevoMosaicOriginMs = performance.now();
+  const t = (performance.now() - botevoMosaicOriginMs) % BOTEVO_MOSAIC_SPIN_MS;
+  return `-${t}ms`;
+}
+
+/**
+ * Nested scale + counter-rotate so the egg stays upright while the
+ * N×N pixel grid spins (#230). Pointer-events stay off the wrappers.
+ */
+function wrapQueueMosaic(
+  slot: HTMLElement,
+  spin: QueueMosaicSpin | null,
+): HTMLElement {
+  const up = document.createElement("span");
+  up.className = "botevo-mosaic-up";
+  const down = document.createElement("span");
+  down.className = "botevo-mosaic-down";
+  const inner = document.createElement("span");
+  inner.className = "botevo-mosaic-spin";
+  const delay = queueMosaicDelay();
+  up.style.animationDelay = delay;
+  inner.style.animationDelay = delay;
+  if (spin) {
+    up.dataset.mosaicSpin = spin;
+    inner.dataset.mosaicSpin = spin;
+  }
+  down.appendChild(inner);
+  up.appendChild(down);
+  slot.appendChild(up);
+  return inner;
+}
+
 /** Returns the face overlay element for the idle director. */
 function appendBotSprite(host: HTMLElement, piece: PieceId): HTMLElement {
   const kind = connectorKind(piece);
@@ -2588,10 +2628,16 @@ function renderBotEvo(): void {
   );
   const deferRecycleSprites =
     recycledCount > 0 || botEvoRecycleFlying;
+  const sharpFlags = botEvoState.recycleSharp;
   botEvoState.queue.forEach((piece, index) => {
     const slot = document.createElement("div");
     slot.className = "botevo-queue-egg";
     slot.dataset.slot = String(index + 1);
+    const pixel = queuePixelStrength(index, sharpFlags);
+    const spin = queueMosaicSpin(index, pixel);
+    if (pixel) slot.dataset.pixel = pixel;
+    if (spin) slot.dataset.mosaicSpin = spin;
+    if (sharpFlags[index]) slot.dataset.recycle = "1";
     const hideRecycled =
       deferRecycleSprites && index > 0 && index <= recycledCount;
     if (hideRecycled) {
@@ -2599,7 +2645,8 @@ function renderBotEvo(): void {
       slot.setAttribute("aria-label", `Next slot ${index + 1}`);
     } else {
       slot.setAttribute("aria-label", `Next ${piece}`);
-      const face = appendBotSprite(slot, piece);
+      const host = pixel ? wrapQueueMosaic(slot, spin) : slot;
+      const face = appendBotSprite(host, piece);
       botEvoFaceHosts.push({
         key: `queue:${index}`,
         piece,
