@@ -3370,23 +3370,33 @@ canvas.handbook-article-icon {
   border: 1px solid var(--border);
 }
 
-/* beta.heliopoly.live — same header as live, gold pill instead of a covering bar */
 .channel-pill {
   display: none;
-  font-size: 0.7rem;
-  vertical-align: middle;
-  margin-left: 0.35em;
-  padding: 0.15rem 0.5rem;
+}
+
+html.is-beta .channel-pill {
+  display: inline;
+  font-weight: 700;
+}
+
+/* Whole title lockup is the gold pill on beta. */
+html.is-beta .title-lockup {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.15em;
+  max-width: 100%;
+  padding: 0.2rem 0.75rem;
   border-radius: 999px;
   background: #c9a227;
   color: #0b1020;
   border: 1px solid #e4c35a;
-  font-weight: 700;
-  letter-spacing: 0.04em;
 }
 
-html.is-beta .channel-pill {
-  display: inline-block;
+html.is-beta .badge {
+  background: #0b1020;
+  color: #c9a227;
+  border-color: #0b1020;
 }
 
 .layout {
@@ -5211,8 +5221,7 @@ button:not(:disabled):active {
     min-width: 0;
   }
 
-  .badge,
-  .channel-pill {
+  .badge {
     font-size: 0.62rem;
     padding: 0.1rem 0.35rem;
   }

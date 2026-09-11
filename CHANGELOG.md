@@ -11,7 +11,7 @@
 - **Bot Evolution Next queue (#230):** SVG mosaic on slots 4–6; recycle-sharp stays sharp.
 
 ### Ops
-- **Beta host:** deploy-on-main to `/var/www/heliopoly-beta`. Sunday stage no longer points preview at the freeze. Channel is a gold **Beta** pill in the title, not a covering bar.
+- **Beta host:** deploy-on-main to `/var/www/heliopoly-beta`. Sunday stage no longer points preview at the freeze. The whole title (Heliopoly 1.4.0 · Orbital Economics · Beta) sits in a gold pill.
 
 ### Meta
 - Version **1.4.0** (package, badge, Ops Manual welcome, README)
