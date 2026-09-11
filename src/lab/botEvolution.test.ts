@@ -1,23 +1,26 @@
 /**
- * Bot Evolution engine (#203 / #204 / #205).
+ * Bot Evolution engine (#203 / #240 / #241).
  * Run: npx tsx src/lab/botEvolution.test.ts
  */
 import {
   BASE_GRAVITY_MS,
-  BASE_QUOTA,
-  BOT_COLS,
   BOT_QUEUE,
   BOT_ROWS,
+  BOT_STAGE_MAX,
+  BOT_STAGE_MIN,
+  BOXES_TO_CONNECT_6,
   DIR_E,
   DIR_N,
   DIR_S,
   DIR_W,
   MIN_GRAVITY_MS,
-  MORPH_SIZE,
   PIECE_IDS,
   PIECE_SOCKETS,
   SPEED_MUL,
   aimColumn,
+  barStep,
+  centerCol,
+  clampStage,
   connectedComponents,
   dropPiece,
   gravityMs,
@@ -25,7 +28,8 @@ import {
   liveChainCells,
   landingPreview,
   LOCK_GRACE_TICKS,
-  quotaForLevel,
+  quotaForStageBar,
+  quotaForState,
   pieceArt,
   queueMosaicSpin,
   queuePixelStrength,
@@ -40,6 +44,7 @@ import {
   socketJoins,
   socketsMeet,
   startBotEvo,
+  startBotEvoAt,
   tick,
   type BotGrid,
   type BotState,
@@ -83,22 +88,31 @@ function lowestPiece(grid: BotGrid, col: number): PieceId | null {
   return null;
 }
 
-assert(BOT_COLS === 5 && BOT_ROWS === 8, "playfield is 5×8");
+assert(BOT_STAGE_MIN === 3 && BOT_STAGE_MAX === 6, "stages 3→6");
+assert(BOT_ROWS === 8, "height stays 8");
 assert(BOT_QUEUE === 6, "preview queue is 6");
-assert(MORPH_SIZE === 5, "morph at 5");
-assert(quotaForLevel(1) === 5, "L1 quota is 5");
-assert(quotaForLevel(2) === 6, "L2 quota is 6");
-assert(quotaForLevel(3) === 7, "L3 quota is 7");
-assert(gravityMs(1) === BASE_GRAVITY_MS, "L1 gravity is baseline");
+assert(clampStage(2) === 3 && clampStage(7) === 6, "clamp rejects 2 and 7+");
+assert(centerCol(3) === 1 && centerCol(4) === 1 && centerCol(5) === 2 && centerCol(6) === 2, "spawn column is center-left");
+assert(barStep(3) === 1 && barStep(4) === 1 && barStep(5) === 1 && barStep(6) === 1, "20% of N rounds to 1");
+assert(quotaForStageBar(3, 0) === 3 && quotaForStageBar(3, 1) === 4, "C3 bars 3 then 4");
+assert(quotaForStageBar(4, 0) === 4 && quotaForStageBar(4, 1) === 5, "C4 bars 4 then 5");
+assert(quotaForStageBar(5, 0) === 5 && quotaForStageBar(5, 1) === 6, "C5 bars 5 then 6");
+assert(quotaForStageBar(6, 0) === 6 && quotaForStageBar(6, 1) === 7 && quotaForStageBar(6, 2) === 8, "C6 6,7,8…");
+assert(BOXES_TO_CONNECT_6 === 3 + 4 + 4 + 5 + 5 + 6, "27 boxes to first C6");
+assert(gravityMs(3, 0) === BASE_GRAVITY_MS, "C3 gravity is baseline");
+assert(gravityMs(3, 1) === BASE_GRAVITY_MS, "C3 second bar is not faster");
+assert(gravityMs(4, 1) === BASE_GRAVITY_MS, "C4 is not faster");
+assert(gravityMs(5, 1) === BASE_GRAVITY_MS, "C5 is not faster");
+assert(gravityMs(6, 0) === BASE_GRAVITY_MS, "first C6 bar is still baseline");
 assert(
-  gravityMs(2) === Math.round(BASE_GRAVITY_MS / SPEED_MUL),
-  "L2 gravity is L1 / 1.10",
+  gravityMs(6, 1) === Math.round(BASE_GRAVITY_MS / SPEED_MUL),
+  "C6 speeds up after the first 6×8 bar",
 );
 assert(
-  gravityMs(3) === Math.round(BASE_GRAVITY_MS / SPEED_MUL ** 2),
-  "L3 gravity is L1 / 1.10^2",
+  gravityMs(6, 2) === Math.round(BASE_GRAVITY_MS / SPEED_MUL ** 2),
+  "C6 second speedup is ×1.10 again",
 );
-assert(gravityMs(99) === MIN_GRAVITY_MS, "gravity floor");
+assert(gravityMs(6, 99) === MIN_GRAVITY_MS, "gravity floor");
 
 assert(PIECE_SOCKETS.plus === (DIR_N | DIR_E | DIR_S | DIR_W), "plus is NESW");
 assert(PIECE_SOCKETS.i === (DIR_N | DIR_S), "I is NS only");
@@ -172,8 +186,23 @@ assert(!socketsMeet("l-ne", "i", DIR_S), "L-NE has no south pin");
   assert(a.recycleSharp.every((v) => v === false), "start not sharp");
   assert(a.phase === "falling", "starts falling");
   assert(a.fallRow === 0, "spawn at the top row");
-  assert(a.grid.length === BOT_ROWS && a.grid[0]!.length === BOT_COLS, "grid shape");
+  assert(a.n === 3 && a.grid[0]!.length === 3, "starts Connect 3 on 3×8");
+  assert(a.aimCol === 1, "C3 spawn is center column");
+  assert(a.grid.length === BOT_ROWS, "height 8");
   assert(a.level === 1 && a.segments === 0 && a.boxes === 0, "L1 empty bar");
+  assert(a.barsCompletedThisStage === 0 && !a.pendingWiden, "no bars yet");
+  assert(quotaForState(a) === 3, "C3 first bar is 3");
+}
+
+{
+  const s = startBotEvo(1);
+  assert(s.n === BOT_STAGE_MIN, "cannot start above 3");
+  const c6 = startBotEvoAt(6, 1);
+  assert(c6.n === 6 && c6.grid[0]!.length === 6, "test helper can sit at C6");
+  const over = startBotEvoAt(6, 1);
+  over.n = 6;
+  over.barsCompletedThisStage = 99;
+  assert(clampStage(over.n + 1) === 6, "cannot go past 6 width");
 }
 
 {
@@ -188,29 +217,54 @@ assert(!socketsMeet("l-ne", "i", DIR_S), "L-NE has no south pin");
 
 {
   let s = startBotEvo(2);
-  for (let i = 0; i < 4; i++) s = dropPiece(s, 1, "i");
-  assert(columnHeight(s.grid, 1) === 4, "four I's do not morph");
+  s = dropPiece(s, 1, "i");
+  s = dropPiece(s, 1, "i");
+  assert(columnHeight(s.grid, 1) === 2, "two I's do not morph at C3");
   assert(s.boxes === 0, "no box yet");
   s = dropPiece(s, 1, "i");
-  assert(s.boxes === 1, "fifth I morphs one box");
+  assert(s.boxes === 1, "third I morphs one box");
   assert(columnHeight(s.grid, 1) === 0, "morphed I's are removed");
   assert(s.segments === 1, "bar gained one segment");
-  assert(s.justMorphed.length >= 5, "morph flash records the chain");
+  assert(s.justMorphed.length >= 3, "morph flash records the chain");
   assert(s.phase === "falling", "next egg falls while the morph flies up");
 }
 
 {
   let s = startBotEvo(3);
-  for (let i = 0; i < 5; i++) s = dropPiece(s, 2, "dash");
-  assert(columnHeight(s.grid, 2) === 5, "five dashes stacked do not connect");
+  for (let i = 0; i < 3; i++) s = dropPiece(s, 2, "dash");
+  assert(columnHeight(s.grid, 2) === 3, "three dashes stacked do not connect");
   assert(s.boxes === 0, "no vertical dash chain");
 }
 
 {
   let s = startBotEvo(4);
-  for (let c = 0; c < 5; c++) s = dropPiece(s, c, "dash");
-  assert(s.boxes === 1, "five dashes in a row morph");
+  s = dropPiece(s, 0, "dash");
+  s = dropPiece(s, 1, "dash");
+  assert(s.boxes === 0, "two dashes do not morph at C3");
+  s = dropPiece(s, 2, "dash");
+  assert(s.boxes === 1, "three dashes in a row morph at C3");
   assert(countPieces(s.grid) === 0, "row morph clears the floor");
+}
+
+{
+  for (const n of [3, 4, 5, 6] as const) {
+    let s = startBotEvoAt(n, 40 + n);
+    for (let i = 0; i < n - 1; i++) s = dropPiece(s, 1, "i");
+    assert(s.boxes === 0, `${n - 1} I's do not morph at C${n}`);
+    s = dropPiece(s, 1, "i");
+    assert(s.boxes === 1, `${n} I's morph at C${n}`);
+    assert(s.grid[0]!.length === n, `width stays ${n} after morph`);
+  }
+}
+
+{
+  for (const n of [3, 4, 5, 6] as const) {
+    let s = startBotEvoAt(n, 50 + n);
+    for (let c = 0; c < n - 1; c++) s = dropPiece(s, c, "dash");
+    assert(s.boxes === 0, `${n - 1}-wide dash is short of C${n}`);
+    s = dropPiece(s, n - 1, "dash");
+    assert(s.boxes === 1, `${n}-wide dash morphs at C${n}`);
+  }
 }
 
 {
@@ -232,7 +286,8 @@ assert(!socketsMeet("l-ne", "i", DIR_S), "L-NE has no south pin");
 
 {
   let s = startBotEvo(6);
-  for (let i = 0; i < 4; i++) s = dropPiece(s, 0, "plus");
+  s = dropPiece(s, 0, "plus");
+  s = dropPiece(s, 0, "plus");
   s = dropPiece(s, 0, "i");
   assert(s.boxes === 1, "plus stack + I still morphs (NS sockets)");
   assert(columnHeight(s.grid, 0) === 0, "cascade cleared the column");
@@ -240,29 +295,37 @@ assert(!socketsMeet("l-ne", "i", DIR_S), "L-NE has no south pin");
 
 {
   let s = startBotEvo(7);
-  for (let i = 0; i < 3; i++) s = dropPiece(s, 4, "plus");
-  s = dropPiece(s, 4, "dash");
-  assert(columnHeight(s.grid, 4) === 4, "dash does not join a vertical plus chain");
+  s = dropPiece(s, 0, "plus");
+  s = dropPiece(s, 0, "plus");
+  s = dropPiece(s, 0, "dash");
+  assert(columnHeight(s.grid, 0) === 3, "dash does not join a vertical plus chain");
   assert(s.boxes === 0, "no morph");
 }
 
 {
   let s = startBotEvo(8);
-  for (let n = 0; n < BASE_QUOTA; n++) {
-    for (let i = 0; i < 5; i++) s = dropPiece(s, 0, "i");
+  for (let n = 0; n < 2; n++) {
+    for (let i = 0; i < 3; i++) s = dropPiece(s, 0, "i");
   }
-  assert(s.boxes === BASE_QUOTA, "five boxes in L1");
+  s = dropPiece(s, 2, "dash");
+  for (let i = 0; i < 3; i++) s = dropPiece(s, 0, "i");
+  assert(s.boxes === 3, "three boxes fill C3 bar 1");
+  assert(s.n === 3, "still Connect 3 after first bar");
   assert(s.level === 2, "promotion to L2");
   assert(s.segments === 0, "bar resets on promotion");
-  assert(gravityMs(s.level) < gravityMs(1), "L2 is faster");
+  assert(s.justRecycled.some((b) => b.piece === "dash"), "non-widen bar recycles leftover bots");
+  assert(
+    gravityMs(s.n, s.barsCompletedThisStage) === BASE_GRAVITY_MS,
+    "C3 does not speed up after a bar",
+  );
 }
 
 {
   let s = startBotEvo(9);
-  for (let i = 0; i < BOT_ROWS - 1; i++) s = dropPiece(s, 3, "dash");
+  for (let i = 0; i < BOT_ROWS - 1; i++) s = dropPiece(s, 2, "dash");
   assert(s.phase !== "lost", "seven dashes still leave a spawn row");
-  s = dropPiece(s, 3, "dash");
-  assert(columnHeight(s.grid, 3) === BOT_ROWS, "column topped");
+  s = dropPiece(s, 2, "dash");
+  assert(columnHeight(s.grid, 2) === BOT_ROWS, "column topped");
   assert(s.phase === "lost", "overflow / top-out loses the drill");
 }
 
@@ -277,7 +340,7 @@ assert(!socketsMeet("l-ne", "i", DIR_S), "L-NE has no south pin");
 }
 
 {
-  let s = startBotEvo(20);
+  let s = startBotEvoAt(5, 20);
   const slot0 = s.queue[0]!;
   const bottom = BOT_ROWS - 1;
   // Stack a plus above col 1 so gravity is observable after recycle.
@@ -337,7 +400,7 @@ assert(!socketsMeet("l-ne", "i", DIR_S), "L-NE has no south pin");
   };
   s.grid[bottom]![0] = "plus";
   s.grid[bottom]![2] = "dash";
-  // cols 1,3,4 empty — skip, no ghost bots
+  // col 1 empty on 3-wide — skip, no ghost bots
   const recycled = recycleBottomRow(s);
   assert(recycled.queue[0] === slot0, "partial recycle keeps slot 1");
   assert(recycled.queue[1] === "plus" && recycled.queue[2] === "dash", "L→R occupied only");
@@ -368,7 +431,7 @@ assert(!socketsMeet("l-ne", "i", DIR_S), "L-NE has no south pin");
 }
 
 {
-  let s = startBotEvo(20);
+  let s = startBotEvoAt(5, 20);
   const bottom = BOT_ROWS - 1;
   s = {
     ...s,
@@ -397,13 +460,58 @@ assert(!socketsMeet("l-ne", "i", DIR_S), "L-NE has no south pin");
 
 {
   let s = startBotEvo(8);
-  for (let n = 0; n < BASE_QUOTA; n++) {
-    for (let i = 0; i < 5; i++) s = dropPiece(s, 0, "i");
+  for (let n = 0; n < 3; n++) {
+    for (let i = 0; i < 3; i++) s = dropPiece(s, 0, "i");
   }
   assert(s.level === 2, "promotion still reaches L2");
-  // After the promoting morph, bottom row was recycled (column may be empty).
+  assert(s.n === 3, "first bar does not widen");
   assert(s.queue.length === BOT_QUEUE, "promoted game keeps 6-slot queue");
   assert(s.recycleSharp.length === BOT_QUEUE, "promoted recycleSharp length 6");
+}
+
+{
+  let s = startBotEvo(80);
+  for (let box = 0; box < 7; box++) {
+    for (let i = 0; i < 3; i++) s = dropPiece(s, 0, "i");
+  }
+  assert(s.boxes === 7, "C3 two bars are 3+4 boxes");
+  assert(s.n === 4 && s.grid[0]!.length === 4, "second bar rebuilds 4×8");
+  assert(countPieces(s.grid) === 0, "widen rebuilds empty");
+  assert(s.justRecycled.length === 0, "skip recycle on the bar that rebuilds");
+  assert(s.barsCompletedThisStage === 0, "stage change resets bar count");
+  assert(quotaForState(s) === 4, "C4 first bar is 4");
+  assert(s.level === 3, "career level kept across widen");
+  assert(
+    gravityMs(s.n, s.barsCompletedThisStage) === BASE_GRAVITY_MS,
+    "C4 still at baseline gravity",
+  );
+}
+
+{
+  let s = startBotEvo(81);
+  while (s.n < 6 && s.phase !== "lost" && s.boxes < 40) {
+    const need = s.n;
+    for (let i = 0; i < need; i++) s = dropPiece(s, 0, "i");
+  }
+  assert(s.n === 6 && s.grid[0]!.length === 6, "reaches Connect 6");
+  assert(s.boxes === BOXES_TO_CONNECT_6, "27 boxes to first C6");
+  assert(
+    gravityMs(s.n, s.barsCompletedThisStage) === BASE_GRAVITY_MS,
+    "arrive at C6 still at baseline speed",
+  );
+  const levelAtC6 = s.level;
+  for (let box = 0; box < 5; box++) {
+    for (let i = 0; i < 6; i++) s = dropPiece(s, 0, "i");
+  }
+  s = dropPiece(s, 5, "dash");
+  for (let i = 0; i < 6; i++) s = dropPiece(s, 0, "i");
+  assert(s.n === 6, "C6 stays 6×8 after a bar");
+  assert(s.level === levelAtC6 + 1, "C6 bar still promotes gravity");
+  assert(
+    gravityMs(s.n, s.barsCompletedThisStage) < BASE_GRAVITY_MS,
+    "C6 speeds up only after a 6×8 bar",
+  );
+  assert(s.justRecycled.some((b) => b.piece === "dash"), "C6 bar recycles (does not widen)");
 }
 
 {
@@ -438,14 +546,14 @@ assert(!socketsMeet("l-ne", "i", DIR_S), "L-NE has no south pin");
 
 {
   let s = startBotEvo(18);
-  for (let i = 0; i < 7; i++) s = dropPiece(s, 4, "dash");
+  for (let i = 0; i < 7; i++) s = dropPiece(s, 2, "dash");
   assert(s.phase === "falling" && s.fallRow === 0, "spawn on a 7-high dash stack");
-  s = { ...s, current: "dash", aimCol: 4, lockTicks: 0 };
+  s = { ...s, current: "dash", aimCol: 2, lockTicks: 0 };
   const once = tick(s);
   assert(once.phase === "falling" && once.fallRow === 0, "floor grace: first tick does not lock");
   assert(once.lockTicks === LOCK_GRACE_TICKS, "grace tick counted");
   const twice = tick(once);
-  assert(twice.grid[0]![4] === "dash" || twice.phase === "lost", "second tick locks");
+  assert(twice.grid[0]![2] === "dash" || twice.phase === "lost", "second tick locks");
 }
 
 {
@@ -457,11 +565,12 @@ assert(!socketsMeet("l-ne", "i", DIR_S), "L-NE has no south pin");
 
 {
   let s: BotState = startBotEvo(13);
-  for (let c = 0; c < 4; c++) s = dropPiece(s, c, "dash");
-  assert(s.boxes === 0, "four-wide dash is short of 5");
-  s = dropPiece(s, 4, "i");
+  s = dropPiece(s, 0, "dash");
+  s = dropPiece(s, 1, "dash");
+  assert(s.boxes === 0, "two-wide dash is short of 3");
+  s = dropPiece(s, 2, "i");
   assert(s.boxes === 0, "I does not complete a horizontal dash");
-  assert(countPieces(s.grid) === 5, "all five pieces remain");
+  assert(countPieces(s.grid) === 3, "all three pieces remain");
 }
 
 {

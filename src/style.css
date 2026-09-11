@@ -881,12 +881,17 @@ html.native-shell #app {
 }
 
 .botevo-grid {
+  --botevo-cols: 3;
+  --botevo-rows: 8;
   display: grid;
-  grid-template-columns: repeat(5, minmax(44px, 1fr));
-  grid-template-rows: repeat(8, minmax(44px, 1fr));
+  grid-template-columns: repeat(var(--botevo-cols), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--botevo-rows), minmax(0, 1fr));
   gap: 2px;
-  width: min(100%, 280px);
-  aspect-ratio: 5 / 8;
+  width: min(
+    100%,
+    calc(var(--botevo-cols) * 44px + 12px + (var(--botevo-cols) - 1) * 2px)
+  );
+  aspect-ratio: var(--botevo-cols) / var(--botevo-rows);
   margin: 0;
   padding: 6px;
   border-radius: 12px;

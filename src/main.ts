@@ -91,7 +91,6 @@ import {
   type NumberScriptId,
 } from "./lab/numberScripts";
 import {
-  BOT_COLS,
   BOT_ROWS,
   DIR_E,
   DIR_N,
@@ -109,7 +108,7 @@ import {
   queueMosaicSpin,
   queuePixelStrength,
   SHELL_FILL,
-  quotaForLevel,
+  quotaForState,
   resumeAfterMorph,
   socketJoins,
   startBotEvo,
@@ -2227,7 +2226,7 @@ let botEvoPaused = false;
 let botEvoMorphSig = "";
 let botEvoRecyclePending: RecycledBot[] = [];
 let botEvoRecycleFlying = false;
-let botEvoBarView = { level: 1, segments: 0, boxes: 0 };
+let botEvoBarView = { level: 1, segments: 0, boxes: 0, quota: 3 };
 const BOTEVO_COMBINE_MS = 280;
 const BOTEVO_FLY_MS = 720;
 const BOTEVO_MORPH_MS = BOTEVO_COMBINE_MS + BOTEVO_FLY_MS;
@@ -2281,7 +2280,9 @@ function armBotEvoTimer(pauseMs?: number): void {
   clearBotEvoTimer();
   if (botEvoPaused) return;
   if (!botEvoState || botEvoState.phase !== "falling") return;
-  const wait = pauseMs ?? gravityMs(botEvoState.level);
+  const wait =
+    pauseMs ??
+    gravityMs(botEvoState.n, botEvoState.barsCompletedThisStage);
   botEvoTimer = window.setTimeout(() => {
     if (botEvoPaused || !botEvoState || botEvoState.phase !== "falling") {
       clearBotEvoTimer();
@@ -2297,7 +2298,7 @@ function flyMorphToBar(keys: string[]): void {
   botEvoFxEl.replaceChildren();
   if (!keys.length || !botEvoState) return;
   const bar = botEvoBarEl.getBoundingClientRect();
-  const quota = quotaForLevel(botEvoState.level);
+  const quota = quotaForState(botEvoState);
   const frac = quota ? Math.min(1, Math.max(0.12, botEvoState.segments / quota)) : 1;
   const targetX = bar.left + 6 + (bar.width - 16) * frac;
   const targetY = bar.top + bar.height / 2;
@@ -2501,8 +2502,9 @@ function appendJoins(
 
 function joinKeysFor(grid: BotGrid): Set<string> {
   const keys = new Set<string>();
+  const cols = grid[0]?.length ?? 0;
   for (let r = 0; r < BOT_ROWS; r++) {
-    for (let c = 0; c < BOT_COLS; c++) {
+    for (let c = 0; c < cols; c++) {
       const mask = socketJoins(grid, r, c);
       if (!mask) continue;
       for (const [bit, name] of BOTEVO_JOIN_DIRS) {
@@ -2533,13 +2535,13 @@ function renderBotEvoBar(): void {
   if (!botEvoState) return;
   const s = botEvoState;
   const prev = botEvoBarView;
-  const quota = quotaForLevel(s.level);
+  const quota = quotaForState(s);
   if (s.level > prev.level) {
-    paintBotEvoBattery(quotaForLevel(prev.level), quotaForLevel(prev.level), true);
+    paintBotEvoBattery(prev.quota, prev.quota, true);
     window.setTimeout(() => {
       if (!botEvoState) return;
       paintBotEvoBattery(
-        quotaForLevel(botEvoState.level),
+        quotaForState(botEvoState),
         botEvoState.segments,
         false,
       );
@@ -2547,13 +2549,18 @@ function renderBotEvoBar(): void {
   } else {
     paintBotEvoBattery(quota, s.segments, s.boxes > prev.boxes);
   }
-  botEvoBarView = { level: s.level, segments: s.segments, boxes: s.boxes };
+  botEvoBarView = {
+    level: s.level,
+    segments: s.segments,
+    boxes: s.boxes,
+    quota,
+  };
 }
 
 function renderBotEvo(): void {
   if (!botEvoState) return;
   const lost = botEvoState.phase === "lost";
-  botEvoStatusEl.textContent = lost ? "—" : String(botEvoState.level);
+  botEvoStatusEl.textContent = lost ? "—" : `C${botEvoState.n}`;
   botEvoScoreEl.textContent =
     botEvoState.boxes === 1 ? "1 box" : `${botEvoState.boxes} boxes`;
   renderBotEvoBar();
@@ -2575,8 +2582,11 @@ function renderBotEvo(): void {
   const live = liveChainCells(botEvoState.grid);
   const morph = new Set(botEvoState.justMorphed);
   const occ = new Set<string>();
+  const cols = botEvoState.n;
+  botEvoGridEl.style.setProperty("--botevo-cols", String(cols));
+  botEvoGridEl.style.setProperty("--botevo-rows", String(BOT_ROWS));
   for (let r = 0; r < BOT_ROWS; r++) {
-    for (let c = 0; c < BOT_COLS; c++) {
+    for (let c = 0; c < cols; c++) {
       if (botEvoState.grid[r]![c]) occ.add(`${r},${c}`);
     }
   }
@@ -2589,7 +2599,7 @@ function renderBotEvo(): void {
   botEvoFaceHosts = [];
   botEvoGridEl.replaceChildren();
   for (let r = 0; r < BOT_ROWS; r++) {
-    for (let c = 0; c < BOT_COLS; c++) {
+    for (let c = 0; c < cols; c++) {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "botevo-cell";
@@ -2724,7 +2734,7 @@ function startBotEvoPlay(): void {
   botEvoPrevOcc = new Set();
   botEvoPrevJoins = new Set();
   botEvoState = startBotEvo();
-  botEvoBarView = { level: 1, segments: 0, boxes: 0 };
+  botEvoBarView = { level: 1, segments: 0, boxes: 0, quota: 3 };
   botEvoIntroEl.classList.add("hidden");
   botEvoTableEl.classList.remove("hidden");
   renderBotEvo();
