@@ -41,7 +41,7 @@ Zero is allowed. Prefer delete / working agreement over new ceremony.
 
 | Work | Surface | Ready? |
 | --- | --- | --- |
-| | preview.heliopoly.live or physical iPhone | yes/no |
+| | beta.heliopoly.live or physical iPhone | yes/no |
 
 ## Not this file
 

@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.4.0] — 2026-09-11
+
+**https://beta.heliopoly.live/** tracks GitHub `main` as **1.4.0**. **https://heliopoly.live/** stays **1.3.0** until the next Sunday unlock. `preview.heliopoly.live` 301s to beta.
+
+### Play / UX
+- **End screen held books (#138):** Claim / Mark / Income / Book table, not ROI%.
+- **Dossier (#139):** Mark first; MSRP is the sticker.
+- **AI auctions (#137):** Normal contests reserve+1 snipes.
+- **Bot Evolution Next queue (#230):** SVG mosaic on slots 4–6; recycle-sharp stays sharp.
+
+### Ops
+- **Beta host:** deploy-on-main to `/var/www/heliopoly-beta`. Sunday stage no longer points preview at the freeze.
+
+### Meta
+- Version **1.4.0** (package, badge, Ops Manual welcome, README)
+- **Live window:** still Sunday **00:01 UTC** via `heliopoly-releases/<version>` — stage separately
+
 ## [1.3.0] — 2026-09-06
 
 **https://heliopoly.live/** is **1.3.0** as of **2026-09-06** (break-glass after #231). Preview / iOS were already 1.3.0.

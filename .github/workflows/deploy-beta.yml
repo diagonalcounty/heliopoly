@@ -1,0 +1,38 @@
+# Deploy GitHub main to https://beta.heliopoly.live/
+# Does not touch heliopoly.live (Sunday unlock).
+name: Deploy beta
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: rsync dist to beta.heliopoly.live
+        env:
+          HELIOPOLY_DEPLOY_HOST: ${{ secrets.HELIOPOLY_DEPLOY_HOST }}
+          HELIOPOLY_DEPLOY_USER: ${{ secrets.HELIOPOLY_DEPLOY_USER }}
+          HELIOPOLY_DEPLOY_KEY: ${{ secrets.HELIOPOLY_DEPLOY_KEY }}
+        run: |
+          set -euo pipefail
+          export HELIOPOLY_DEPLOY_HOST="${HELIOPOLY_DEPLOY_HOST:-167.99.222.7}"
+          : "${HELIOPOLY_DEPLOY_USER:?set repo secret HELIOPOLY_DEPLOY_USER}"
+          : "${HELIOPOLY_DEPLOY_KEY:?set repo secret HELIOPOLY_DEPLOY_KEY}"
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$HELIOPOLY_DEPLOY_KEY" > ~/.ssh/heliopoly_deploy
+          chmod 600 ~/.ssh/heliopoly_deploy
+          export HELIOPOLY_DEPLOY_KEY="$HOME/.ssh/heliopoly_deploy"
+          chmod +x scripts/deploy-beta.sh
+          ./scripts/deploy-beta.sh --skip-build

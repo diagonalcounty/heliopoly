@@ -1,7 +1,6 @@
-# preview.heliopoly.live — staged Sunday game (#134).
-# Serves /var/www/heliopoly-preview-current → heliopoly-releases/<pending version>.
-# Do not add this server_name to the live heliopoly vhost.
-# Does not write into /var/www/heliopoly (#98).
+# preview.heliopoly.live — permanent redirect to beta (#134 host rename).
+# Keep ACME so the preview name stays on the heliopoly.live cert.
+# Does not serve the game. Does not write /var/www/heliopoly (#98).
 
 server {
     listen 80;
@@ -15,7 +14,7 @@ server {
     }
 
     location / {
-        return 301 https://$host$request_uri;
+        return 301 https://beta.heliopoly.live$request_uri;
     }
 }
 
@@ -29,17 +28,15 @@ server {
     ssl_protocols TLSv1.2 TLSv1.3;
 
     add_header X-Content-Type-Options nosniff always;
-    add_header X-Frame-Options SAMEORIGIN always;
-    add_header Referrer-Policy strict-origin-when-cross-origin always;
     add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
 
-    root /var/www/heliopoly-preview-current;
-    index index.html;
-    gzip off;
-
-    include /etc/nginx/snippets/heliopoly-preview-banner.conf;
+    location ^~ /.well-known/acme-challenge/ {
+        root /var/www/acme;
+        default_type "text/plain";
+        allow all;
+    }
 
     location / {
-        try_files $uri $uri/ /index.html =404;
+        return 301 https://beta.heliopoly.live$request_uri;
     }
 }

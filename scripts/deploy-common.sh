@@ -1,5 +1,5 @@
 # shellcheck shell=bash
-# Shared by deploy-live.sh and stage-release-for-live.sh.
+# Shared by deploy-live.sh, deploy-beta.sh, and stage-release-for-live.sh.
 # Source from those scripts only (not executed).
 #
 # The droplet IP may live in git. The SSH login name must not —

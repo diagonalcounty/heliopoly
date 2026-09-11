@@ -37,7 +37,7 @@ body:
       description: Checklist Evander can complete without guessing.
       placeholder: |
         - [ ] …
-        - [ ] HITL on preview.heliopoly.live if UI
+        - [ ] HITL on beta.heliopoly.live if UI
     validations:
       required: true
   - type: dropdown
@@ -45,7 +45,7 @@ body:
     attributes:
       label: Human testing required?
       options:
-        - "Yes — preview.heliopoly.live HITL before Done"
+        - "Yes — beta.heliopoly.live HITL before Done"
         - "No — automated / obvious non-UI"
       default: 0
     validations:
