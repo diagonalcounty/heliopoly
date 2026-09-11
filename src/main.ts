@@ -2280,7 +2280,9 @@ function armBotEvoTimer(pauseMs?: number): void {
   clearBotEvoTimer();
   if (botEvoPaused) return;
   if (!botEvoState || botEvoState.phase !== "falling") return;
-  const wait = pauseMs ?? gravityMs(botEvoState.level);
+  const wait =
+    pauseMs ??
+    gravityMs(botEvoState.n, botEvoState.barsCompletedThisStage);
   botEvoTimer = window.setTimeout(() => {
     if (botEvoPaused || !botEvoState || botEvoState.phase !== "falling") {
       clearBotEvoTimer();

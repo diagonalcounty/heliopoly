@@ -222,8 +222,14 @@ export function quotaForState(state: BotState): number {
   return quotaForStageBar(state.n, state.barsCompletedThisStage);
 }
 
-export function gravityMs(level: number): number {
-  const ms = BASE_GRAVITY_MS / SPEED_MUL ** (level - 1);
+/**
+ * Drop interval. C3–C5 stay at baseline (HITL: too fast by C5 when
+ * career bars compounded). Speed ramps only on Connect 6, from the
+ * bars completed at 6×8 — first C6 bar is still baseline.
+ */
+export function gravityMs(n: number, barsCompletedThisStage = 0): number {
+  if (n < BOT_STAGE_MAX) return BASE_GRAVITY_MS;
+  const ms = BASE_GRAVITY_MS / SPEED_MUL ** barsCompletedThisStage;
   return Math.max(MIN_GRAVITY_MS, Math.round(ms));
 }
 

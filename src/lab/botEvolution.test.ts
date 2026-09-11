@@ -99,16 +99,20 @@ assert(quotaForStageBar(4, 0) === 4 && quotaForStageBar(4, 1) === 5, "C4 bars 4 
 assert(quotaForStageBar(5, 0) === 5 && quotaForStageBar(5, 1) === 6, "C5 bars 5 then 6");
 assert(quotaForStageBar(6, 0) === 6 && quotaForStageBar(6, 1) === 7 && quotaForStageBar(6, 2) === 8, "C6 6,7,8…");
 assert(BOXES_TO_CONNECT_6 === 3 + 4 + 4 + 5 + 5 + 6, "27 boxes to first C6");
-assert(gravityMs(1) === BASE_GRAVITY_MS, "L1 gravity is baseline");
+assert(gravityMs(3, 0) === BASE_GRAVITY_MS, "C3 gravity is baseline");
+assert(gravityMs(3, 1) === BASE_GRAVITY_MS, "C3 second bar is not faster");
+assert(gravityMs(4, 1) === BASE_GRAVITY_MS, "C4 is not faster");
+assert(gravityMs(5, 1) === BASE_GRAVITY_MS, "C5 is not faster");
+assert(gravityMs(6, 0) === BASE_GRAVITY_MS, "first C6 bar is still baseline");
 assert(
-  gravityMs(2) === Math.round(BASE_GRAVITY_MS / SPEED_MUL),
-  "L2 gravity is L1 / 1.10",
+  gravityMs(6, 1) === Math.round(BASE_GRAVITY_MS / SPEED_MUL),
+  "C6 speeds up after the first 6×8 bar",
 );
 assert(
-  gravityMs(3) === Math.round(BASE_GRAVITY_MS / SPEED_MUL ** 2),
-  "L3 gravity is L1 / 1.10^2",
+  gravityMs(6, 2) === Math.round(BASE_GRAVITY_MS / SPEED_MUL ** 2),
+  "C6 second speedup is ×1.10 again",
 );
-assert(gravityMs(99) === MIN_GRAVITY_MS, "gravity floor");
+assert(gravityMs(6, 99) === MIN_GRAVITY_MS, "gravity floor");
 
 assert(PIECE_SOCKETS.plus === (DIR_N | DIR_E | DIR_S | DIR_W), "plus is NESW");
 assert(PIECE_SOCKETS.i === (DIR_N | DIR_S), "I is NS only");
@@ -310,7 +314,10 @@ assert(!socketsMeet("l-ne", "i", DIR_S), "L-NE has no south pin");
   assert(s.level === 2, "promotion to L2");
   assert(s.segments === 0, "bar resets on promotion");
   assert(s.justRecycled.some((b) => b.piece === "dash"), "non-widen bar recycles leftover bots");
-  assert(gravityMs(s.level) < gravityMs(1), "L2 is faster");
+  assert(
+    gravityMs(s.n, s.barsCompletedThisStage) === BASE_GRAVITY_MS,
+    "C3 does not speed up after a bar",
+  );
 }
 
 {
@@ -474,7 +481,10 @@ assert(!socketsMeet("l-ne", "i", DIR_S), "L-NE has no south pin");
   assert(s.barsCompletedThisStage === 0, "stage change resets bar count");
   assert(quotaForState(s) === 4, "C4 first bar is 4");
   assert(s.level === 3, "career level kept across widen");
-  assert(gravityMs(s.level) < gravityMs(2), "gravity keeps compounding");
+  assert(
+    gravityMs(s.n, s.barsCompletedThisStage) === BASE_GRAVITY_MS,
+    "C4 still at baseline gravity",
+  );
 }
 
 {
@@ -485,6 +495,10 @@ assert(!socketsMeet("l-ne", "i", DIR_S), "L-NE has no south pin");
   }
   assert(s.n === 6 && s.grid[0]!.length === 6, "reaches Connect 6");
   assert(s.boxes === BOXES_TO_CONNECT_6, "27 boxes to first C6");
+  assert(
+    gravityMs(s.n, s.barsCompletedThisStage) === BASE_GRAVITY_MS,
+    "arrive at C6 still at baseline speed",
+  );
   const levelAtC6 = s.level;
   for (let box = 0; box < 5; box++) {
     for (let i = 0; i < 6; i++) s = dropPiece(s, 0, "i");
@@ -493,6 +507,10 @@ assert(!socketsMeet("l-ne", "i", DIR_S), "L-NE has no south pin");
   for (let i = 0; i < 6; i++) s = dropPiece(s, 0, "i");
   assert(s.n === 6, "C6 stays 6×8 after a bar");
   assert(s.level === levelAtC6 + 1, "C6 bar still promotes gravity");
+  assert(
+    gravityMs(s.n, s.barsCompletedThisStage) < BASE_GRAVITY_MS,
+    "C6 speeds up only after a 6×8 bar",
+  );
   assert(s.justRecycled.some((b) => b.piece === "dash"), "C6 bar recycles (does not widen)");
 }
 

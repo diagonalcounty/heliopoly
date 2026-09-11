@@ -18,7 +18,7 @@ Fixed 5×8 / connect-5 is **retired**. Progressive Connect-N:
   - C5: 5 then 6 → rebuild 6×8
   - C6: 6, 7, 8, 9… until lose
 - Career morphs to first reach Connect 6: **3+4 + 4+5 + 5+6 = 27** boxes.
-- **Speed:** each completed bar multiplies drop/gravity by **1.10** (career `level`; does not reset on widen). No countdown timer / time-up fail in Lab v1.
+- **Speed:** C3–C5 stay at baseline drop (700 ms). Gravity ×1.10 starts on **Connect 6**, counting bars completed at 6×8 (first C6 bar is still baseline). Floor 80 ms. No countdown timer / time-up fail in Lab v1.
 - Recycle the bottom row on a bar that **does not** widen. **Skip recycle** on the bar that rebuilds.
 - Next-piece preview: shipped **queue of 6** with SVG mosaic on slots 4/5/6 (#230). Must work at every width.
 - Pieces: cream egg-bots. Face mark is a wiring diagram of live sockets.
