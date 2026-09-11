@@ -201,7 +201,7 @@ export const LAB_SCENARIOS: LabScenario[] = [
   {
     id: "urinal-rule-parking",
     title: "Urinal-rule Parking",
-    blurb: "Circular pads. Tap an empty circle.",
+    blurb: "Orbit the apron. Leave a buffer. Land rude and the fine sticks.",
     group: "minigame",
     kind: "standalone",
     available: true,
