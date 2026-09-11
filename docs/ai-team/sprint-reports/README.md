@@ -12,11 +12,11 @@ After 2:00 sprint review and 2:30 retro (America/Chicago). One file per calendar
 
 ## How to read a day (junior SM)
 
-1. **Goal vs live** — did heliopoly.live move? Preview is not Done.
+1. **Goal vs live** — did heliopoly.live move? Beta is not Done.
 2. **Wait line** — where work sat (days on preview without In review, days in unmerged phone PRs).
 3. **Mermaid map** — same boxes every day unless the *path* changed (new host, second Done for phone). Inventory is the pile sitting in a box. Wait is how long it sat.
 4. **Retro** — 0–2 working-agreement changes. Zero is allowed.
-5. **HITL** — which surface: `preview.heliopoly.live` or physical iPhone. Never mix on one ticket. Never localhost.
+5. **HITL** — which surface: `beta.heliopoly.live` or physical iPhone. Never mix on one ticket. Never localhost.
 
 ## Folder rules
 

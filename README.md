@@ -4,7 +4,7 @@
 
 A browser game of solar-system property, propellant, and rival rockets. Launch a ship, buy claims from Mercury to the Saturn moons, and stay solvent long enough to be the **last rocket flying**.
 
-**[Play free on heliopoly.live](https://heliopoly.live/)** · **[Support on the App Store](https://apps.apple.com/us/app/heliopoly/id6801637953)** ($3.99) · [Source](https://github.com/diagonalcounty/heliopoly) · MIT · 1.3.0
+**[Play free on heliopoly.live](https://heliopoly.live/)** · **[Support on the App Store](https://apps.apple.com/us/app/heliopoly/id6801637953)** ($3.99) · [Source](https://github.com/diagonalcounty/heliopoly) · MIT · 1.4.0
 
 ---
 
@@ -36,7 +36,8 @@ In-game **Helios Ops Manual** (top right) has the full rules, glossary (turn / r
 | | |
 |--|--|
 | **Live** | https://heliopoly.live/ (Sunday 00:01 UTC unlock — #98 / #231) |
-| **Preview** | https://preview.heliopoly.live/ (next Sunday’s staged game — #134) |
+| **Beta** | https://beta.heliopoly.live/ (GitHub `main`, next live number — not Sunday’s freeze) |
+| **Preview** | https://preview.heliopoly.live/ (301 → beta) |
 | **Simulation** | https://simulation.heliopoly.live/ (Sim Lab — #91 / #134) |
 | **Local** | `npm install && npm run dev` → http://localhost:5173/ |
 
