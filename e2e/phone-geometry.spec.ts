@@ -999,8 +999,19 @@ async function openEndScreen(page: Page) {
         "The ledger writes The Ada as one of the greatest of all kind.",
         "The ledger ran 8 rounds.",
         "Closing books: ⍺2100 net worth · 3 claims · 1 depot.",
-        "Best books: Enceladus 236% · Venus 180% · Elon 91%.",
       ].join(" ");
+    }
+    const books = document.getElementById("end-books");
+    if (books) {
+      books.classList.remove("hidden");
+      const tb = books.querySelector("tbody");
+      if (tb) {
+        tb.innerHTML = [
+          "<tr><th scope=\"row\">Venus</th><td>⍺250</td><td>⍺900</td><td>⍺1150</td></tr>",
+          "<tr><th scope=\"row\">Enceladus</th><td>⍺300</td><td>⍺756</td><td>⍺1056</td></tr>",
+          "<tr><th scope=\"row\">Elon</th><td>⍺275</td><td>⍺500</td><td>⍺775</td></tr>",
+        ].join("");
+      }
     }
     const ranks = document.getElementById("end-ranks");
     if (ranks) {

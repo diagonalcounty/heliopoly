@@ -27,7 +27,7 @@ import {
 } from "./core/pilotCopy";
 import { sanitizePilotName } from "./core/pilotNames";
 import { goingUnderFlags } from "./core/goingUnder";
-import { assetSheetLine } from "./core/claimLedger";
+import { assetSheetRows } from "./core/claimLedger";
 import {
   applyAction,
   resolveCharterChoiceIfAi,
@@ -420,6 +420,7 @@ const bodyTooltip = document.getElementById("body-tooltip")!;
 const endRoot = document.getElementById("end-root")!;
 const endTitle = document.getElementById("end-title")!;
 const endStory = document.getElementById("end-story")!;
+const endBooks = document.getElementById("end-books") as HTMLTableElement;
 const endRanks = document.getElementById("end-ranks")!;
 const labRoot = document.getElementById("lab-root")!;
 const labScenariosEl = document.getElementById("lab-scenarios")!;
@@ -715,12 +716,21 @@ function waitForAnnouncementDismiss(): Promise<void> {
   });
 }
 
+function tableIsAllAi(s: GameState): boolean {
+  return s.players.every((p) => p.agent === "ai");
+}
+
 async function presentAnnouncementIfAny(s: GameState): Promise<GameState> {
   if (!s.pendingAnnouncement) return s;
   state = s;
   render();
   if (showAnnouncement(s)) {
-    await waitForAnnouncementDismiss();
+    if (tableIsAllAi(s)) {
+      await sleep(700);
+      hideAnnouncement();
+    } else {
+      await waitForAnnouncementDismiss();
+    }
   }
   return state ?? s;
 }
@@ -1221,7 +1231,12 @@ async function presentNewDuelResult(
   state = after;
   render();
   await maybeShowDuelResult(after);
-  await waitForDuelResultDismiss();
+  if (tableIsAllAi(after)) {
+    await sleep(700);
+    hideDuelResultSplash();
+  } else {
+    await waitForDuelResultDismiss();
+  }
   // hideDuelResultSplash nulls state.lastDuelResult; never re-hand callers a stale result
   const cleared: GameState = {
     ...(state ?? after),
@@ -1254,8 +1269,24 @@ function endScreenStory(s: GameState, winner: Player | undefined): string {
     deeds > 0 || depots > 0
       ? ` Closing books: ${nw} net worth · ${deeds} claim${deeds === 1 ? "" : "s"} · ${depots} depot${depots === 1 ? "" : "s"}.`
       : ` Closing books: ${nw} net worth.`;
-  const best = assetSheetLine(s, winner.id);
-  return reason + history + lengthBit + empire + (best ? ` ${best}` : "");
+  return reason + history + lengthBit + empire;
+}
+
+function renderEndBooks(s: GameState, winner: Player | undefined): void {
+  const body = endBooks.querySelector("tbody");
+  if (!body) return;
+  const rows = winner ? assetSheetRows(s, winner.id) : [];
+  body.replaceChildren();
+  if (!rows.length) {
+    endBooks.classList.add("hidden");
+    return;
+  }
+  for (const r of rows) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<th scope="row">${escapeHtml(r.name)}</th><td>${formatMoney(r.mark)}</td><td>${formatMoney(r.income)}</td><td>${formatMoney(r.total)}</td>`;
+    body.appendChild(tr);
+  }
+  endBooks.classList.remove("hidden");
 }
 
 function showEndScreen(s: GameState): void {
@@ -1269,6 +1300,7 @@ function showEndScreen(s: GameState): void {
   }
   endTitle.textContent = winner ? prevailsHeadline(winner) : "The ledger closes";
   endStory.textContent = endScreenStory(s, winner);
+  renderEndBooks(s, winner);
   // Full field: flying first (by NW), then eliminated by exit round (earliest first)
   const flying = s.players
     .filter((p) => !p.eliminated)
@@ -1367,7 +1399,9 @@ async function applyActionAnimated(
 async function runAiUntilHumanOrEnd(s: GameState): Promise<GameState> {
   let cur = s;
   let guard = 0;
-  while (guard++ < 600 && cur.phase !== "game_over") {
+  const allAi = tableIsAllAi(s);
+  const maxSteps = allAi ? 8000 : 600;
+  while (guard++ < maxSteps && cur.phase !== "game_over") {
     const preResolve = cur;
     cur = resolveDuelAiFully(cur);
     cur = await presentNewDuelResult(preResolve, cur);

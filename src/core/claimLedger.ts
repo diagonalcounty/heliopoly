@@ -193,19 +193,25 @@ export function claimBookValue(book: ClaimBook): number {
   return claimMark(book) + claimEarnings(book);
 }
 
+export interface AssetSheetRow {
+  name: string;
+  mark: number;
+  income: number;
+  total: number;
+}
+
 /**
  * End-screen profitability (#138): mark + income, not ROI%.
  * Held deeds only (closed books are gone). Gifts/steals still rank.
  */
-export function assetSheetLine(
+export function assetSheetRows(
   state: GameState,
   playerId: string,
   max = 3,
-): string {
+): AssetSheetRow[] {
   const p = state.players.find((x) => x.id === playerId);
-  if (!p) return "";
-  const ranked: { name: string; mark: number; income: number; total: number }[] =
-    [];
+  if (!p) return [];
+  const ranked: AssetSheetRow[] = [];
   for (const [nodeId, book] of Object.entries(p.claimBooks)) {
     const mark = claimMark(book);
     const income = claimEarnings(book);
@@ -216,10 +222,18 @@ export function assetSheetLine(
       total: mark + income,
     });
   }
-  if (ranked.length === 0) return "";
   ranked.sort((a, b) => b.total - a.total);
+  return ranked.slice(0, max);
+}
+
+export function assetSheetLine(
+  state: GameState,
+  playerId: string,
+  max = 3,
+): string {
+  const ranked = assetSheetRows(state, playerId, max);
+  if (ranked.length === 0) return "";
   return `Books: ${ranked
-    .slice(0, max)
     .map(
       (r) =>
         `${r.name} ${formatMoney(r.total)} (mark ${formatMoney(r.mark)} + income ${formatMoney(r.income)})`,
@@ -891,14 +905,16 @@ export function buildDossierView(
   };
 }
 
+/** Player-facing book so far: mark + income, not ROI%. */
+export function formatBookLine(row: DossierClaimRow): string {
+  const mark = row.bankValue;
+  const income = row.earnings;
+  return `book ${formatMoney(mark + income)} (mark ${formatMoney(mark)} + income ${formatMoney(income)})`;
+}
+
+/** @deprecated ROI% copy — kept for any leftover call sites. Prefer formatBookLine. */
 export function formatRoiLine(row: DossierClaimRow): string {
-  if (row.cashInvested <= 0) {
-    return row.earnings > 0
-      ? `no cash in · ${formatMoney(row.earnings)} earned`
-      : "no cash in";
-  }
-  const pct = Math.round((row.earnings / row.cashInvested) * 100);
-  return `${pct}% recovered (${formatMoney(row.earnings)} / ${formatMoney(row.cashInvested)})`;
+  return formatBookLine(row);
 }
 
 export function hubNetworkLabel(hubCount: number): string {

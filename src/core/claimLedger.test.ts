@@ -5,7 +5,9 @@
 import {
   bankSellValue,
   assetSheetLine,
+  assetSheetRows,
   bestBooksLine,
+  formatBookLine,
   buildDossierView,
   chooseAuctionBid,
   claimEarnings,
@@ -14,6 +16,7 @@ import {
   grantClaim,
   tryConsumeLandingRight,
 } from "./claimLedger";
+import { formatMoney } from "./currency";
 import { applyAction, getLegalActions, netWorth } from "./rules";
 import { createGame, currentPlayer } from "./state";
 import { teslaTargetClaims } from "./turnClock";
@@ -72,12 +75,24 @@ assert(elonReserve === 275, "Elon reserve is half of 550");
   const rival = buildDossierView(s, s.players[1].id, netWorth);
   assert(rival && !rival.canSell, "Rival dossier is read-only");
   assert(rival && rival.groups.some((g) => g.rows.some((r) => r.nodeId === "mars" && r.hasDepot)), "Rival Mars shows depot");
+  const elonRow = view!.groups.flatMap((g) => g.rows).find((r) => r.nodeId === "elon");
+  assert(elonRow && elonRow.bankValue === 275, "Elon mark is bank half");
+  assert(
+    !!elonRow &&
+      formatBookLine(elonRow) ===
+        `book ${formatMoney(675)} (mark ${formatMoney(275)} + income ${formatMoney(400)})`,
+    `dossier book line is mark + income (${elonRow ? formatBookLine(elonRow) : "missing"})`,
+  );
 }
 
 {
   const s = setupPortfolio();
   const you = s.players[0];
   // Elon list 550 → mark 275 + income 400 = 675; Venus still ranks on mark
+  const rows = assetSheetRows(s, you.id);
+  assert(rows.length === 2, "held books table has two rows");
+  assert(rows[0]?.name === "Elon" && rows[0].total === 675, "first row is Elon book");
+  assert(rows[0]?.mark === 275 && rows[0].income === 400, "Elon mark + income columns");
   const line = assetSheetLine(s, you.id);
   assert(
     line === "Books: Elon ⍼675 (mark ⍼275 + income ⍼400) · Venus ⍼250 (mark ⍼250 + income ⍼0).",

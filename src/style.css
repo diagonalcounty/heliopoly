@@ -3011,8 +3011,14 @@ body.handbook-open {
   flex: 1;
 }
 
+.dossier-row-mark {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
 .dossier-row-sub,
-.dossier-row-roi {
+.dossier-row-book {
   font-size: 0.8rem;
   color: var(--muted, #9aa7c2);
 }
@@ -4275,6 +4281,48 @@ button:not(:disabled):active {
   color: #c8c0a8;
   line-height: 1.5;
   font-family: Georgia, serif;
+}
+
+.end-books {
+  width: 100%;
+  margin: 0 0 14px;
+  border-collapse: collapse;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.82rem;
+  color: var(--text);
+  text-align: right;
+}
+
+.end-books.hidden {
+  display: none;
+}
+
+.end-books th,
+.end-books td {
+  padding: 5px 8px;
+  border-bottom: 1px solid rgba(201, 162, 39, 0.28);
+}
+
+.end-books thead th {
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #c9a227;
+  font-weight: 600;
+}
+
+.end-books thead th:first-child {
+  text-align: left;
+}
+
+.end-books tbody th {
+  text-align: left;
+  font-weight: 600;
+  color: #f0e6c8;
+}
+
+.end-books tbody td:last-child {
+  color: #ffc857;
 }
 
 .end-ranks {
@@ -6326,8 +6374,8 @@ button:not(:disabled):active {
     padding-bottom: max(16px, var(--sab));
   }
 
-  #dossier-root:not(.hidden) .dossier-row-roi {
-    display: none;
+  #dossier-root:not(.hidden) .dossier-row-book {
+    display: block;
   }
 
   #announce-root:not(.hidden) .announce-card,
@@ -6659,6 +6707,17 @@ button:not(:disabled):active {
     max-height: 4.4em;
     overflow: hidden;
     flex-shrink: 0;
+  }
+
+  #end-root:not(.hidden) #end-books {
+    flex-shrink: 0;
+    margin: 0 0 8px;
+    font-size: 0.75rem;
+  }
+
+  #end-root:not(.hidden) #end-books th,
+  #end-root:not(.hidden) #end-books td {
+    padding: 3px 6px;
   }
 
   #end-root:not(.hidden) #end-ranks {
