@@ -15,6 +15,14 @@
     <link rel="icon" type="image/png" href="/favicon-16.png" sizes="16x16" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
     <link rel="stylesheet" href="/src/style.css" />
+    <script>
+      (function () {
+        var h = location.hostname;
+        if (h === "beta.heliopoly.live" || h === "preview.heliopoly.live") {
+          document.documentElement.classList.add("is-beta");
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="app">
@@ -23,6 +31,7 @@
           <h1>
             Heliopoly <span class="badge">1.4.0</span>
             ><span class="title-tagline"> · Orbital Economics</span>
+            <span class="channel-pill">Beta</span>
           </h1>
           <div class="top-actions">
             <label class="anim-speed-field" title="Ship hops, dice, and AI pacing">
