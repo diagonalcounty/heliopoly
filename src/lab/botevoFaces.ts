@@ -3,7 +3,6 @@
  * SVG glasses face from face-review; exclusive playfield director.
  */
 import {
-  BOT_COLS,
   BOT_ROWS,
   DIR_E,
   DIR_N,
@@ -561,7 +560,8 @@ export class BotEvoFaceDirector {
       const cool = this.drillMs - (this.lastActed.get(h.key) ?? -1e9);
       const cooldownBoost = clamp(cool / 8000, 0, 1.5);
       const centerR = (BOT_ROWS - 1) / 2;
-      const centerC = (BOT_COLS - 1) / 2;
+      const maxCol = candidates.reduce((m, x) => Math.max(m, x.col), 0);
+      const centerC = maxCol / 2;
       const dist =
         h.kind === "falling"
           ? Math.abs(h.col - centerC) * 0.4

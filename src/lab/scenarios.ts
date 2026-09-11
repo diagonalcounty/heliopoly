@@ -146,7 +146,7 @@ export const LAB_SCENARIOS: LabScenario[] = [
     id: "egg-bot-evolution",
     title: "egg-bot-evolution",
     blurb:
-      "Drop egg-bots into a 5×8 field. Each bot’s pins are fixed. Match a chain of 5; they morph into a box that fills the level bar. Untimed Lab practice; expedition stays put.",
+      "Drop egg-bots into a 3×8 field. Match a chain of 3 to morph a box; harder jobs widen the field to Connect 4, 5, then 6. Untimed Lab practice; expedition stays put.",
     group: "minigame",
     kind: "standalone",
     available: true,

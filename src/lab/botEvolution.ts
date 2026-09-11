@@ -1,6 +1,7 @@
 /**
- * Lab drill: egg-bot-evolution (#203 / #204 / #205).
- * 5×8 egg-socket matching. Untimed. No Mainline / src/core.
+ * Lab drill: egg-bot-evolution (#203 / #240 / #241).
+ * Progressive Connect-N: start 3×8, morph ≥ N, widen after two bars.
+ * Untimed. No Mainline / src/core.
  *
  * Grammar: every piece is a centered plus with unused arms erased.
  * Connection uses socket flags, not sprite shape. No rotation — each
@@ -8,20 +9,22 @@
  * (4 / 3 / straight-2 / corner-2), not by facing.
  */
 
-export const BOT_COLS = 5;
+export type BotStage = 3 | 4 | 5 | 6;
+export const BOT_STAGE_MIN = 3 as const;
+export const BOT_STAGE_MAX = 6 as const;
 export const BOT_ROWS = 8;
 export const BOT_QUEUE = 6;
 /** Next-queue mosaic for slots 4 / 5 / 6 (#230). Full-frame, not zoom-crop. */
 export type QueuePixelStrength = "light" | "medium" | "heavy";
 /** Pixel-grid spin; egg stays upright. Slot 6 cw, 5 ccw, 4 cw. */
 export type QueueMosaicSpin = "cw" | "ccw";
-export const BASE_QUOTA = 5;
 export const SPEED_MUL = 1.1;
 export const BASE_GRAVITY_MS = 700;
 export const MIN_GRAVITY_MS = 80;
-export const MORPH_SIZE = 5;
 /** Extra gravity ticks on the floor so you can slide before lock. */
 export const LOCK_GRACE_TICKS = 1;
+/** Morph boxes to first reach Connect 6: 3+4 + 4+5 + 5+6. */
+export const BOXES_TO_CONNECT_6 = 27;
 
 export const DIR_N = 1;
 export const DIR_E = 2;
@@ -126,9 +129,14 @@ export interface BotState {
   current: PieceId;
   aimCol: number;
   fallRow: number | null;
+  /** Career completed-bar count + 1. Gravity only; does not reset on widen. */
   level: number;
   segments: number;
   boxes: number;
+  /** Stage N = width = morph threshold. Start 3; cap 6. */
+  n: BotStage;
+  /** Completed batteries at the current N (resets on widen). */
+  barsCompletedThisStage: number;
   phase: BotPhase;
   rng: number;
   /** Remaining bots in the current 11-bag. */
@@ -144,8 +152,10 @@ export interface BotState {
   recycleSharp: boolean[];
   /** Bottom-row bots recycled on the last promotion (chrome FX). */
   justRecycled: RecycledBot[];
-  /** Level-ups during the current morph resolve; applied after spawnNext. */
+  /** Recycle count during the current morph resolve; applied after spawnNext. */
   pendingPromotions: number;
+  /** True when this land completed a widen bar (rebuild empty; skip recycle). */
+  pendingWiden: boolean;
 }
 
 /**
@@ -182,8 +192,34 @@ export function hasSocket(id: PieceId, dir: number): boolean {
   return (PIECE_SOCKETS[id] & dir) !== 0;
 }
 
-export function quotaForLevel(level: number): number {
-  return BASE_QUOTA + (level - 1);
+export function clampStage(n: number): BotStage {
+  if (n <= BOT_STAGE_MIN) return BOT_STAGE_MIN;
+  if (n >= BOT_STAGE_MAX) return BOT_STAGE_MAX;
+  return n as BotStage;
+}
+
+export function centerCol(n: number): number {
+  return Math.floor((n - 1) / 2);
+}
+
+export function gridCols(grid: BotGrid): number {
+  return grid[0]?.length ?? 0;
+}
+
+/** +20% of stage base N, same rounding as old 5→6→7. */
+export function barStep(n: number): number {
+  return Math.round(0.2 * n);
+}
+
+export function quotaForStageBar(
+  n: number,
+  barsCompletedThisStage: number,
+): number {
+  return n + barStep(n) * barsCompletedThisStage;
+}
+
+export function quotaForState(state: BotState): number {
+  return quotaForStageBar(state.n, state.barsCompletedThisStage);
 }
 
 export function gravityMs(level: number): number {
@@ -191,14 +227,14 @@ export function gravityMs(level: number): number {
   return Math.max(MIN_GRAVITY_MS, Math.round(ms));
 }
 
-export function emptyGrid(): BotGrid {
+export function emptyGrid(cols: number): BotGrid {
   return Array.from({ length: BOT_ROWS }, () =>
-    Array<PieceId | null>(BOT_COLS).fill(null),
+    Array<PieceId | null>(cols).fill(null),
   );
 }
 
-export function inGrid(r: number, c: number): boolean {
-  return r >= 0 && r < BOT_ROWS && c >= 0 && c < BOT_COLS;
+export function inGrid(grid: BotGrid, r: number, c: number): boolean {
+  return r >= 0 && r < BOT_ROWS && c >= 0 && c < gridCols(grid);
 }
 
 export function cellKey(r: number, c: number): string {
@@ -282,14 +318,16 @@ export function startBotEvo(seed?: number): BotState {
   rng = currentPick.rng;
   const filled = fillQueue(rng, currentPick.bag, BOT_QUEUE);
   const state: BotState = {
-    grid: emptyGrid(),
+    grid: emptyGrid(BOT_STAGE_MIN),
     queue: filled.queue,
     current: currentPick.piece,
-    aimCol: 2,
+    aimCol: centerCol(BOT_STAGE_MIN),
     fallRow: null,
     level: 1,
     segments: 0,
     boxes: 0,
+    n: BOT_STAGE_MIN,
+    barsCompletedThisStage: 0,
     phase: "aiming",
     rng: filled.rng,
     bag: filled.bag,
@@ -298,6 +336,7 @@ export function startBotEvo(seed?: number): BotState {
     recycleSharp: Array.from({ length: BOT_QUEUE }, () => false),
     justRecycled: [],
     pendingPromotions: 0,
+    pendingWiden: false,
   };
   startFall(state);
   return state;
@@ -305,6 +344,20 @@ export function startBotEvo(seed?: number): BotState {
 
 export function playAgainBotEvo(seed?: number): BotState {
   return startBotEvo(seed);
+}
+
+/** Test helper: seeded game already at stage N. Chrome must use startBotEvo. */
+export function startBotEvoAt(n: BotStage, seed?: number): BotState {
+  const state = startBotEvo(seed);
+  const stage = clampStage(n);
+  state.n = stage;
+  state.grid = emptyGrid(stage);
+  state.aimCol = centerCol(stage);
+  state.barsCompletedThisStage = 0;
+  state.pendingWiden = false;
+  state.pendingPromotions = 0;
+  startFall(state);
+  return state;
 }
 
 /** Blank-shell body geometry from face-review HITL (viewBox 0 0 100 100). */
@@ -508,7 +561,7 @@ export function socketJoins(grid: BotGrid, r: number, c: number): number {
     const [dr, dc] = DELTA[dir]!;
     const nr = r + dr;
     const nc = c + dc;
-    if (!inGrid(nr, nc)) continue;
+    if (!inGrid(grid, nr, nc)) continue;
     const there = grid[nr]![nc];
     if (!there) continue;
     if (socketsMeet(here, there, dir)) mask |= dir;
@@ -529,8 +582,9 @@ export function socketsMeet(
 export function connectedComponents(grid: BotGrid): string[][] {
   const seen = new Set<string>();
   const groups: string[][] = [];
+  const cols = gridCols(grid);
   for (let r = 0; r < BOT_ROWS; r++) {
-    for (let c = 0; c < BOT_COLS; c++) {
+    for (let c = 0; c < cols; c++) {
       const piece = grid[r]![c];
       if (!piece) continue;
       const start = cellKey(r, c);
@@ -547,7 +601,7 @@ export function connectedComponents(grid: BotGrid): string[][] {
           const [dr, dc] = DELTA[dir]!;
           const nr = cr + dr;
           const nc = cc + dc;
-          if (!inGrid(nr, nc)) continue;
+          if (!inGrid(grid, nr, nc)) continue;
           const there = grid[nr]![nc];
           if (!there) continue;
           if (!socketsMeet(here, there, dir)) continue;
@@ -575,8 +629,9 @@ export function liveChainCells(grid: BotGrid): Set<string> {
 }
 
 export function applyColumnGravity(grid: BotGrid): BotGrid {
-  const next = emptyGrid();
-  for (let c = 0; c < BOT_COLS; c++) {
+  const cols = gridCols(grid);
+  const next = emptyGrid(cols);
+  for (let c = 0; c < cols; c++) {
     const stack: PieceId[] = [];
     for (let r = 0; r < BOT_ROWS; r++) {
       const piece = grid[r]![c];
@@ -591,13 +646,20 @@ export function applyColumnGravity(grid: BotGrid): BotGrid {
   return next;
 }
 
-function creditBoxes(state: BotState, n: number): void {
-  state.boxes += n;
-  state.segments += n;
-  while (state.segments >= quotaForLevel(state.level)) {
-    state.segments -= quotaForLevel(state.level);
+function creditBoxes(state: BotState, count: number): void {
+  state.boxes += count;
+  state.segments += count;
+  while (state.segments >= quotaForState(state)) {
+    state.segments -= quotaForState(state);
     state.level += 1;
-    state.pendingPromotions += 1;
+    state.barsCompletedThisStage += 1;
+    if (state.n < BOT_STAGE_MAX && state.barsCompletedThisStage >= 2) {
+      state.pendingWiden = true;
+      state.n = (state.n + 1) as BotStage;
+      state.barsCompletedThisStage = 0;
+    } else {
+      state.pendingPromotions += 1;
+    }
   }
 }
 
@@ -616,7 +678,8 @@ function recycleBottomRowInPlace(state: BotState): void {
   const bottom = BOT_ROWS - 1;
   const recycled: RecycledBot[] = [];
   const grid = cloneGrid(state.grid);
-  for (let c = 0; c < BOT_COLS; c++) {
+  const cols = gridCols(grid);
+  for (let c = 0; c < cols; c++) {
     const piece = grid[bottom]![c];
     if (!piece) continue;
     recycled.push({ col: c, piece });
@@ -671,9 +734,10 @@ export function clearJustRecycled(state: BotState): BotState {
 function resolveMorphs(state: BotState): void {
   const flash: string[] = [];
   let guard = 0;
-  while (guard++ < BOT_ROWS * BOT_COLS) {
+  const cellCount = BOT_ROWS * Math.max(gridCols(state.grid), BOT_STAGE_MAX);
+  while (guard++ < cellCount) {
     const groups = connectedComponents(state.grid).filter(
-      (g) => g.length >= MORPH_SIZE,
+      (g) => g.length >= state.n,
     );
     if (!groups.length) break;
     const kill = new Set<string>();
@@ -736,11 +800,20 @@ export function resumeAfterMorph(state: BotState): BotState {
   return next;
 }
 
+function rebuildPlayfield(state: BotState): void {
+  state.grid = emptyGrid(state.n);
+  if (state.aimCol < 0 || state.aimCol >= state.n) {
+    state.aimCol = centerCol(state.n);
+  }
+  state.justRecycled = [];
+  state.pendingPromotions = 0;
+}
+
 function landFalling(state: BotState): void {
   if (state.fallRow === null) return;
   const r = state.fallRow;
   const c = state.aimCol;
-  if (!inGrid(r, c) || state.grid[r]![c]) {
+  if (!inGrid(state.grid, r, c) || state.grid[r]![c]) {
     state.phase = "lost";
     state.fallRow = null;
     return;
@@ -750,10 +823,19 @@ function landFalling(state: BotState): void {
   state.fallRow = null;
   state.justRecycled = [];
   state.pendingPromotions = 0;
+  state.pendingWiden = false;
   resolveMorphs(state);
   const promotions = state.pendingPromotions;
+  const widen = state.pendingWiden;
   state.pendingPromotions = 0;
+  state.pendingWiden = false;
   spawnNext(state);
+  if (widen) {
+    // Skip recycle on the bar that rebuilds (#240 HITL).
+    rebuildPlayfield(state);
+    if (state.phase !== "lost") startFall(state);
+    return;
+  }
   // Recycle after spawn so queue[0] is the live next-to-drop (slot 1 stays).
   for (let i = 0; i < promotions; i++) {
     recycleBottomRowInPlace(state);
@@ -762,7 +844,7 @@ function landFalling(state: BotState): void {
 
 export function aimColumn(state: BotState, col: number): BotState {
   if (state.phase === "lost") return state;
-  if (col < 0 || col >= BOT_COLS) return state;
+  if (col < 0 || col >= state.n) return state;
   const next = cloneState(state);
   if (next.phase === "falling" && next.fallRow !== null) {
     if (next.grid[next.fallRow]![col] !== null) return state;
@@ -795,7 +877,7 @@ export function landingPreview(state: BotState): LandingPreview | null {
   return {
     row: r,
     live: size >= 2,
-    morph: size >= MORPH_SIZE,
+    morph: size >= state.n,
   };
 }
 

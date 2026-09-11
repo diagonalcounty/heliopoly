@@ -519,7 +519,7 @@ test.describe("phone Lab sheet #193", () => {
 test.describe("phone Lab egg-bot-evolution #203", () => {
   test.skip(({ viewport }) => (viewport?.width ?? 0) >= 900, "phone only");
 
-  test("5×8 grid; cells ≥40px; Close returns Roll", async ({ page }) => {
+  test("3×8 grid; cells ≥40px; Close returns Roll", async ({ page }) => {
     await launch(page);
     const roll = await centerOf(page, "#btn-roll");
     await page.locator("#btn-lab").click();
@@ -535,7 +535,7 @@ test.describe("phone Lab egg-bot-evolution #203", () => {
     await expect(page.locator("#botevo-table")).not.toHaveClass(/hidden/);
 
     const cells = page.locator("#botevo-grid .botevo-cell");
-    await expect(cells).toHaveCount(40);
+    await expect(cells).toHaveCount(24);
     const first = await boxOf(page, "#botevo-grid .botevo-cell");
     expect(first.width, "egg cell ≥40px").toBeGreaterThanOrEqual(40);
     expect(first.height, "egg cell ≥40px").toBeGreaterThanOrEqual(40);

@@ -4,9 +4,23 @@ Working title. Not RoboSockets. Lab-only matching / falling-block drill inspired
 
 **Do not treat any mockup as locked UI.** The session did not converge on chrome. These files and notes are inspiration only.
 
-## Locked-enough rules (design, not build-complete)
+## Locked rules (Connect-N — #240 HITL 2026-09-10 / engine #241)
 
-- Grid: **5 wide × 8 tall**. Gravity down. No rising floor.
+Fixed 5×8 / connect-5 is **retired**. Progressive Connect-N:
+
+- Stages **N ∈ {3,4,5,6}**. Lab starts at **Connect 3**. No Connect 2 / 7+.
+- Grid **N × 8**. Gravity down. No rising floor. Width equals the connections required.
+- Morph when a connected orthogonal socket group is **≥ N**. Morph → box / evolve into the top bar — **not** explode.
+- Fill the battery **twice** at current N, then **rebuild empty** at N+1. After Connect 6, stay **6×8** until top-out.
+- Bar length starts at **N**. Each completed bar is **+20% of that stage’s base N**: `N + round(0.2×N) × barsCompletedThisStage`. Stage change **resets** the bar to the new N.
+  - C3: 3 then 4 → rebuild 4×8
+  - C4: 4 then 5 → rebuild 5×8
+  - C5: 5 then 6 → rebuild 6×8
+  - C6: 6, 7, 8, 9… until lose
+- Career morphs to first reach Connect 6: **3+4 + 4+5 + 5+6 = 27** boxes.
+- **Speed:** each completed bar multiplies drop/gravity by **1.10** (career `level`; does not reset on widen). No countdown timer / time-up fail in Lab v1.
+- Recycle the bottom row on a bar that **does not** widen. **Skip recycle** on the bar that rebuilds.
+- Next-piece preview: shipped **queue of 6** with SVG mosaic on slots 4/5/6 (#230). Must work at every width.
 - Pieces: cream egg-bots. Face mark is a wiring diagram of live sockets.
 - Grammar: start from a centered plus; **erase unused arms**. Connectors exist only on live sides.
   - `+` — N/E/S/W
@@ -15,12 +29,9 @@ Working title. Not RoboSockets. Lab-only matching / falling-block drill inspired
   - `L` — two adjacent arms (example locked in conversation: **up + right**)
   - `T` — three arms (one plus-arm erased)
 - No duds, no bomb, no drill, no battery-extraction lore.
-- Chain of **5** linked eggs morphs into a box that fills the **top horizontal level bar** (save / evolve, not explode).
-- Level bar height is fixed. L1 = 5 segments. Next level adds 20% of the base 5 (6, then 7…).
-- **Speed:** each level promotion multiplies drop/gravity speed by **1.10** (10% faster than the previous level). Compounding. No countdown timer / time-up fail in Lab v1.
-- Next-piece preview required (queue of 3 preferred).
 - Push is **parked** — not in v1 chrome. If revived: shove sideways; off-board recycles into the queue.
 - Open-source Tetris / match / pipe engines are fair to borrow for the grid; art and rules are ours.
+- Lab-only. No `src/core`. Do not name RoboSockets in UI.
 
 ## Art direction (hybrid, not final)
 
@@ -28,7 +39,7 @@ Working title. Not RoboSockets. Lab-only matching / falling-block drill inspired
 - Eggs: family shells (cream plus / cyan straight / apricot corner / mint tee). **Connectors are pistons** on live sides only; dead sides are smooth shell — no bumpers, no wall-plates, no extra hug-arms.
 - Gold glow on a live chain (Egg-Socket card comp).
 - Mascot: raccoon clerk (Kostka-dog card energy, suit, not oil-paint realism).
-- Playfield: simple 5×8 cell grid. Slot-table wells were too thick — connectors must meet through column gaps.
+- Playfield: simple N×8 cell grid (starts 3×8). Slot-table wells were too thick — connectors must meet through column gaps.
 - UI chrome: vintage card frame is attractive but **not locked**. Do not block build on pixel-perfect HUD.
 
 ## Session artifacts (local / chat — commit binaries in a follow-up if needed)
@@ -52,4 +63,4 @@ Lab standalone: `src/lab/botEvolution.ts` (engine + erased-plus grammar). Overla
 
 ## Related issues
 
-See GitHub issues opened 2026-08-29 under Lab shelf [#153](https://github.com/diagonalcounty/heliopoly/issues/153): parent [#203](https://github.com/diagonalcounty/heliopoly/issues/203), engine [#204](https://github.com/diagonalcounty/heliopoly/issues/204), grammar [#205](https://github.com/diagonalcounty/heliopoly/issues/205), UI [#206](https://github.com/diagonalcounty/heliopoly/issues/206).
+Design lock: [#240](https://github.com/diagonalcounty/heliopoly/issues/240). Engine: [#241](https://github.com/diagonalcounty/heliopoly/issues/241) (retargets [#204](https://github.com/diagonalcounty/heliopoly/issues/204)). Parent Lab seed: [#203](https://github.com/diagonalcounty/heliopoly/issues/203). Queue mosaic: [#230](https://github.com/diagonalcounty/heliopoly/issues/230). Lab shelf: [#153](https://github.com/diagonalcounty/heliopoly/issues/153). Grammar / UI: [#205](https://github.com/diagonalcounty/heliopoly/issues/205), [#206](https://github.com/diagonalcounty/heliopoly/issues/206).
