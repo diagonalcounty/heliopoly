@@ -626,7 +626,7 @@ assert(!socketsMeet("l-ne", "i", DIR_S), "L-NE has no south pin");
 
 {
   assert(BOTEVO_TITLE === "Bot Evolution", "product title is Bot Evolution");
-  assert(BOTEVO_SAVE_ARIA === "Boxes to next stage", "save-bar aria is boxes, not battery");
+  assert(BOTEVO_SAVE_ARIA === "Boxes to next stage", "progress aria is boxes, not battery or save");
   assert(connectLabel(3) === "Connect 3", "HUD is Connect 3, not C3");
   assert(connectLabel(6) === "Connect 6", "HUD is Connect 6");
   assert(!connectLabel(3).includes("C3"), "no cryptic C3");
@@ -634,16 +634,21 @@ assert(!socketsMeet("l-ne", "i", DIR_S), "L-NE has no south pin");
   assert(t3.action === "Begin", "first bay Begin");
   assert(t3.title.includes("three"), "Connect 3 teaches three");
   assert(t3.bodyHtml.includes("three"), "Connect 3 body names three");
+  assert(t3.bodyHtml.includes("become a box"), "Connect 3 says they become a box");
+  const banned = /blast|battery|cruise|C3|morph|save/i;
+  assert(!banned.test(t3.title + t3.bodyHtml), "Connect 3 has no insider contrast");
   const t4 = stageTeach(4, true);
   assert(t4.action === "Continue", "later bay Continue");
   assert(t4.title.toLowerCase().includes("four"), "Connect 4 teaches four");
+  assert(!banned.test(t4.title + t4.bodyHtml), "Connect 4 has no insider contrast");
   const t6 = stageTeach(6, true);
   assert(t6.title.toLowerCase().includes("six"), "Connect 6 teaches six");
   const h3 = playHint(3);
-  assert(h3.includes("chain of 3"), "in-play hint uses 3");
+  assert(h3.includes("Link 3"), "in-play hint uses 3");
   assert(!h3.includes("chain of 5"), "no leftover chain of 5 on Connect 3");
+  assert(!banned.test(h3), "hint has no insider contrast");
   const h5 = playHint(5);
-  assert(h5.includes("chain of 5"), "in-play hint updates at 5");
+  assert(h5.includes("Link 5"), "in-play hint updates at 5");
 }
 
 if (failed) {

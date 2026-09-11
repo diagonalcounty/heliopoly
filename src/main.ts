@@ -2602,8 +2602,8 @@ function renderBotEvo(): void {
     const n = botEvoState.boxes;
     botEvoEndBlurb.textContent =
       n === 1
-        ? "A column overflowed after 1 box. Play again when you’re ready."
-        : `A column overflowed after ${n} boxes. Play again when you’re ready.`;
+        ? "A column filled to the top after 1 box. Play again when you’re ready."
+        : `A column filled to the top after ${n} boxes. Play again when you’re ready.`;
   }
 
   const live = liveChainCells(botEvoState.grid);
@@ -2670,7 +2670,7 @@ function renderBotEvo(): void {
         });
       }
       const label = morphing
-        ? `Morphing box ${r + 1},${c + 1}`
+        ? `Joining into a box ${r + 1},${c + 1}`
         : landed
           ? `Bot ${r + 1},${c + 1}`
           : falling

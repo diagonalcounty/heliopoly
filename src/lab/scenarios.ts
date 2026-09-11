@@ -1,5 +1,5 @@
 /**
- * Lab scenarios — cruise drills and canned setups.
+ * Lab scenarios — practice games and canned setups.
  * Not used in normal Launch flow.
  *
  * Menu UX: top-level **categories** expand to show items under them
@@ -35,8 +35,8 @@ export const LAB_GROUP_BLURBS: Record<LabScenarioGroup, string> = {
   "which-is-larger":
     "Pick the larger of two numbers, written in another numbering system.",
   minigame:
-    "Cruise drills: Bot Evolution, Gravity Duel, Deseret letters, Backup fuel, Hull panel, Urinal-rule Parking.",
-  end: "How an expedition can end — you prevail, or an AI does.",
+    "Bot Evolution, Gravity Duel, Deseret letters, Backup fuel, Hull panel, Urinal-rule Parking.",
+  end: "How a game can end — you win, or the computer does.",
   economy: "Tight cash, going-under warnings, selling a claim from Earth.",
 };
 
@@ -134,7 +134,7 @@ export const LAB_SCENARIOS: LabScenario[] = [
   {
     id: "binary-compare",
     title: "Binary",
-    blurb: "Same ladder; numbers shown as base-2 bit strings (e.g. 13 → 1101).",
+    blurb: "Same ladder; numbers written with 0s and 1s (13 is 1101).",
     group: "which-is-larger",
     kind: "standalone",
     available: true,
@@ -146,7 +146,7 @@ export const LAB_SCENARIOS: LabScenario[] = [
     id: "egg-bot-evolution",
     title: "Bot Evolution",
     blurb:
-      "Drop egg-bots into a 3×8 field. Match a chain of 3 to morph a box; harder jobs widen the field to Connect 4, 5, then 6. Untimed Lab practice; expedition stays put.",
+      "Drop bots into a 3-wide field. Link three whose pins touch; they become a box. Harder jobs need four, then five, then six, and the field gets wider. Your rocket on the board is unchanged.",
     group: "minigame",
     kind: "standalone",
     available: true,
@@ -156,7 +156,7 @@ export const LAB_SCENARIOS: LabScenario[] = [
     id: "duel-you-challenger",
     title: "Gravity Duel",
     blurb:
-      "You arrive on a belt blank occupied by an AI pilot. Stance (Low/High), then roll. Replaces the current expedition with this duel setup.",
+      "You arrive on a belt lane already held by a computer pilot. Pick High or Low, then roll. This replaces the current game.",
     group: "minigame",
     kind: "game",
     available: true,
@@ -182,7 +182,7 @@ export const LAB_SCENARIOS: LabScenario[] = [
     id: "backup-fuel-pipes",
     title: "Backup fuel",
     blurb:
-      "Reroute backup fuel: rotate pipe segments on a 6×6 until tank feeds the engine. Untimed Lab practice; expedition stays put.",
+      "Reroute backup fuel: rotate pipes on a 6×6 until the tank feeds the engine. Your rocket on the board is unchanged.",
     group: "minigame",
     kind: "standalone",
     available: true,
@@ -192,7 +192,7 @@ export const LAB_SCENARIOS: LabScenario[] = [
     id: "hull-panel",
     title: "Hull panel",
     blurb:
-      "Slide numbered hull plates 1–8 back into order. Untimed Lab practice; expedition stays put.",
+      "Slide numbered hull plates 1–8 back into order. Your rocket on the board is unchanged.",
     group: "minigame",
     kind: "standalone",
     available: true,
@@ -209,8 +209,8 @@ export const LAB_SCENARIOS: LabScenario[] = [
   },
   {
     id: "end-you-win",
-    title: "End screen — you prevail",
-    blurb: "All other pilots eliminated; opens the end screen with the winner's mark + income asset sheet.",
+    title: "End screen — you win",
+    blurb: "You are the last rocket flying. Opens the end of a game you won.",
     group: "end",
     kind: "game",
     build: () => {
@@ -244,8 +244,8 @@ export const LAB_SCENARIOS: LabScenario[] = [
   },
   {
     id: "end-ai-wins",
-    title: "End screen — AI prevails",
-    blurb: "Human out; one AI remains (grammar / postmortem check).",
+    title: "End screen — the computer wins",
+    blurb: "You are out. One computer rocket is still flying.",
     group: "end",
     kind: "game",
     build: () => {
@@ -273,7 +273,7 @@ export const LAB_SCENARIOS: LabScenario[] = [
   {
     id: "going-under-warnings",
     title: "Going-under warnings",
-    blurb: "You're stranded on a rival's claim with no fuel and low cash — standings show ⚠ risk badges.",
+    blurb: "You're on a rival's world with no fuel and little cash. Standings show a warning.",
     group: "economy",
     kind: "game",
     build: () => {
@@ -295,7 +295,7 @@ export const LAB_SCENARIOS: LabScenario[] = [
     id: "claim-ledger",
     title: "Claim ledger / remote sell",
     blurb:
-      "You're on Earth with Elon (almost paid back) and Venus. Cash is tight. Click your name on the ledger — sell or auction Elon (a rival holds the rest of Mars).",
+      "You're on Earth with Elon (almost paid back) and Venus. Cash is tight. Open the ledger — sell or auction Elon (a rival holds the rest of Mars).",
     group: "economy",
     kind: "game",
     build: () => {

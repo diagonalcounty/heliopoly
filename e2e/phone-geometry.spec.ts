@@ -537,6 +537,8 @@ test.describe("phone Lab egg-bot-evolution #203", () => {
     await expect(page.locator("#botevo-intro")).not.toHaveClass(/hidden/);
     await expect(page.locator("#botevo-title")).toHaveText("Bot Evolution");
     await expect(page.locator("#botevo-card-title")).toContainText("Link three");
+    await expect(page.locator("#botevo-card-body")).toContainText("become a box");
+    await expect(page.locator("#botevo-card-body")).not.toContainText(/blast|save, not/i);
     await expect(page.locator("#btn-lab")).toHaveAttribute("aria-label", "Open Lab");
     const begin = await boxOf(page, "#botevo-begin");
     expect(begin.height, "Begin ≥44px tall").toBeGreaterThanOrEqual(44);
@@ -549,8 +551,9 @@ test.describe("phone Lab egg-bot-evolution #203", () => {
       "Boxes to next stage",
     );
     await expect(page.locator("#botevo-bar")).not.toHaveClass(/battery/);
-    await expect(page.locator("#botevo-hint")).toContainText("chain of 3");
+    await expect(page.locator("#botevo-hint")).toContainText("Link 3");
     await expect(page.locator("#botevo-hint")).not.toContainText("chain of 5");
+    await expect(page.locator("#botevo-hint")).not.toContainText(/blast|morph/i);
 
     const cells = page.locator("#botevo-grid .botevo-cell");
     await expect(cells).toHaveCount(24);
