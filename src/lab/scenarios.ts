@@ -1,5 +1,5 @@
 /**
- * Lab scenarios — isolated setups for minigame / UX testing.
+ * Lab scenarios — cruise drills and canned setups.
  * Not used in normal Launch flow.
  *
  * Menu UX: top-level **categories** expand to show items under them
@@ -13,7 +13,7 @@ import type { GameState } from "../core/types";
 /**
  * Lab accordion categories (stable order for the menu).
  * `which-is-larger` = multi-script compare drills (#76; EA pack = #81).
- * `minigame` = Lab drills, listed most mature first (egg-bot-evolution on top).
+ * `minigame` = Lab drills, listed most mature first (Bot Evolution on top).
  */
 export type LabScenarioGroup = "which-is-larger" | "minigame" | "end" | "economy";
 
@@ -33,11 +33,11 @@ export const LAB_GROUP_LABELS: Record<LabScenarioGroup, string> = {
 
 export const LAB_GROUP_BLURBS: Record<LabScenarioGroup, string> = {
   "which-is-larger":
-    "Literacy drills: pick the larger of two numbers in a target numbering system.",
+    "Pick the larger of two numbers, written in another numbering system.",
   minigame:
-    "Standalone practice modes (egg-bot-evolution, Gravity Duel, Deseret letters, Backup fuel, Hull panel, urinal-rule-parking).",
-  end: "Canned end screens for UI / copy checks.",
-  economy: "Economy and risk edge cases.",
+    "Cruise drills: Bot Evolution, Gravity Duel, Deseret letters, Backup fuel, Hull panel, Urinal-rule Parking.",
+  end: "How an expedition can end — you prevail, or an AI does.",
+  economy: "Tight cash, going-under warnings, selling a claim from Earth.",
 };
 
 /** Charter GameState drop-in (replaces current game). */
@@ -144,7 +144,7 @@ export const LAB_SCENARIOS: LabScenario[] = [
   // —— Minigames, most mature first (menu order) ——
   {
     id: "egg-bot-evolution",
-    title: "egg-bot-evolution",
+    title: "Bot Evolution",
     blurb:
       "Drop egg-bots into a 3×8 field. Match a chain of 3 to morph a box; harder jobs widen the field to Connect 4, 5, then 6. Untimed Lab practice; expedition stays put.",
     group: "minigame",
@@ -200,7 +200,7 @@ export const LAB_SCENARIOS: LabScenario[] = [
   },
   {
     id: "urinal-rule-parking",
-    title: "urinal-rule-parking",
+    title: "Urinal-rule Parking",
     blurb: "Circular pads. Tap an empty circle.",
     group: "minigame",
     kind: "standalone",

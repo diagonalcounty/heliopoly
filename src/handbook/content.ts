@@ -590,15 +590,15 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     id: "lab",
     title: "The Lab",
     html: `
-<p><strong>The Lab</strong> (header button) is the minigame and drill bay — practice and testing, not the live charter. It is on every build, including the live site and the iPhone header next to Book.</p>
+<p><strong>The Lab</strong> (header button) is the cruise-drill bay next to the Mainline. It is on every build, including the live site and the iPhone header next to Book.</p>
 <ul>
   <li>Tap a <strong>category</strong> (Which is larger?, Minigames, End screens, Economy) to expand it; tap again to collapse.</li>
   <li><strong>Which is larger?</strong> — one line per numbering system (Eastern Arabic, Chinese, Korean, Hebrew, binary…). Same first digit — check the next place. Closing a drill returns you to the Lab. Your expedition is untouched.</li>
-  <li><strong>Minigames</strong> — egg-bot-evolution, Gravity Duel, Deseret letters, Backup fuel, Hull panel, urinal-rule-parking.</li>
-  <li><strong>End screens / economy</strong> — canned board states for UI and balance checks.</li>
+  <li><strong>Minigames</strong> — Bot Evolution, Gravity Duel, Deseret letters, Backup fuel, Hull panel, Urinal-rule Parking.</li>
+  <li><strong>End screens / economy</strong> — how an expedition can end, plus tight-cash and going-under drills.</li>
 </ul>
-<p>Game scenarios that replace the board (duel, end screens, economy) swap out the current expedition. Pure drills (Which is larger?, egg-bot-evolution, Deseret letters, Backup fuel, Hull panel, urinal-rule-parking) do not.</p>
-<p>We keep Lab visible on purpose — it is part of the product, not a dev-only cheat panel. Putting drills into Opportunity (and the shorter expeditions) is a later charter change; until then, Lab is how you try them.</p>
+<p>Game scenarios that replace the board (Gravity Duel, end screens, economy) swap out the current expedition. Pure drills (Which is larger?, Bot Evolution, Deseret letters, Backup fuel, Hull panel, Urinal-rule Parking) do not.</p>
+<p>Lab is part of the product family, not a back-room test panel. Putting drills into Opportunity (and the shorter expeditions) is a later charter change; until then, Lab is how you try them.</p>
 `,
   },
   {

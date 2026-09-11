@@ -11,14 +11,14 @@ Fixed 5×8 / connect-5 is **retired**. Progressive Connect-N:
 - Stages **N ∈ {3,4,5,6}**. Lab starts at **Connect 3**. No Connect 2 / 7+.
 - Grid **N × 8**. Gravity down. No rising floor. Width equals the connections required.
 - Morph when a connected orthogonal socket group is **≥ N**. Morph → box / evolve into the top bar — **not** explode.
-- Fill the battery **twice** at current N, then **rebuild empty** at N+1. After Connect 6, stay **6×8** until top-out.
+- Fill the save bar **twice** at current N, then **rebuild empty** at N+1. After Connect 6, stay **6×8** until top-out.
 - Bar length starts at **N**. Each completed bar is **+20% of that stage’s base N**: `N + round(0.2×N) × barsCompletedThisStage`. Stage change **resets** the bar to the new N.
-  - C3: 3 then 4 → rebuild 4×8
-  - C4: 4 then 5 → rebuild 5×8
-  - C5: 5 then 6 → rebuild 6×8
-  - C6: 6, 7, 8, 9… until lose
+  - Connect 3: 3 then 4 → rebuild 4×8
+  - Connect 4: 4 then 5 → rebuild 5×8
+  - Connect 5: 5 then 6 → rebuild 6×8
+  - Connect 6: 6, 7, 8, 9… until lose
 - Career morphs to first reach Connect 6: **3+4 + 4+5 + 5+6 = 27** boxes.
-- **Speed:** C3–C5 stay at baseline drop (700 ms). Gravity ×1.10 starts on **Connect 6**, counting bars completed at 6×8 (first C6 bar is still baseline). Floor 80 ms. No countdown timer / time-up fail in Lab v1.
+- **Speed:** Connect 3–5 stay at baseline drop (700 ms). Gravity ×1.10 starts on **Connect 6**, counting bars completed at 6×8 (first Connect 6 bar is still baseline). Floor 80 ms. No countdown timer / time-up fail in Lab v1.
 - Recycle the bottom row on a bar that **does not** widen. **Skip recycle** on the bar that rebuilds.
 - Next-piece preview: shipped **queue of 6** with SVG mosaic on slots 4/5/6 (#230). Must work at every width.
 - Pieces: cream egg-bots. Face mark is a wiring diagram of live sockets.
