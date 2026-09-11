@@ -106,27 +106,27 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     html: `
 <p>Words we use the same way every time:</p>
 <table class="glossary">
-  <thead><tr><th>Term</th><th>Meaning</th><th>In code / UI</th></tr></thead>
+  <thead><tr><th>Term</th><th>Meaning</th><th>Where you see it</th></tr></thead>
   <tbody>
     <tr>
       <td><strong>Turn</strong></td>
       <td>One rocket’s seat at the table: from becoming current through end turn (roll + move, or skip, or park). Skipped seats still count as a turn for the seat clock.</td>
-      <td><code>gameTurn</code> · “Turn N” in the log</td>
+      <td>“Turn N” in the log</td>
     </tr>
     <tr>
       <td><strong>Round</strong></td>
       <td>Everyone has had a seat turn — a full pass through the player order (including skips / parks).</td>
-      <td><code>round</code> · “Round N” in the log</td>
+      <td>“Round N” in the log</td>
     </tr>
     <tr>
       <td><strong>Rotation</strong></td>
       <td>One rocket completes a full circuit of the board path (leaves Earth and returns). Personal to that rocket.</td>
-      <td>Circuit complete log · <code>boardRotations</code> (global count of circuits finished)</td>
+      <td>Circuit complete line in the log</td>
     </tr>
     <tr>
       <td><strong>Park</strong></td>
       <td>A seat turn where that rocket does <em>not</em> move (camp, full break, failed leave, duel skip). Cumulative park count drives feral risk.</td>
-      <td><code>parkCount</code></td>
+      <td>Park count on the turn panel</td>
     </tr>
     <tr>
       <td><strong>Ledger event</strong></td>
@@ -136,7 +136,7 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     <tr>
       <td><strong>Warp</strong></td>
       <td>Board-wide teleport charge: instead of rolling, click any beacon. No en-route stops, rent, or duels; landing rules still apply at the destination.</td>
-      <td>Warp charges · King’s Quest / Strong Bad Email alerts</td>
+      <td>Warp charges · King’s Quest / Strong Bad Email cards</td>
     </tr>
   </tbody>
 </table>
@@ -590,15 +590,14 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     id: "lab",
     title: "The Lab",
     html: `
-<p><strong>The Lab</strong> (header button) is the minigame and drill bay — practice and testing, not the live charter. It is on every build, including the live site and the iPhone header next to Book.</p>
+<p><strong>The Lab</strong> (header button) is extra games next to the board game. It is on every build, including the live site and the iPhone header next to Book.</p>
 <ul>
   <li>Tap a <strong>category</strong> (Which is larger?, Minigames, End screens, Economy) to expand it; tap again to collapse.</li>
-  <li><strong>Which is larger?</strong> — one line per numbering system (Eastern Arabic, Chinese, Korean, Hebrew, binary…). Same first digit — check the next place. Closing a drill returns you to the Lab. Your expedition is untouched.</li>
-  <li><strong>Minigames</strong> — egg-bot-evolution, Gravity Duel, Deseret letters, Backup fuel, Hull panel, urinal-rule-parking.</li>
-  <li><strong>End screens / economy</strong> — canned board states for UI and balance checks.</li>
+  <li><strong>Which is larger?</strong> — one line per numbering system (Eastern Arabic, Chinese, Korean, Hebrew, binary…). Same first digit — check the next place. Closing a game returns you to the Lab. Your rocket on the board is unchanged.</li>
+  <li><strong>Minigames</strong> — Bot Evolution, Gravity Duel, Deseret letters, Backup fuel, Hull panel, Urinal-rule Parking.</li>
+  <li><strong>End screens / economy</strong> — how a game can end, plus tight cash and going-under warnings.</li>
 </ul>
-<p>Game scenarios that replace the board (duel, end screens, economy) swap out the current expedition. Pure drills (Which is larger?, egg-bot-evolution, Deseret letters, Backup fuel, Hull panel, urinal-rule-parking) do not.</p>
-<p>We keep Lab visible on purpose — it is part of the product, not a dev-only cheat panel. Putting drills into Opportunity (and the shorter expeditions) is a later charter change; until then, Lab is how you try them.</p>
+<p>Gravity Duel, End, and Economy replace the current board game. Number games and the other minigames do not.</p>
 `,
   },
   {

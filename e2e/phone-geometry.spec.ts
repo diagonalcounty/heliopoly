@@ -502,8 +502,15 @@ test.describe("phone Lab sheet #193", () => {
       });
     });
     expect(report.length, "minigame cards").toBeGreaterThanOrEqual(5);
-    expect(report[0]?.title, "most mature minigame first").toBe("egg-bot-evolution");
+    expect(report[0]?.title, "most mature minigame first").toBe("Bot Evolution");
+    expect(
+      report.some((r) => r.title === "Urinal-rule Parking"),
+      "URP uses a human title",
+    ).toBe(true);
     for (const row of report) {
+      expect(row.title, `${row.title} is not kebab-case`).not.toMatch(
+        /^[a-z]+(-[a-z]+)+$/,
+      );
       expect(row.cardClips, `${row.title} card clips its copy`).toBe(false);
       expect(row.blurbClips, `${row.title} blurb clips`).toBe(false);
       expect(row.blurb.length, `${row.title} has a blurb`).toBeGreaterThan(12);
@@ -528,11 +535,25 @@ test.describe("phone Lab egg-bot-evolution #203", () => {
     await page.locator('.lab-scenario[data-scenario="egg-bot-evolution"]').click();
     await expect(page.locator("#botevo-root")).not.toHaveClass(/hidden/);
     await expect(page.locator("#botevo-intro")).not.toHaveClass(/hidden/);
+    await expect(page.locator("#botevo-title")).toHaveText("Bot Evolution");
+    await expect(page.locator("#botevo-card-title")).toContainText("Link three");
+    await expect(page.locator("#botevo-card-body")).toContainText("become a box");
+    await expect(page.locator("#botevo-card-body")).not.toContainText(/blast|save, not/i);
+    await expect(page.locator("#btn-lab")).toHaveAttribute("aria-label", "Open Lab");
     const begin = await boxOf(page, "#botevo-begin");
     expect(begin.height, "Begin ≥44px tall").toBeGreaterThanOrEqual(44);
     expect(begin.onControl, "elementFromPoint Begin").toBe(true);
     await page.locator("#botevo-begin").click();
     await expect(page.locator("#botevo-table")).not.toHaveClass(/hidden/);
+    await expect(page.locator("#botevo-status")).toHaveText("Connect 3");
+    await expect(page.locator("#botevo-bar")).toHaveAttribute(
+      "aria-label",
+      "Boxes to next stage",
+    );
+    await expect(page.locator("#botevo-bar")).not.toHaveClass(/battery/);
+    await expect(page.locator("#botevo-hint")).toContainText("Link 3");
+    await expect(page.locator("#botevo-hint")).not.toContainText("chain of 5");
+    await expect(page.locator("#botevo-hint")).not.toContainText(/blast|morph/i);
 
     const cells = page.locator("#botevo-grid .botevo-cell");
     await expect(cells).toHaveCount(24);

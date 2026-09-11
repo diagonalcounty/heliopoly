@@ -1,5 +1,5 @@
 /**
- * Lab drill: egg-bot-evolution (#203 / #240 / #241).
+ * Lab drill: Bot Evolution (#203 / #240 / #241). id: egg-bot-evolution.
  * Progressive Connect-N: start 3×8, morph ≥ N, widen after two bars.
  * Untimed. No Mainline / src/core.
  *
@@ -135,7 +135,7 @@ export interface BotState {
   boxes: number;
   /** Stage N = width = morph threshold. Start 3; cap 6. */
   n: BotStage;
-  /** Completed batteries at the current N (resets on widen). */
+  /** Completed save bars at the current N (resets on widen). */
   barsCompletedThisStage: number;
   phase: BotPhase;
   rng: number;

@@ -9,7 +9,10 @@
 - **Dossier (#139):** Mark first; MSRP is the sticker.
 - **AI auctions (#137):** Normal contests reserve+1 snipes.
 - **Bot Evolution Next queue (#230):** SVG mosaic on slots 4–6; recycle-sharp stays sharp.
-- **Bot Evolution Connect-N (#240 / #241):** start 3×8 / morph-at-3; two batteries then empty rebuild at N+1 through Connect 6; C6 stays 6×8. Gravity stays baseline through C5; ×1.10 per completed bar only on 6×8. Queue of 6 unchanged.
+- **Bot Evolution Connect-N (#240 / #241):** start 3×8 / morph-at-3; two save bars then empty rebuild at N+1 through Connect 6; Connect 6 stays 6×8. Gravity stays baseline through Connect 5; ×1.10 per completed bar only on 6×8. Queue of 6 unchanged.
+- **Bot Evolution teach (#247):** clerk card pauses before each Connect stage (Begin / Continue). HUD says **Connect 3**, never `C3`. First-play copy states the job (link N → they become a box); no “save, not a blast.”
+- **Lab suite names (#248):** human titles (Bot Evolution, Urinal-rule Parking); Lab is practice games, not “testing” / “cruise drills.”
+- **Bot Evolution progress (#249):** boxes on a track, not a battery. Spoken name: **Boxes to next stage**.
 
 ### Ops
 - **Beta host:** deploy-on-main to `/var/www/heliopoly-beta`. Sunday stage no longer points preview at the freeze. The whole title (Heliopoly 1.4.0 · Orbital Economics · Beta) sits in a gold pill.

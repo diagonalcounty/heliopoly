@@ -49,8 +49,8 @@
               id="btn-lab"
               type="button"
               class="lab-launch"
-              title="Lab — test minigames and scenarios"
-              aria-label="Open testing lab"
+              title="Lab — practice games"
+              aria-label="Open Lab"
             >
               ⚗ Lab
             </button>
@@ -341,7 +341,7 @@ Name your rocket. Then Launch.</p>
       </div>
     </div>
 
-    <!-- Lab: scenario testing (minigames / end screens) -->
+    <!-- Lab: practice games (minigames / end screens) -->
     <div id="lab-root" class="handbook hidden" aria-hidden="true">
       <div class="handbook-backdrop" id="lab-backdrop"></div>
       <div
@@ -352,7 +352,7 @@ Name your rocket. Then Launch.</p>
       >
         <header class="handbook-header">
           <div>
-            <p class="handbook-kicker">Drills / minigames</p>
+            <p class="handbook-kicker">Practice games</p>
             <h2 id="lab-title">Lab</h2>
           </div>
           <button type="button" id="lab-close" class="handbook-close" aria-label="Close lab">
@@ -361,9 +361,8 @@ Name your rocket. Then Launch.</p>
         </header>
         <div class="lab-body">
           <p class="hint lab-intro">
-            Tap a category to expand it, then pick an item. Literacy drills and
-            standalone Minigames (egg-bot-evolution, Deseret letters, Backup fuel, Hull panel, urinal-rule-parking) leave your expedition alone;
-            Gravity Duel / End / Economy replace the current game.
+            Tap a category, then a game. Number games and most minigames leave your
+            rocket on the board. Gravity Duel, End, and Economy start a new board.
           </p>
           <div id="lab-scenarios" class="lab-scenarios"></div>
         </div>
@@ -380,7 +379,7 @@ Name your rocket. Then Launch.</p>
         aria-labelledby="urp-title"
       >
         <header class="urp-header">
-          <h2 id="urp-title">urinal-rule-parking</h2>
+          <h2 id="urp-title">Urinal-rule Parking</h2>
           <button type="button" id="urp-close" class="handbook-close" aria-label="Close">
             ✕
           </button>
@@ -452,7 +451,7 @@ Name your rocket. Then Launch.</p>
             <p class="handbook-kicker">Lab · literacy</p>
             <h2 id="eac-title">Which is larger?</h2>
           </div>
-          <button type="button" id="eac-close" class="handbook-close" aria-label="Close drill">
+          <button type="button" id="eac-close" class="handbook-close" aria-label="Close">
             ✕
           </button>
         </header>
@@ -521,7 +520,7 @@ Name your rocket. Then Launch.</p>
             <p class="handbook-kicker">Lab · minigame</p>
             <h2 id="pipes-title">Backup fuel</h2>
           </div>
-          <button type="button" id="pipes-close" class="handbook-close" aria-label="Close drill">
+          <button type="button" id="pipes-close" class="handbook-close" aria-label="Close">
             ✕
           </button>
         </header>
@@ -531,8 +530,7 @@ Name your rocket. Then Launch.</p>
             <p id="pipes-rotates" class="pipes-rotates mono" aria-live="polite">0 rotates</p>
           </div>
           <p class="hint pipes-hint">
-            Tap a segment to rotate it. Complete a continuous path from the tank
-            to the engine. Untimed; expedition stays put.
+            Tap a segment to rotate it. Complete a path from the tank to the engine.
           </p>
           <div id="pipes-play" class="pipes-play">
             <div class="pipes-legend" aria-hidden="true">
@@ -568,7 +566,7 @@ Name your rocket. Then Launch.</p>
             <p class="handbook-kicker">Lab · minigame</p>
             <h2 id="tiles-title">Hull panel</h2>
           </div>
-          <button type="button" id="tiles-close" class="handbook-close" aria-label="Close drill">
+          <button type="button" id="tiles-close" class="handbook-close" aria-label="Close">
             ✕
           </button>
         </header>
@@ -579,7 +577,7 @@ Name your rocket. Then Launch.</p>
           </div>
           <p class="hint tiles-hint">
             Tap a plate next to the gap to slide it. Restore 1–8 with the empty
-            corner last. Untimed; expedition stays put.
+            corner last.
           </p>
           <div id="tiles-play" class="tiles-play">
             <div id="tiles-grid" class="tiles-grid" role="grid" aria-label="Hull panel"></div>
@@ -611,7 +609,7 @@ Name your rocket. Then Launch.</p>
             <p class="handbook-kicker">Lab · minigame</p>
             <h2 id="deseret-title">Deseret letters</h2>
           </div>
-          <button type="button" id="deseret-close" class="handbook-close" aria-label="Close drill">
+          <button type="button" id="deseret-close" class="handbook-close" aria-label="Close">
             ✕
           </button>
         </header>
@@ -623,7 +621,6 @@ Name your rocket. Then Launch.</p>
           <p class="hint deseret-hint">
             A Deseret capital appears. Two Latin letters: tap the match. Eight of
             ten wins the round. On a miss the answer flashes, then the next glyph.
-            Untimed Lab practice; expedition stays put.
           </p>
           <div id="deseret-preview" class="deseret-preview hidden">
             <p id="deseret-countdown" class="deseret-countdown" aria-live="polite">3</p>
@@ -645,7 +642,7 @@ Name your rocket. Then Launch.</p>
       </div>
     </div>
 
-    <!-- Lab drill: egg-bot-evolution (#203) -->
+    <!-- Lab drill: Bot Evolution (#203) -->
     <div id="botevo-root" class="handbook botevo-overlay hidden" aria-hidden="true">
       <div class="handbook-backdrop" id="botevo-backdrop"></div>
       <div
@@ -656,10 +653,10 @@ Name your rocket. Then Launch.</p>
       >
         <header class="handbook-header">
           <div>
-            <p class="handbook-kicker">Lab · minigame</p>
-            <h2 id="botevo-title">egg-bot-evolution</h2>
+            <p class="handbook-kicker">Lab</p>
+            <h2 id="botevo-title">Bot Evolution</h2>
           </div>
-          <button type="button" id="botevo-close" class="handbook-close" aria-label="Close drill">
+          <button type="button" id="botevo-close" class="handbook-close" aria-label="Close">
             ✕
           </button>
         </header>
@@ -674,15 +671,11 @@ Name your rocket. Then Launch.</p>
               ></div>
               <div class="botevo-card-copy">
                 <p class="botevo-card-kicker">The clerk</p>
-                <h3>Found eggs. Useless alone.</h3>
-                <p class="botevo-card-body">
-                  Live pins have to meet. Start simple: a chain of three morphs
-                  into a box — that’s a save, not a blast. Harder Lab jobs need
-                  bigger assemblies, and the field widens with the job (Connect 4,
-                  then 5, then 6). Color is the family: cream four-pin, cyan
-                  straight, apricot corner, mint tee. They fall as they are. No
-                  turning. Overflow a column and the drill is over. Lab practice;
-                  the expedition stays put.
+                <h3 id="botevo-card-title">Simple bots. Link three.</h3>
+                <p id="botevo-card-body" class="botevo-card-body">
+                  Link <strong>three</strong> bots whose pins touch. They become
+                  a box. Boxes fill the row at the top. Bots drop as they are —
+                  they do not turn. Fill a column to the top and the game ends.
                 </p>
                 <button type="button" id="botevo-begin" class="eac-primary">Begin</button>
               </div>
@@ -690,33 +683,28 @@ Name your rocket. Then Launch.</p>
           </div>
           <div id="botevo-table" class="botevo-table hidden">
           <div class="botevo-hud">
-            <p id="botevo-status" class="botevo-level" aria-live="polite">1</p>
+            <p id="botevo-status" class="botevo-level" aria-live="polite">Connect 3</p>
             <div
               id="botevo-bar"
-              class="botevo-battery"
+              class="botevo-save"
               role="meter"
-              aria-label="Level battery"
+              aria-label="Boxes to next stage"
               aria-valuemin="0"
               aria-valuenow="0"
               aria-valuemax="3"
             >
-              <div class="botevo-battery-track">
-                <div id="botevo-fill" class="botevo-battery-fill"></div>
-                <div id="botevo-ticks" class="botevo-battery-ticks" aria-hidden="true"></div>
-              </div>
-              <span class="botevo-battery-cap" aria-hidden="true"></span>
+              <div id="botevo-save-track" class="botevo-save-track" aria-hidden="true"></div>
             </div>
           </div>
           <p id="botevo-score" class="botevo-score hidden" aria-live="polite">0 boxes</p>
           <div id="botevo-fx" class="botevo-fx" aria-hidden="true"></div>
-          <p class="hint botevo-hint">
-            Bots fall as they are — no turning. Tap a column to steer.
-            When claws hook, they snap. A chain of 3 morphs into a box;
-            the field widens as the job gets harder.
-            Untimed Lab practice.
+          <p id="botevo-hint" class="hint botevo-hint">
+            Bots drop as they are — they do not turn. Tap a column to steer.
+            Link 3 whose pins touch; they become a box. Later, the field gets
+            wider.
           </p>
           <div id="botevo-play" class="botevo-play">
-            <div id="botevo-grid" class="botevo-grid" role="grid" aria-label="egg-bot-evolution field"></div>
+            <div id="botevo-grid" class="botevo-grid" role="grid" aria-label="Bot Evolution field"></div>
             <div class="botevo-queue-wrap">
               <p class="botevo-queue-label">Next</p>
               <div id="botevo-queue" class="botevo-queue" aria-label="Next eggs"></div>
@@ -729,7 +717,7 @@ Name your rocket. Then Launch.</p>
           </div>
           <div id="botevo-end" class="eac-win hidden" aria-live="polite">
             <p class="eac-win-title">Topped out</p>
-            <p id="botevo-end-blurb" class="hint">A column overflowed. Restart the drill from Lab.</p>
+            <p id="botevo-end-blurb" class="hint">A column filled to the top. Play again from Lab when you are ready.</p>
             <div class="eac-win-actions">
               <button type="button" id="botevo-again" class="eac-primary">Play again</button>
               <button type="button" id="botevo-done" class="eac-secondary">Back to Lab</button>
