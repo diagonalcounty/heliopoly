@@ -247,6 +247,11 @@ export interface GameConfig {
   maxFuel: number;
   maxRounds: number;
   seed?: number;
+  /**
+   * When false, keep creation order (human at seat 0 if seated).
+   * Default / omitted: Fisher–Yates shuffle from the game seed (#16).
+   */
+  shuffleSeats?: boolean;
 }
 
 export interface LastRoll {

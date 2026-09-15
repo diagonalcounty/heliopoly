@@ -34,6 +34,7 @@ function assert(cond: unknown, msg: string): void {
 
 function setupPortfolio(): GameState {
   const s = createGame({
+    shuffleSeats: false,
     playerCount: 3,
     humanSeat: true,
     humanName: "Venture",
@@ -253,6 +254,7 @@ assert(elonReserve === 275, "Elon reserve is half of 550");
 
 {
   const s = createGame({
+    shuffleSeats: false,
     playerCount: 3,
     humanSeat: true,
     humanName: "Venture",
@@ -284,6 +286,7 @@ function listing(
 
 {
   const s = createGame({
+    shuffleSeats: false,
     playerCount: 4,
     humanSeat: true,
     humanName: "Venture",
@@ -317,6 +320,7 @@ function listing(
 
 {
   const s = createGame({
+    shuffleSeats: false,
     playerCount: 3,
     humanSeat: true,
     humanName: "Venture",
@@ -332,6 +336,7 @@ function listing(
 
 {
   const s = createGame({
+    shuffleSeats: false,
     playerCount: 3,
     humanSeat: true,
     humanName: "Venture",
@@ -356,6 +361,7 @@ function listing(
 
 {
   const s = createGame({
+    shuffleSeats: false,
     playerCount: 4,
     humanSeat: true,
     humanName: "Venture",
@@ -377,6 +383,7 @@ function listing(
 
 {
   const s = createGame({
+    shuffleSeats: false,
     playerCount: 4,
     humanSeat: true,
     humanName: "Venture",
@@ -397,6 +404,7 @@ function listing(
 
 {
   const s = createGame({
+    shuffleSeats: false,
     playerCount: 4,
     humanSeat: true,
     humanName: "Venture",
@@ -422,6 +430,7 @@ function listing(
 
 {
   const s = createGame({
+    shuffleSeats: false,
     playerCount: 4,
     humanSeat: true,
     humanName: "Venture",
@@ -445,6 +454,7 @@ function listing(
 
 {
   const s = createGame({
+    shuffleSeats: false,
     playerCount: 4,
     humanSeat: true,
     humanName: "Venture",
@@ -473,6 +483,7 @@ function listing(
 
 {
   const s = createGame({
+    shuffleSeats: false,
     playerCount: 3,
     humanSeat: true,
     humanName: "Venture",

@@ -6,7 +6,7 @@
  * (Which is larger? → numbering packs; Minigames → most mature first).
  */
 import { grantClaim } from "../core/claimLedger";
-import { forceGravityDuel } from "../core/rules";
+import { applyAction, forceGravityDuel } from "../core/rules";
 import { createGame } from "../core/state";
 import type { GameState } from "../core/types";
 
@@ -37,7 +37,8 @@ export const LAB_GROUP_BLURBS: Record<LabScenarioGroup, string> = {
   minigame:
     "Bot Evolution, Gravity Duel, Deseret letters, Backup fuel, Hull panel, Urinal-rule Parking.",
   end: "How a game can end — you win, or the computer does.",
-  economy: "Tight cash, going-under warnings, selling a claim from Earth.",
+  economy:
+    "Tight cash, going-under, remote sell, parking/feral, hub ×4 rent, stranded OUT, fuel strike.",
 };
 
 /** Charter GameState drop-in (replaces current game). */
@@ -83,6 +84,14 @@ function baseGame(playerCount = 2): GameState {
     humanPropellant: "methane",
     seed: (Date.now() ^ 0x1ab) >>> 0,
   });
+}
+
+function labHuman(s: GameState) {
+  return s.players.find((p) => p.agent === "human")!;
+}
+
+function labAis(s: GameState) {
+  return s.players.filter((p) => p.agent === "ai");
 }
 
 function tagLab(s: GameState, label: string): GameState {
@@ -162,8 +171,8 @@ export const LAB_SCENARIOS: LabScenario[] = [
     available: true,
     build: () => {
       const s = baseGame(2);
-      const you = s.players[0];
-      const ai = s.players[1];
+      const you = labHuman(s);
+      const ai = labAis(s)[0]!;
       forceGravityDuel(s, you.id, ai.id, "belt2");
       return tagLab(s, `Duel ${you.name} (challenger) vs ${ai.name}`);
     },
@@ -215,7 +224,7 @@ export const LAB_SCENARIOS: LabScenario[] = [
     kind: "game",
     build: () => {
       const s = baseGame(4);
-      const you = s.players[0];
+      const you = labHuman(s);
       let t = 8;
       for (const p of s.players) {
         if (p.id === you.id) continue;
@@ -250,24 +259,24 @@ export const LAB_SCENARIOS: LabScenario[] = [
     kind: "game",
     build: () => {
       const s = baseGame(3);
-      const you = s.players[0];
-      const ai1 = s.players[1];
+      const you = labHuman(s);
+      const [ai1, ai2] = labAis(s);
       you.eliminated = true;
       you.eliminatedOnTurn = 12;
       you.eliminatedOnRound = 4;
       you.eliminatedReason = "lab elimination";
       you.cash = 0;
-      s.players[2].eliminated = true;
-      s.players[2].eliminatedOnTurn = 20;
-      s.players[2].eliminatedOnRound = 7;
-      s.players[2].eliminatedReason = "lab elimination";
-      s.players[2].cash = 0;
+      ai2!.eliminated = true;
+      ai2!.eliminatedOnTurn = 20;
+      ai2!.eliminatedOnRound = 7;
+      ai2!.eliminatedReason = "lab elimination";
+      ai2!.cash = 0;
       s.gameTurn = 24;
       s.round = 8;
-      s.winnerId = ai1.id;
+      s.winnerId = ai1!.id;
       s.phase = "game_over";
-      s.endReason = `${ai1.name} is the last pilot flying.`;
-      return tagLab(s, `End · ${ai1.name} wins`);
+      s.endReason = `${ai1!.name} is the last pilot flying.`;
+      return tagLab(s, `End · ${ai1!.name} wins`);
     },
   },
   {
@@ -278,8 +287,8 @@ export const LAB_SCENARIOS: LabScenario[] = [
     kind: "game",
     build: () => {
       const s = baseGame(2);
-      const you = s.players[0];
-      const ai = s.players[1];
+      const you = labHuman(s);
+      const ai = labAis(s)[0]!;
       s.owners["europa"] = ai.id;
       s.owners["callisto"] = ai.id;
       ai.properties = ["europa", "callisto"];
@@ -300,24 +309,126 @@ export const LAB_SCENARIOS: LabScenario[] = [
     kind: "game",
     build: () => {
       const s = baseGame(3);
-      const you = s.players[0];
-      const ai1 = s.players[1];
-      const ai2 = s.players[2];
+      const you = labHuman(s);
+      const [ai1, ai2] = labAis(s);
       you.position = "earth";
       you.cash = 80;
       you.fuel = 18;
       grantClaim(s, you.id, "elon", { rentCollected: 400 });
       grantClaim(s, you.id, "venus", { rentCollected: 0 });
-      grantClaim(s, ai1.id, "mars", { rentCollected: 90, depot: true });
-      grantClaim(s, ai1.id, "phobos", { rentCollected: 40 });
-      grantClaim(s, ai1.id, "deimos", { rentCollected: 20 });
-      ai1.cash = 1200;
-      ai1.position = "earth";
-      grantClaim(s, ai2.id, "europa", { rentCollected: 30 });
-      ai2.cash = 220;
-      ai2.position = "earth";
+      grantClaim(s, ai1!.id, "mars", { rentCollected: 90, depot: true });
+      grantClaim(s, ai1!.id, "phobos", { rentCollected: 40 });
+      grantClaim(s, ai1!.id, "deimos", { rentCollected: 20 });
+      ai1!.cash = 1200;
+      ai1!.position = "earth";
+      grantClaim(s, ai2!.id, "europa", { rentCollected: 30 });
+      ai2!.cash = 220;
+      ai2!.position = "earth";
+      s.currentPlayerIndex = s.players.indexOf(you);
       s.phase = "await_action";
       return tagLab(s, "Claim ledger / remote sell");
+    },
+  },
+  {
+    id: "parking-feral-risk",
+    title: "Parking / feral risk",
+    blurb:
+      "Park count is 4 with two claims (Venus + a depot on Io). End turn without rolling (camp) → park #5 → each claim rolls 50% feral. Watch the log; a feral deed returns to the bank and scraps its depot.",
+    group: "economy",
+    kind: "game",
+    build: () => {
+      const s = baseGame(2);
+      const you = s.players[0];
+      const ai = s.players[1];
+      you.position = "earth";
+      you.cash = 400;
+      you.fuel = 20;
+      you.parkCount = 4;
+      you.rolledThisTurn = false;
+      you.movedThisTurn = false;
+      grantClaim(s, you.id, "venus", { rentCollected: 40 });
+      grantClaim(s, you.id, "io", { rentCollected: 20, depot: true });
+      ai.position = "mars";
+      ai.fuel = 25;
+      ai.cash = 900;
+      s.phase = "await_action";
+      return tagLab(s, "Parking / feral risk (park 4 → camp)");
+    },
+  },
+  {
+    id: "hub-network-rent-x4",
+    title: "Hub network rent ×4",
+    blurb:
+      "You hold Elon, Holst, and Daktulios (full hub net → hub rent ×4). The computer warps onto Elon and pays ⍼300 (base 75 ×4). Check the log and your cash; dossier hubs line should read ×4.",
+    group: "economy",
+    kind: "game",
+    build: () => {
+      const s = baseGame(2);
+      const you = s.players[0];
+      const ai = s.players[1];
+      you.position = "earth";
+      you.cash = 800;
+      you.fuel = 22;
+      grantClaim(s, you.id, "elon", { rentCollected: 0 });
+      grantClaim(s, you.id, "holst", { rentCollected: 0 });
+      grantClaim(s, you.id, "daktulios", { rentCollected: 0 });
+      ai.position = "venus";
+      ai.cash = 2000;
+      ai.fuel = 30;
+      ai.warpCharges = 1;
+      s.currentPlayerIndex = 1;
+      s.phase = "await_action";
+      const after = applyAction(s, { type: "warp", destination: "elon" });
+      return tagLab(after, "Hub network rent ×4 (AI warps to Elon)");
+    },
+  },
+  {
+    id: "stranded-elimination",
+    title: "Stranded elimination",
+    blurb:
+      "You warp onto Io with ≤1 fuel and no depot to refuel — stranded. OUT! banner opens; the computer is last rocket flying. Rule: land on a planet/moon with fuel ≤1 and no legal refuel → eliminated.",
+    group: "economy",
+    kind: "game",
+    build: () => {
+      const s = baseGame(2);
+      const you = s.players[0];
+      const ai = s.players[1];
+      you.position = "earth";
+      you.cash = 50;
+      you.fuel = 0;
+      you.warpCharges = 1;
+      you.stationsInHand = 0;
+      ai.position = "earth";
+      ai.cash = 1200;
+      ai.fuel = 25;
+      s.phase = "await_action";
+      const after = applyAction(s, { type: "warp", destination: "io" });
+      return tagLab(after, "Stranded elimination (warp → Io dry)");
+    },
+  },
+  {
+    id: "resource-strike-gusher",
+    title: "Resource strike (gusher)",
+    blurb:
+      "You fly CH₄ on Titan with a claim and one depot in hand (first this circuit is free). Place fuel depot → methane strike popup + ⍼750. (CH₄ pair: Titan / Enceladus. H₂: Enceladus / Mars / Europa / Ganymede.)",
+    group: "economy",
+    kind: "game",
+    build: () => {
+      const s = baseGame(2);
+      const you = s.players[0];
+      const ai = s.players[1];
+      you.propellant = "methane";
+      you.position = "titan";
+      you.cash = 500;
+      you.fuel = 18;
+      you.stationsInHand = 1;
+      you.depotsPlacedThisCircuit = 0;
+      grantClaim(s, you.id, "titan", { rentCollected: 0 });
+      ai.position = "earth";
+      ai.cash = 900;
+      ai.fuel = 25;
+      s.phase = "await_action";
+      return tagLab(s, "Resource strike — place depot on Titan");
     },
   },
 ];
