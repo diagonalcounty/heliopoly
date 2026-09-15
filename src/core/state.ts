@@ -36,6 +36,26 @@ function pickAiPropellant(index: number, seed: number): PropellantId {
   return bit === 0 ? "methane" : "hydrogen";
 }
 
+/** Mulberry32 step — same family as rules.ts dice RNG (#16). */
+function mulberryStep(box: { rngState: number }): number {
+  let s = box.rngState | 0;
+  s = (s + 0x6d2b79f5) | 0;
+  let t = Math.imul(s ^ (s >>> 15), 1 | s);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  box.rngState = s;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+
+/** Fisher–Yates seat shuffle from the game RNG (#16). */
+export function shuffleSeats<T>(arr: T[], box: { rngState: number }): void {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(mulberryStep(box) * (i + 1));
+    const tmp = arr[i]!;
+    arr[i] = arr[j]!;
+    arr[j] = tmp;
+  }
+}
+
 export function createGame(partial: Partial<GameConfig> = {}): GameState {
   const config: GameConfig = { ...DEFAULT_CONFIG, ...partial };
   const count = Math.min(6, Math.max(2, config.playerCount));
@@ -113,9 +133,16 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
     }
   }
 
+  // Seat order is a seeded permutation — human is not forced to seat 0 (#16).
+  const rngBox = { rngState: seed || 1 };
+  if (config.shuffleSeats !== false) {
+    shuffleSeats(players, rngBox);
+  }
+
   const propSummary = players
-    .map((p) => `${rocketTitle(p)}:${PROPELLANTS[p.propellant].short}`)
+    .map((p) => `${p.name}:${PROPELLANTS[p.propellant].short}`)
     .join(" · ");
+  const launchOrder = players.map((p) => rocketTitle(p)).join(" → ");
 
   const state: GameState = {
     board,
@@ -131,6 +158,7 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
     log: [
       `Heliopoly · Orbital Economics`,
       `Game start: ${count} pilots · bank ${formatMoney(config.startingCash)} each`,
+      `Launch order: ${launchOrder}`,
       `Propellants: ${propSummary}`,
       `Path: Earth→Venus→Mercury→Mars→Belt→Jupiter→Saturn→Earth`,
       `Monopoly rent ×2 · park 5+ no-move → feral risk (50% then half-gap toward 100%) · depots lost on feral/out`,
@@ -163,7 +191,7 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
       seed,
       aiDifficulty: normalizeAiDifficulty(config.aiDifficulty),
     },
-    rngState: seed || 1,
+    rngState: rngBox.rngState || 1,
   };
 
   // Seed + AI difficulty for bug reports — not the player log (#56)
@@ -179,7 +207,7 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
   tickSeatTurn(state);
   const opener = state.players[0];
   state.log.push(
-    `— Turn ${state.gameTurn} · Round ${state.round}: ${rocketTitle(opener)}'s turn —`,
+    `— Turn ${state.gameTurn} · Round ${state.round}: ${opener.name}'s turn —`,
   );
   if (heliopolisCheat) {
     state.log.push(

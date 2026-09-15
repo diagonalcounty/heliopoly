@@ -59,6 +59,7 @@ function primePoolEvent(state: ReturnType<typeof createGame>, keep: TimedEventId
   const winners = new Set<string>();
   for (let i = 0; i < 48; i++) {
     const s = createGame({
+      shuffleSeats: false,
       playerCount: 4,
       humanSeat: false,
       seed: 1100 + i * 31,
@@ -78,6 +79,7 @@ function primePoolEvent(state: ReturnType<typeof createGame>, keep: TimedEventId
   let aiHits = 0;
   for (let i = 0; i < 48; i++) {
     const s = createGame({
+      shuffleSeats: false,
       playerCount: 4,
       humanSeat: true,
       humanName: "Venture",
@@ -93,6 +95,7 @@ function primePoolEvent(state: ReturnType<typeof createGame>, keep: TimedEventId
 
 {
   const s = createGame({
+    shuffleSeats: false,
     playerCount: 4,
     humanSeat: false,
     seed: 7,
@@ -106,6 +109,7 @@ function primePoolEvent(state: ReturnType<typeof createGame>, keep: TimedEventId
 
 {
   const s = createGame({
+    shuffleSeats: false,
     playerCount: 3,
     humanSeat: true,
     humanName: "Venture",
@@ -127,6 +131,7 @@ function primePoolEvent(state: ReturnType<typeof createGame>, keep: TimedEventId
   let resolvedAiChooser = false;
   for (let i = 0; i < 40 && !resolvedAiChooser; i++) {
     const s = createGame({
+      shuffleSeats: false,
       playerCount: 4,
       humanSeat: true,
       humanName: "Venture",
@@ -158,6 +163,7 @@ function primePoolEvent(state: ReturnType<typeof createGame>, keep: TimedEventId
 
 {
   const s = createGame({
+    shuffleSeats: false,
     playerCount: 3,
     humanSeat: true,
     humanName: "Venture",
@@ -198,6 +204,7 @@ function primePoolEvent(state: ReturnType<typeof createGame>, keep: TimedEventId
 
 {
   const s = createGame({
+    shuffleSeats: false,
     playerCount: 2,
     humanSeat: true,
     humanName: "Venture",
@@ -219,6 +226,7 @@ function primePoolEvent(state: ReturnType<typeof createGame>, keep: TimedEventId
 
 {
   const s = createGame({
+    shuffleSeats: false,
     playerCount: 2,
     humanSeat: true,
     humanName: "Venture",
