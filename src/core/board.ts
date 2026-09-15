@@ -475,7 +475,8 @@ export function createV0Board(): Board {
     byId[from].next = [to];
   }
 
-  return { nodes: byId, startId: "earth", rings: ringRadii };
+  const list = Object.values(byId);
+  return { nodes: byId, startId: "earth", rings: ringRadii, nodeList: list };
 }
 
 export function getNode(board: Board, id: string): BoardNode {
@@ -496,5 +497,5 @@ export function isPurchasable(node: BoardNode): boolean {
 }
 
 export function nodeList(board: Board): BoardNode[] {
-  return Object.values(board.nodes);
+  return board.nodeList;
 }

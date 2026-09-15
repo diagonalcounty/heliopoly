@@ -42,6 +42,8 @@ export interface Board {
   startId: string;
   /** Distinct ring radii used for orbital drawing (normalized). */
   rings: number[];
+  /** Cached Object.values(nodes); topology is immutable after create. */
+  nodeList: BoardNode[];
 }
 
 export type AgentKind = "human" | "ai";

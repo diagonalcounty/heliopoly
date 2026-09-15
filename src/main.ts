@@ -4525,21 +4525,35 @@ function hitRouteStopAt(sx: number, sy: number): RouteStopHit | null {
   return bestSeg;
 }
 
+/** Static star field + void (regenerated only when canvas size changes). */
+let starFieldCache: { w: number; h: number; canvas: HTMLCanvasElement } | null =
+  null;
+
+function getStarField(w: number, h: number): HTMLCanvasElement {
+  if (starFieldCache && starFieldCache.w === w && starFieldCache.h === h) {
+    return starFieldCache.canvas;
+  }
+  const c = document.createElement("canvas");
+  c.width = w;
+  c.height = h;
+  const sctx = c.getContext("2d")!;
+  sctx.fillStyle = "#050814";
+  sctx.fillRect(0, 0, w, h);
+  sctx.fillStyle = "rgba(255,255,255,0.4)";
+  for (let i = 0; i < 120; i++) {
+    const x = ((i * 97) % w) + (i % 7);
+    const y = ((i * 53) % h) + (i % 11);
+    sctx.fillRect(x, y, i % 6 === 0 ? 2 : 1, i % 6 === 0 ? 2 : 1);
+  }
+  starFieldCache = { w, h, canvas: c };
+  return c;
+}
+
 function drawBoard(): void {
   const w = canvas.width;
   const h = canvas.height;
   ctx.clearRect(0, 0, w, h);
-
-  ctx.fillStyle = "#050814";
-  ctx.fillRect(0, 0, w, h);
-
-  // stars
-  ctx.fillStyle = "rgba(255,255,255,0.4)";
-  for (let i = 0; i < 120; i++) {
-    const x = ((i * 97) % w) + (i % 7);
-    const y = ((i * 53) % h) + (i % 11);
-    ctx.fillRect(x, y, i % 6 === 0 ? 2 : 1, i % 6 === 0 ? 2 : 1);
-  }
+  ctx.drawImage(getStarField(w, h), 0, 0);
 
   const board = state?.board ?? createV0Board();
   const { project, sun, scale } = boardProjector(board, w, h);
