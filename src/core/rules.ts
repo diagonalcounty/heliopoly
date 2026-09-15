@@ -59,6 +59,7 @@ import type {
   LastRoll,
   LegalActions,
   PendingAuction,
+  PendingDuel,
   Player,
   PlayerAction,
 } from "./types";
@@ -2246,17 +2247,46 @@ export function applyAction(state: GameState, action: PlayerAction): GameState {
   return next;
 }
 
+function sameLastRoll(a: LastRoll | null, b: LastRoll | null): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  return (
+    a.d1 === b.d1 &&
+    a.d2 === b.d2 &&
+    a.total === b.total &&
+    a.doubles === b.doubles
+  );
+}
+
+/** Field-by-field PendingDuel equality (avoids JSON.stringify in the AI loop). */
+export function samePendingDuel(
+  a: PendingDuel | null,
+  b: PendingDuel | null,
+): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  return (
+    a.nodeId === b.nodeId &&
+    a.challengerId === b.challengerId &&
+    a.defenderId === b.defenderId &&
+    a.challengerStance === b.challengerStance &&
+    a.defenderStance === b.defenderStance &&
+    sameLastRoll(a.challengerRoll, b.challengerRoll) &&
+    sameLastRoll(a.defenderRoll, b.defenderRoll)
+  );
+}
+
 /** Flush AI duel until needs human or done. */
 export function resolveDuelAiFully(state: GameState): GameState {
   let s = state;
   let guard = 0;
   while (s.phase === "await_duel" && s.pendingDuel && guard++ < 20) {
-    const before = JSON.stringify(s.pendingDuel);
+    const before = s.pendingDuel;
     const n = cloneState(s);
     autoDuelAi(n);
     resolveDuelIfComplete(n);
     s = n;
-    if (JSON.stringify(s.pendingDuel) === before && s.phase === "await_duel") {
+    if (samePendingDuel(s.pendingDuel, before) && s.phase === "await_duel") {
       // Needs human input
       break;
     }
