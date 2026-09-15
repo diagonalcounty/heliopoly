@@ -4,50 +4,51 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Heliopoly — curved travel lanes preview</title>
+<link rel="stylesheet" href="./preview-shell.css"/>
 <style>
-  :root { color-scheme: dark; font-family: system-ui, sans-serif; }
-  body { margin: 0; background: #0b1020; color: #e8eefc; }
-  header { padding: 12px 16px; border-bottom: 1px solid #2a3555; }
-  header h1 { margin: 0 0 6px; font-size: 1.1rem; }
-  header p { margin: 0; color: #9aa8c7; font-size: 0.88rem; max-width: 74ch; line-height: 1.45; }
   .controls {
     display: flex; flex-wrap: wrap; gap: 12px 20px; padding: 12px 16px;
-    align-items: center; font-size: 0.85rem; color: #9aa8c7;
-    border-bottom: 1px solid #2a3555;
+    align-items: center; font-size: 0.85rem; color: var(--muted);
+    border-bottom: 1px solid var(--border);
   }
   .controls label { display: inline-flex; align-items: center; gap: 8px; }
   .controls input[type="range"] { width: 160px; }
-  .controls .val { min-width: 2.6rem; color: #ffc857; font-variant-numeric: tabular-nums; }
-  .controls .val.in { color: #6ec8ff; }
+  .controls .val {
+    min-width: 2.6rem; color: var(--accent-2); font-variant-numeric: tabular-nums;
+  }
+  .controls .val.in { color: var(--accent); }
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; }
   @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
-  .panel { background: #141b2f; border: 1px solid #2a3555; border-radius: 12px; overflow: hidden; }
+  .panel {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden;
+  }
   .panel h2 {
     margin: 0; padding: 8px 12px; font-size: 0.75rem; letter-spacing: 0.06em;
-    text-transform: uppercase; color: #ffc857; border-bottom: 1px solid #2a3555;
+    text-transform: uppercase; color: var(--accent-2); border-bottom: 1px solid var(--border);
   }
   canvas { display: block; width: 100%; aspect-ratio: 1; background: #050814; }
-  .note { padding: 4px 16px 16px; color: #9aa8c7; font-size: 0.8rem; }
-  .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: middle; }
-  .swatch.out { background: rgb(110, 200, 255); }
-  .swatch.in { background: rgb(140, 200, 255); }
-  kbd { background: #1e2a48; border: 1px solid #2a3555; border-radius: 4px; padding: 1px 5px; font-size: 0.78rem; }
-  a { color: #6ec8ff; }
+  .swatch.out { background: rgb(110, 200, 255); margin-right: 0; border: 0; width: 10px; height: 10px; }
+  .swatch.in { background: rgb(140, 200, 255); margin-right: 0; border: 0; width: 10px; height: 10px; }
 </style>
 </head>
 <body>
-<nav class="nav" aria-label="Board previews" style="display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;padding:8px 14px;border-bottom:1px solid #2a3555;font-size:0.78rem;background:#0a0f1a">
-  <a href="./difficulty-duration.html" style="color:#6ec8ff">Duration</a>
-  <span style="color:#2a3555">·</span>
-  <a href="./elliptical-lanes.html" style="color:#6ec8ff">Lanes</a>
-  <span style="color:#2a3555">·</span>
-  <a href="./ring-colors.html" style="color:#6ec8ff">Rings</a>
-  <span style="color:#2a3555">·</span>
-  <a href="./board-mapper.html" style="color:#6ec8ff">Mapper</a>
-  <span style="color:#2a3555">·</span>
-  <a href="./ledger-cards.html" style="color:#6ec8ff">Ledger cards</a>
-  <span class="sep" style="color:#2a3555">·</span>
-  <a href="./botevo-face-review.html" style="color:#6ec8ff">Egg faces</a>
+<nav class="nav" aria-label="Board previews">
+  <a href="./index.html">Hub</a>
+  <span class="sep">·</span>
+  <a href="./difficulty-duration.html">Duration</a>
+  <span class="sep">·</span>
+  <span class="here">Lanes</span>
+  <span class="sep">·</span>
+  <a href="./ring-colors.html">Rings</a>
+  <span class="sep">·</span>
+  <a href="./board-mapper.html">Mapper</a>
+  <span class="sep">·</span>
+  <a href="./ledger-cards.html">Ledger cards</a>
+  <span class="sep">·</span>
+  <a href="./botevo-face-review.html">Egg faces</a>
+  <span class="sep">·</span>
+  <a href="./README.md">README</a>
 </nav>
 
 <header>

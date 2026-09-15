@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Heliopoly — board preview tools</title>
+<link rel="stylesheet" href="./preview-shell.css"/>
+</head>
+<body>
+<nav class="nav" aria-label="Board previews">
+  <span class="here">Hub</span>
+  <span class="sep">·</span>
+  <a href="./difficulty-duration.html">Duration</a>
+  <span class="sep">·</span>
+  <a href="./elliptical-lanes.html">Lanes</a>
+  <span class="sep">·</span>
+  <a href="./ring-colors.html">Rings</a>
+  <span class="sep">·</span>
+  <a href="./board-mapper.html">Mapper</a>
+  <span class="sep">·</span>
+  <a href="./ledger-cards.html">Ledger cards</a>
+  <span class="sep">·</span>
+  <a href="./botevo-face-review.html">Egg faces</a>
+  <span class="sep">·</span>
+  <a href="./README.md">README</a>
+</nav>
+<header>
+  <h1>Board preview tools</h1>
+  <p>
+    Static HTML sandboxes for map / setup / card look. Open any page in a browser —
+    not served by Vite, iOS WebDist, or heliopoly.live. Shared chrome lives in
+    <kbd>preview-shell.css</kbd>.
+  </p>
+</header>
+<main class="hub-main">
+  <ul class="hub-list">
+    <li>
+      <a class="title" href="./difficulty-duration.html">Duration meter</a>
+      <p class="blurb">AI difficulty duration meter — panel size, bars, glow, µ, JSON export for setup.</p>
+      <p class="meta">difficulty-duration.html · #94</p>
+    </li>
+    <li>
+      <a class="title" href="./elliptical-lanes.html">Elliptical lanes</a>
+      <p class="blurb">Curved Mainline lanes: outward/inward strength, alternate, lane opacity.</p>
+      <p class="meta">elliptical-lanes.html · #99</p>
+    </li>
+    <li>
+      <a class="title" href="./ring-colors.html">Ring colors</a>
+      <p class="blurb">System ring bands, dashed tints, legacy blue underlay, lane opacity.</p>
+      <p class="meta">ring-colors.html · #101</p>
+    </li>
+    <li>
+      <a class="title" href="./board-mapper.html">Board mapper</a>
+      <p class="blurb">Drag nodes, tune curves, copy <code>onRing</code> export for board.ts / agent JSON.</p>
+      <p class="meta">board-mapper.html · #102</p>
+    </li>
+    <li>
+      <a class="title" href="./ledger-cards.html">Ledger cards</a>
+      <p class="blurb">Ledger event cards and Welcome-on-board placement — pin, width, art crop.</p>
+      <p class="meta">ledger-cards.html · #113 #118</p>
+    </li>
+    <li>
+      <a class="title" href="./botevo-face-review.html">Egg face review</a>
+      <p class="blurb">Bot Evolution face/body mechanics — pupil glue, blink/look, export offsets.</p>
+      <p class="meta">botevo-face-review.html · #218</p>
+    </li>
+  </ul>
+  <p class="hub-footnote">
+    After board geometry changes, regenerate lane/ring snapshots:<br/>
+    <kbd>node --import tsx tools/board-previews/generate.ts</kbd>
+    · See <a href="./README.md">README.md</a>.
+  </p>
+</main>
+</body>
+</html>

@@ -4,47 +4,34 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Heliopoly — system ring bands preview</title>
+<link rel="stylesheet" href="./preview-shell.css"/>
 <style>
-  :root { color-scheme: dark; font-family: system-ui, sans-serif; }
-  body { margin: 0; background: #0b1020; color: #e8eefc; }
-  header { padding: 12px 16px; border-bottom: 1px solid #2a3555; }
-  header h1 { margin: 0 0 6px; font-size: 1.15rem; }
-  header p { margin: 0; color: #9aa8c7; font-size: 0.88rem; max-width: 78ch; line-height: 1.45; }
-  .layout { display: grid; grid-template-columns: minmax(260px, 320px) 1fr; min-height: calc(100vh - 90px); }
-  @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } }
-  aside {
-    padding: 12px 14px 20px; border-right: 1px solid #2a3555;
-    overflow-y: auto; font-size: 0.82rem; color: #9aa8c7;
-  }
-  aside h2 { margin: 14px 0 8px; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: #ffc857; }
-  aside h2:first-child { margin-top: 0; }
-  label.row { display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; align-items: center; margin-bottom: 10px; }
-  label.row span.name { grid-column: 1 / -1; color: #e8eefc; font-size: 0.8rem; }
-  label.row input[type="range"] { width: 100%; }
-  label.row .val { font-variant-numeric: tabular-nums; color: #ffc857; min-width: 2.4rem; text-align: right; }
-  .swatch { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: middle; margin-right: 6px; border: 1px solid #2a3555; }
-  .check { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; color: #e8eefc; }
   main { display: flex; align-items: center; justify-content: center; padding: 12px; }
-  canvas { width: min(92vw, 92vh, 900px); height: auto; aspect-ratio: 1; border-radius: 12px; border: 1px solid #2a3555; background: #050814; max-width: 100%; }
+  canvas {
+    width: min(92vw, 92vh, 900px); height: auto; aspect-ratio: 1;
+    border-radius: 12px; border: 1px solid var(--border); background: #050814; max-width: 100%;
+  }
   .legend { margin-top: 8px; line-height: 1.5; }
   .legend div { margin: 4px 0; }
-  kbd { background: #1e2a48; border: 1px solid #2a3555; border-radius: 4px; padding: 1px 5px; font-size: 0.75rem; }
-  a { color: #6ec8ff; }
 </style>
 </head>
 <body>
-<nav class="nav" aria-label="Board previews" style="display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;padding:8px 14px;border-bottom:1px solid #2a3555;font-size:0.78rem;background:#0a0f1a">
-  <a href="./difficulty-duration.html" style="color:#6ec8ff">Duration</a>
-  <span style="color:#2a3555">·</span>
-  <a href="./elliptical-lanes.html" style="color:#6ec8ff">Lanes</a>
-  <span style="color:#2a3555">·</span>
-  <a href="./ring-colors.html" style="color:#6ec8ff">Rings</a>
-  <span style="color:#2a3555">·</span>
-  <a href="./board-mapper.html" style="color:#6ec8ff">Mapper</a>
-  <span style="color:#2a3555">·</span>
-  <a href="./ledger-cards.html" style="color:#6ec8ff">Ledger cards</a>
-  <span class="sep" style="color:#2a3555">·</span>
-  <a href="./botevo-face-review.html" style="color:#6ec8ff">Egg faces</a>
+<nav class="nav" aria-label="Board previews">
+  <a href="./index.html">Hub</a>
+  <span class="sep">·</span>
+  <a href="./difficulty-duration.html">Duration</a>
+  <span class="sep">·</span>
+  <a href="./elliptical-lanes.html">Lanes</a>
+  <span class="sep">·</span>
+  <span class="here">Rings</span>
+  <span class="sep">·</span>
+  <a href="./board-mapper.html">Mapper</a>
+  <span class="sep">·</span>
+  <a href="./ledger-cards.html">Ledger cards</a>
+  <span class="sep">·</span>
+  <a href="./botevo-face-review.html">Egg faces</a>
+  <span class="sep">·</span>
+  <a href="./README.md">README</a>
 </nav>
 
 <header>
