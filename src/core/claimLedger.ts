@@ -99,7 +99,14 @@ function ledgerRow(
   if (!led) return null;
   let row = led[nodeId];
   if (!row) {
-    row = { nodeId, invested: 0, rentCollected: 0, landings: 0, claims: 0 };
+    row = {
+      nodeId,
+      invested: 0,
+      rentCollected: 0,
+      strikesCollected: 0,
+      landings: 0,
+      claims: 0,
+    };
     led[nodeId] = row;
   }
   return row;
@@ -156,9 +163,16 @@ export function creditGusherCollected(
   nodeId: string,
   amount: number,
   listPrice: number,
+  state?: GameState,
 ): void {
   if (amount <= 0) return;
   ensureClaimBook(owner, nodeId, listPrice).gusherCollected += amount;
+  if (state) {
+    const row = ledgerRow(state, nodeId);
+    if (row) {
+      row.strikesCollected = (row.strikesCollected ?? 0) + amount;
+    }
+  }
 }
 
 export function creditDepotSpend(

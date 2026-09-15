@@ -107,6 +107,8 @@ export interface PropertyLedgerRow {
   nodeId: string;
   invested: number;
   rentCollected: number;
+  /** Fuel-strike / gusher cash (#142); 0 when not tracked. */
+  strikesCollected?: number;
   landings: number;
   claims: number;
 }

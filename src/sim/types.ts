@@ -72,6 +72,12 @@ export interface SimPropertyCash {
   kind: string;
   invested: number;
   rentCollected: number;
+  /** Fuel-strike cash; 0/omit when the ledger does not track strikes. */
+  strikesCollected?: number;
+  /** Board list price (MSRP). */
+  listPrice?: number;
+  /** Bank dump floor: half list via bankSellValue; depot not included. */
+  mark?: number;
   landings: number;
   claims: number;
 }
@@ -100,7 +106,7 @@ export interface SimGameResult {
   propertyCash: SimPropertyCash[];
 }
 
-/** Batch-level property ROI (finished games). */
+/** Batch-level property books (finished games). Array name `propertyRoi` is stable. */
 export interface PropertyRoiRow {
   nodeId: string;
   name: string;
@@ -110,12 +116,22 @@ export interface PropertyRoiRow {
   n: number;
   meanInvested: number;
   meanRentCollected: number;
+  /** mean(rent + strikes). */
+  meanIncome: number;
+  /** Half list (bank floor via bankSellValue); depot cash is not included. */
+  meanMark: number;
   meanLandings: number;
-  /** mean(rent − invested) */
+  /** mean(income + mark − invested) — bank-exit book. */
+  meanBankExitNet: number;
+  /** Pooled income / invested; null if nothing was paid. Demoted old ROI%. */
+  roiCash: number | null;
+  /**
+   * @deprecated alias of meanBankExitNet so old "net" includes residual mark.
+   */
   meanNet: number;
-  /** Pooled rent / invested; null if nothing was paid for the node. */
+  /** @deprecated alias of roiCash */
   roi: number | null;
-  /** Mean of per-game rent/invested where invested > 0. */
+  /** Mean of per-game income/invested where invested > 0. */
   meanRoi: number | null;
 }
 
@@ -172,8 +188,9 @@ export interface SimSummary {
    */
   eliminationPlaceCurves: EliminationPlaceCurves | null;
   /**
-   * Claimable properties ranked by empirical ROI (#127).
-   * `roi` = pooled rent collected / claim+depot spend over finished games.
+   * Claimable bodies ranked by bank-exit book (#142): mark + income − invested.
+   * `roiCash` is the demoted old rent/invested ratio. Earth investor cash is
+   * not folded in — rows are claimable bodies only.
    */
   propertyRoi: PropertyRoiRow[];
 }
