@@ -11,7 +11,7 @@ import {
 import { formatMoney } from "./core/currency";
 import { netWorth } from "./core/rules";
 import { PROPELLANTS } from "./core/propellant";
-import { pilotByCallsign } from "./core/pilotNames";
+import { pilotByCallsign, rocketTitle } from "./core/pilotNames";
 import { STATION_HUB_IDS } from "./core/systems";
 import type { GameState } from "./core/types";
 
@@ -104,7 +104,7 @@ export function mountDossier(
       bodyEl.innerHTML = `<p class="hint">That rocket is not on this charter.</p>`;
       return;
     }
-    titleEl.textContent = view.name;
+    titleEl.textContent = rocketTitle(view);
     swatchEl.style.background = view.color;
     bodyEl.innerHTML = renderDossier(view, askNodeId);
     const form = bodyEl.querySelector("[data-auction-form]");
