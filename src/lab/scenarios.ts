@@ -38,7 +38,7 @@ export const LAB_GROUP_BLURBS: Record<LabScenarioGroup, string> = {
     "Bot Evolution, Gravity Duel, Deseret letters, Backup fuel, Hull panel, Urinal-rule Parking.",
   end: "How a game can end — you win, or the computer does.",
   economy:
-    "Tight cash, remote sell, H₂ leak, parking/feral, hub ×4, stranded OUT, fuel strike.",
+    "Tight cash, going-under, remote sell, H₂ leak, parking/feral, hub ×4, stranded OUT, fuel strike.",
 };
 
 /** Charter GameState drop-in (replaces current game). */
@@ -83,7 +83,17 @@ function baseGame(playerCount = 2): GameState {
     humanName: "Venture",
     humanPropellant: "methane",
     seed: (Date.now() ^ 0x1ab) >>> 0,
+    // Lab builders index seats by agent; keep human at a stable index.
+    shuffleSeats: false,
   });
+}
+
+function labHuman(s: GameState) {
+  return s.players.find((p) => p.agent === "human")!;
+}
+
+function labAis(s: GameState) {
+  return s.players.filter((p) => p.agent === "ai");
 }
 
 function tagLab(s: GameState, label: string): GameState {
@@ -163,8 +173,8 @@ export const LAB_SCENARIOS: LabScenario[] = [
     available: true,
     build: () => {
       const s = baseGame(2);
-      const you = s.players[0];
-      const ai = s.players[1];
+      const you = labHuman(s);
+      const ai = labAis(s)[0]!;
       forceGravityDuel(s, you.id, ai.id, "belt2");
       return tagLab(s, `Duel ${you.name} (challenger) vs ${ai.name}`);
     },
@@ -216,7 +226,7 @@ export const LAB_SCENARIOS: LabScenario[] = [
     kind: "game",
     build: () => {
       const s = baseGame(4);
-      const you = s.players[0];
+      const you = labHuman(s);
       let t = 8;
       for (const p of s.players) {
         if (p.id === you.id) continue;
@@ -251,24 +261,24 @@ export const LAB_SCENARIOS: LabScenario[] = [
     kind: "game",
     build: () => {
       const s = baseGame(3);
-      const you = s.players[0];
-      const ai1 = s.players[1];
+      const you = labHuman(s);
+      const [ai1, ai2] = labAis(s);
       you.eliminated = true;
       you.eliminatedOnTurn = 12;
       you.eliminatedOnRound = 4;
       you.eliminatedReason = "lab elimination";
       you.cash = 0;
-      s.players[2].eliminated = true;
-      s.players[2].eliminatedOnTurn = 20;
-      s.players[2].eliminatedOnRound = 7;
-      s.players[2].eliminatedReason = "lab elimination";
-      s.players[2].cash = 0;
+      ai2!.eliminated = true;
+      ai2!.eliminatedOnTurn = 20;
+      ai2!.eliminatedOnRound = 7;
+      ai2!.eliminatedReason = "lab elimination";
+      ai2!.cash = 0;
       s.gameTurn = 24;
       s.round = 8;
-      s.winnerId = ai1.id;
+      s.winnerId = ai1!.id;
       s.phase = "game_over";
-      s.endReason = `${ai1.name} is the last pilot flying.`;
-      return tagLab(s, `End · ${ai1.name} wins`);
+      s.endReason = `${ai1!.name} is the last pilot flying.`;
+      return tagLab(s, `End · ${ai1!.name} wins`);
     },
   },
   {
@@ -279,8 +289,8 @@ export const LAB_SCENARIOS: LabScenario[] = [
     kind: "game",
     build: () => {
       const s = baseGame(2);
-      const you = s.players[0];
-      const ai = s.players[1];
+      const you = labHuman(s);
+      const ai = labAis(s)[0]!;
       s.owners["europa"] = ai.id;
       s.owners["callisto"] = ai.id;
       ai.properties = ["europa", "callisto"];
@@ -301,22 +311,22 @@ export const LAB_SCENARIOS: LabScenario[] = [
     kind: "game",
     build: () => {
       const s = baseGame(3);
-      const you = s.players[0];
-      const ai1 = s.players[1];
-      const ai2 = s.players[2];
+      const you = labHuman(s);
+      const [ai1, ai2] = labAis(s);
       you.position = "earth";
       you.cash = 80;
       you.fuel = 18;
       grantClaim(s, you.id, "elon", { rentCollected: 400 });
       grantClaim(s, you.id, "venus", { rentCollected: 0 });
-      grantClaim(s, ai1.id, "mars", { rentCollected: 90, depot: true });
-      grantClaim(s, ai1.id, "phobos", { rentCollected: 40 });
-      grantClaim(s, ai1.id, "deimos", { rentCollected: 20 });
-      ai1.cash = 1200;
-      ai1.position = "earth";
-      grantClaim(s, ai2.id, "europa", { rentCollected: 30 });
-      ai2.cash = 220;
-      ai2.position = "earth";
+      grantClaim(s, ai1!.id, "mars", { rentCollected: 90, depot: true });
+      grantClaim(s, ai1!.id, "phobos", { rentCollected: 40 });
+      grantClaim(s, ai1!.id, "deimos", { rentCollected: 20 });
+      ai1!.cash = 1200;
+      ai1!.position = "earth";
+      grantClaim(s, ai2!.id, "europa", { rentCollected: 30 });
+      ai2!.cash = 220;
+      ai2!.position = "earth";
+      s.currentPlayerIndex = s.players.indexOf(you);
       s.phase = "await_action";
       return tagLab(s, "Claim ledger / remote sell");
     },

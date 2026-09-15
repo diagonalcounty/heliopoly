@@ -97,6 +97,7 @@ function assert(cond: unknown, msg: string): void {
 
 {
   const human = createGame({
+    shuffleSeats: false,
     playerCount: 2,
     humanSeat: true,
     humanName: "Ada",
@@ -113,6 +114,7 @@ function assert(cond: unknown, msg: string): void {
   let seated: ReturnType<typeof createGame> | null = null;
   for (let seed = 1; seed < 4000 && !seated; seed++) {
     const s = createGame({
+      shuffleSeats: false,
       playerCount: 4,
       humanSeat: true,
       humanName: "Venture",
