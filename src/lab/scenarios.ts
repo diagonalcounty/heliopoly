@@ -37,7 +37,8 @@ export const LAB_GROUP_BLURBS: Record<LabScenarioGroup, string> = {
   minigame:
     "Bot Evolution, Gravity Duel, Deseret letters, Backup fuel, Hull panel, Urinal-rule Parking.",
   end: "How a game can end — you win, or the computer does.",
-  economy: "Tight cash, going-under warnings, selling a claim from Earth.",
+  economy:
+    "Tight cash, going-under warnings, selling a claim from Earth, H₂ leak + repair skip.",
 };
 
 /** Charter GameState drop-in (replaces current game). */
@@ -318,6 +319,35 @@ export const LAB_SCENARIOS: LabScenario[] = [
       ai2.position = "earth";
       s.phase = "await_action";
       return tagLab(s, "Claim ledger / remote sell");
+    },
+  },
+  {
+    id: "h2-leak-repair",
+    title: "H₂ leak + repair skip",
+    blurb:
+      "You fly H₂ and just landed on Mars — LEAK! banner opens. Fuel is already halved; dismiss the card, then End turn. After the computer plays, your next seat is skipped for tank repair. (Pending stress on a non-body would wait until the next planet/moon.)",
+    group: "economy",
+    kind: "game",
+    build: () => {
+      const s = baseGame(2);
+      const you = s.players[0];
+      const ai = s.players[1];
+      you.propellant = "hydrogen";
+      you.position = "mars";
+      const before = you.fuel;
+      const loss = Math.max(1, Math.floor(before / 2));
+      you.fuel = before - loss;
+      you.skipTurns = 1;
+      you.pendingLeak = false;
+      ai.position = "earth";
+      ai.fuel = 25;
+      s.pendingAnnouncement = {
+        kind: "leak",
+        title: "LEAK!",
+        body: `${you.name}'s H₂ tanks failed landing on Mars.\n−${loss} fuel (half the tanks).\nLoses next turn to repair.`,
+      };
+      s.phase = "await_action";
+      return tagLab(s, "H₂ leak + repair skip");
     },
   },
 ];
