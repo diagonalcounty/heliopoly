@@ -80,15 +80,17 @@ Full guide: **[scripts/README-sim.md](scripts/README-sim.md)** · issues [#89](h
 
 ### Board look previews (static HTML)
 
-- **Duration meter (#94):** [tools/board-previews/difficulty-duration.html](tools/board-previews/difficulty-duration.html)
+Design sandboxes for map / setup / card paint (**not** served by Vite, iOS WebDist, or heliopoly.live). Hub + shared chrome (#105):
 
-Design sandboxes for map paint (not served by the game or .live). Open in a browser:
+- **[tools/board-previews/index.html](tools/board-previews/index.html)** — tool list + blurbs
+- **[tools/board-previews/preview-shell.css](tools/board-previews/preview-shell.css)** — shared nav / header / aside / export
 
-- [tools/board-previews/elliptical-lanes.html](tools/board-previews/elliptical-lanes.html) — curved Mainline (#99)
-- [tools/board-previews/ring-colors.html](tools/board-previews/ring-colors.html) — system ring bands (#101)
+- [difficulty-duration.html](tools/board-previews/difficulty-duration.html) — duration meter (#94)
+- [elliptical-lanes.html](tools/board-previews/elliptical-lanes.html) — curved Mainline (#99)
+- [ring-colors.html](tools/board-previews/ring-colors.html) — system ring bands (#101)
 
 ```bash
-open tools/board-previews/ring-colors.html
+open tools/board-previews/index.html
 # after board geometry / constant changes:
 node --import tsx tools/board-previews/generate.ts
 ```

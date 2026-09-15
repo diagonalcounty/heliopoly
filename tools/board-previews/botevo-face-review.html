@@ -4,17 +4,8 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Bot Evolution — face + body mechanics</title>
-<style>
-  :root {
-    color-scheme: dark;
-    font-family: system-ui, -apple-system, sans-serif;
-    --bg: #0b1020;
-    --panel: #141b2f;
-    --border: #2a3555;
-    --text: #e8eefc;
-    --muted: #9aa8c7;
-    --accent: #6ec8ff;
-    --accent-2: #ffc857;
+<link rel="stylesheet" href="./preview-shell.css"/>
+<style>  :root {
     --ink: #1a1410;
     --cream: #f0e4c8;
     --ew: #5a9898;
@@ -22,21 +13,7 @@
     --glass: #a8c4d4;
     --glass-deep: #6a8aa0;
   }
-  * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--text); }
-  .nav {
-    display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center;
-    padding: 8px 14px; border-bottom: 1px solid var(--border);
-    font-size: 0.78rem; background: #0a0f1a;
-  }
-  .nav a { color: var(--accent); text-decoration: none; }
-  .nav a:hover { text-decoration: underline; }
-  .nav .here { color: var(--accent-2); font-weight: 600; }
-  .nav span.sep { color: var(--border); }
-  header { padding: 14px 18px; border-bottom: 1px solid var(--border); }
-  header h1 { margin: 0 0 6px; font-size: 1.15rem; }
-  header p { margin: 0; color: var(--muted); font-size: 0.86rem; max-width: 98ch; line-height: 1.45; }
-  header code { font-size: 0.8em; color: var(--accent-2); }
+
   .global-bar {
     display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
     padding: 10px 18px; border-bottom: 1px solid var(--border); background: #0d1324;
@@ -112,13 +89,7 @@
     z-index: 4; pointer-events: none;
   }
   .face-layer svg { width: 100%; height: 100%; display: block; overflow: visible; }
-  .actions { display: flex; flex-wrap: wrap; gap: 5px; }
-  .actions button {
-    font-size: 0.68rem; padding: 4px 7px; border-radius: 5px;
-    border: 1px solid var(--border); background: #182238; color: var(--text); cursor: pointer;
-  }
-  .actions button:hover { border-color: var(--accent); }
-  .actions button.is-on {
+  .actions .actions button.is-on {
     border-color: var(--accent-2);
     box-shadow: 0 0 0 1px rgba(255, 200, 87, 0.22);
     background: #1e2a42;
@@ -170,18 +141,11 @@
   .slider-row label {
     font-size: 0.74rem; color: var(--muted); grid-column: 1 / -1;
   }
-  .slider-row input[type="range"] {
-    width: 100%; accent-color: var(--accent); cursor: pointer;
-  }
-  .slider-row input[type="color"] {
+  .slider-row .slider-row input[type="color"] {
     width: 100%; height: 28px; border: 1px solid var(--border); border-radius: 5px;
     background: #0a1020; cursor: pointer; padding: 2px;
   }
-  .slider-row .val {
-    font-size: 0.72rem; font-variant-numeric: tabular-nums;
-    color: var(--accent-2); min-width: 3.2ch; text-align: right;
-  }
-  .export-box {
+  .slider-row .export-box {
     margin-top: 4px; border-top: 1px solid var(--border); padding-top: 12px;
   }
   .export-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
@@ -200,6 +164,8 @@
 </head>
 <body>
 <nav class="nav" aria-label="Board previews">
+  <a href="./index.html">Hub</a>
+  <span class="sep">·</span>
   <a href="./difficulty-duration.html">Duration</a>
   <span class="sep">·</span>
   <a href="./elliptical-lanes.html">Lanes</a>
@@ -210,7 +176,7 @@
   <span class="sep">·</span>
   <a href="./ledger-cards.html">Ledger cards</a>
   <span class="sep">·</span>
-  <span class="here">Face + body</span>
+  <span class="here">Egg faces</span>
   <span class="sep">·</span>
   <a href="./botevo-vector-proof/index.html">Vector proof</a>
   <span class="sep">·</span>

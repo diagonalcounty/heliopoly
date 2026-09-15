@@ -4,66 +4,35 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Heliopoly — board layout mapper (drag points)</title>
+<link rel="stylesheet" href="./preview-shell.css"/>
 <style>
-  :root { color-scheme: dark; font-family: system-ui, sans-serif; }
-  body { margin: 0; background: #0b1020; color: #e8eefc; }
-  header { padding: 10px 14px; border-bottom: 1px solid #2a3555; }
-  header h1 { margin: 0 0 4px; font-size: 1.1rem; }
-  header p { margin: 0; color: #9aa8c7; font-size: 0.85rem; max-width: 90ch; line-height: 1.4; }
-  .layout { display: grid; grid-template-columns: 300px 1fr; min-height: calc(100vh - 72px); }
-  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
-  aside {
-    padding: 10px 12px 16px; border-right: 1px solid #2a3555; overflow-y: auto;
-    font-size: 0.8rem; color: #9aa8c7;
-  }
-  aside h2 {
-    margin: 12px 0 6px; font-size: 0.7rem; letter-spacing: 0.1em;
-    text-transform: uppercase; color: #ffc857;
-  }
-  aside h2:first-child { margin-top: 0; }
-  label.row { display: block; margin-bottom: 8px; }
-  label.row span { display: block; margin-bottom: 2px; color: #e8eefc; }
-  input[type="range"] { width: 100%; }
-  .val { color: #ffc857; font-variant-numeric: tabular-nums; }
-  .check { display: flex; gap: 8px; align-items: center; margin: 6px 0; color: #e8eefc; }
   main { display: flex; align-items: center; justify-content: center; padding: 8px; background: #080c18; }
   canvas {
     width: min(96vw, 96vh, 920px); height: auto; aspect-ratio: 1;
-    border-radius: 12px; border: 1px solid #2a3555; background: #050814;
+    border-radius: 12px; border: 1px solid var(--border); background: #050814;
     touch-action: none; cursor: grab;
   }
   canvas.dragging { cursor: grabbing; }
-  button, select {
-    font: inherit; color: #e8eefc; background: #1e2a48; border: 1px solid #2a3555;
-    border-radius: 8px; padding: 6px 10px; cursor: pointer; margin: 2px 4px 2px 0;
-  }
-  button.primary { background: #0e7490; border-color: #22d3ee; }
-  button:hover { border-color: #6ec8ff; }
-  #export {
-    width: 100%; min-height: 140px; max-height: 220px; resize: vertical;
-    font-family: ui-monospace, Menlo, monospace; font-size: 0.7rem;
-    background: #0a0f1a; color: #7dd3fc; border: 1px solid #1e3a5f;
-    border-radius: 8px; padding: 8px; box-sizing: border-box;
-  }
-  #selected { color: #ffc857; font-weight: 600; min-height: 1.2em; }
-  .hint { font-size: 0.75rem; line-height: 1.35; margin: 0 0 8px; }
-  kbd { background: #1e2a48; border: 1px solid #2a3555; border-radius: 4px; padding: 0 4px; font-size: 0.72rem; }
-  a { color: #6ec8ff; }
+  #selected { color: var(--accent-2); font-weight: 600; min-height: 1.2em; }
 </style>
 </head>
 <body>
-<nav class="nav" aria-label="Board previews" style="display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;padding:8px 14px;border-bottom:1px solid #2a3555;font-size:0.78rem;background:#0a0f1a">
-  <a href="./difficulty-duration.html" style="color:#6ec8ff">Duration</a>
-  <span style="color:#2a3555">·</span>
-  <a href="./elliptical-lanes.html" style="color:#6ec8ff">Lanes</a>
-  <span style="color:#2a3555">·</span>
-  <a href="./ring-colors.html" style="color:#6ec8ff">Rings</a>
-  <span style="color:#2a3555">·</span>
-  <a href="./board-mapper.html" style="color:#6ec8ff">Mapper</a>
-  <span style="color:#2a3555">·</span>
-  <a href="./ledger-cards.html" style="color:#6ec8ff">Ledger cards</a>
-  <span class="sep" style="color:#2a3555">·</span>
-  <a href="./botevo-face-review.html" style="color:#6ec8ff">Egg faces</a>
+<nav class="nav" aria-label="Board previews">
+  <a href="./index.html">Hub</a>
+  <span class="sep">·</span>
+  <a href="./difficulty-duration.html">Duration</a>
+  <span class="sep">·</span>
+  <a href="./elliptical-lanes.html">Lanes</a>
+  <span class="sep">·</span>
+  <a href="./ring-colors.html">Rings</a>
+  <span class="sep">·</span>
+  <span class="here">Mapper</span>
+  <span class="sep">·</span>
+  <a href="./ledger-cards.html">Ledger cards</a>
+  <span class="sep">·</span>
+  <a href="./botevo-face-review.html">Egg faces</a>
+  <span class="sep">·</span>
+  <a href="./README.md">README</a>
 </nav>
 
 <header>

@@ -1,7 +1,18 @@
 # Board preview tools (static HTML)
 
 Self-contained UI sandboxes for tweaking **map / setup look** without shipping to heliopoly.live.
-Open any file in a browser (double-click or `open path.html`). Each page has a **top nav** to the others.
+Open the hub or any file in a browser (double-click or `open path.html`).
+
+## Hub + shared shell (#105)
+
+| File | Role |
+|------|------|
+| [index.html](./index.html) | **Hub** — list of tools + short blurbs |
+| [preview-shell.css](./preview-shell.css) | Shared chrome: header, nav, aside, export, buttons |
+
+Every tool page links `preview-shell.css` and uses the same top nav (Hub · Duration · Lanes · …).
+
+## Tools
 
 | File | Purpose | Ship issues |
 |------|---------|-------------|
@@ -11,6 +22,10 @@ Open any file in a browser (double-click or `open path.html`). Each page has a *
 | [board-mapper.html](./board-mapper.html) | **Drag nodes**, tune curves, copy `onRing` export for board.ts | #102 |
 | [ledger-cards.html](./ledger-cards.html) | **Ledger event cards** + **Welcome on board** (`#welcome`) — pin/width/art crop against a New game screenshot | #113 #118 |
 | [botevo-face-review.html](./botevo-face-review.html) | **Egg face review** — pupil X/Y/scale glue, blink/look, export offsets JSON (Faces v1; Mosaic/Timing stubs) | #218 |
+
+```bash
+open tools/board-previews/index.html
+```
 
 Production constants (lanes / rings) live in:
 
@@ -33,10 +48,6 @@ That rewrites lane/ring HTML snapshots from live `src/core/**` (not the duration
 Most pages: **Copy export** or **Download JSON**. For layout, prefer  
 `last-mapper-export.json` under this folder. Duration meter: `difficulty-duration-export.json`.
 
-## Future (not built yet)
-
-Shared hub shell (`index.html` + `preview-shell.css`) — see GitHub issue for board-previews index.
-
 ## Not production
 
-These pages are **design tools** only. They are not served by Vite, iOS WebDist, or heliopoly.live.
+These pages are **design tools** only. They are **not** served by Vite, iOS WebDist, or heliopoly.live.
