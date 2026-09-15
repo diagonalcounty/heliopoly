@@ -3,6 +3,7 @@ import { formatMoney } from "./currency";
 import {
   isPalindromeRocketName,
   pickAiNames,
+  rocketTitle,
   sanitizePilotName,
 } from "./pilotNames";
 import { PROPELLANTS } from "./propellant";
@@ -113,7 +114,7 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
   }
 
   const propSummary = players
-    .map((p) => `${p.name}:${PROPELLANTS[p.propellant].short}`)
+    .map((p) => `${rocketTitle(p)}:${PROPELLANTS[p.propellant].short}`)
     .join(" · ");
 
   const state: GameState = {
@@ -178,7 +179,7 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
   tickSeatTurn(state);
   const opener = state.players[0];
   state.log.push(
-    `— Turn ${state.gameTurn} · Round ${state.round}: ${opener.name}'s turn —`,
+    `— Turn ${state.gameTurn} · Round ${state.round}: ${rocketTitle(opener)}'s turn —`,
   );
   if (heliopolisCheat) {
     state.log.push(

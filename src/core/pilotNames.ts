@@ -101,6 +101,22 @@ export function sanitizePilotName(raw: string, fallback = "Venture"): string {
 }
 
 /**
+ * Player-facing ship title. AI seats get the definite article; humans keep
+ * the typed callsign. Does not rewrite stored `Player.name`.
+ */
+export function rocketTitle(p: { name: string; agent: "human" | "ai" }): string {
+  if (p.agent !== "ai") return p.name;
+  return titledCallsign(p.name);
+}
+
+/** Definite-article form for an AI roster callsign (`Ada` → `The Ada`). */
+export function titledCallsign(callsign: string): string {
+  const t = callsign.trim();
+  if (/^the\s+/i.test(t)) return t;
+  return `The ${t}`;
+}
+
+/**
  * Hidden #47: palindrome callsign (letters/digits only, case-insensitive)
  * unlocks bidirectional Mainline travel. Length ≥ 2 after stripping.
  * e.g. Ada, Anna, Bob, Kayak.

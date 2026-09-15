@@ -4,6 +4,7 @@ import { getNode, isPurchasable } from "./board";
 import type { BoardNode } from "./types";
 import { formatMoney } from "./currency";
 import { leaveBurnCost } from "./fuel";
+import { rocketTitle } from "./pilotNames";
 import { canRefuelAtAll, rentDue } from "./rules";
 import type { GameState, Player } from "./types";
 
@@ -49,7 +50,7 @@ export function goingUnderFlags(
       const rent = rentDue(state, node.id, ownerId);
       flags.stuckOnEnemyClaim = true;
       flags.reasons.push(
-        `stuck on ${owner.name}'s ${node.name} — failed leave owes ${formatMoney(rent)} rent again`,
+        `stuck on ${rocketTitle(owner)}'s ${node.name} — failed leave owes ${formatMoney(rent)} rent again`,
       );
     }
   }

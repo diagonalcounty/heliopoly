@@ -3,7 +3,7 @@
  * Tone: school-level clarity (Civ I–IV peak), short enough to read mid-game.
  * Keep in sync with AI_PILOTS in core/pilotNames.ts.
  */
-import { AI_PILOTS, type AiPilotDef } from "../core/pilotNames";
+import { AI_PILOTS, titledCallsign, type AiPilotDef } from "../core/pilotNames";
 import type { HandbookTopic } from "./content";
 
 /** Full article body per pilot id (no outer h3 — handbook wraps title). */
@@ -63,7 +63,7 @@ function articleFor(p: AiPilotDef): string {
     `<p class="pilot-hook"><em>${p.schoolHook}</em></p><p>Entry pending.</p>`;
   return `
 ${body}
-<p class="pilot-foot mono">Rocket · ${p.callsign} · see also Rival rockets index</p>
+<p class="pilot-foot mono">See also Rival rockets index</p>
 `;
 }
 
@@ -71,7 +71,7 @@ ${body}
 export function rivalPilotsIndexTopic(): HandbookTopic {
   const items = AI_PILOTS.map(
     (p) =>
-      `<li><strong>${p.callsign}</strong> — ${p.schoolHook}</li>`,
+      `<li><strong>${titledCallsign(p.callsign)}</strong> — ${p.schoolHook}</li>`,
   ).join("");
   return {
     id: "rival-pilots-overview",
@@ -90,7 +90,7 @@ export function rivalPilotsIndexTopic(): HandbookTopic {
 export function rivalPilotTopics(): HandbookTopic[] {
   return AI_PILOTS.map((p) => ({
     id: `pilot-${p.id}`,
-    title: `Rocket: ${p.callsign}`,
+    title: titledCallsign(p.callsign),
     html: articleFor(p),
   }));
 }
