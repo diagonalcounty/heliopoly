@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Play / UX
+- **Urinal-rule Parking campaign (#251):** Lab shelf with Quiet Apron → Rush Hour → Both Sides Bad → Dead Orbit → Final Approach. Linear unlock; first Final Approach clear opens the whole shelf. Run score Clear / Fine / Orbit. Dead Orbit treats jam-orbit as success. Product blurb: “Orbit the apron. Leave a buffer. Land rude and the fine sticks.”
+
 ## [1.4.0] — 2026-09-11
 
 **https://beta.heliopoly.live/** tracks GitHub `main` as **1.4.0**. **https://heliopoly.live/** stays **1.3.0** until the next Sunday unlock. `preview.heliopoly.live` 301s to beta.

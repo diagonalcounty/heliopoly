@@ -158,11 +158,24 @@ import {
   landUrp,
   orbitUrp,
   selectUrpArea,
-  startUrpDrill,
   urpLooksChrome,
   type UrpArea,
   type UrpState,
 } from "./lab/urpGrader";
+import {
+  URP_PRODUCT_BLURB,
+  URP_SCENARIOS,
+  formatUrpRunScore,
+  getUrpScenario,
+  isUrpScenarioUnlocked,
+  loadUrpProgress,
+  nextUrpScenario,
+  pairFullyJammed,
+  recordUrpRun,
+  saveUrpProgress,
+  startUrpScenario,
+  type UrpScenarioId,
+} from "./lab/urpCampaign";
 import {
   DESERET_INVENTORY,
   ROUND_LENGTH as DESERET_ROUND,
@@ -432,6 +445,13 @@ const labRoot = document.getElementById("lab-root")!;
 const labScenariosEl = document.getElementById("lab-scenarios")!;
 const eacRoot = document.getElementById("eac-root")!;
 const urpRoot = document.getElementById("urp-root")!;
+const urpSignEl = document.getElementById("urp-sign")!;
+const urpShelfEl = document.getElementById("urp-shelf")!;
+const urpShelfCardsEl = document.getElementById("urp-shelf-cards")!;
+const urpCampaignTotalsEl = document.getElementById("urp-campaign-totals")!;
+const urpPlayEl = document.getElementById("urp-play")!;
+const urpScenarioTagEl = document.getElementById("urp-scenario-tag")!;
+const urpBackShelfBtn = document.getElementById("urp-back-shelf") as HTMLButtonElement;
 const urpAreasEl = document.getElementById("urp-areas")!;
 const urpPadsEl = document.getElementById("urp-pads")!;
 const urpApronEl = document.getElementById("urp-apron") as unknown as SVGSVGElement;
@@ -441,6 +461,12 @@ const urpHintBtn = document.getElementById("urp-hint") as HTMLButtonElement;
 const urpHintPipsEl = document.getElementById("urp-hint-pips")!;
 const urpStatusEl = document.getElementById("urp-status")!;
 const urpHatchEl = document.querySelector("#urp-root .urp-hatch") as HTMLElement | null;
+const urpResultEl = document.getElementById("urp-result")!;
+const urpResultHeadlineEl = document.getElementById("urp-result-headline")!;
+const urpResultScoreEl = document.getElementById("urp-result-score")!;
+const urpRetryBtn = document.getElementById("urp-retry") as HTMLButtonElement;
+const urpNextBtn = document.getElementById("urp-next") as HTMLButtonElement;
+const urpToShelfBtn = document.getElementById("urp-to-shelf") as HTMLButtonElement;
 const eacRoundEl = document.getElementById("eac-round")!;
 const eacAttemptsEl = document.getElementById("eac-attempts")!;
 const eacPlayEl = document.getElementById("eac-play")!;
@@ -1943,10 +1969,13 @@ function closeEasternArabicCompare(): void {
   }
 }
 
-/** —— urinal-rule-parking (#188) —— */
+/** —— Urinal-rule Parking campaign (#188 / #251) —— */
 const URP_ROCKET_COLORS = ["#e2b14a", "#3db8c5", "#d46a3a", "#7aa2ff", "#c86bdb"];
 const URP_PLAYER_COLOR = "#f4f0e0";
 let urpState: UrpState | null = null;
+let urpScenarioId: UrpScenarioId | null = null;
+let urpOrbitsUsed = 0;
+let urpProgress = loadUrpProgress();
 let urpFlashTimer = 0;
 let urpPadRo: ResizeObserver | null = null;
 
@@ -2073,6 +2102,81 @@ function renderUrpHintPips(): void {
   urpHintBtn.setAttribute("aria-label", `Hint, ${charged} remaining`);
 }
 
+function hideUrpResult(): void {
+  urpResultEl.classList.add("hidden");
+  urpResultEl.classList.remove("is-good", "is-fine");
+}
+
+function showUrpResult(outcome: "good" | "fine"): void {
+  urpResultEl.classList.remove("hidden");
+  urpResultEl.classList.toggle("is-good", outcome === "good");
+  urpResultEl.classList.toggle("is-fine", outcome === "fine");
+  urpResultHeadlineEl.textContent =
+    outcome === "good" ? "Clear. No fine." : "Fine sticks.";
+  urpResultScoreEl.textContent = formatUrpRunScore(outcome, urpOrbitsUsed);
+  const nxt = urpScenarioId ? nextUrpScenario(urpScenarioId) : null;
+  const nextUnlocked =
+    outcome === "good" &&
+    nxt != null &&
+    isUrpScenarioUnlocked(nxt, urpProgress);
+  urpNextBtn.disabled = !nextUnlocked;
+  urpNextBtn.textContent = nextUnlocked && nxt ? `Next · ${getUrpScenario(nxt).title}` : "Next";
+}
+
+function renderUrpShelf(): void {
+  urpProgress = loadUrpProgress();
+  urpSignEl.textContent = URP_PRODUCT_BLURB;
+  urpShelfCardsEl.replaceChildren();
+  for (const sc of URP_SCENARIOS) {
+    const unlocked = isUrpScenarioUnlocked(sc.id, urpProgress);
+    const cleared = urpProgress.cleared.includes(sc.id);
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className =
+      "urp-shelf-card" +
+      (unlocked ? "" : " is-locked") +
+      (cleared ? " is-cleared" : "");
+    btn.disabled = !unlocked;
+    btn.setAttribute("role", "listitem");
+    btn.dataset.scenario = sc.id;
+    const ord = document.createElement("span");
+    ord.className = "urp-shelf-ord";
+    ord.textContent = String(sc.order);
+    const body = document.createElement("div");
+    body.className = "urp-shelf-body";
+    const title = document.createElement("p");
+    title.className = "urp-shelf-title";
+    title.textContent = sc.title;
+    const blurb = document.createElement("p");
+    blurb.className = "urp-shelf-blurb";
+    blurb.textContent = sc.blurb;
+    body.append(title, blurb);
+    const badge = document.createElement("span");
+    badge.className = "urp-shelf-badge";
+    badge.textContent = !unlocked ? "Locked" : cleared ? "Cleared" : "Open";
+    btn.append(ord, body, badge);
+    if (unlocked) {
+      btn.addEventListener("click", () => startUrpPlay(sc.id));
+    }
+    urpShelfCardsEl.appendChild(btn);
+  }
+  const t = urpProgress.totals;
+  urpCampaignTotalsEl.textContent = urpProgress.shelfOpen
+    ? `Shelf open · Clear ${t.clear} · Fine ${t.fine} · Orbit ${t.orbit}`
+    : `Clear ${t.clear} · Fine ${t.fine} · Orbit ${t.orbit}`;
+}
+
+function showUrpShelfView(): void {
+  urpState = null;
+  urpScenarioId = null;
+  urpOrbitsUsed = 0;
+  hideUrpResult();
+  urpSetStatus("");
+  urpPlayEl.classList.add("hidden");
+  urpShelfEl.classList.remove("hidden");
+  renderUrpShelf();
+}
+
 function renderUrp(): void {
   if (!urpState) return;
   const screen = currentUrpScreen(urpState);
@@ -2135,17 +2239,31 @@ function urpWhoosh(): void {
 }
 
 function urpLand(index: number): void {
-  if (!urpState) return;
+  if (!urpState || !urpScenarioId) return;
   const next = landUrp(urpState, index);
-  if (!next.ok) return;
+  if (!next.ok || !next.state.outcome) return;
   urpState = next.state;
+  urpProgress = recordUrpRun(urpProgress, {
+    scenarioId: urpScenarioId,
+    outcome: next.state.outcome,
+    orbitsUsed: urpOrbitsUsed,
+  });
+  saveUrpProgress(urpProgress);
   renderUrp();
+  showUrpResult(next.state.outcome);
 }
 
 function urpOrbit(): void {
   if (!urpState || !canOrbit(urpState)) return;
+  const jammed = pairFullyJammed(currentUrpPair(urpState));
   urpState = orbitUrp(urpState);
-  urpSetStatus("");
+  urpOrbitsUsed += 1;
+  // Dead Orbit / jam looks: orbit is the skill — celebrate, do not punish.
+  if (jammed) {
+    urpSetStatus("Orbit. No legal pad on that pass.", "good");
+  } else {
+    urpSetStatus("");
+  }
   urpWhoosh();
   renderUrp();
 }
@@ -2164,13 +2282,19 @@ function urpPickArea(area: UrpArea): void {
   renderUrp();
 }
 
-function openUrp(): void {
-  urpState = startUrpDrill();
+function startUrpPlay(id: UrpScenarioId): void {
+  if (!isUrpScenarioUnlocked(id, urpProgress)) return;
+  const sc = getUrpScenario(id);
+  urpScenarioId = id;
+  urpOrbitsUsed = 0;
+  urpState = startUrpScenario(id);
+  hideUrpResult();
   urpSetStatus("");
+  urpSignEl.textContent = sc.blurb;
+  urpScenarioTagEl.textContent = sc.title;
+  urpShelfEl.classList.add("hidden");
+  urpPlayEl.classList.remove("hidden");
   renderUrp();
-  urpRoot.classList.remove("hidden");
-  urpRoot.setAttribute("aria-hidden", "false");
-  document.body.classList.add("handbook-open");
   layoutUrpPads();
   if (!urpPadRo) {
     urpPadRo = new ResizeObserver(() => layoutUrpPads());
@@ -2178,10 +2302,32 @@ function openUrp(): void {
   }
 }
 
+function urpRetry(): void {
+  if (!urpScenarioId) return;
+  startUrpPlay(urpScenarioId);
+}
+
+function urpGoNext(): void {
+  if (!urpScenarioId) return;
+  const nxt = nextUrpScenario(urpScenarioId);
+  if (!nxt || !isUrpScenarioUnlocked(nxt, urpProgress)) return;
+  startUrpPlay(nxt);
+}
+
+function openUrp(): void {
+  showUrpShelfView();
+  urpRoot.classList.remove("hidden");
+  urpRoot.setAttribute("aria-hidden", "false");
+  document.body.classList.add("handbook-open");
+}
+
 function closeUrp(): void {
   urpRoot.classList.add("hidden");
   urpRoot.setAttribute("aria-hidden", "true");
   urpState = null;
+  urpScenarioId = null;
+  urpOrbitsUsed = 0;
+  hideUrpResult();
   window.clearTimeout(urpFlashTimer);
   if (
     duelRoot.classList.contains("hidden") &&
@@ -2196,6 +2342,7 @@ function closeUrp(): void {
     document.body.classList.remove("handbook-open");
   }
 }
+
 
 function eacChoose(side: CompareSide): void {
   if (!eacState || eacState.phase !== "playing") return;
@@ -3461,6 +3608,10 @@ document.getElementById("urp-close")?.addEventListener("click", () => closeUrp()
 document.getElementById("urp-backdrop")?.addEventListener("click", () => closeUrp());
 urpOrbitBtn.addEventListener("click", () => urpOrbit());
 urpHintBtn.addEventListener("click", () => urpHint());
+urpBackShelfBtn.addEventListener("click", () => showUrpShelfView());
+urpRetryBtn.addEventListener("click", () => urpRetry());
+urpNextBtn.addEventListener("click", () => urpGoNext());
+urpToShelfBtn.addEventListener("click", () => showUrpShelfView());
 urpAreasEl.addEventListener("click", (e) => {
   const btn = (e.target as HTMLElement).closest("[data-area]");
   if (!(btn instanceof HTMLElement)) return;

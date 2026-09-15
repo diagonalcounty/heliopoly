@@ -1964,14 +1964,219 @@ html.native-shell #app {
 .urp-sign {
   margin: 0;
   flex-shrink: 0;
-  padding: 0 12px;
+  padding: 0 14px 8px;
   text-align: center;
+  font-size: 0.78rem;
+  font-weight: 550;
+  letter-spacing: 0.02em;
+  line-height: 1.35;
+  color: rgba(244, 240, 224, 0.72);
+}
+
+/* —— URP campaign shelf (#251) —— */
+.urp-shelf {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px max(12px, env(safe-area-inset-right, 0px))
+    max(12px, env(safe-area-inset-bottom, 0px))
+    max(12px, env(safe-area-inset-left, 0px));
+  overflow: auto;
+}
+
+.urp-shelf.hidden,
+.urp-play.hidden,
+.urp-result.hidden {
+  display: none;
+}
+
+.urp-shelf-kicker {
+  margin: 0;
   font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent-2);
+  text-align: center;
+}
+
+.urp-shelf-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.urp-shelf-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  align-items: start;
+  width: 100%;
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(201, 162, 39, 0.45);
+  background: rgba(26, 36, 56, 0.92);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.urp-shelf-card:disabled,
+.urp-shelf-card.is-locked {
+  opacity: 0.55;
+  cursor: not-allowed;
+  border-color: rgba(120, 130, 150, 0.35);
+}
+
+.urp-shelf-card.is-cleared {
+  border-color: rgba(90, 180, 120, 0.55);
+}
+
+.urp-shelf-ord {
+  font-family: Limelight, "SF Pro Text", system-ui, sans-serif;
+  font-size: 1.05rem;
+  color: var(--accent-2);
+  min-width: 1.4em;
+}
+
+.urp-shelf-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.urp-shelf-title {
+  margin: 0;
+  font-size: 0.98rem;
   font-weight: 650;
-  letter-spacing: 0.06em;
-  text-transform: lowercase;
+  color: #f4f0e0;
+}
+
+.urp-shelf-blurb {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: rgba(244, 240, 224, 0.7);
+}
+
+.urp-shelf-badge {
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(244, 240, 224, 0.55);
+  white-space: nowrap;
+}
+
+.urp-shelf-card.is-cleared .urp-shelf-badge {
+  color: #7dcea0;
+}
+
+.urp-campaign-totals {
+  margin: 4px 0 0;
+  text-align: center;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  color: rgba(244, 240, 224, 0.55);
+}
+
+.urp-play {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.urp-play-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-shrink: 0;
+  padding: 0 12px 4px;
+}
+
+.urp-scenario-tag {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 650;
   color: var(--accent-2);
 }
+
+.urp-back-shelf {
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(201, 162, 39, 0.55);
+  background: transparent;
+  color: var(--accent-2);
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.urp-result {
+  flex-shrink: 0;
+  margin: 0 12px max(12px, env(safe-area-inset-bottom, 0px));
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(201, 162, 39, 0.5);
+  background: rgba(12, 18, 32, 0.94);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.urp-result-headline {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #f4f0e0;
+}
+
+.urp-result.is-good .urp-result-headline {
+  color: #7dcea0;
+}
+
+.urp-result.is-fine .urp-result-headline {
+  color: #e2a07a;
+}
+
+.urp-result-score {
+  margin: 0;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  color: rgba(244, 240, 224, 0.7);
+}
+
+.urp-result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.urp-result-btn {
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(201, 162, 39, 0.55);
+  background: #1a2438;
+  color: var(--accent-2);
+  font-size: 0.85rem;
+  font-weight: 650;
+}
+
+.urp-result-btn.is-primary {
+  background: #c9a227;
+  color: #0b1020;
+  border-color: #c9a227;
+}
+
+.urp-result-btn:disabled {
+  opacity: 0.45;
+}
+
 
 .urp-meters {
   display: flex;
