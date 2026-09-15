@@ -619,3 +619,19 @@ footer {
   color: var(--muted);
   font-size: 0.78rem;
 }
+
+.yield-cell {
+  font-size: 0.8rem;
+}
+.pos {
+  color: var(--ok);
+}
+.neg {
+  color: var(--danger);
+}
+.roi-cell .bar.pos {
+  background: linear-gradient(90deg, #2a8f6a, var(--ok));
+}
+.roi-cell .bar.neg {
+  background: linear-gradient(90deg, #8a3140, var(--danger));
+}
