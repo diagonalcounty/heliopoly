@@ -145,6 +145,32 @@ test.describe("phone play thumbs #157 #166", () => {
 
     const tel = await cssOf(page, "#telemetry");
     expect(tel.display, "#telemetry hidden on phone bar").toBe("none");
+
+    const board = await boxOf(page, "#board");
+    expect(board.height, "board is the page above the thumbs").toBeGreaterThanOrEqual(240);
+    expect(board.top + board.height).toBeLessThanOrEqual(PHONE.h + 2);
+
+    const cash = await boxOf(page, "#rankings .rank-row.active .cash");
+    const fuel = await boxOf(page, "#rankings .rank-row.active .fuel-bar");
+    for (const b of [cash, fuel]) {
+      expect(b.top, "cash/fuel on the first screen").toBeGreaterThanOrEqual(0);
+      expect(b.top + b.height).toBeLessThanOrEqual(PHONE.h + 2);
+      expect(b.pointerEvents, "vitals are not a tap").toBe("none");
+    }
+    const overCash = await hitAt(page, cash.x, cash.y);
+    expect(overCash?.id ?? "", "cash does not open On the ledger").not.toBe(
+      "rankings",
+    );
+    expect(overCash?.className ?? "").not.toContain("rank-row");
+
+    const strike = page.locator("#announce-root:not(.hidden) #announce-ok");
+    if (await strike.count()) await strike.click();
+
+    for (const sel of ["#btn-roll", "#btn-handbook-header", "#btn-end"]) {
+      const b = await boxOf(page, sel);
+      expect(b.height, `${sel} ≥56px`).toBeGreaterThanOrEqual(56);
+      expect(b.onControl, `${sel} receives the tap`).toBe(true);
+    }
   });
 });
 

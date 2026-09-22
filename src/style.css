@@ -6105,6 +6105,7 @@ button:not(:disabled):active {
     overflow: hidden;
   }
 
+  /* Cash + fuel are vitals. A tap must not open the dossier / On the ledger. */
   #app:has(.fleet-card.mode-standings) #rankings {
     display: grid;
     grid-template-columns: 8px minmax(0, 1fr) 10.5ch max-content;
@@ -6119,7 +6120,7 @@ button:not(:disabled):active {
     overflow-x: hidden;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    pointer-events: auto;
+    pointer-events: none;
   }
 
   #app:has(.fleet-card.mode-standings) .rank-row {
