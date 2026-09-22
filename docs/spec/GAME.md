@@ -8,7 +8,10 @@ Voice of the shipped **Helios Ops Manual** (`src/handbook/content.ts`). Numbers 
 
 When a rocket leaves, its deeds return to the **bank**. Fuel depots on those deeds are destroyed.
 
-Exact cash / fuel thresholds that flip a rocket to bankrupt or stranded: **UNKNOWN / NEEDS JACOB** beyond “read `goingUnder.ts` + elimination paths in `rules.ts`.” Do not guess a dollar figure.
+There is no fixed cash or fuel number that eliminates a rocket. `goingUnder.ts` is a display-only risk flag. Elimination is in `rules.ts`:
+
+- **Bankrupt** when rent is due (landing, failed leave, or knockback) and cash is less than that rent. The creditor receives whatever cash remains; deeds return to the bank.
+- **Stranded** on a planet or moon when fuel is 1 or less and `canRefuelAtAll` is false (no free refuel, not Earth, not a paid pad, and not a hub that has a station).
 
 ## Path (the Mainline)
 
@@ -24,7 +27,7 @@ Travel facing can be **forward or backward** (palindrome / prograde–retrograde
 
 Currency is **Angzarr** (displayed as ⍼ before the amount). It is the post-quantum cash of the Mainline. The book is the **AIL** (Automated Interplanetary Asset Ledger): contracts (who owns what, who is owed rent, who paid for fuel) and history.
 
-Starting cash is a funded launch, not a glitch. The amount is **UNKNOWN / NEEDS JACOB** in this pack — read the new-game setup in `rules.ts` rather than inventing it.
+Starting cash is a funded launch, not a glitch. `DEFAULT_CONFIG.startingCash` in `state.ts` is **1500** Angzarr (starting fuel **20**). The same bank line is given to every seat. Callsign `Heliopolis` is a playtest cheat: the human seat gets 4× that cash.
 
 Earth pay (manual): **⍼400** when you land on Earth, **⍼200** when you pass Earth. That cash is investor capital, not property income.
 
@@ -67,7 +70,7 @@ Break spaces off a roll to land short. Manual: −1 space = 0.5 fuel, −2 = 1 f
 | Methane CH₄ | ×1.0 | No leak | Titan or Enceladus. Manual: one-time strike of ½ starting cash. |
 | Hydrogen H₂ | ×0.85 | 10% on **landing** (`leaveRisk`): half tanks and lose a turn to repair | Ice on Enceladus, Mars, Europa, Ganymede |
 
-`GUSHER_BONUS` cash figure: see `isru.ts`. Do not copy a number that is not in the manual.
+The strike pays `floor(startingCash / 2)`. With the default bank that is **750**. `GUSHER_BONUS` in `isru.ts` is that same 750, used only when `startingCash` is 0. The manual states the strike as ½ starting cash and does not print 750.
 
 ## Depots
 
