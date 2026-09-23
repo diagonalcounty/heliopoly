@@ -147,7 +147,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "/bin/bash \"${SRCROOT}/../../scripts/ios-webdist-check.sh\"\n";
+			shellScript = "set -e\nWEB=\"${SRCROOT}/WebDist\"\nDEST=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/WebDist\"\nif [ ! -f \"${WEB}/index.html\" ]; then\n  echo \"error: WebDist/index.html missing. From repo root run: npm run ios:sync\" >&2\n  exit 1\nfi\n/bin/bash \"${SRCROOT}/../../scripts/ios-webdist-check.sh\"\nrm -rf \"${DEST}\"\nmkdir -p \"${DEST}\"\n# Preserve assets/ handbook/ hierarchy for Vite base './'\n/usr/bin/rsync -a \"${WEB}/\" \"${DEST}/\"\necho \"Copied WebDist → ${DEST}\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
