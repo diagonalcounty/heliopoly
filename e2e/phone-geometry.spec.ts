@@ -810,6 +810,10 @@ async function openUrpFromLab(page: Page) {
     .click();
   await page.locator('.lab-scenario[data-scenario="urinal-rule-parking"]').click();
   await expect(page.locator("#urp-root")).not.toHaveClass(/hidden/);
+  // #251's campaign shelf sits between the Lab menu and play; enter the
+  // first unlocked scenario so #urp-play (board, pads, hatch) is live.
+  await page.locator(".urp-shelf-card:not(.is-locked)").first().click();
+  await expect(page.locator("#urp-play")).not.toHaveClass(/hidden/);
 }
 
 test.describe("urinal-rule-parking pads #225", () => {
