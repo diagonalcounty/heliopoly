@@ -20,6 +20,11 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+      - run: npm test
+      - name: Install Playwright chromium
+        run: npx playwright install --with-deps chromium
+      - name: Phone geometry gate
+        run: npm run test:phone
       - name: rsync dist to beta.heliopoly.live
         env:
           HELIOPOLY_DEPLOY_HOST: ${{ secrets.HELIOPOLY_DEPLOY_HOST }}
