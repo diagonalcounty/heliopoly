@@ -7,7 +7,15 @@ export default defineConfig({
   testDir: "e2e",
   fullyParallel: false,
   workers: 1,
-  retries: 0,
+  // Single worker, one shared dev server: no concurrency bug here. A
+  // handful of individual assertions throw one-off timeouts against
+  // their fixed 8s budget - reproducible at roughly the same rate alone
+  // as inside the full 84-test run, so it's timing flake in those
+  // assertions, not load from the rest of the suite (#273). Retries
+  // re-run only the specific test that timed out and Playwright reports
+  // it as flaky, not silently green, so this doesn't hide a repeatable
+  // failure.
+  retries: 2,
   timeout: 30_000,
   expect: { timeout: 8_000 },
   reporter: [["line", { printSteps: false }]],
