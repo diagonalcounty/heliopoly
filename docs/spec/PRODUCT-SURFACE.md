@@ -54,4 +54,19 @@ A local sprint note (`docs/ai-team/sprint-reports/2026-09-22-grok-priority-queue
 
 From epic #155: a kid on a device **and** a ~390×844 browser. Launch in the first viewport and tappable. Board visible. Roll / cash / fuel / Book / End on thumbs and tappable. Overlay screenshots do not count. Gold bar on device follows the host ticket.
 
-Cheap geometry gate in this repo: `npm run test:phone` (Playwright project `phone-chromium`, line reporter). Also `test:phone:webkit`, `test:phone:wide`, `test:phone:all`. Device notch and `100dvh` timing stay human. **UNKNOWN / NEEDS JACOB** which of the still-open A4–A8 rows already pass that command on `main`.
+Cheap geometry gate in this repo: `npm run test:phone` (Playwright project `phone-chromium`, line reporter). Also `test:phone:webkit`, `test:phone:wide`, `test:phone:all`. Device notch and `100dvh` timing stay human.
+
+**Ran `npm run test:phone` against `main` (`d487d49`) on 2026-09-22.** A4–A8 all pass:
+
+| Ticket | Spec row | Result |
+| --- | --- | --- |
+| A4 #166 | play thumbs: Roll / Book / End on screen; telemetry not a chip | pass |
+| A5 #168 | every rank-row is a compact on-screen roster | pass |
+| A5 #168 | Break / course sit above the 56px thumbs when legal | pass in isolation (3/3); flaked once inside the full 28-test run — timing, not a confirmed break |
+| A6 #170 | Pilots chips on first viewport; chip 6 launches six-rocket roster | pass |
+| A7 #172 | legal Refuel is a full-width row above Roll; thumbs stay three | pass |
+| A8 #179 | High / Low / Roll / Continue on-screen at 390×844 | pass |
+
+**Found outside A4–A8 while running the suite:**
+- `phone Claim auction #183` (closed ticket) — "Bid and Pass are on-screen and receive the tap" flaked (pass/fail across repeat isolated runs). Not a confirmed break; worth a re-check.
+- **`urinal-rule-parking pads #225` phone-portrait row fails reproducibly (2/2 isolated runs).** `.urp-field` is hidden at phone width (`expect(locator('.urp-field').first()).toBeVisible()` → `Received: hidden`, `e2e/phone-geometry.spec.ts:851`). #225 was closed for the landscape/wide case only — that row still passes. Portrait looks like a live regression, plausibly collateral from later phone CSS (#166/#168/#172 all touch `src/style.css` grid rules in the same viewport range). Not yet filed as its own issue.
