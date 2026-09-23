@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["node"]
+  },
+  "include": [
+    "src/vite-env.d.ts",
+    "src/selfplay.ts",
+    "src/sim/run.ts",
+    "src/sim/batch.ts",
+    "src/sim/lab-server.ts"
+  ],
+  "exclude": []
+}
