@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Build the web game and copy into the iOS project (WebDist/ next to the Xcode project).
 # The Xcode target copies this folder into the .app bundle via a Run Script phase
-# so directory structure (assets/, handbook/) is preserved — required for Vite base "./"
+# so directory structure (assets/, handbook/) is preserved — required for Vite base "./".
 # Run from repo root: npm run ios:sync
 set -euo pipefail
 

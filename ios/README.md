@@ -63,6 +63,8 @@ npm run ios:sync
 
 Then in Xcode: **Product → Clean Build Folder**, then **Run** (⌘R). Commit `WebDist/` when you want a clone-and-run snapshot; always re-sync before TestFlight.
 
+`npm run ios:phone-build` and the Xcode “Copy WebDist” phase compare `WebDist/.heliopoly-web-sync` (`git=<short-sha>`) to `HEAD` and stop the build when they differ, so a device run cannot silently ship an older bundle. Refresh with `npm run ios:sync`. An intentional older bundle needs `HELIOPOLY_ALLOW_STALE_WEBDIST=1`.
+
 ## Project settings (Phase A)
 
 | Setting | Value |
