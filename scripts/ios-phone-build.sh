@@ -19,6 +19,8 @@ if ! command -v xcbeautify >/dev/null 2>&1; then
 fi
 
 cd "$ROOT"
+bash "$ROOT/scripts/ios-webdist-check.sh"
+
 xcodebuild \
   -project "$PROJ" \
   -scheme HeliopolyPhone \

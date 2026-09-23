@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Build the web game and copy into the iOS project (WebDist/ next to the Xcode project).
 # The Xcode target copies this folder into the .app bundle via a Run Script phase
-# so directory structure (assets/, handbook/) is preserved — required for Vite base "./".
+# so directory structure (assets/, handbook/) is preserved — required for Vite base "./"
 # Run from repo root: npm run ios:sync
 set -euo pipefail
 
@@ -27,6 +27,8 @@ rsync -a --delete \
     echo "git=$(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null || echo unknown)"
   fi
 } >"$DEST/.heliopoly-web-sync"
+
+bash "$ROOT/scripts/ios-webdist-check.sh"
 
 echo "→ WebDist ready ($(du -sh "$DEST" | awk '{print $1}'))"
 echo "  Open ios/Heliopoly/Heliopoly.xcodeproj · Run on iPad Simulator."
