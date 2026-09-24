@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Play / UX
+- **Home doors (#275–#279):** cold load is Arcade / Journey / Lab. Arcade (“On the rocket” / “Play for a minute”) is the large first tap and lists Bot Evolution, Backup fuel, and Hull panel. Journey is the charter. Lab (“Experiments” / “Nerdy tools”) is the smaller door and stays locked until one Arcade toy is left (`localStorage` `heliopoly.arcadeSessionsCompleted` ≥ 1). Leaving the toy does not open Lab. End and economy setups sit behind Show experiments. Header Home returns to the doors without quitting a flight.
 - **Urinal-rule Parking campaign (#251):** Lab shelf with Quiet Apron → Rush Hour → Both Sides Bad → Dead Orbit → Final Approach. Linear unlock; first Final Approach clear opens the whole shelf. Run score Clear / Fine / Orbit. Dead Orbit treats jam-orbit as success. Product blurb: “Orbit the apron. Leave a buffer. Land rude and the fine sticks.”
 
 ## [1.4.0] — 2026-09-11

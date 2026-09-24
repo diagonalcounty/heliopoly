@@ -2,6 +2,8 @@
 
 Voice of the shipped **Helios Ops Manual** (`src/handbook/content.ts`). Numbers below are from that manual or `src/core` constants. V1 only. V2–V4 are named and locked, not playable (`gameplayMode.ts`).
 
+These rules are the **Journey** door (the charter). **Arcade** is Bot Evolution, Backup fuel, and Hull panel. **Lab** is experiments. See [PRODUCT-SURFACE.md](PRODUCT-SURFACE.md) for the home doors, the Lab unlock key, and deep links (#275). Arcade toys do not change a charter in progress. Gravity Duel inside a flight is still the rule below; the Lab “Gravity Duel” row is practice and is not an Arcade toy.
+
 ## Win
 
 **Last rocket flying.** Others go bankrupt, get stranded, or quit. No round cap and no “enough money.” The ledger writes the survivor as one of the **greatest of all kind**.
@@ -87,6 +89,8 @@ Sit still and unpatched software rots the claim. A non-move seat turn is a **par
 - Each later park closes half the remaining gap (75%, 87.5%, …) and never forces 100% on the next park
 
 ## Gravity Duel
+
+In-charter event only. The Lab scenario that drops you into a duel is practice, filed under Experiments, not Arcade.
 
 Only on a **blank** lane (not a planet, moon, hub, or Earth) when another living rocket is there, or the lane remembers a defender.
 
