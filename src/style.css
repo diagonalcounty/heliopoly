@@ -196,6 +196,171 @@ html.native-shell #app {
   border-color: var(--accent-2);
 }
 
+/* Home doors (#276). Arcade is the large first tap; Lab is the small one. */
+.home-root {
+  position: fixed;
+  inset: 0;
+  z-index: 1700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(16px, var(--sat)) max(16px, var(--sar)) max(16px, var(--sab))
+    max(16px, var(--sal));
+  background: radial-gradient(ellipse at top, #1a2748 0%, #070b14 62%);
+}
+
+body.home-open {
+  overflow: hidden;
+}
+
+.home-panel {
+  width: min(560px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.home-kicker {
+  margin: 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent-2);
+}
+
+.home-title {
+  margin: 0;
+  font-family: Limelight, "Iowan Old Style", Palatino, serif;
+  font-weight: 400;
+  font-size: 2rem;
+  letter-spacing: 0.02em;
+}
+
+.home-doors {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.home-door {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 2px;
+  width: 100%;
+  text-align: left;
+  border-radius: 18px;
+  border: 1px solid #3d5080;
+  background: #121a30;
+  color: var(--text);
+  padding: 16px 18px;
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.home-door-arcade {
+  min-height: 220px;
+  background:
+    radial-gradient(ellipse at 18% 0%, rgba(255, 200, 87, 0.28), transparent 58%),
+    linear-gradient(180deg, #2a3d6e 0%, #121a30 72%);
+  border-color: var(--accent-2);
+  box-shadow:
+    0 0 0 1px rgba(255, 200, 87, 0.35),
+    0 18px 40px rgba(0, 0, 0, 0.35);
+}
+
+.home-door-arcade .home-door-title {
+  font-size: 2.6rem;
+}
+
+.home-doors-row {
+  display: grid;
+  grid-template-columns: 1.45fr 0.8fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.home-door-journey {
+  min-height: 148px;
+  background: linear-gradient(180deg, #1a2744 0%, #121a30 80%);
+}
+
+.home-door-lab {
+  min-height: 104px;
+  background: #0e1424;
+  border-color: #2a3555;
+}
+
+.home-door-lab.is-locked {
+  opacity: 0.62;
+  cursor: not-allowed;
+}
+
+.home-door-kicker {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.home-door-title {
+  font-family: Limelight, "Iowan Old Style", Palatino, serif;
+  font-size: 1.45rem;
+  font-weight: 400;
+  color: var(--accent-2);
+  line-height: 1.1;
+}
+
+.home-door-hook {
+  font-size: 0.95rem;
+  margin-top: 4px;
+}
+
+.home-door-lock {
+  margin-top: 8px;
+  font-size: 0.75rem;
+  line-height: 1.3;
+  color: var(--muted);
+}
+
+.home-door:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.lab-shelf-kicker {
+  margin: 0 0 6px;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent-2);
+}
+
+.lab-show-experiments {
+  width: 100%;
+  margin-top: 8px;
+  text-align: left;
+  min-height: 44px;
+  border-radius: 12px;
+  border: 1px dashed #5a4a20;
+  background: #12160f;
+  color: var(--accent-2);
+  font-weight: 650;
+}
+
+.lab-sim-note {
+  margin: 12px 0 0;
+}
+
+#lab-operator-scenarios[hidden] {
+  display: none !important;
+}
+
+.arcade-scenarios .lab-scenario {
+  min-height: 72px;
+}
+
 .lab-panel {
   max-width: min(480px, 100%);
 }
@@ -5765,6 +5930,30 @@ button:not(:disabled):active {
 
 /* Phone width: kid path is name / Fuel / Table / Launch. Speed stays on tablet+. */
 @media (max-width: 560px) {
+  .home-title {
+    font-size: 1.6rem;
+  }
+
+  .home-door-arcade {
+    min-height: 196px;
+  }
+
+  .home-door-arcade .home-door-title {
+    font-size: 2.15rem;
+  }
+
+  .home-door-journey {
+    min-height: 128px;
+  }
+
+  .home-door-lab {
+    min-height: 112px;
+  }
+
+  .home-door-title {
+    font-size: 1.25rem;
+  }
+
   .anim-speed-field {
     display: none;
   }
@@ -6602,6 +6791,89 @@ button:not(:disabled):active {
   #lab-root:not(.hidden) .lab-group-toggle,
   #lab-root:not(.hidden) .lab-scenario {
     min-height: 44px;
+    pointer-events: auto;
+  }
+
+  /* Home + Arcade sheets follow the same full-bleed contract as Lab (#276). */
+  #home-root.hidden,
+  #arcade-root.hidden {
+    pointer-events: none !important;
+  }
+
+  #home-root:not(.hidden),
+  #arcade-root:not(.hidden) {
+    z-index: 2000 !important;
+    isolation: isolate;
+    padding: 0;
+    align-items: stretch;
+    justify-content: stretch;
+    pointer-events: auto;
+  }
+
+  body:has(#home-root:not(.hidden), #arcade-root:not(.hidden))
+    #app:has(.fleet-card.mode-standings)
+    :is(
+      .play-thumbs,
+      #pilot-controls,
+      #btn-handbook-header,
+      #btn-lab,
+      .fleet-card.mode-standings
+    ) {
+    pointer-events: none !important;
+    z-index: 1;
+  }
+
+  #arcade-root:not(.hidden) .handbook-panel {
+    width: 100%;
+    max-width: none;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+
+  #arcade-root:not(.hidden) .handbook-header {
+    padding-top: max(10px, var(--sat));
+    padding-left: max(12px, var(--sal));
+    padding-right: max(12px, var(--sar));
+  }
+
+  #arcade-root:not(.hidden) .handbook-close {
+    min-width: 44px;
+    min-height: 44px;
+    pointer-events: auto;
+  }
+
+  #arcade-root:not(.hidden) .lab-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: max(16px, var(--sab));
+  }
+
+  #arcade-root:not(.hidden) .lab-scenarios {
+    max-height: none;
+    overflow: visible;
+  }
+
+  #arcade-root:not(.hidden) .lab-scenario {
+    min-height: 44px;
+    pointer-events: auto;
+  }
+
+  #home-root:not(.hidden) .home-panel {
+    width: 100%;
+    max-width: none;
+    min-height: 100dvh;
+    margin: 0;
+    justify-content: center;
+    padding: max(20px, var(--sat)) max(16px, var(--sar)) max(20px, var(--sab))
+      max(16px, var(--sal));
+  }
+
+  #home-root:not(.hidden) .home-door {
     pointer-events: auto;
   }
 

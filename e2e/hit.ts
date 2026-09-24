@@ -85,7 +85,7 @@ export async function centerOf(page: Page, sel: string) {
   return { x: b.x, y: b.y, ...b };
 }
 
-export async function bootSetup(page: Page) {
+async function primePage(page: Page) {
   await page.addInitScript(() => {
     try {
       localStorage.setItem("heliopoly-anim-speed", "instant");
@@ -93,7 +93,22 @@ export async function bootSetup(page: Page) {
       /* private mode */
     }
   });
+}
+
+/** Cold load on the three home doors. Does not enter the charter. */
+export async function bootHome(page: Page) {
+  await primePage(page);
   await page.goto("/");
+  await expect(page.locator("#home-root")).toHaveAttribute("data-ready", "1");
+  await expect(page.locator("#home-root")).not.toHaveClass(/hidden/);
+  await expect(page.locator("#door-arcade")).toBeVisible();
+}
+
+/** Charter setup. Home is the cold screen; Journey is the charter door. */
+export async function bootSetup(page: Page) {
+  await bootHome(page);
+  await page.locator("#door-journey").click();
+  await expect(page.locator("#home-root")).toHaveClass(/hidden/);
   await expect(page.locator("#btn-new")).toBeVisible();
   await page.waitForFunction(() => {
     const r = document.getElementById("btn-new")?.getBoundingClientRect();

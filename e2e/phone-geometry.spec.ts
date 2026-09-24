@@ -2,6 +2,7 @@ import { test, expect, type Page } from "@playwright/test";
 import {
   PHONE,
   boxOf,
+  bootHome,
   bootSetup,
   centerOf,
   cssOf,
@@ -16,7 +17,9 @@ const HIDDEN_SHEETS = [
   "#auction-root",
   "#announce-root",
   "#end-root",
+  "#home-root",
   "#lab-root",
+  "#arcade-root",
   "#eac-root",
   "#botevo-root",
   "#pipes-root",
@@ -455,7 +458,12 @@ test.describe("phone Lab sheet #193", () => {
 
     const roll = await centerOf(page, "#btn-roll");
 
+    await page.evaluate(() => {
+      localStorage.setItem("heliopoly.arcadeSessionsCompleted", "1");
+    });
     await page.locator("#btn-lab").click();
+    await expect(page.locator("#home-root")).not.toHaveClass(/hidden/);
+    await page.locator("#door-lab").click();
     await expect(page.locator("#lab-root")).not.toHaveClass(/hidden/);
 
     const root = await boxOf(page, "#lab-root");
@@ -500,14 +508,20 @@ test.describe("phone Lab sheet #193", () => {
 
     await page.locator("#lab-root .handbook-close").click();
     await expect(page.locator("#lab-root")).toHaveClass(/hidden/);
+    await expect(page.locator("#home-root")).not.toHaveClass(/hidden/);
+    await page.locator("#door-journey").click();
+    await expect(page.locator("#home-root")).toHaveClass(/hidden/);
 
     const rollAfter = await hitAt(page, roll.x, roll.y);
-    expect(rollAfter?.id, "Roll tappable after Lab close").toBe("btn-roll");
+    expect(rollAfter?.id, "Roll tappable after Journey resumes").toBe("btn-roll");
   });
 
-  test("minigame cards do not clip blurbs", async ({ page }) => {
-    await launch(page);
-    await page.locator("#btn-lab").click();
+  test("practice cards do not clip blurbs", async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem("heliopoly.arcadeSessionsCompleted", "1");
+    });
+    await bootHome(page);
+    await page.locator("#door-lab").click();
     await page
       .locator('.lab-group-toggle[aria-controls="lab-group-items-minigame"]')
       .click();
@@ -527,8 +541,16 @@ test.describe("phone Lab sheet #193", () => {
         };
       });
     });
-    expect(report.length, "minigame cards").toBeGreaterThanOrEqual(5);
-    expect(report[0]?.title, "most mature minigame first").toBe("Bot Evolution");
+    expect(report.length, "practice cards").toBeGreaterThanOrEqual(3);
+    expect(report.some((r) => r.title === "Bot Evolution"), "Arcade toy stays off Lab").toBe(
+      false,
+    );
+    expect(report.some((r) => r.title === "Backup fuel"), "fuel toy stays off Lab").toBe(
+      false,
+    );
+    expect(report.some((r) => r.title === "Hull panel"), "slider toy stays off Lab").toBe(
+      false,
+    );
     expect(
       report.some((r) => r.title === "Urinal-rule Parking"),
       "URP uses a human title",
@@ -545,7 +567,7 @@ test.describe("phone Lab sheet #193", () => {
     const last = page.locator("#lab-group-items-minigame .lab-scenario").last();
     await last.scrollIntoViewIfNeeded();
     const box = await boxOf(page, "#lab-group-items-minigame .lab-scenario:last-child");
-    expect(box.onControl, "last minigame card is tappable").toBe(true);
+    expect(box.onControl, "last practice card is tappable").toBe(true);
   });
 });
 
@@ -556,16 +578,17 @@ test.describe("phone Lab egg-bot-evolution #203", () => {
     await launch(page);
     const roll = await centerOf(page, "#btn-roll");
     await page.locator("#btn-lab").click();
-    await expect(page.locator("#lab-root")).not.toHaveClass(/hidden/);
-    await page.locator('.lab-group-toggle[aria-controls="lab-group-items-minigame"]').click();
-    await page.locator('.lab-scenario[data-scenario="egg-bot-evolution"]').click();
+    await expect(page.locator("#home-root")).not.toHaveClass(/hidden/);
+    await page.locator("#door-arcade").click();
+    await expect(page.locator("#arcade-root")).not.toHaveClass(/hidden/);
+    await page.locator('#arcade-root .lab-scenario[data-scenario="egg-bot-evolution"]').click();
     await expect(page.locator("#botevo-root")).not.toHaveClass(/hidden/);
     await expect(page.locator("#botevo-intro")).not.toHaveClass(/hidden/);
     await expect(page.locator("#botevo-title")).toHaveText("Bot Evolution");
     await expect(page.locator("#botevo-card-title")).toContainText("Link three");
     await expect(page.locator("#botevo-card-body")).toContainText("become a box");
     await expect(page.locator("#botevo-card-body")).not.toContainText(/blast|save, not/i);
-    await expect(page.locator("#btn-lab")).toHaveAttribute("aria-label", "Open Lab");
+    await expect(page.locator("#btn-lab")).toHaveAttribute("aria-label", "Home");
     const begin = await boxOf(page, "#botevo-begin");
     expect(begin.height, "Begin ≥44px tall").toBeGreaterThanOrEqual(44);
     expect(begin.onControl, "elementFromPoint Begin").toBe(true);
@@ -598,9 +621,14 @@ test.describe("phone Lab egg-bot-evolution #203", () => {
 
     await page.locator("#botevo-root .handbook-close").click();
     await expect(page.locator("#botevo-root")).toHaveClass(/hidden/);
-    await page.locator("#lab-root .handbook-close").click();
+    await expect(page.locator("#lab-root")).toHaveClass(/hidden/);
+    await expect(page.locator("#arcade-root")).not.toHaveClass(/hidden/);
+    await page.locator("#arcade-close").click();
+    await expect(page.locator("#home-root")).not.toHaveClass(/hidden/);
+    await expect(page.locator("#door-lab")).toBeEnabled();
+    await page.locator("#door-journey").click();
     const rollAfter = await hitAt(page, roll.x, roll.y);
-    expect(rollAfter?.id, "Roll tappable after Lab close").toBe("btn-roll");
+    expect(rollAfter?.id, "Roll tappable after Journey resumes").toBe("btn-roll");
   });
 });
 
@@ -611,9 +639,9 @@ test.describe("phone Lab Backup fuel #201", () => {
     await launch(page);
     const roll = await centerOf(page, "#btn-roll");
     await page.locator("#btn-lab").click();
-    await expect(page.locator("#lab-root")).not.toHaveClass(/hidden/);
-    await page.locator('.lab-group-toggle[aria-controls="lab-group-items-minigame"]').click();
-    await page.locator('.lab-scenario[data-scenario="backup-fuel-pipes"]').click();
+    await page.locator("#door-arcade").click();
+    await expect(page.locator("#arcade-root")).not.toHaveClass(/hidden/);
+    await page.locator('#arcade-root .lab-scenario[data-scenario="backup-fuel-pipes"]').click();
     await expect(page.locator("#pipes-root")).not.toHaveClass(/hidden/);
 
     const cells = page.locator("#pipes-grid .pipe-cell");
@@ -625,9 +653,10 @@ test.describe("phone Lab Backup fuel #201", () => {
 
     await page.locator("#pipes-root .handbook-close").click();
     await expect(page.locator("#pipes-root")).toHaveClass(/hidden/);
-    await page.locator("#lab-root .handbook-close").click();
+    await page.locator("#arcade-close").click();
+    await page.locator("#door-journey").click();
     const rollAfter = await hitAt(page, roll.x, roll.y);
-    expect(rollAfter?.id, "Roll tappable after Lab close").toBe("btn-roll");
+    expect(rollAfter?.id, "Roll tappable after Journey resumes").toBe("btn-roll");
   });
 });
 
@@ -803,12 +832,17 @@ test.describe("phone Gravity Duel #179", () => {
 
 async function openUrpFromLab(page: Page) {
   await bootSetup(page);
+  await page.evaluate(() => {
+    localStorage.setItem("heliopoly.arcadeSessionsCompleted", "1");
+  });
   await page.locator("#btn-lab").click();
+  await expect(page.locator("#home-root")).not.toHaveClass(/hidden/);
+  await page.locator("#door-lab").click();
   await expect(page.locator("#lab-root")).not.toHaveClass(/hidden/);
   await page
     .locator('.lab-group-toggle[aria-controls="lab-group-items-minigame"]')
     .click();
-  await page.locator('.lab-scenario[data-scenario="urinal-rule-parking"]').click();
+  await page.locator('#lab-root .lab-scenario[data-scenario="urinal-rule-parking"]').click();
   await expect(page.locator("#urp-root")).not.toHaveClass(/hidden/);
   // #251's campaign shelf sits between the Lab menu and play; enter the
   // first unlocked scenario so #urp-play (board, pads, hatch) is live.
@@ -1210,5 +1244,130 @@ test.describe("wide end screen #178", () => {
       36,
     );
     expect(again.onControl, "#end-again elementFromPoint on wide").toBe(true);
+  });
+});
+
+test.describe("home doors #275", () => {
+  test("cold start: Arcade is the large first door and Lab is locked", async ({
+    page,
+  }) => {
+    await bootHome(page);
+    await expect(page.locator("#door-arcade")).toBeFocused();
+    await expect(page.locator("#door-arcade")).toContainText("On the rocket");
+    await expect(page.locator("#door-arcade")).toContainText("Play for a minute");
+    await expect(page.locator("#door-journey")).toContainText("Fly the charter");
+    await expect(page.locator("#door-journey")).toContainText("Full game");
+    await expect(page.locator("#door-lab")).toContainText("Experiments");
+    await expect(page.locator("#door-lab")).toContainText("Nerdy tools");
+    await expect(page.locator("#door-lab")).toBeDisabled();
+    await expect(page.locator("#door-lab-lock")).toHaveText("Play one Arcade toy");
+    await expect(page.locator(".home-door")).toHaveCount(3);
+
+    const arcade = await boxOf(page, "#door-arcade");
+    const journey = await boxOf(page, "#door-journey");
+    const lab = await boxOf(page, "#door-lab");
+    expect(arcade.height).toBeGreaterThan(journey.height);
+    expect(arcade.height).toBeGreaterThan(lab.height);
+    expect(journey.width).toBeGreaterThan(lab.width + 8);
+    expect(lab.height).toBeGreaterThanOrEqual(44);
+    expect(arcade.onControl, "Arcade receives the tap").toBe(true);
+
+    await page.locator("#door-arcade").click();
+    await expect(page.locator("#arcade-root")).not.toHaveClass(/hidden/);
+    await expect(page.locator("#home-root")).toHaveClass(/hidden/);
+    const toys = page.locator("#arcade-scenarios .lab-scenario");
+    await expect(toys).toHaveCount(3);
+    await expect(toys.nth(0)).toHaveAttribute("data-scenario", "egg-bot-evolution");
+    await expect(toys.nth(1)).toHaveAttribute("data-scenario", "backup-fuel-pipes");
+    await expect(toys.nth(2)).toHaveAttribute("data-scenario", "hull-panel");
+    await expect(
+      page.locator("#arcade-root [data-scenario='urinal-rule-parking']"),
+    ).toHaveCount(0);
+    await expect(
+      page.locator("#arcade-root [data-scenario='eastern-arabic-compare']"),
+    ).toHaveCount(0);
+    await expect(
+      page.locator("#arcade-root [data-scenario='duel-you-challenger']"),
+    ).toHaveCount(0);
+
+    await page.locator("#arcade-close").click();
+    await expect(page.locator("#home-root")).not.toHaveClass(/hidden/);
+    await expect(page.locator("#door-lab")).toBeDisabled();
+    await expect(page.locator("#lab-root")).toHaveClass(/hidden/);
+  });
+
+  test("leaving one Arcade toy unlocks Lab and does not open it", async ({
+    page,
+  }) => {
+    await bootHome(page);
+    await page.locator("#door-arcade").click();
+    await page.locator("#arcade-root [data-scenario='hull-panel']").click();
+    await expect(page.locator("#tiles-root")).not.toHaveClass(/hidden/);
+    await page.locator("#tiles-root .handbook-close").click();
+    await expect(page.locator("#tiles-root")).toHaveClass(/hidden/);
+    await expect(page.locator("#lab-root")).toHaveClass(/hidden/);
+    await expect(page.locator("#arcade-root")).not.toHaveClass(/hidden/);
+    await page.locator("#arcade-close").click();
+    await expect(page.locator("#door-lab")).toBeEnabled();
+    await expect(page.locator("#lab-root")).toHaveClass(/hidden/);
+
+    await page.locator("#door-lab").click();
+    await expect(page.locator("#lab-root")).not.toHaveClass(/hidden/);
+    await expect(page.locator("#lab-title")).toHaveText("Lab");
+    await expect(page.locator("#lab-root")).toContainText("Experiments");
+    await expect(page.locator("#lab-root [data-scenario='egg-bot-evolution']")).toHaveCount(
+      0,
+    );
+    await expect(page.locator("#lab-root [data-scenario='backup-fuel-pipes']")).toHaveCount(
+      0,
+    );
+    await expect(page.locator("#lab-root [data-scenario='hull-panel']")).toHaveCount(0);
+    await expect(page.locator("#lab-operator-scenarios")).toBeHidden();
+    await page.locator("#lab-show-experiments").click();
+    await expect(page.locator("#lab-operator-scenarios")).toBeVisible();
+    await page
+      .locator('.lab-group-toggle[aria-controls="lab-group-items-end"]')
+      .click();
+    await expect(page.locator("[data-scenario='end-you-win']")).toBeVisible();
+    await expect(page.locator(".lab-sim-note")).toContainText("sim-lab");
+    await page.locator("#lab-close").click();
+    await expect(page.locator("#home-root")).not.toHaveClass(/hidden/);
+    await expect(page.locator("#lab-root")).toHaveClass(/hidden/);
+  });
+
+  test("returning player keeps the unlock and still lands on Home", async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem("heliopoly.arcadeSessionsCompleted", "1");
+    });
+    await bootHome(page);
+    await expect(page.locator("#door-lab")).toBeEnabled();
+    await expect(page.locator("#lab-root")).toHaveClass(/hidden/);
+    await expect(page.locator("#arcade-root")).toHaveClass(/hidden/);
+    await expect(page.locator("#door-arcade")).toBeFocused();
+    await page.locator("#door-journey").click();
+    await expect(page.locator("#home-root")).toHaveClass(/hidden/);
+    await expect(page.locator("#btn-new")).toBeVisible();
+    await expect(page.locator("#lab-scenarios")).toBeHidden();
+  });
+
+  test("?lab= deep link opens a drill and does not unlock the door", async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      try {
+        localStorage.setItem("heliopoly-anim-speed", "instant");
+      } catch {
+        /* private mode */
+      }
+    });
+    await page.goto("/?lab=eastern-arabic-compare");
+    await expect(page.locator("#eac-root")).not.toHaveClass(/hidden/);
+    await page.locator("#eac-root .handbook-close").click();
+    await expect(page.locator("#lab-root")).not.toHaveClass(/hidden/);
+    await page.locator("#lab-close").click();
+    await expect(page.locator("#home-root")).not.toHaveClass(/hidden/);
+    await expect(page.locator("#door-lab")).toBeDisabled();
   });
 });

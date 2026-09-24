@@ -1,9 +1,13 @@
 /**
  * Lab scenarios — practice games and canned setups.
- * Not used in normal Launch flow.
+ * Not used in normal charter Launch flow.
  *
- * Menu UX: top-level **categories** expand to show items under them
- * (Which is larger? → numbering packs; Minigames → most mature first).
+ * Shelf membership (Arcade vs Lab) lives in `doors.ts`. Do not infer it
+ * from `group`. Arcade toys are an allowlist; everything else stays Lab.
+ *
+ * Menu UX inside Lab: categories expand
+ * (Which is larger? → numbering packs; Practice → remaining drills).
+ * End and Economy are operator experiments behind “Show experiments”.
  */
 import { grantClaim } from "../core/claimLedger";
 import { applyAction, forceGravityDuel } from "../core/rules";
@@ -11,9 +15,9 @@ import { createGame } from "../core/state";
 import type { GameState } from "../core/types";
 
 /**
- * Lab accordion categories (stable order for the menu).
+ * Lab accordion categories (stable order for the Lab shelf).
  * `which-is-larger` = multi-script compare drills (#76; EA pack = #81).
- * `minigame` = Lab drills, listed most mature first (Bot Evolution on top).
+ * `minigame` = Lab practice left after Arcade toys moved (#278).
  */
 export type LabScenarioGroup = "which-is-larger" | "minigame" | "end" | "economy";
 
@@ -26,7 +30,7 @@ export const LAB_GROUP_ORDER: readonly LabScenarioGroup[] = [
 
 export const LAB_GROUP_LABELS: Record<LabScenarioGroup, string> = {
   "which-is-larger": "Which is larger?",
-  minigame: "Minigames",
+  minigame: "Practice",
   end: "End screens",
   economy: "Economy",
 };
@@ -35,7 +39,7 @@ export const LAB_GROUP_BLURBS: Record<LabScenarioGroup, string> = {
   "which-is-larger":
     "Pick the larger of two numbers, written in another numbering system.",
   minigame:
-    "Bot Evolution, Gravity Duel, Deseret letters, Backup fuel, Hull panel, Urinal-rule Parking.",
+    "Gravity Duel practice, Deseret letters, Urinal-rule Parking.",
   end: "How a game can end — you win, or the computer does.",
   economy:
     "Tight cash, going-under, remote sell, H₂ leak, parking/feral, hub ×4, stranded OUT, fuel strike.",
