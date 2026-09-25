@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-24  
 **Source:** Jacob product signal via Steve (ASC desk). Steve owns ASC only — **no App Store submit / pricing** from this work.  
-**Status:** Requirements + GitHub issues only. Implementation tracks child tickets.
+**Status:** Shipped with the home doors (#282, epic #275). This note matches that build. No App Store submit or pricing.
 
 ## Product signal
 
@@ -18,11 +18,13 @@ Players mostly like **egg-bot evolution** (Bot Evolution). **Fuel + sliders** ar
 
 Hard rule: **Do not stuff Arcade toys into Lab.** Lab ≠ play room.
 
-## Copy hooks (draft — lock in UI ticket)
+## Copy hooks (locked in the UI)
 
 - **Arcade** — “On the rocket” / “Play for a minute”
 - **Journey** — “Fly the charter” / “Full game”
 - **Lab** — “Experiments” / “Nerdy tools” (not “more games”)
+
+On the door the order is kicker, title, hook. Lab’s lock hint is “Play one Arcade toy”. The first-run title is “Where next?”. Arcade toy sheets use “Play for a minute”, not “Lab”.
 
 ## Move list (from `src/lab/scenarios.ts` + Sim Lab)
 
@@ -59,7 +61,7 @@ Placeholders (#252 Deseret board, #253 Which-is-larger board) stay Lab/design un
 1. New player lands on **home with three doors**.
 2. **Arcade is visually primary** (largest / first focus) and is the **default first tap**.
 3. Journey is clearly available but secondary.
-4. Lab is **smaller** **or** locked until `arcadeSessionsCompleted >= 1` (local persistence; exact key in implement ticket).
+4. Lab is **smaller** and locked until `localStorage` `heliopoly.arcadeSessionsCompleted` ≥ 1. Opening the Arcade door does not count. Closing one toy does.
 5. After first Arcade session exits, Lab unlocks (if gated) without forcing a Lab visit.
 
 ## Demote path for non-fun Lab demos
@@ -75,7 +77,7 @@ For items classified Lab and “not fun as-is”:
 ## Out of scope (this pivot packet)
 
 - App Store Connect / submit / pricing (Steve / Jacob HITL)
-- Implementing UI (child Build tickets)
+- Charter economy changes. The door UI shipped in #282.
 - Changing charter economy rules except as needed for Journey door wiring
 
 ## Acceptance for the pivot as a whole

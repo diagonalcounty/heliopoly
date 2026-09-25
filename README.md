@@ -41,11 +41,13 @@ In-game **Helios Ops Manual** (top right) has the full rules, glossary (turn / r
 | **Simulation** | https://simulation.heliopoly.live/ (Sim Lab — #91 / #134) |
 | **Local** | `npm install && npm run dev` → http://localhost:5173/ |
 
-Name your rocket, choose propellant and game difficulty, **Launch**.
+Cold start is three doors. **Arcade** is the large one: play for a minute (Bot Evolution, Backup fuel, Hull panel). **Journey** is the full charter — name your rocket, choose propellant and expedition, **Launch**. **Lab** is experiments, and it stays locked until you leave one Arcade toy.
+
+Header **Home** brings the doors back and does not quit a flight.
 
 ## Screenshots / vibe
 
-Pixel Ops Manual art, orbital board, dice duels, Oregon Trail–style ledger alerts. Built for desktop and LAN iPad play (same Vite dev server).
+Three doors on the first screen (Arcade, Journey, Lab), then the orbital board, dice duels, and Oregon Trail–style ledger alerts. Built for desktop and LAN iPad play (same Vite dev server).
 
 ## Stack (brief)
 

@@ -27,7 +27,9 @@ From the Ops Manual glossary and nearby topics (`src/handbook/content.ts`). Use 
 | **Gravity Duel** | Secret Low/High plus 2d6 on a shared blank lane. Not realtime. |
 | **Expedition** | Launch setting: Insight, Curiosity, Voyager, Opportunity. Sets ledger kindness and rival skill. Player-facing name replaced “AI difficulty.” |
 | **Insight** | Shortest expedition. Minus events (Tesla, Karen, hot mic, Error 47) never hit the human. Rivals cannot steal the human’s deeds. |
-| **Lab** | Header practice games. Not the charter, except where a shelf replaces the current board game (see [OPEN-DESIGN.md](OPEN-DESIGN.md)). |
+| **Arcade** | The large home door. About a minute: Bot Evolution, Backup fuel, Hull panel. Does not move a charter rocket. Default first tap. |
+| **Journey** | The charter. Full game. Name a rocket and Launch. Gravity Duel inside a flight stays here. |
+| **Lab** | The small home door. Experiments, not more games. Locked until one Arcade toy is left (`heliopoly.arcadeSessionsCompleted` reaches 1). Literacy, Deseret, Urinal-rule Parking, and Gravity Duel practice live here. End and economy setups sit behind Show experiments. See [OPEN-DESIGN.md](OPEN-DESIGN.md). |
 | **Charter** | The expedition / table session. Older copy said “charter alerts”; player-facing name is **ledger event**. |
 | **Break** | Spend fuel to travel fewer spaces than the roll. −1 space = 0.5 fuel, −2 = 1 fuel, and so on. |
 | **Seat** | One rocket at the table (human or AI), 2–6. |
