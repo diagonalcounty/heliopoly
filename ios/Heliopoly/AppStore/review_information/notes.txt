@@ -1,9 +1,9 @@
-GUIDELINE 2.1 — APP REVIEW INFORMATION (Heliopoly 1.3.0)
+GUIDELINE 2.1 — APP REVIEW INFORMATION (Heliopoly 1.5.0)
 
-Heliopoly is a complete, offline, single-player solar-system strategy game for iPad. It is not a website wrapper. A SwiftUI shell loads a bundled HTML/JS game from the app package over a custom URL scheme (heliopoly://). Core play does not require a network connection, account, or any external service.
+Heliopoly is a complete, offline, single-player solar-system strategy game for iPhone and iPad. A SwiftUI shell loads the bundled HTML/JS game from the app package over a custom URL scheme (heliopoly://). Core play does not require a network connection, account, or any external service.
 
 1) SCREEN RECORDING
-A screen recording captured on a physical iPad running the latest public iPadOS is attached to the Resolution Center reply. It begins at app launch and shows: New game setup → Launch → Roll / optional Break → ship movement → Buy a claim (when available) → End turn → Helios Ops Manual → return to the board.
+A screen recording from a physical iPad was attached to an earlier Resolution Center reply: New game setup → Launch → Roll / optional Break → movement → Buy a claim → End turn → Helios Ops Manual → board. In 1.5.0 the app opens on three doors; tap Journey to reach the same New game setup.
 
 Does not apply (none of these exist):
 - Account registration, login, or account deletion
@@ -16,14 +16,14 @@ Physical:
 - iPad Air 11-inch (M4), latest public iPadOS installed on the review-recording device (Settings → General → About)
 
 Simulators (Xcode):
-- iPad mini (6th generation)
-- iPad Air 11-inch
-- iPad Pro 11-inch
+- iPhone 17 Pro Max
+- iPad Pro 13-inch (M5)
+- iPad mini (6th generation), iPad Air 11-inch, iPad Pro 11-inch
 
-Minimum OS: iPadOS 17.0. Devices: iPad only.
+Minimum OS: iOS / iPadOS 17.0. Devices: iPhone and iPad.
 
 3) FUNCTIONS AND TARGET AUDIENCE
-Heliopoly is a turn-based strategy / board game. The player names a rocket, chooses methane or hydrogen propellant, and competes against on-device AI rivals from Mercury to the Saturn moons. Players buy planetary claims, plant fuel depots, manage cash on the in-game ledger, and win by being the last solvent rocket flying. There is no turn cap.
+Heliopoly is a turn-based strategy / board game. The app opens on three doors. Journey is the full game: the player names a rocket, chooses methane or hydrogen propellant, and competes against on-device AI rivals from Mercury to the Saturn moons. Players buy planetary claims, plant fuel depots, manage cash on the in-game ledger, and win by being the last solvent rocket flying. There is no turn cap. Arcade holds one-minute toys that do not change a game in progress. Lab holds experiments.
 
 Target audience: players of offline strategy and classic property/economy board games who want a space-themed expedition.
 
@@ -33,14 +33,13 @@ Problem / value: a complete, account-free, offline strategy game with bundled ru
 No login. No demo account. No sample files. Airplane Mode is fine.
 
 Review path:
-1. Launch Heliopoly. The New game panel is visible immediately.
-2. Leave “Seat 1 is human” checked. Name any rocket (or leave the default). Choose Methane. Set AI difficulty to Easy. Set Total pilots to 3 for a short session.
-3. Tap Launch.
-4. In Pilot Controls: tap Roll. Optionally use Break − / + to land short. The ship moves. If the world is for sale, tap Buy. Tap End turn. AI seats play automatically.
-5. Tap Ops Manual (header) for rules, glossary, and rival-rocket civilopedia. Dismiss to return to play.
-6. If two rockets meet on a blank lane, Gravity Duel appears: choose Low or High, then roll.
+1. Open the app, you land on three doors, tap Journey, Launch. (Journey shows the New game panel: name any rocket or leave the default, choose Methane, pick Total pilots 3 for a short session, then tap Launch.)
+2. In Pilot Controls: tap Roll. Optionally use Break − / + to land short. The ship moves. If the world is for sale, tap Buy. Tap End turn. AI seats play automatically.
+3. Tap Ops Manual / Book (header) for rules, glossary, and rival-rocket civilopedia. Dismiss to return to play.
+4. If two rockets meet on a blank lane, Gravity Duel appears: choose Low or High, then roll.
+5. Home (header) returns to the doors without quitting. On a fresh install Lab shows “Play one Arcade toy” and unlocks after one Arcade toy.
 
-A few human turns are enough to review setup, board, claims, and AI. A full game is not required. Ignore “Self-play burst” unless you want an AI-only spectator demo.
+A few human turns are enough to review setup, board, claims, and AI. A full game is not required.
 
 5) EXTERNAL SERVICES
 None required for core functionality. The game, art, rules engine, and heuristic AI are packaged in the binary.

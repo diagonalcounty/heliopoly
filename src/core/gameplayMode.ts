@@ -14,7 +14,7 @@ export type GameplayModeDef = {
 };
 
 /** Keep in sync with package.json version. */
-export const V1_BUILD = "1.4.0";
+export const V1_BUILD = "1.5.0";
 
 export const GAMEPLAY_MODE_KEY = "heliopoly-gameplay-mode";
 

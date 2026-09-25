@@ -1,1 +1,1 @@
-space,strategy,board,solar,rocket,dice,offline,ipad,economy,sci-fi,orbit
+space,strategy,board game,solar system,turn based,dice,fuel,rocket,ai,offline,claims,economy,iphone

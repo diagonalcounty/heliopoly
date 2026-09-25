@@ -1,25 +1,42 @@
-Heliopoly is orbital economics — a solar-system strategy game of claims, propellant, and rival rockets.
+Heliopoly is orbital economics on the Mainline of our solar system (Helios): buy claims, burn propellant, duel rivals, and try not to go broke.
 
-You name a rocket, pick methane or hydrogen fuel, and compete against AI pilots from Mercury to the Saturn moons. Buy deeds, plant fuel depots, manage cash on the Automated Interplanetary Asset Ledger, and stay solvent long enough to be the last rocket flying.
+Currency is Angzarr (⍼). Every buy, rent, and duel hits the Automated Interplanetary Asset Ledger. Last rocket flying wins — no timer, no “enough Angzarr.”
 
-There is no round cap. You win by eliminating every other rocket — bankruptcy, stranding, or abandonment — not by racing a timer.
+THREE DOORS
+The first screen is three doors:
+• Arcade — the big door. One-minute play: Bot Evolution, Backup Fuel, and Hull Panel. Arcade never moves a charter you already started.
+• Journey — the full charter. Name a rocket, pick methane or hydrogen, and Launch against AI pilots from Mercury to the Saturn moons.
+• Lab — experiments. Gravity Duel practice, Deseret Letters, Urinal-rule Parking, and more. Lab unlocks after you finish one Arcade toy.
+Home brings you back to the doors without quitting a flight.
+
+In Journey, own systems, plant fuel depots, and stay solvent long enough for the ledger to write your name.
+
+ONLY ON THE MAINLINE
+• As of 2026, the only space game where a rogue Tesla can trash your fuel pods
+• Trade in Angzarr (⍼) — the ledger remembers every bad decision
+• Bring enough propellant, or become a very expensive monument
+• The only space game where “feral” doesn’t just apply to cats
+• Blank lane? Gravity Duel. Smile for the 2d6.
+• Last rocket flying. No timer. The cosmos does not care about your schedule.
+
+Got ideas? Contribute on GitHub: https://github.com/diagonalcounty/heliopoly — issues welcome, MIT, same engine as heliopoly.live.
 
 HOW AN EXPEDITION FEELS
 • Path — One circuit: Earth → Venus → Mercury → Mars → belt → Jupiter → Saturn → home
 • Claims — Buy planets and moons; own a full system and rent doubles
 • Stations — Trade hubs that get meaner as you collect more of them
-• Fuel — Landing is free; leaving a gravity well costs propellant. Break spaces off a roll to land short
-• Propellant — CH₄ is stable. H₂ leaves cheaper but can leak on landing
+• Fuel — Landing is free; leaving a gravity well costs propellant
 • Parking — Sit still too often and claims can go feral back to the bank
-• Gravity Duel — Meet another rocket on a blank lane: secret Low/High, 2d6, winner takes the edge
+• Gravity Duel — Meet another rocket on a blank lane: secret Low/High, 2d6
 
 PLAY YOUR WAY
 • 2–6 pilots (you plus AI, or full self-play)
 • Easy through Expert AI packs
 • Full Helios Ops Manual in-app: rules, glossary, rival-rocket civilopedia
+• iPhone and iPad
 
 NO WI‑FI NEEDED
-Heliopoly for iPad ships the complete game in the app package. It is not a thin wrapper around a website. Open the app and play without an account or network.
+Heliopoly ships the complete game in the app package. Open the app and play — no account, no network required.
 
 Also free in the browser at heliopoly.live — same rules engine, open source (MIT).
 

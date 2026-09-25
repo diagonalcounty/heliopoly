@@ -1,7 +1,7 @@
 # Heliopoly — App Store Connect listing copy
 
 Paste these fields into **App Store Connect → Heliopoly → App Information / Version**.  
-Version aligned with Xcode: **1.3.0** (build **3**).
+Version aligned with Xcode: **1.5.0** (build **8**). iPhone and iPad.
 
 ---
 
@@ -55,15 +55,16 @@ Adjust legal entity name to match your Apple Developer account / DUNS if differe
 
 ---
 
-## Version 1.3.0 — What’s New
+## Version 1.5.0 — What’s New
 
 ```
-Heliopoly 1.3.0
+Heliopoly 1.5.0
 
-• Phone and iPad play: Lab drills, Gravity Duel, auctions, and end-screen Rematch
-• Lab minigames: Bot Evolution, Deseret letters, Backup fuel, Hull panel
-• Expedition names Insight / Curiosity / Voyager / Opportunity
-• Solar-system strategy that needs no Wi‑Fi — no account, no online multiplayer
+• The first screen is three doors: Arcade, Journey, and Lab
+• Arcade is the big door: Bot Evolution, Backup fuel, and Hull panel
+• Journey is the full charter
+• Lab is experiments, and it unlocks after you finish one Arcade toy
+• Home brings you back to the doors without quitting a flight
 ```
 
 ---
@@ -71,28 +72,45 @@ Heliopoly 1.3.0
 ## Description (4000 chars max)
 
 ```
-Heliopoly is orbital economics — a solar-system strategy game of claims, propellant, and rival rockets.
+Heliopoly is orbital economics on the Mainline of our solar system (Helios): buy claims, burn propellant, duel rivals, and try not to go broke.
 
-You name a rocket, pick methane or hydrogen fuel, and compete against AI pilots from Mercury to the Saturn moons. Buy deeds, plant fuel depots, manage cash on the Automated Interplanetary Asset Ledger, and stay solvent long enough to be the last rocket flying.
+Currency is Angzarr (⍼). Every buy, rent, and duel hits the Automated Interplanetary Asset Ledger. Last rocket flying wins — no timer, no “enough Angzarr.”
 
-There is no round cap. You win by eliminating every other rocket — bankruptcy, stranding, or abandonment — not by racing a timer.
+THREE DOORS
+The first screen is three doors:
+• Arcade — the big door. One-minute play: Bot Evolution, Backup Fuel, and Hull Panel. Arcade never moves a charter you already started.
+• Journey — the full charter. Name a rocket, pick methane or hydrogen, and Launch against AI pilots from Mercury to the Saturn moons.
+• Lab — experiments. Gravity Duel practice, Deseret Letters, Urinal-rule Parking, and more. Lab unlocks after you finish one Arcade toy.
+Home brings you back to the doors without quitting a flight.
+
+In Journey, own systems, plant fuel depots, and stay solvent long enough for the ledger to write your name.
+
+ONLY ON THE MAINLINE
+• As of 2026, the only space game where a rogue Tesla can trash your fuel pods
+• Trade in Angzarr (⍼) — the ledger remembers every bad decision
+• Bring enough propellant, or become a very expensive monument
+• The only space game where “feral” doesn’t just apply to cats
+• Blank lane? Gravity Duel. Smile for the 2d6.
+• Last rocket flying. No timer. The cosmos does not care about your schedule.
+
+Got ideas? Contribute on GitHub: https://github.com/diagonalcounty/heliopoly — issues welcome, MIT, same engine as heliopoly.live.
 
 HOW AN EXPEDITION FEELS
 • Path — One circuit: Earth → Venus → Mercury → Mars → belt → Jupiter → Saturn → home
 • Claims — Buy planets and moons; own a full system and rent doubles
 • Stations — Trade hubs that get meaner as you collect more of them
-• Fuel — Landing is free; leaving a gravity well costs propellant. Break spaces off a roll to land short
-• Propellant — CH₄ is stable. H₂ leaves cheaper but can leak on landing
+• Fuel — Landing is free; leaving a gravity well costs propellant
 • Parking — Sit still too often and claims can go feral back to the bank
-• Gravity Duel — Meet another rocket on a blank lane: secret Low/High, 2d6, winner takes the edge
+• Gravity Duel — Meet another rocket on a blank lane: secret Low/High, 2d6
 
 PLAY YOUR WAY
 • 2–6 pilots (you plus AI, or full self-play)
 • Easy through Expert AI packs
 • Full Helios Ops Manual in-app: rules, glossary, rival-rocket civilopedia
+• iPhone and iPad
 
 NO WI‑FI NEEDED
-Heliopoly for iPad ships the complete game in the app package. It is not a thin wrapper around a website. Open the app and play without an account or network.
+Heliopoly ships the complete game in the app package. Open the app and play — no account, no network required.
 
 Also free in the browser at heliopoly.live — same rules engine, open source (MIT).
 
@@ -104,7 +122,7 @@ Not affiliated with Solarquest or any commercial board game.
 ## Promotional Text (170 chars max)
 
 ```
-Solar-system strategy: buy claims, burn propellant, duel rivals. No Wi‑Fi needed — orbital economics.
+Three doors on the first screen. Arcade for a minute, Journey for the full charter. No Wi-Fi needed.
 ```
 
 ---
@@ -112,7 +130,7 @@ Solar-system strategy: buy claims, burn propellant, duel rivals. No Wi‑Fi need
 ## Keywords (100 chars max, comma-separated, no spaces after commas preferred)
 
 ```
-space,strategy,board,solar,rocket,dice,offline,ipad,economy,sci-fi,orbit
+space,strategy,board game,solar system,turn based,dice,fuel,rocket,ai,offline,claims,economy,iphone
 ```
 
 (100 characters max total; no spaces after commas.)
@@ -135,7 +153,7 @@ Matches `PrivacyInfo.xcprivacy` for this native shell (no tracking domains; no d
 
 | Question | Answer |
 |----------|--------|
-| Do you or your third-party partners collect data? | **No** (for this 1.3.0 offline build) |
+| Do you or your third-party partners collect data? | **No** (for this 1.5.0 offline build) |
 | Tracking? | **No** |
 | Privacy Nutrition Labels | None — “Data Not Collected” |
 
@@ -178,34 +196,32 @@ Answer honestly in Connect; suggested for this game:
 
 | Field | Suggested |
 |--------|-----------|
-| Price | Free (matches web MIT product) **or** Paid if you prefer; no IAP required for 1.0 |
+| Price | **$3.99** (paid, no IAP). Do not change without Jacob. |
 | Availability | All territories you are cleared for |
 | Pre-order | Optional |
 
 ---
 
-## Screenshots (you still need device captures)
+## Screenshots (1.5.0 native Simulator captures)
 
-App Store Connect requires screenshots **per device size** you support.
+Targeted devices: **iPhone and iPad** (`TARGETED_DEVICE_FAMILY = 1,2`).
 
-This target is currently **iPad only** (`TARGETED_DEVICE_FAMILY = 2`).
+Captured with `xcrun simctl io <udid> screenshot` (native pixels, no device frame, 9:41 status bar). Saved in [`screenshots/1.5.0/`](screenshots/1.5.0/):
 
-Minimum typical set for iPad:
+| Slot | Simulator | Pixels |
+|------|-----------|--------|
+| iPhone 6.9" (`APP_IPHONE_67`) | iPhone 17 Pro Max | 1320 × 2868 portrait |
+| iPad 13" (`APP_IPAD_PRO_3GEN_129`) | iPad Pro 13-inch (M5) | 2064 × 2752 portrait |
 
-| Slot | Size (pts → capture) | Notes |
-|------|----------------------|--------|
-| iPad Pro 12.9" (6th gen) | 2048 × 2732 portrait | Required if you list 12.9" |
-| iPad Pro 11" / 13" | Follow Connect prompts | Use Simulator → File → Save Screen |
+Order:
 
-Suggested shot list (3–5 images):
+1. **Three doors** — Arcade largest; Lab locked with “Play one Arcade toy” on a fresh install (accurate, not hidden)
+2. **Arcade** — Bot Evolution, Backup fuel, Hull panel
+3. **Journey** — name your rocket, fuel, Launch
+4. **Board in play**
+5. **Ops Manual** — Gravity Duel topic
 
-1. **New game** setup (rocket name, propellant, AI difficulty)
-2. **Board in play** with Pilot Controls visible
-3. **Gravity Duel** or charter alert moment
-4. **Ops Manual** open
-5. **End standings** / sealed charter (optional)
-
-Do **not** use marketing frames that violate Apple’s screenshot guidelines (misleading device chrome is OK only within rules; avoid fake UI).
+Do not reuse `screenshots/2752x2064/` (old ledger-card set) or the 402×874 marketing captures.
 
 ---
 

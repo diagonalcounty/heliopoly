@@ -4,7 +4,7 @@
 
 A browser game of solar-system property, propellant, and rival rockets. Launch a ship, buy claims from Mercury to the Saturn moons, and stay solvent long enough to be the **last rocket flying**.
 
-**[Play free on heliopoly.live](https://heliopoly.live/)** · **[Support on the App Store](https://apps.apple.com/us/app/heliopoly/id6801637953)** ($3.99) · [Source](https://github.com/diagonalcounty/heliopoly) · MIT · 1.4.0
+**[Play free on heliopoly.live](https://heliopoly.live/)** · **[Support on the App Store](https://apps.apple.com/us/app/heliopoly/id6801637953)** ($3.99) · [Source](https://github.com/diagonalcounty/heliopoly) · MIT · 1.5.0
 
 ---
 

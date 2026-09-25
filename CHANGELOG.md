@@ -2,9 +2,21 @@
 
 ## [Unreleased]
 
+## [1.5.0] — 2026-09-24
+
+**https://beta.heliopoly.live/** tracks GitHub `main` as **1.5.0**. **https://heliopoly.live/** stays on its current build until the next Sunday unlock (staged separately).
+
 ### Play / UX
 - **Home doors (#275–#279):** cold load is Arcade / Journey / Lab. Arcade (“On the rocket” / “Play for a minute”) is the large first tap and lists Bot Evolution, Backup fuel, and Hull panel. Journey is the charter. Lab (“Experiments” / “Nerdy tools”) is the smaller door and stays locked until one Arcade toy is left (`localStorage` `heliopoly.arcadeSessionsCompleted` ≥ 1). Leaving the toy does not open Lab. End and economy setups sit behind Show experiments. Header Home returns to the doors without quitting a flight.
 - **Urinal-rule Parking campaign (#251):** Lab shelf with Quiet Apron → Rush Hour → Both Sides Bad → Dead Orbit → Final Approach. Linear unlock; first Final Approach clear opens the whole shelf. Run score Clear / Fine / Orbit. Dead Orbit treats jam-orbit as success. Product blurb: “Orbit the apron. Leave a buffer. Land rude and the fine sticks.”
+
+### iOS
+- **MARKETING_VERSION 1.5.0**, **CURRENT_PROJECT_VERSION 8** (Debug and Release). iPhone + iPad (`TARGETED_DEVICE_FAMILY = 1,2`). App Store listing, What's New, review notes, and TestFlight What to Test describe the three doors.
+- Build **8** (uploaded 2026-09-24) packaged WebDist synced at `dd2f771`: the doors are in, but the in-app V1 badge and Ops Manual welcome still read 1.4.0. The next iOS build picks up the 1.5.0 strings.
+
+### Meta
+- Version **1.5.0** (package, V1 badge, Ops Manual welcome, README)
+- **Live window:** still Sunday **00:01 UTC** via `heliopoly-releases/<version>` — stage separately
 
 ## [1.4.0] — 2026-09-11
 

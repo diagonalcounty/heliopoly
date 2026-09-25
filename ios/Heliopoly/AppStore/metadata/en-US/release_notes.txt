@@ -1,6 +1,7 @@
-Heliopoly 1.3.0
+Heliopoly 1.5.0
 
-• Phone and iPad play: Lab drills, Gravity Duel, auctions, and end-screen Rematch
-• Lab minigames: Bot Evolution, Deseret letters, Backup fuel, Hull panel
-• Expedition names Insight / Curiosity / Voyager / Opportunity
-• Solar-system strategy that needs no Wi‑Fi — no account, no online multiplayer
+• The first screen is three doors: Arcade, Journey, and Lab
+• Arcade is the big door: Bot Evolution, Backup fuel, and Hull panel
+• Journey is the full charter
+• Lab is experiments, and it unlocks after you finish one Arcade toy
+• Home brings you back to the doors without quitting a flight
