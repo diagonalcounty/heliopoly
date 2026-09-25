@@ -76,11 +76,20 @@ import { mountDossier } from "./dossier";
 import {
   LAB_GROUP_BLURBS,
   LAB_GROUP_LABELS,
-  LAB_GROUP_ORDER,
   LAB_SCENARIOS,
+  getLabScenario,
   labScenarioAvailable,
+  type LabScenario,
   type LabScenarioGroup,
 } from "./lab/scenarios";
+import {
+  isLabUnlocked,
+  isOperatorExperimentGroup,
+  readArcadeSessionsCompleted,
+  recordArcadeSessionExit,
+  scenarioShelf,
+  scenariosForShelf,
+} from "./lab/doors";
 import {
   applyCompareChoice,
   MAX_COMPARE_ROUNDS,
@@ -526,6 +535,15 @@ const endBooks = document.getElementById("end-books") as HTMLTableElement;
 const endRanks = document.getElementById("end-ranks")!;
 const labRoot = document.getElementById("lab-root")!;
 const labScenariosEl = document.getElementById("lab-scenarios")!;
+const labOperatorEl = document.getElementById("lab-operator-scenarios")!;
+const labShowExperimentsBtn = document.getElementById(
+  "lab-show-experiments",
+) as HTMLButtonElement;
+const homeRoot = document.getElementById("home-root")!;
+const arcadeRoot = document.getElementById("arcade-root")!;
+const arcadeScenariosEl = document.getElementById("arcade-scenarios")!;
+const doorLabBtn = document.getElementById("door-lab") as HTMLButtonElement;
+const doorLabLock = document.getElementById("door-lab-lock")!;
 const eacRoot = document.getElementById("eac-root")!;
 const urpRoot = document.getElementById("urp-root")!;
 const urpSignEl = document.getElementById("urp-sign")!;
@@ -1872,27 +1890,102 @@ rankingsEl.addEventListener("keydown", (e) => {
   onStandingsActivate(row);
 });
 
+function pageStorage(): Storage | null {
+  try {
+    return localStorage;
+  } catch {
+    return null;
+  }
+}
+
+/** True when a sheet still covers the board. Home is its own layer. */
+function clearHandbookOpenIfIdle(): void {
+  const idle = [
+    duelRoot,
+    labRoot,
+    arcadeRoot,
+    eacRoot,
+    botEvoRoot,
+    pipesRoot,
+    tilesRoot,
+    urpRoot,
+    deseretRoot,
+    document.getElementById("handbook-root"),
+  ].every((el) => !el || el.classList.contains("hidden"));
+  if (idle) document.body.classList.remove("handbook-open");
+}
+
+function syncLabDoor(): void {
+  const sessions = readArcadeSessionsCompleted(pageStorage());
+  const open = isLabUnlocked(sessions);
+  doorLabBtn.disabled = !open;
+  doorLabBtn.setAttribute("aria-disabled", open ? "false" : "true");
+  doorLabBtn.classList.toggle("is-locked", !open);
+  doorLabLock.hidden = open;
+}
+
+function focusArcadeDoor(): void {
+  const btn = document.getElementById("door-arcade") as HTMLButtonElement | null;
+  btn?.focus();
+}
+
+function showHome(): void {
+  syncLabDoor();
+  homeRoot.classList.remove("hidden");
+  homeRoot.setAttribute("aria-hidden", "false");
+  document.body.classList.add("home-open");
+  document.getElementById("app")?.setAttribute("inert", "");
+  focusArcadeDoor();
+}
+
+function hideHome(): void {
+  homeRoot.classList.add("hidden");
+  homeRoot.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("home-open");
+  document.getElementById("app")?.removeAttribute("inert");
+}
+
 function openLab(): void {
+  hideHome();
   labRoot.classList.remove("hidden");
   labRoot.setAttribute("aria-hidden", "false");
   document.body.classList.add("handbook-open");
 }
 
-function closeLab(): void {
+function closeLab(opts?: { returnHome?: boolean }): void {
+  const returnHome = opts?.returnHome !== false;
   labRoot.classList.add("hidden");
   labRoot.setAttribute("aria-hidden", "true");
-  if (
-    duelRoot.classList.contains("hidden") &&
-    eacRoot.classList.contains("hidden") &&
-    botEvoRoot.classList.contains("hidden") &&
-    pipesRoot.classList.contains("hidden") &&
-    tilesRoot.classList.contains("hidden") &&
-    urpRoot.classList.contains("hidden") &&
-    deseretRoot.classList.contains("hidden") &&
-    document.getElementById("handbook-root")?.classList.contains("hidden")
-  ) {
-    document.body.classList.remove("handbook-open");
-  }
+  clearHandbookOpenIfIdle();
+  if (returnHome) showHome();
+}
+
+function openArcade(): void {
+  hideHome();
+  arcadeRoot.classList.remove("hidden");
+  arcadeRoot.setAttribute("aria-hidden", "false");
+  document.body.classList.add("handbook-open");
+}
+
+function closeArcade(): void {
+  arcadeRoot.classList.add("hidden");
+  arcadeRoot.setAttribute("aria-hidden", "true");
+  clearHandbookOpenIfIdle();
+  showHome();
+}
+
+/** Armed when an Arcade toy opens. One exit increments the Lab gate. */
+let arcadeToyArmed = false;
+
+function armArcadeSession(): void {
+  arcadeToyArmed = true;
+}
+
+function noteArcadeSessionExit(): void {
+  if (!arcadeToyArmed) return;
+  arcadeToyArmed = false;
+  recordArcadeSessionExit(pageStorage());
+  syncLabDoor();
 }
 
 /** —— Which is larger? multi-script compare drill (#81 / #76) —— */
@@ -2046,18 +2139,7 @@ function closeEasternArabicCompare(): void {
   eacRoot.classList.add("hidden");
   eacRoot.setAttribute("aria-hidden", "true");
   eacState = null;
-  if (
-    duelRoot.classList.contains("hidden") &&
-    labRoot.classList.contains("hidden") &&
-    botEvoRoot.classList.contains("hidden") &&
-    pipesRoot.classList.contains("hidden") &&
-    tilesRoot.classList.contains("hidden") &&
-    urpRoot.classList.contains("hidden") &&
-    deseretRoot.classList.contains("hidden") &&
-    document.getElementById("handbook-root")?.classList.contains("hidden")
-  ) {
-    document.body.classList.remove("handbook-open");
-  }
+  clearHandbookOpenIfIdle();
 }
 
 /** —— Urinal-rule Parking campaign (#188 / #251) —— */
@@ -2420,18 +2502,7 @@ function closeUrp(): void {
   urpOrbitsUsed = 0;
   hideUrpResult();
   window.clearTimeout(urpFlashTimer);
-  if (
-    duelRoot.classList.contains("hidden") &&
-    eacRoot.classList.contains("hidden") &&
-    labRoot.classList.contains("hidden") &&
-    pipesRoot.classList.contains("hidden") &&
-    tilesRoot.classList.contains("hidden") &&
-    deseretRoot.classList.contains("hidden") &&
-    botEvoRoot.classList.contains("hidden") &&
-    document.getElementById("handbook-root")?.classList.contains("hidden")
-  ) {
-    document.body.classList.remove("handbook-open");
-  }
+  clearHandbookOpenIfIdle();
 }
 
 
@@ -3082,18 +3153,8 @@ function closeBotEvo(): void {
   botEvoRoot.classList.add("hidden");
   botEvoRoot.setAttribute("aria-hidden", "true");
   botEvoState = null;
-  if (
-    duelRoot.classList.contains("hidden") &&
-    labRoot.classList.contains("hidden") &&
-    eacRoot.classList.contains("hidden") &&
-    pipesRoot.classList.contains("hidden") &&
-    tilesRoot.classList.contains("hidden") &&
-    urpRoot.classList.contains("hidden") &&
-    deseretRoot.classList.contains("hidden") &&
-    document.getElementById("handbook-root")?.classList.contains("hidden")
-  ) {
-    document.body.classList.remove("handbook-open");
-  }
+  noteArcadeSessionExit();
+  clearHandbookOpenIfIdle();
 }
 
 /** —— Backup fuel pipe routing (#77) —— */
@@ -3196,18 +3257,8 @@ function closePipes(): void {
   pipesRoot.classList.add("hidden");
   pipesRoot.setAttribute("aria-hidden", "true");
   pipesState = null;
-  if (
-    duelRoot.classList.contains("hidden") &&
-    labRoot.classList.contains("hidden") &&
-    eacRoot.classList.contains("hidden") &&
-    botEvoRoot.classList.contains("hidden") &&
-    tilesRoot.classList.contains("hidden") &&
-    urpRoot.classList.contains("hidden") &&
-    deseretRoot.classList.contains("hidden") &&
-    document.getElementById("handbook-root")?.classList.contains("hidden")
-  ) {
-    document.body.classList.remove("handbook-open");
-  }
+  noteArcadeSessionExit();
+  clearHandbookOpenIfIdle();
 }
 
 function botEvoPlayAgain(): void {
@@ -3377,18 +3428,8 @@ function closeTiles(): void {
   tilesRoot.classList.add("hidden");
   tilesRoot.setAttribute("aria-hidden", "true");
   tilesState = null;
-  if (
-    duelRoot.classList.contains("hidden") &&
-    labRoot.classList.contains("hidden") &&
-    eacRoot.classList.contains("hidden") &&
-    pipesRoot.classList.contains("hidden") &&
-    urpRoot.classList.contains("hidden") &&
-    deseretRoot.classList.contains("hidden") &&
-    botEvoRoot.classList.contains("hidden") &&
-    document.getElementById("handbook-root")?.classList.contains("hidden")
-  ) {
-    document.body.classList.remove("handbook-open");
-  }
+  noteArcadeSessionExit();
+  clearHandbookOpenIfIdle();
 }
 
 function tilesPlayAgain(): void {
@@ -3555,18 +3596,7 @@ function closeDeseret(): void {
   deseretRoot.setAttribute("aria-hidden", "true");
   deseretState = null;
   clearDeseretTimers();
-  if (
-    duelRoot.classList.contains("hidden") &&
-    labRoot.classList.contains("hidden") &&
-    eacRoot.classList.contains("hidden") &&
-    pipesRoot.classList.contains("hidden") &&
-    tilesRoot.classList.contains("hidden") &&
-    urpRoot.classList.contains("hidden") &&
-    botEvoRoot.classList.contains("hidden") &&
-    document.getElementById("handbook-root")?.classList.contains("hidden")
-  ) {
-    document.body.classList.remove("handbook-open");
-  }
+  clearHandbookOpenIfIdle();
 }
 
 function deseretPlayAgain(): void {
@@ -3578,19 +3608,47 @@ function deseretPlayAgain(): void {
 
 /** Which Lab accordion category is open (null = all collapsed). */
 let labOpenGroup: LabScenarioGroup | null = null;
+let labOperatorOpenGroup: LabScenarioGroup | null = null;
 
-function mountLabScenarios(): void {
-  const groups = new Map<LabScenarioGroup, typeof LAB_SCENARIOS>();
-  for (const sc of LAB_SCENARIOS) {
-    const list = groups.get(sc.group) ?? [];
-    list.push(sc);
-    groups.set(sc.group, list);
+function scenarioButton(sc: LabScenario): HTMLButtonElement {
+  const ready = labScenarioAvailable(sc);
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "lab-scenario" + (ready ? "" : " is-coming-soon");
+  btn.dataset.scenario = sc.id;
+  btn.disabled = !ready;
+  btn.innerHTML = `
+    <span class="lab-scenario-title-row">
+      <span class="lab-scenario-title">${sc.title}</span>
+      ${ready ? "" : '<span class="lab-scenario-badge">Soon</span>'}
+    </span>
+    <span class="lab-scenario-blurb">${sc.blurb}</span>`;
+  if (ready) {
+    btn.addEventListener("click", () => {
+      void runLabScenario(sc.id);
+    });
   }
-  labScenariosEl.innerHTML = "";
-  for (const group of LAB_GROUP_ORDER) {
-    const list = groups.get(group);
+  return btn;
+}
+
+function mountScenarioGroups(
+  host: HTMLElement,
+  scenarios: readonly LabScenario[],
+  groups: readonly LabScenarioGroup[],
+  openGroup: LabScenarioGroup | null,
+  onToggle: (group: LabScenarioGroup) => void,
+): void {
+  const byGroup = new Map<LabScenarioGroup, LabScenario[]>();
+  for (const sc of scenarios) {
+    const list = byGroup.get(sc.group) ?? [];
+    list.push(sc);
+    byGroup.set(sc.group, list);
+  }
+  host.replaceChildren();
+  for (const group of groups) {
+    const list = byGroup.get(group);
     if (!list?.length) continue;
-    const expanded = labOpenGroup === group;
+    const expanded = openGroup === group;
     const wrap = document.createElement("div");
     wrap.className = "lab-group" + (expanded ? " is-open" : "");
     wrap.dataset.group = group;
@@ -3614,10 +3672,7 @@ function mountLabScenarios(): void {
         <span class="lab-group-count">${countLabel}</span>
         <span class="lab-group-chevron" aria-hidden="true">${expanded ? "▾" : "▸"}</span>
       </span>`;
-    toggle.addEventListener("click", () => {
-      labOpenGroup = labOpenGroup === group ? null : group;
-      mountLabScenarios();
-    });
+    toggle.addEventListener("click", () => onToggle(group));
     wrap.appendChild(toggle);
 
     const items = document.createElement("div");
@@ -3625,40 +3680,60 @@ function mountLabScenarios(): void {
     items.className = "lab-group-items";
     items.hidden = !expanded;
     if (expanded) {
-      for (const sc of list) {
-        const ready = labScenarioAvailable(sc);
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "lab-scenario" + (ready ? "" : " is-coming-soon");
-        btn.dataset.scenario = sc.id;
-        btn.disabled = !ready;
-        btn.innerHTML = `
-          <span class="lab-scenario-title-row">
-            <span class="lab-scenario-title">${sc.title}</span>
-            ${ready ? "" : '<span class="lab-scenario-badge">Soon</span>'}
-          </span>
-          <span class="lab-scenario-blurb">${sc.blurb}</span>`;
-        if (ready) {
-          btn.addEventListener("click", () => {
-            void runLabScenario(sc.id);
-          });
-        }
-        items.appendChild(btn);
-      }
+      for (const sc of list) items.appendChild(scenarioButton(sc));
     }
     wrap.appendChild(items);
-    labScenariosEl.appendChild(wrap);
+    host.appendChild(wrap);
+  }
+}
+
+function mountLabScenarios(): void {
+  const labShelf = scenariosForShelf(LAB_SCENARIOS, "lab").filter(
+    (sc) => !isOperatorExperimentGroup(sc.group),
+  );
+  mountScenarioGroups(
+    labScenariosEl,
+    labShelf,
+    ["which-is-larger", "minigame"],
+    labOpenGroup,
+    (group) => {
+      labOpenGroup = labOpenGroup === group ? null : group;
+      mountLabScenarios();
+    },
+  );
+}
+
+function mountLabOperatorScenarios(): void {
+  const operator = scenariosForShelf(LAB_SCENARIOS, "lab").filter((sc) =>
+    isOperatorExperimentGroup(sc.group),
+  );
+  mountScenarioGroups(
+    labOperatorEl,
+    operator,
+    ["end", "economy"],
+    labOperatorOpenGroup,
+    (group) => {
+      labOperatorOpenGroup = labOperatorOpenGroup === group ? null : group;
+      mountLabOperatorScenarios();
+    },
+  );
+}
+
+function mountArcadeScenarios(): void {
+  arcadeScenariosEl.replaceChildren();
+  for (const sc of scenariosForShelf(LAB_SCENARIOS, "arcade")) {
+    arcadeScenariosEl.appendChild(scenarioButton(sc));
   }
 }
 
 async function runLabScenario(id: string): Promise<void> {
   if (animating) return;
-  const sc = LAB_SCENARIOS.find((x) => x.id === id);
+  const sc = getLabScenario(id);
   if (!sc || !labScenarioAvailable(sc)) return;
   if (sc.kind === "standalone") {
+    if (scenarioShelf(sc.id) === "arcade") armArcadeSession();
     if (sc.standaloneId === "egg-bot-evolution") {
       openBotEvo();
-
       return;
     }
     if (sc.standaloneId === "urinal-rule-parking") {
@@ -3681,7 +3756,9 @@ async function runLabScenario(id: string): Promise<void> {
     if (script) openNumberCompare(script);
     return;
   }
-  closeLab();
+  // Charter drop-in. Stay on the board; do not bounce back to Home.
+  closeLab({ returnHome: false });
+  hideHome();
   hideEndScreen();
   hideDuelResultSplash();
   duelRoot.classList.add("hidden");
@@ -3690,7 +3767,47 @@ async function runLabScenario(id: string): Promise<void> {
   await commitState(next);
 }
 
-document.getElementById("btn-lab")?.addEventListener("click", () => openLab());
+/** Operator entry: `?lab=<id>` or `?lab=open`, `?arcade=<id>` or `?arcade=open`. */
+function consumeDoorDeepLink(): void {
+  const params = new URLSearchParams(window.location.search);
+  const arcadeId = params.get("arcade");
+  const labId = params.get("lab");
+  if (arcadeId) {
+    if (arcadeId === "1" || arcadeId === "open") {
+      openArcade();
+      return;
+    }
+    if (getLabScenario(arcadeId) && scenarioShelf(arcadeId) === "arcade") {
+      openArcade();
+      void runLabScenario(arcadeId);
+    }
+    return;
+  }
+  if (!labId) return;
+  if (labId === "1" || labId === "open") {
+    openLab();
+    return;
+  }
+  const sc = getLabScenario(labId);
+  if (!sc) return;
+  if (scenarioShelf(sc.id) === "arcade") {
+    openArcade();
+    void runLabScenario(sc.id);
+    return;
+  }
+  openLab();
+  void runLabScenario(sc.id);
+}
+
+document.getElementById("btn-lab")?.addEventListener("click", () => showHome());
+document.getElementById("door-arcade")?.addEventListener("click", () => openArcade());
+document.getElementById("door-journey")?.addEventListener("click", () => hideHome());
+document.getElementById("door-lab")?.addEventListener("click", () => {
+  if (doorLabBtn.disabled) return;
+  openLab();
+});
+document.getElementById("arcade-close")?.addEventListener("click", () => closeArcade());
+document.getElementById("arcade-backdrop")?.addEventListener("click", () => closeArcade());
 document.getElementById("lab-close")?.addEventListener("click", () => closeLab());
 document.getElementById("lab-backdrop")?.addEventListener("click", () => closeLab());
 document.getElementById("eac-close")?.addEventListener("click", () => closeEasternArabicCompare());
@@ -3720,7 +3837,6 @@ botEvoBeginBtn.addEventListener("click", () => dismissBotEvoStageCard());
 document.getElementById("botevo-again")?.addEventListener("click", () => botEvoPlayAgain());
 document.getElementById("botevo-done")?.addEventListener("click", () => {
   closeBotEvo();
-  openLab();
 });
 botEvoDropBtn.addEventListener("click", () => botEvoDrop());
 botEvoPauseBtn.addEventListener("click", () => toggleBotEvoPause());
@@ -3729,14 +3845,12 @@ document.getElementById("pipes-backdrop")?.addEventListener("click", () => close
 document.getElementById("pipes-again")?.addEventListener("click", () => pipesPlayAgain());
 document.getElementById("pipes-done")?.addEventListener("click", () => {
   closePipes();
-  openLab();
 });
 document.getElementById("tiles-close")?.addEventListener("click", () => closeTiles());
 document.getElementById("tiles-backdrop")?.addEventListener("click", () => closeTiles());
 document.getElementById("tiles-again")?.addEventListener("click", () => tilesPlayAgain());
 document.getElementById("tiles-done")?.addEventListener("click", () => {
   closeTiles();
-  openLab();
 });
 document.getElementById("deseret-close")?.addEventListener("click", () => closeDeseret());
 document.getElementById("deseret-backdrop")?.addEventListener("click", () => closeDeseret());
@@ -3782,7 +3896,20 @@ document.addEventListener("keydown", (e) => {
       closeEasternArabicCompare();
       return;
     }
-    if (!labRoot.classList.contains("hidden")) closeLab();
+    if (!arcadeRoot.classList.contains("hidden")) {
+      closeArcade();
+      return;
+    }
+    if (!labRoot.classList.contains("hidden")) {
+      closeLab();
+      return;
+    }
+    if (
+      !homeRoot.classList.contains("hidden") &&
+      fleetCard.classList.contains("mode-standings")
+    ) {
+      hideHome();
+    }
     return;
   }
   if (isBotEvoOpen() && botEvoState && botEvoState.phase !== "lost") {
@@ -3828,7 +3955,21 @@ document.addEventListener("keydown", (e) => {
     eacReset();
   }
 });
+mountArcadeScenarios();
 mountLabScenarios();
+mountLabOperatorScenarios();
+labShowExperimentsBtn.addEventListener("click", () => {
+  const show = labOperatorEl.hidden;
+  labOperatorEl.hidden = !show;
+  labShowExperimentsBtn.setAttribute("aria-expanded", show ? "true" : "false");
+  labShowExperimentsBtn.textContent = show ? "Hide experiments" : "Show experiments";
+});
+syncLabDoor();
+document.body.classList.add("home-open");
+document.getElementById("app")?.setAttribute("inert", "");
+homeRoot.dataset.ready = "1";
+focusArcadeDoor();
+consumeDoorDeepLink();
 
 setupToggle.addEventListener("click", () => {
   const showingStandings = fleetCard.classList.contains("mode-standings");

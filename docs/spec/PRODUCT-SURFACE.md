@@ -15,6 +15,24 @@ Snapshot **2026-09-22** from `README.md`, `CHANGELOG.md`, and `gh issue view/lis
 
 Version string in the V1 catalog: **1.4.0** (`gameplayMode.ts`, package, Ops Manual welcome).
 
+## Home doors (2026-09-24, #275)
+
+Cold load shows three doors. Charter rules in [GAME.md](GAME.md) are the **Journey** door. This pivot does not change economy, pricing, or App Store Connect.
+
+| Door | Copy | What it opens |
+| --- | --- | --- |
+| **Arcade** | “On the rocket” / “Play for a minute” | Bot Evolution (`egg-bot-evolution`), Backup fuel (`backup-fuel-pipes`), Hull panel (`hull-panel`). Largest door. Focus lands here. |
+| **Journey** | “Fly the charter” / “Full game” | Existing charter setup and, if a flight is already going, that flight. |
+| **Lab** | “Experiments” / “Nerdy tools” | Literacy drills, Deseret, Urinal-rule Parking, Gravity Duel practice. End and economy canned boards sit behind **Show experiments**. Smaller door. |
+
+Lab is locked until the player leaves one Arcade toy. The count is `localStorage` key `heliopoly.arcadeSessionsCompleted` (integer). Unlock is `>= 1`. Opening the Arcade door does not count. Closing the toy does. Lab does not open itself when the count flips. A later visit keeps the unlock.
+
+Header **Home** (the old Lab slot, still `#btn-lab`) returns to the three doors and does not quit the charter.
+
+Operator deep links, which do not write the unlock key: `?lab=open`, `?lab=<scenario id>` (an Arcade id redirects to that toy), `?arcade=open`, `?arcade=<toy id>`. Sim Lab stays `npm run sim-lab` / simulation.heliopoly.live — not a home toy.
+
+Moving any other shelf item onto Arcade needs Jacob’s sign-off that it is fun alone in about a minute (#279). Issue index: #275–#280.
+
 ## App Store vs web
 
 - Browser play is free: heliopoly.live.

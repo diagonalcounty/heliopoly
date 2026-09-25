@@ -60,10 +60,10 @@
               id="btn-lab"
               type="button"
               class="lab-launch"
-              title="Lab — practice games"
-              aria-label="Open Lab"
+              title="Home — Arcade, Journey, Lab"
+              aria-label="Home"
             >
-              ⚗ Lab
+              Home
             </button>
             <button
               id="btn-handbook-header"
@@ -352,7 +352,78 @@ Name your rocket. Then Launch.</p>
       </div>
     </div>
 
-    <!-- Lab: practice games (minigames / end screens) -->
+    <!-- Home: three doors. Arcade is the default first tap (#276). -->
+    <div id="home-root" class="home-root" aria-hidden="false">
+      <div
+        class="home-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="home-title"
+      >
+        <p class="home-kicker">Heliopoly</p>
+        <h2 id="home-title" class="home-title">Where next?</h2>
+        <div class="home-doors">
+          <button
+            type="button"
+            id="door-arcade"
+            class="home-door home-door-arcade"
+            autofocus
+          >
+            <span class="home-door-kicker">Play for a minute</span>
+            <span class="home-door-title">Arcade</span>
+            <span class="home-door-hook">On the rocket</span>
+          </button>
+          <div class="home-doors-row">
+            <button type="button" id="door-journey" class="home-door home-door-journey">
+              <span class="home-door-kicker">Full game</span>
+              <span class="home-door-title">Journey</span>
+              <span class="home-door-hook">Fly the charter</span>
+            </button>
+            <button
+              type="button"
+              id="door-lab"
+              class="home-door home-door-lab is-locked"
+              aria-disabled="true"
+              disabled
+            >
+              <span class="home-door-kicker">Nerdy tools</span>
+              <span class="home-door-title">Lab</span>
+              <span class="home-door-hook">Experiments</span>
+              <span class="home-door-lock" id="door-lab-lock">Play one Arcade toy</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arcade: fun toys only. Not the Lab. -->
+    <div id="arcade-root" class="handbook hidden" aria-hidden="true">
+      <div class="handbook-backdrop" id="arcade-backdrop"></div>
+      <div
+        class="handbook-panel lab-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="arcade-title"
+      >
+        <header class="handbook-header">
+          <div>
+            <p class="handbook-kicker">Play for a minute</p>
+            <h2 id="arcade-title">Arcade</h2>
+          </div>
+          <button type="button" id="arcade-close" class="handbook-close" aria-label="Close">
+            ✕
+          </button>
+        </header>
+        <div class="lab-body">
+          <p class="hint lab-intro">
+            On the rocket. These leave your charter flight where it is.
+          </p>
+          <div id="arcade-scenarios" class="lab-scenarios arcade-scenarios"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lab: experiments. Arcade toys are not listed here. -->
     <div id="lab-root" class="handbook hidden" aria-hidden="true">
       <div class="handbook-backdrop" id="lab-backdrop"></div>
       <div
@@ -363,19 +434,34 @@ Name your rocket. Then Launch.</p>
       >
         <header class="handbook-header">
           <div>
-            <p class="handbook-kicker">Practice games</p>
+            <p class="handbook-kicker">Nerdy tools</p>
             <h2 id="lab-title">Lab</h2>
           </div>
-          <button type="button" id="lab-close" class="handbook-close" aria-label="Close lab">
+          <button type="button" id="lab-close" class="handbook-close" aria-label="Close">
             ✕
           </button>
         </header>
         <div class="lab-body">
+          <p class="lab-shelf-kicker">Experiments</p>
           <p class="hint lab-intro">
-            Tap a category, then a game. Number games and most minigames leave your
-            rocket on the board. Gravity Duel, End, and Economy start a new board.
+            Drills and operator setups. Not more games. Number drills and
+            practice leave your rocket on the board. Gravity Duel practice
+            starts a new board.
           </p>
           <div id="lab-scenarios" class="lab-scenarios"></div>
+          <button
+            type="button"
+            id="lab-show-experiments"
+            class="lab-show-experiments"
+            aria-expanded="false"
+            aria-controls="lab-operator-scenarios"
+          >
+            Show experiments
+          </button>
+          <div id="lab-operator-scenarios" class="lab-scenarios" hidden></div>
+          <p class="hint lab-sim-note">
+            Sim Lab (<code>npm run sim-lab</code>) is the balance host. It is not a toy here.
+          </p>
         </div>
       </div>
     </div>
@@ -552,7 +638,7 @@ Name your rocket. Then Launch.</p>
       >
         <header class="handbook-header">
           <div>
-            <p class="handbook-kicker">Lab · minigame</p>
+            <p class="handbook-kicker">Play for a minute</p>
             <h2 id="pipes-title">Backup fuel</h2>
           </div>
           <button type="button" id="pipes-close" class="handbook-close" aria-label="Close">
@@ -598,7 +684,7 @@ Name your rocket. Then Launch.</p>
       >
         <header class="handbook-header">
           <div>
-            <p class="handbook-kicker">Lab · minigame</p>
+            <p class="handbook-kicker">Play for a minute</p>
             <h2 id="tiles-title">Hull panel</h2>
           </div>
           <button type="button" id="tiles-close" class="handbook-close" aria-label="Close">
@@ -641,7 +727,7 @@ Name your rocket. Then Launch.</p>
       >
         <header class="handbook-header">
           <div>
-            <p class="handbook-kicker">Lab · minigame</p>
+            <p class="handbook-kicker">Experiments</p>
             <h2 id="deseret-title">Deseret letters</h2>
           </div>
           <button type="button" id="deseret-close" class="handbook-close" aria-label="Close">
@@ -688,7 +774,7 @@ Name your rocket. Then Launch.</p>
       >
         <header class="handbook-header">
           <div>
-            <p class="handbook-kicker">Lab</p>
+            <p class="handbook-kicker">Play for a minute</p>
             <h2 id="botevo-title">Bot Evolution</h2>
           </div>
           <button type="button" id="botevo-close" class="handbook-close" aria-label="Close">

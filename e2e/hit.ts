@@ -8,8 +8,13 @@ export type Hit = {
   className: string;
 };
 
+/** Dismiss a resource-strike card before the hit (#283). It can cover Roll. */
 export async function hitAt(page: Page, x: number, y: number): Promise<Hit | null> {
   return page.evaluate(({ x, y }) => {
+    const announce = document.getElementById("announce-root");
+    if (announce && !announce.classList.contains("hidden")) {
+      (document.getElementById("announce-ok") as HTMLButtonElement | null)?.click();
+    }
     const el = document.elementFromPoint(x, y) as HTMLElement | null;
     if (!el) return null;
     return {
@@ -36,6 +41,14 @@ export async function hitOn(
   onControl: boolean;
 }> {
   return page.locator(sel).first().evaluate((el) => {
+    const announce = document.getElementById("announce-root");
+    if (
+      announce &&
+      !announce.classList.contains("hidden") &&
+      !announce.contains(el)
+    ) {
+      (document.getElementById("announce-ok") as HTMLButtonElement | null)?.click();
+    }
     const r = el.getBoundingClientRect();
     const x = r.x + r.width / 2;
     const y = r.y + r.height / 2;
@@ -85,7 +98,7 @@ export async function centerOf(page: Page, sel: string) {
   return { x: b.x, y: b.y, ...b };
 }
 
-export async function bootSetup(page: Page) {
+async function primePage(page: Page) {
   await page.addInitScript(() => {
     try {
       localStorage.setItem("heliopoly-anim-speed", "instant");
@@ -93,7 +106,22 @@ export async function bootSetup(page: Page) {
       /* private mode */
     }
   });
+}
+
+/** Cold load on the three home doors. Does not enter the charter. */
+export async function bootHome(page: Page) {
+  await primePage(page);
   await page.goto("/");
+  await expect(page.locator("#home-root")).toHaveAttribute("data-ready", "1");
+  await expect(page.locator("#home-root")).not.toHaveClass(/hidden/);
+  await expect(page.locator("#door-arcade")).toBeVisible();
+}
+
+/** Charter setup. Home is the cold screen; Journey is the charter door. */
+export async function bootSetup(page: Page) {
+  await bootHome(page);
+  await page.locator("#door-journey").click();
+  await expect(page.locator("#home-root")).toHaveClass(/hidden/);
   await expect(page.locator("#btn-new")).toBeVisible();
   await page.waitForFunction(() => {
     const r = document.getElementById("btn-new")?.getBoundingClientRect();
@@ -105,4 +133,10 @@ export async function launch(page: Page) {
   await bootSetup(page);
   await page.locator("#btn-new").click();
   await expect(page.locator("#fleet-card")).toHaveClass(/mode-standings/);
+  await page.evaluate(() => {
+    const announce = document.getElementById("announce-root");
+    if (announce && !announce.classList.contains("hidden")) {
+      (document.getElementById("announce-ok") as HTMLButtonElement | null)?.click();
+    }
+  });
 }

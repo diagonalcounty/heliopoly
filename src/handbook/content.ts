@@ -571,7 +571,7 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
   </tbody>
 </table>
 <p>Prize cards — King’s Quest, M&amp;Ms, Strong Bad, Belt ice, Tuesday boy, Olbers, steal — go to <strong>one random rocket that round</strong>, not the lead seat. See <strong>Ledger events</strong> for Who / Effect.</p>
-<p>Header <strong>Speed</strong> is animation only. Minigames in the charter come later; practice them in the <strong>Lab</strong>.</p>
+<p>Header <strong>Speed</strong> is animation only. Fun toys live on <strong>Arcade</strong>. The charter is <strong>Journey</strong>. Drills stay in the <strong>Lab</strong>.</p>
 `,
   },
   {
@@ -591,16 +591,17 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
   },
   {
     id: "lab",
-    title: "The Lab",
+    title: "Home doors",
     html: `
-<p><strong>The Lab</strong> (header button) is extra games next to the board game. It is on every build, including the live site and the iPhone header next to Book.</p>
+<p>The first screen is three doors. <strong>Arcade</strong> is the play room. <strong>Journey</strong> is this charter. <strong>Lab</strong> is experiments — not more games, and not where the fun toys live.</p>
 <ul>
-  <li>Tap a <strong>category</strong> (Which is larger?, Minigames, End screens, Economy) to expand it; tap again to collapse.</li>
-  <li><strong>Which is larger?</strong> — one line per numbering system (Eastern Arabic, Chinese, Korean, Hebrew, binary…). Same first digit — check the next place. Closing a game returns you to the Lab. Your rocket on the board is unchanged.</li>
-  <li><strong>Minigames</strong> — Bot Evolution, Gravity Duel, Deseret letters, Backup fuel, Hull panel, Urinal-rule Parking.</li>
-  <li><strong>End screens / economy</strong> — how a game can end, plus tight cash and going-under warnings.</li>
+  <li><strong>Arcade</strong> — “On the rocket” / “Play for a minute.” Bot Evolution, Backup fuel, and Hull panel. They do not move your charter rocket. Arcade is the large door and the first tap.</li>
+  <li><strong>Journey</strong> — “Fly the charter” / “Full game.” Name a rocket and Launch. Gravity Duel still happens inside a flight, on a blank lane.</li>
+  <li><strong>Lab</strong> — “Experiments” / “Nerdy tools.” Which is larger?, Deseret letters, Urinal-rule Parking, and Gravity Duel practice. End screens and economy setups sit behind <strong>Show experiments</strong>. Sim Lab (<code>npm run sim-lab</code>) stays on the balance host.</li>
 </ul>
-<p>Gravity Duel, End, and Economy replace the current board game. Number games and the other minigames do not.</p>
+<p>Lab stays locked until you leave one Arcade toy (<code>heliopoly.arcadeSessionsCompleted</code> on this device reaches 1). Leaving the toy does not open Lab for you. The header <strong>Home</strong> button brings the three doors back and does not quit a charter already in flight.</p>
+<p>Operators can open a drill without the unlock: <code>?lab=eastern-arabic-compare</code> (or <code>?lab=open</code>). <code>?arcade=egg-bot-evolution</code> opens that toy. Promoting any other drill onto Arcade needs a product sign-off that it is fun alone in about a minute.</p>
+<p>Gravity Duel practice, End, and Economy replace the current board. Number drills and the Arcade toys do not.</p>
 `,
   },
   {

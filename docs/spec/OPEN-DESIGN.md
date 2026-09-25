@@ -6,13 +6,15 @@ Shipped behavior that still has an open design issue is called out. Close or rew
 
 ## Lab minigames (practice, not the charter)
 
-Ops Manual Lab list: Bot Evolution, Gravity Duel, Deseret letters, Backup fuel, Hull panel, Urinal-rule Parking. Lab does not change the rocket on the board, except Gravity Duel / End / Economy shelves which replace the current board game.
+Home is three doors (#275, 2026-09-24). **Arcade** owns Bot Evolution, Backup fuel, and Hull panel. **Journey** is the charter. **Lab** keeps Which-is-larger, Deseret, Urinal-rule Parking, Gravity Duel practice, and the end/economy canned boards (those last two behind “Show experiments”). Lab does not change the rocket on the board, except Gravity Duel practice / End / Economy, which replace the current board game.
+
+**UNKNOWN / NEEDS JACOB:** promoting any other item onto Arcade. The rule is a sign-off that it is fun alone in about a minute (#279). Placeholders #252 and #253 stay Lab until then.
 
 | Issue | Seed | Note |
 | --- | --- | --- |
 | #203 | Bot Evolution egg-socket matching | Design seed. Engine work continued in #204–#206, #230, #240, #241, #247, #249. Locked Connect-N (start Connect 3, grid N×8, morph to a box, two bars then N+1, stay 6×8) is written in `docs/bot-evolution/README.md`. Lab-only. No `src/core`. |
 | #204 #205 #206 | 5×8 engine, tile grammar, art | #204 title still says 5×8; the README says fixed 5×8 is retired. Trust the README + changelog over the old title. |
-| #194 | Minigames **inside the charter** by expedition length | `do-not-build`. Manual: “Minigames in the charter come later; practice them in the Lab.” |
+| #194 | Minigames **inside the charter** by expedition length | `do-not-build`. Manual: fun toys are on Arcade; the charter is Journey; drills stay in the Lab. |
 | #79 | Deseret alphabet matching | Design seed. Changelog 1.3.0: Lab Deseret is 2-choice. |
 | #252 | Deseret letters — define the gameboard | `do-not-build`. Jacob defines the board. |
 | #253 | Which is larger? — define the gameboard | `do-not-build`. Sibling of #104 (same leading digit is a difficulty lever). |
