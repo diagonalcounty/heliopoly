@@ -8,8 +8,13 @@ export type Hit = {
   className: string;
 };
 
+/** Dismiss a resource-strike card before the hit (#283). It can cover Roll. */
 export async function hitAt(page: Page, x: number, y: number): Promise<Hit | null> {
   return page.evaluate(({ x, y }) => {
+    const announce = document.getElementById("announce-root");
+    if (announce && !announce.classList.contains("hidden")) {
+      (document.getElementById("announce-ok") as HTMLButtonElement | null)?.click();
+    }
     const el = document.elementFromPoint(x, y) as HTMLElement | null;
     if (!el) return null;
     return {
@@ -36,6 +41,14 @@ export async function hitOn(
   onControl: boolean;
 }> {
   return page.locator(sel).first().evaluate((el) => {
+    const announce = document.getElementById("announce-root");
+    if (
+      announce &&
+      !announce.classList.contains("hidden") &&
+      !announce.contains(el)
+    ) {
+      (document.getElementById("announce-ok") as HTMLButtonElement | null)?.click();
+    }
     const r = el.getBoundingClientRect();
     const x = r.x + r.width / 2;
     const y = r.y + r.height / 2;
@@ -120,4 +133,10 @@ export async function launch(page: Page) {
   await bootSetup(page);
   await page.locator("#btn-new").click();
   await expect(page.locator("#fleet-card")).toHaveClass(/mode-standings/);
+  await page.evaluate(() => {
+    const announce = document.getElementById("announce-root");
+    if (announce && !announce.classList.contains("hidden")) {
+      (document.getElementById("announce-ok") as HTMLButtonElement | null)?.click();
+    }
+  });
 }
