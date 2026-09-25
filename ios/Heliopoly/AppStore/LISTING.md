@@ -1,7 +1,7 @@
 # Heliopoly — App Store Connect listing copy
 
 Paste these fields into **App Store Connect → Heliopoly → App Information / Version**.  
-Version aligned with Xcode: **1.5.0** (build **8**). iPhone and iPad.
+Version aligned with Xcode: **1.5.0** (build **9**). iPhone and iPad.
 
 ---
 

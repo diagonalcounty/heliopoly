@@ -11,8 +11,8 @@
 - **Urinal-rule Parking campaign (#251):** Lab shelf with Quiet Apron → Rush Hour → Both Sides Bad → Dead Orbit → Final Approach. Linear unlock; first Final Approach clear opens the whole shelf. Run score Clear / Fine / Orbit. Dead Orbit treats jam-orbit as success. Product blurb: “Orbit the apron. Leave a buffer. Land rude and the fine sticks.”
 
 ### iOS
-- **MARKETING_VERSION 1.5.0**, **CURRENT_PROJECT_VERSION 8** (Debug and Release). iPhone + iPad (`TARGETED_DEVICE_FAMILY = 1,2`). App Store listing, What's New, review notes, and TestFlight What to Test describe the three doors.
-- Build **8** (uploaded 2026-09-24) packaged WebDist synced at `dd2f771`: the doors are in, but the in-app V1 badge and Ops Manual welcome still read 1.4.0. The next iOS build picks up the 1.5.0 strings.
+- **MARKETING_VERSION 1.5.0**, **CURRENT_PROJECT_VERSION 9** (Debug and Release). iPhone + iPad (`TARGETED_DEVICE_FAMILY = 1,2`). App Store listing, What's New, review notes, and TestFlight What to Test describe the three doors.
+- Build **8** (uploaded 2026-09-24) packaged the game from `dd2f771`: the doors were in, but the in-app V1 badge and Ops Manual welcome still read 1.4.0. It was pulled from review. Build **9** fixes it: the badge and welcome read 1.5.0, and build 9 is what goes to App Review.
 
 ### Meta
 - Version **1.5.0** (package, V1 badge, Ops Manual welcome, README)
