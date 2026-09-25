@@ -7,23 +7,45 @@
       content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no"
     />
     <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Heliopoly" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="theme-color" content="#0b1020" />
-    <title>Heliopoly 1.1.0</title>
+    <title>Heliopoly 1.4.0</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" href="./favicon.png" sizes="32x32" />
     <link rel="icon" type="image/png" href="./favicon-32.png" sizes="32x32" />
     <link rel="icon" type="image/png" href="./favicon-16.png" sizes="16x16" />
     <link rel="apple-touch-icon" href="./apple-touch-icon.png" sizes="180x180" />
-    <script type="module" crossorigin src="./assets/index-CwnbjxwT.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-VYAb-DFI.css">
+    <script>
+      (function () {
+        var h = location.hostname;
+        if (h === "beta.heliopoly.live" || h === "preview.heliopoly.live") {
+          document.documentElement.classList.add("is-beta");
+        }
+      })();
+    </script>
+    <script type="module" crossorigin src="./assets/index-Cb5tukjn.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-gqV_f9w4.css">
   </head>
   <body>
     <div id="app">
       <header class="top">
         <div class="top-row">
           <h1>
-            Heliopoly <span class="badge">1.1.0</span>
-            ><span class="title-tagline"> · Orbital Economics</span>
+            <span class="title-lockup">
+              Heliopoly
+              <label class="badge version-picker" title="Gameplay version">
+                <select id="gameplay-mode" aria-label="Gameplay version">
+                  <option value="v1">V1 Boardgame · 1.4.0</option>
+                  <option value="v2" disabled>V2 Orbital economics (unshipped)</option>
+                  <option value="v3" disabled>V3 Settlement (unshipped)</option>
+                  <option value="v4" disabled>V4 Governance (unshipped)</option>
+                </select>
+              </label
+              ><span class="title-tagline"> · Orbital Economics</span
+              ><span class="channel-pill"> · Beta</span>
+            </span>
           </h1>
           <div class="top-actions">
             <label class="anim-speed-field" title="Ship hops, dice, and AI pacing">
@@ -39,10 +61,10 @@
               id="btn-lab"
               type="button"
               class="lab-launch"
-              title="Lab — test minigames and scenarios"
-              aria-label="Open testing lab"
+              title="Home — Arcade, Journey, Lab"
+              aria-label="Home"
             >
-              ⚗ Lab
+              Home
             </button>
             <button
               id="btn-handbook-header"
@@ -77,6 +99,22 @@
             </button>
           </div>
         </div>
+        <p class="support-strip" role="note">
+          Free in the browser.
+          <a
+            href="https://apps.apple.com/us/app/heliopoly/id6801637953"
+            target="_blank"
+            rel="noopener"
+            >Support the game on the App Store</a
+          >
+          ($3.99 · iPhone &amp; iPad · no Wi‑Fi needed) ·
+          <a
+            href="https://github.com/diagonalcounty/heliopoly"
+            target="_blank"
+            rel="noopener"
+            >GitHub</a
+          >
+        </p>
       </header>
 
       <div class="layout">
@@ -264,7 +302,7 @@ Name your rocket. Then Launch.</p>
                 Roll
               </button>
               <button id="btn-buy" type="button" disabled>Buy</button>
-              <button id="btn-sell" type="button" disabled>Sell claim</button>
+              <button id="btn-sell" type="button" disabled>Books</button>
               <button id="btn-station" type="button" disabled>
                 Fuel depot
               </button>
@@ -315,7 +353,78 @@ Name your rocket. Then Launch.</p>
       </div>
     </div>
 
-    <!-- Lab: scenario testing (minigames / end screens) -->
+    <!-- Home: three doors. Arcade is the default first tap (#276). -->
+    <div id="home-root" class="home-root" aria-hidden="false">
+      <div
+        class="home-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="home-title"
+      >
+        <p class="home-kicker">Heliopoly</p>
+        <h2 id="home-title" class="home-title">Where next?</h2>
+        <div class="home-doors">
+          <button
+            type="button"
+            id="door-arcade"
+            class="home-door home-door-arcade"
+            autofocus
+          >
+            <span class="home-door-kicker">Play for a minute</span>
+            <span class="home-door-title">Arcade</span>
+            <span class="home-door-hook">On the rocket</span>
+          </button>
+          <div class="home-doors-row">
+            <button type="button" id="door-journey" class="home-door home-door-journey">
+              <span class="home-door-kicker">Full game</span>
+              <span class="home-door-title">Journey</span>
+              <span class="home-door-hook">Fly the charter</span>
+            </button>
+            <button
+              type="button"
+              id="door-lab"
+              class="home-door home-door-lab is-locked"
+              aria-disabled="true"
+              disabled
+            >
+              <span class="home-door-kicker">Nerdy tools</span>
+              <span class="home-door-title">Lab</span>
+              <span class="home-door-hook">Experiments</span>
+              <span class="home-door-lock" id="door-lab-lock">Play one Arcade toy</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arcade: fun toys only. Not the Lab. -->
+    <div id="arcade-root" class="handbook hidden" aria-hidden="true">
+      <div class="handbook-backdrop" id="arcade-backdrop"></div>
+      <div
+        class="handbook-panel lab-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="arcade-title"
+      >
+        <header class="handbook-header">
+          <div>
+            <p class="handbook-kicker">Play for a minute</p>
+            <h2 id="arcade-title">Arcade</h2>
+          </div>
+          <button type="button" id="arcade-close" class="handbook-close" aria-label="Close">
+            ✕
+          </button>
+        </header>
+        <div class="lab-body">
+          <p class="hint lab-intro">
+            On the rocket. These leave your charter flight where it is.
+          </p>
+          <div id="arcade-scenarios" class="lab-scenarios arcade-scenarios"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lab: experiments. Arcade toys are not listed here. -->
     <div id="lab-root" class="handbook hidden" aria-hidden="true">
       <div class="handbook-backdrop" id="lab-backdrop"></div>
       <div
@@ -326,20 +435,126 @@ Name your rocket. Then Launch.</p>
       >
         <header class="handbook-header">
           <div>
-            <p class="handbook-kicker">Drills / minigames</p>
+            <p class="handbook-kicker">Nerdy tools</p>
             <h2 id="lab-title">Lab</h2>
           </div>
-          <button type="button" id="lab-close" class="handbook-close" aria-label="Close lab">
+          <button type="button" id="lab-close" class="handbook-close" aria-label="Close">
             ✕
           </button>
         </header>
         <div class="lab-body">
+          <p class="lab-shelf-kicker">Experiments</p>
           <p class="hint lab-intro">
-            Tap a category to expand it, then pick an item. Drills under
-            <strong>Which is larger?</strong> leave your expedition alone;
-            scenarios under Minigames / End / Economy replace the current game.
+            Drills and operator setups. Not more games. Number drills and
+            practice leave your rocket on the board. Gravity Duel practice
+            starts a new board.
           </p>
           <div id="lab-scenarios" class="lab-scenarios"></div>
+          <button
+            type="button"
+            id="lab-show-experiments"
+            class="lab-show-experiments"
+            aria-expanded="false"
+            aria-controls="lab-operator-scenarios"
+          >
+            Show experiments
+          </button>
+          <div id="lab-operator-scenarios" class="lab-scenarios" hidden></div>
+          <p class="hint lab-sim-note">
+            Sim Lab (<code>npm run sim-lab</code>) is the balance host. It is not a toy here.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lab: Urinal-rule Parking campaign (#188 / #251) -->
+    <div id="urp-root" class="handbook urp-overlay hidden" aria-hidden="true">
+      <div class="handbook-backdrop" id="urp-backdrop"></div>
+      <div
+        class="urp-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="urp-title"
+      >
+        <header class="urp-header">
+          <h2 id="urp-title">Urinal-rule Parking</h2>
+          <button type="button" id="urp-close" class="handbook-close" aria-label="Close">
+            ✕
+          </button>
+        </header>
+        <p id="urp-sign" class="urp-sign">
+          Orbit the apron. Leave a buffer. Land rude and the fine sticks.
+        </p>
+
+        <div id="urp-shelf" class="urp-shelf">
+          <p class="urp-shelf-kicker">Scenario shelf</p>
+          <div id="urp-shelf-cards" class="urp-shelf-cards" role="list"></div>
+          <p id="urp-campaign-totals" class="urp-campaign-totals" aria-live="polite"></p>
+        </div>
+
+        <div id="urp-play" class="urp-play hidden">
+          <div class="urp-play-top">
+            <p id="urp-scenario-tag" class="urp-scenario-tag"></p>
+            <button type="button" id="urp-back-shelf" class="urp-back-shelf">Shelf</button>
+          </div>
+          <div class="urp-meters">
+            <p id="urp-orbits" class="urp-orbits" aria-live="polite">3/3</p>
+            <div class="urp-hint-wrap">
+              <button type="button" id="urp-hint" class="urp-hint" aria-label="Hint, 2 remaining">
+                Hint
+              </button>
+              <span id="urp-hint-pips" class="urp-hint-pips" aria-hidden="true">
+                <span class="urp-hint-pip is-charged"></span>
+                <span class="urp-hint-pip is-charged"></span>
+              </span>
+            </div>
+          </div>
+          <div class="urp-board">
+            <div id="urp-areas" class="urp-areas" role="group" aria-label="Pad areas">
+              <button type="button" class="urp-area is-selected" data-area="0" aria-pressed="true">
+                <span class="urp-area-label">Area 1</span>
+                <span class="urp-area-dots" aria-hidden="true"></span>
+              </button>
+              <button type="button" class="urp-area" data-area="1" aria-pressed="false">
+                <span class="urp-area-label">Area 2</span>
+                <span class="urp-area-dots" aria-hidden="true"></span>
+              </button>
+            </div>
+            <div class="urp-hatch" aria-label="Hatch, approach">
+              <svg class="urp-hatch-mark" viewBox="0 0 80 80" aria-hidden="true">
+                <polygon
+                  class="urp-hatch-outer"
+                  points="40,4 72,22 72,58 40,76 8,58 8,22"
+                />
+                <polygon
+                  class="urp-hatch-inner"
+                  points="40,14 62,26 62,54 40,66 18,54 18,26"
+                />
+                <line class="urp-hatch-seam" x1="40" y1="16" x2="40" y2="64" />
+                <polygon class="urp-hatch-chevron" points="40,24 51,44 29,44" />
+              </svg>
+              <span class="urp-hatch-label">Hatch</span>
+            </div>
+            <div class="urp-field">
+              <svg id="urp-apron" class="urp-apron" aria-hidden="true"></svg>
+              <div id="urp-pads" class="urp-pads" role="group" aria-label="Pads"></div>
+            </div>
+            <div class="urp-go-wrap">
+              <p id="urp-status" class="urp-status" aria-live="polite"></p>
+              <button type="button" id="urp-orbit" class="urp-go" aria-label="Orbit, next occupancy">
+                Orbit
+              </button>
+            </div>
+          </div>
+          <div id="urp-result" class="urp-result hidden" aria-live="polite">
+            <p id="urp-result-headline" class="urp-result-headline"></p>
+            <p id="urp-result-score" class="urp-result-score"></p>
+            <div class="urp-result-actions">
+              <button type="button" id="urp-retry" class="urp-result-btn">Again</button>
+              <button type="button" id="urp-next" class="urp-result-btn is-primary">Next</button>
+              <button type="button" id="urp-to-shelf" class="urp-result-btn">Shelf</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -358,7 +573,7 @@ Name your rocket. Then Launch.</p>
             <p class="handbook-kicker">Lab · literacy</p>
             <h2 id="eac-title">Which is larger?</h2>
           </div>
-          <button type="button" id="eac-close" class="handbook-close" aria-label="Close drill">
+          <button type="button" id="eac-close" class="handbook-close" aria-label="Close">
             ✕
           </button>
         </header>
@@ -367,12 +582,14 @@ Name your rocket. Then Launch.</p>
             <p id="eac-round" class="eac-round mono" aria-live="polite">Level 1 · one digit</p>
             <p id="eac-attempts" class="eac-attempts mono" aria-live="polite">0 / 12</p>
           </div>
+          <p id="eac-place-hint" class="eac-place-hint hidden" aria-live="polite">Same first digit — check the next place.</p>
           <p class="hint eac-hint">
             Two numbers appear in Eastern Arabic digits. Choose the larger one by
             tapping it, or use the arrow keys / <kbd>&lt;</kbd> <kbd>&gt;</kbd>
             to point at that side.
             You win by finishing three levels in a row—one-digit, then two-digit,
             then three-digit—without help on those steps.
+            Same first digit — check the next place.
             Need a hand? <strong>Hint</strong> reveals one number in familiar
             Western digits, but that try won’t advance you; you’ll need to clear
             the level again without a hint.
@@ -406,6 +623,228 @@ Name your rocket. Then Launch.</p>
               <button type="button" id="eac-again" class="eac-primary">Play again</button>
               <button type="button" id="eac-done" class="eac-secondary">Back to Lab</button>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lab drill: backup-fuel pipe routing (#77) -->
+    <div id="pipes-root" class="handbook pipes-overlay hidden" aria-hidden="true">
+      <div class="handbook-backdrop" id="pipes-backdrop"></div>
+      <div
+        class="handbook-panel pipes-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="pipes-title"
+      >
+        <header class="handbook-header">
+          <div>
+            <p class="handbook-kicker">Play for a minute</p>
+            <h2 id="pipes-title">Backup fuel</h2>
+          </div>
+          <button type="button" id="pipes-close" class="handbook-close" aria-label="Close">
+            ✕
+          </button>
+        </header>
+        <div class="pipes-body">
+          <div class="pipes-status-row">
+            <p id="pipes-status" class="pipes-status mono" aria-live="polite">Tank → engine</p>
+            <p id="pipes-rotates" class="pipes-rotates mono" aria-live="polite">0 rotates</p>
+          </div>
+          <p class="hint pipes-hint">
+            Tap a segment to rotate it. Complete a path from the tank to the engine.
+          </p>
+          <div id="pipes-play" class="pipes-play">
+            <div class="pipes-legend" aria-hidden="true">
+              <span class="pipes-legend-item pipes-legend-tank">Tank</span>
+              <span class="pipes-legend-arrow">→</span>
+              <span class="pipes-legend-item pipes-legend-engine">Engine</span>
+            </div>
+            <div id="pipes-grid" class="pipes-grid" role="grid" aria-label="Backup fuel pipes"></div>
+          </div>
+          <div id="pipes-end" class="eac-win hidden" aria-live="polite">
+            <p class="eac-win-title">Flow restored</p>
+            <p id="pipes-end-blurb" class="hint">Backup fuel reaches the engine.</p>
+            <div class="eac-win-actions">
+              <button type="button" id="pipes-again" class="eac-primary">Play again</button>
+              <button type="button" id="pipes-done" class="eac-secondary">Back to Lab</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lab drill: hull-panel 8-puzzle (#78) -->
+    <div id="tiles-root" class="handbook tiles-overlay hidden" aria-hidden="true">
+      <div class="handbook-backdrop" id="tiles-backdrop"></div>
+      <div
+        class="handbook-panel tiles-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="tiles-title"
+      >
+        <header class="handbook-header">
+          <div>
+            <p class="handbook-kicker">Play for a minute</p>
+            <h2 id="tiles-title">Hull panel</h2>
+          </div>
+          <button type="button" id="tiles-close" class="handbook-close" aria-label="Close">
+            ✕
+          </button>
+        </header>
+        <div class="tiles-body">
+          <div class="tiles-status-row">
+            <p id="tiles-status" class="tiles-status mono" aria-live="polite">Slide plates into order</p>
+            <p id="tiles-moves" class="tiles-moves mono" aria-live="polite">0 moves</p>
+          </div>
+          <p class="hint tiles-hint">
+            Tap a plate next to the gap to slide it. Restore 1–8 with the empty
+            corner last.
+          </p>
+          <div id="tiles-play" class="tiles-play">
+            <div id="tiles-grid" class="tiles-grid" role="grid" aria-label="Hull panel"></div>
+          </div>
+          <div id="tiles-end" class="eac-win hidden" aria-live="polite">
+            <p class="eac-win-title">Panel seated</p>
+            <p id="tiles-end-blurb" class="hint">Hull plates are back in order.</p>
+            <div class="eac-win-actions">
+              <button type="button" id="tiles-again" class="eac-primary">Play again</button>
+              <button type="button" id="tiles-done" class="eac-secondary">Back to Lab</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Lab drill: Deseret alphabet matching (#79) -->
+    <div id="deseret-root" class="handbook deseret-overlay hidden" aria-hidden="true">
+      <div class="handbook-backdrop" id="deseret-backdrop"></div>
+      <div
+        class="handbook-panel deseret-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="deseret-title"
+      >
+        <header class="handbook-header">
+          <div>
+            <p class="handbook-kicker">Experiments</p>
+            <h2 id="deseret-title">Deseret letters</h2>
+          </div>
+          <button type="button" id="deseret-close" class="handbook-close" aria-label="Close">
+            ✕
+          </button>
+        </header>
+        <div class="deseret-body">
+          <div class="deseret-status-row">
+            <p id="deseret-status" class="deseret-status mono" aria-live="polite">Match the letter</p>
+            <p id="deseret-score" class="deseret-score mono" aria-live="polite">0 / 10 · 0 correct</p>
+          </div>
+          <p class="hint deseret-hint">
+            A Deseret capital appears. Two Latin letters: tap the match. Eight of
+            ten wins the round. On a miss the answer flashes, then the next glyph.
+          </p>
+          <div id="deseret-preview" class="deseret-preview hidden">
+            <p id="deseret-countdown" class="deseret-countdown" aria-live="polite">3</p>
+            <div id="deseret-chart" class="deseret-chart" role="list" aria-label="Deseret capitals aligned with Latin letters"></div>
+          </div>
+          <div id="deseret-play" class="deseret-play">
+            <p id="deseret-glyph" class="deseret-glyph" aria-live="polite">—</p>
+            <div id="deseret-choices" class="deseret-choices" role="group" aria-label="Latin letters"></div>
+          </div>
+          <div id="deseret-end" class="eac-win hidden" aria-live="polite">
+            <p id="deseret-end-title" class="eac-win-title">Nice work</p>
+            <p id="deseret-end-blurb" class="hint">You matched eight of ten Deseret capitals.</p>
+            <div class="eac-win-actions">
+              <button type="button" id="deseret-again" class="eac-primary">Play again</button>
+              <button type="button" id="deseret-done" class="eac-secondary">Back to Lab</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lab drill: Bot Evolution (#203) -->
+    <div id="botevo-root" class="handbook botevo-overlay hidden" aria-hidden="true">
+      <div class="handbook-backdrop" id="botevo-backdrop"></div>
+      <div
+        class="handbook-panel botevo-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="botevo-title"
+      >
+        <header class="handbook-header">
+          <div>
+            <p class="handbook-kicker">Play for a minute</p>
+            <h2 id="botevo-title">Bot Evolution</h2>
+          </div>
+          <button type="button" id="botevo-close" class="handbook-close" aria-label="Close">
+            ✕
+          </button>
+        </header>
+        <div class="botevo-body">
+          <div id="botevo-intro" class="botevo-intro">
+            <article class="botevo-card">
+              <div
+                class="botevo-card-art"
+                role="img"
+                aria-label="The clerk"
+                style="background-image: url('handbook/cards/clerk-canonical.jpg')"
+              ></div>
+              <div class="botevo-card-copy">
+                <p class="botevo-card-kicker">The clerk</p>
+                <h3 id="botevo-card-title">Simple bots. Link three.</h3>
+                <p id="botevo-card-body" class="botevo-card-body">
+                  Link <strong>three</strong> bots whose pins touch. They become
+                  a box. Boxes fill the row at the top. Bots drop as they are —
+                  they do not turn. Fill a column to the top and the game ends.
+                </p>
+                <button type="button" id="botevo-begin" class="eac-primary">Begin</button>
+              </div>
+            </article>
+          </div>
+          <div id="botevo-table" class="botevo-table hidden">
+          <div class="botevo-hud">
+            <p id="botevo-status" class="botevo-level" aria-live="polite">Connect 3</p>
+            <div
+              id="botevo-bar"
+              class="botevo-save"
+              role="meter"
+              aria-label="Boxes to next stage"
+              aria-valuemin="0"
+              aria-valuenow="0"
+              aria-valuemax="3"
+            >
+              <div id="botevo-save-track" class="botevo-save-track" aria-hidden="true"></div>
+            </div>
+          </div>
+          <p id="botevo-score" class="botevo-score hidden" aria-live="polite">0 boxes</p>
+          <div id="botevo-fx" class="botevo-fx" aria-hidden="true"></div>
+          <p id="botevo-hint" class="hint botevo-hint">
+            Bots drop as they are — they do not turn. Tap a column to steer.
+            Link 3 whose pins touch; they become a box. Later, the field gets
+            wider.
+          </p>
+          <div id="botevo-play" class="botevo-play">
+            <div id="botevo-grid" class="botevo-grid" role="grid" aria-label="Bot Evolution field"></div>
+            <div class="botevo-queue-wrap">
+              <p class="botevo-queue-label">Next</p>
+              <div id="botevo-queue" class="botevo-queue" aria-label="Next eggs"></div>
+            </div>
+            <div id="botevo-paused" class="botevo-paused hidden" aria-live="polite">Paused</div>
+          </div>
+          <div class="botevo-toolbar">
+            <button type="button" id="botevo-pause" class="eac-secondary">Pause</button>
+            <button type="button" id="botevo-drop" class="eac-primary">Drop</button>
+          </div>
+          <div id="botevo-end" class="eac-win hidden" aria-live="polite">
+            <p class="eac-win-title">Topped out</p>
+            <p id="botevo-end-blurb" class="hint">A column filled to the top. Play again from Lab when you are ready.</p>
+            <div class="eac-win-actions">
+              <button type="button" id="botevo-again" class="eac-primary">Play again</button>
+              <button type="button" id="botevo-done" class="eac-secondary">Back to Lab</button>
+            </div>
+          </div>
           </div>
         </div>
       </div>
@@ -557,6 +996,17 @@ Name your rocket. Then Launch.</p>
         <p class="end-kicker">Written into the ledger</p>
         <h2 id="end-title">Heliopoly</h2>
         <p id="end-story" class="end-story"></p>
+        <table id="end-books" class="end-books hidden" aria-label="Held books">
+          <thead>
+            <tr>
+              <th>Claim</th>
+              <th>Mark</th>
+              <th>Income</th>
+              <th>Book</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
         <div id="end-ranks" class="end-ranks mono"></div>
         <div class="end-actions">
           <button type="button" id="end-copy-log" class="end-copy-log">
