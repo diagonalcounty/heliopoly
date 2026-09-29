@@ -160,12 +160,15 @@ import {
 } from "./lab/backupFuelPipes";
 import {
   EMPTY,
-  SOLVED_TILES,
-  TILE_CELLS,
+  continueTiles,
   isAdjacentToEmpty,
+  TILES_END_LINE,
+  levelLabel,
+  nextLevel,
   playAgainTiles,
   slideTile,
   startTiles,
+  tilesHint,
   type TileState,
 } from "./lab/slidingTiles";
 import {
@@ -612,6 +615,9 @@ const pipesEndEl = document.getElementById("pipes-end")!;
 const pipesEndBlurb = document.getElementById("pipes-end-blurb")!;
 const tilesRoot = document.getElementById("tiles-root")!;
 const tilesGridEl = document.getElementById("tiles-grid")!;
+const tilesPlayEl = document.getElementById("tiles-play")!;
+const tilesHintEl = document.getElementById("tiles-hint")!;
+const tilesNextBtn = document.getElementById("tiles-next")!;
 const tilesStatusEl = document.getElementById("tiles-status")!;
 const tilesMovesEl = document.getElementById("tiles-moves")!;
 const tilesEndEl = document.getElementById("tiles-end")!;
@@ -3357,7 +3363,7 @@ function pipesPlayAgain(): void {
   first?.focus();
 }
 
-/** —— Hull panel 8-puzzle (#78) —— */
+/** —— Hull panel sliding tiles (#293) —— */
 let tilesState: TileState | null = null;
 
 function isTilesOpen(): boolean {
@@ -3367,17 +3373,22 @@ function isTilesOpen(): boolean {
 function renderTiles(): void {
   if (!tilesState) return;
   const won = tilesState.phase === "won";
-  tilesStatusEl.textContent = won ? "Panel seated" : "Slide plates into order";
+  const upcoming = nextLevel(tilesState.n, tilesState.round);
+  const runOver = won && upcoming === null;
+  tilesStatusEl.textContent = levelLabel(tilesState);
   tilesMovesEl.textContent =
     tilesState.moves === 1 ? "1 move" : `${tilesState.moves} moves`;
-  tilesEndEl.classList.toggle("hidden", !won);
-  if (won) {
-    const n = tilesState.moves;
-    tilesEndBlurb.textContent =
-      n === 1 ? "Hull plates seated in 1 move." : `Hull plates seated in ${n} moves.`;
+  tilesHintEl.textContent = tilesHint(tilesState.n);
+  tilesEndEl.classList.toggle("hidden", !runOver);
+  tilesPlayEl.classList.toggle("hidden", runOver);
+  tilesNextBtn.classList.toggle("hidden", !(won && upcoming));
+  if (runOver) {
+    tilesEndBlurb.textContent = TILES_END_LINE;
   }
+  tilesGridEl.style.setProperty("--tiles-n", String(tilesState.n));
   tilesGridEl.replaceChildren();
-  for (let i = 0; i < TILE_CELLS; i++) {
+  const cells = tilesState.n * tilesState.n;
+  for (let i = 0; i < cells; i++) {
     const value = tilesState.board[i];
     const btn = document.createElement("button");
     btn.type = "button";
@@ -3391,8 +3402,8 @@ function renderTiles(): void {
       btn.textContent = "";
     } else {
       btn.textContent = String(value);
-      const home = SOLVED_TILES[i] === value;
-      if (home) btn.classList.add("is-home");
+      const home = i === cells - 1 ? EMPTY : i + 1;
+      if (home === value) btn.classList.add("is-home");
       const slidable = !won && isAdjacentToEmpty(tilesState.board, i);
       if (slidable) btn.classList.add("is-slidable");
       btn.disabled = won;
@@ -3431,6 +3442,14 @@ function closeTiles(): void {
 
 function tilesPlayAgain(): void {
   tilesState = playAgainTiles();
+  renderTiles();
+  const first = tilesGridEl.querySelector("button.is-slidable") as HTMLButtonElement | null;
+  first?.focus();
+}
+
+function tilesAdvance(): void {
+  if (!tilesState || tilesState.phase !== "won") return;
+  tilesState = continueTiles(tilesState);
   renderTiles();
   const first = tilesGridEl.querySelector("button.is-slidable") as HTMLButtonElement | null;
   first?.focus();
@@ -3846,6 +3865,7 @@ document.getElementById("pipes-done")?.addEventListener("click", () => {
 document.getElementById("tiles-close")?.addEventListener("click", () => closeTiles());
 document.getElementById("tiles-backdrop")?.addEventListener("click", () => closeTiles());
 document.getElementById("tiles-again")?.addEventListener("click", () => tilesPlayAgain());
+document.getElementById("tiles-next")?.addEventListener("click", () => tilesAdvance());
 document.getElementById("tiles-done")?.addEventListener("click", () => {
   closeTiles();
 });
