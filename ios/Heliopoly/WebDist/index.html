@@ -29,8 +29,8 @@
         }
       })();
     </script>
-    <script type="module" crossorigin src="./assets/index-DE4w599J.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-M5YluZ6Z.css">
+    <script type="module" crossorigin src="./assets/index-BP3z_mod.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-D7c3TF47.css">
   </head>
   <body>
     <div id="app">
@@ -692,7 +692,7 @@ Name your rocket. Then Launch.</p>
       </div>
     </div>
 
-    <!-- Lab drill: hull-panel 8-puzzle (#78) -->
+    <!-- Arcade: Hull panel sliding tiles (#293) -->
     <div id="tiles-root" class="handbook tiles-overlay hidden" aria-hidden="true">
       <div class="handbook-backdrop" id="tiles-backdrop"></div>
       <div
@@ -715,20 +715,29 @@ Name your rocket. Then Launch.</p>
             <p id="tiles-status" class="tiles-status mono" aria-live="polite">Slide plates into order</p>
             <p id="tiles-moves" class="tiles-moves mono" aria-live="polite">0 moves</p>
           </div>
-          <p class="hint tiles-hint">
-            Tap a plate next to the gap to slide it. Restore 1–8 with the empty
-            corner last.
+          <p id="tiles-hint" class="hint tiles-hint">
+            Tap a plate next to the gap. Order 1–8 with the empty corner last.
           </p>
           <div id="tiles-play" class="tiles-play">
             <div id="tiles-grid" class="tiles-grid" role="grid" aria-label="Hull panel"></div>
+            <button type="button" id="tiles-next" class="eac-primary hidden">Next</button>
           </div>
           <div id="tiles-end" class="eac-win hidden" aria-live="polite">
-            <p class="eac-win-title">Panel seated</p>
-            <p id="tiles-end-blurb" class="hint">Hull plates are back in order.</p>
-            <div class="eac-win-actions">
-              <button type="button" id="tiles-again" class="eac-primary">Play again</button>
-              <button type="button" id="tiles-done" class="eac-secondary">Back to Lab</button>
-            </div>
+            <article class="botevo-card botevo-end-card">
+              <div
+                class="botevo-card-art"
+                role="img"
+                aria-label="The clerk"
+                style="background-image: url('handbook/cards/clerk-canonical.jpg')"
+              ></div>
+              <div class="botevo-card-copy">
+                <h3 id="tiles-end-blurb">Congratulations, you made it to level 7.49.</h3>
+                <div class="eac-win-actions">
+                  <button type="button" id="tiles-again" class="eac-primary">Play again</button>
+                  <button type="button" id="tiles-done" class="eac-secondary">Back to Lab</button>
+                </div>
+              </div>
+            </article>
           </div>
         </div>
       </div>
