@@ -40,4 +40,4 @@ From the Ops Manual glossary and nearby topics (`src/handbook/content.ts`). Use 
 - **Round** = every living order slot has taken a turn.
 - **Rotation** = one rocket’s lap of the board.
 
-Ledger events, Kostka’s Earth-transit count, and park/feral do not share a clock. Kostka uses Earth land-or-pass counts (off the round pool). Feral uses park count. Ledger events use rounds.
+Ledger events, Kostka’s Earth-transit count, and park/feral do not share a clock. Kostka uses Earth land-or-pass counts (off the round pool). The three family cards share that Earth count and draw only when a rocket lands. Feral uses park count. Ledger events use rounds.

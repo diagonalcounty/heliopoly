@@ -377,6 +377,11 @@ export interface GameState {
     earthTransits: number;
     /** Kostka landing chance once the transit gap has passed; 0 = not armed. */
     kostkaChance: number;
+    /**
+     * Family-card draw chance on a later Earth landing (#295).
+     * Same transit gap as Kostka. 0 = not armed. Not the round pool.
+     */
+    familyChance: number;
   };
   config: GameConfig;
   rngState: number;

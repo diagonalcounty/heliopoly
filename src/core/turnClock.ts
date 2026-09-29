@@ -8,6 +8,7 @@
  *
  * Pool alerts fire on **round** boundaries, not every seat turn.
  * Kostka is a separate Earth-landing clock (not in the pool).
+ * Family cards share that Earth count and draw only on a landing (#295).
  * RNG: third letter of human rocket × USNO→Apollo-11 range cm (daily table).
  */
 import { closeClaimBook } from "./claimLedger";
@@ -53,6 +54,28 @@ export const KOSTKA_TRANSIT_GAP = 5;
 export const KOSTKA_BASE_CHANCE = 0.3;
 /** Added on each later Earth landing miss. */
 export const KOSTKA_CHANCE_STEP = 0.1;
+/** Family Earth cards (#295). Same gap and chance shape as Kostka. Not the round pool. */
+export const FAMILY_EARTH_CASH = 200;
+
+export const FAMILY_EARTH_CARDS = [
+  {
+    id: "family_adalynn",
+    title: "Adalynn",
+    line: "Attend Adalynn's graduation",
+  },
+  {
+    id: "family_ainsley",
+    title: "Ainsley",
+    line: "Take Ainsley to get her driver's license",
+  },
+  {
+    id: "family_avery_alanna",
+    title: "Avery and Alanna",
+    line: "Go to a swim meet for Avery and Alanna",
+  },
+] as const;
+
+export type FamilyEarthCardId = (typeof FAMILY_EARTH_CARDS)[number]["id"];
 
 /** Falcon Heavy payload was a Tesla Roadster (Starman). Not a Model 3/Y/S/X. (#109) */
 
@@ -75,6 +98,7 @@ export type TimedEventId =
   | "error_47";
 // vibe_kick is NOT in the regular pool — special one-shot at round ≥60
 // kostka_dog is NOT in the regular pool — Earth-transit clock, then landings
+// family_* is NOT in the regular pool — Earth landing deck (#295)
 
 /** Human rocket’s 3rd character code.
  * Short names fall back to first printable char or 67 ('C').
@@ -673,6 +697,63 @@ export function noteEarthTransit(
   te.earthTransits = (te.earthTransits ?? 0) + 1;
   if (kind !== "land") return;
   tryKostkaOnEarthLanding(state, p);
+  tryFamilyOnEarthLanding(state, p);
+}
+
+function remainingFamilyCards(
+  state: GameState,
+): readonly (typeof FAMILY_EARTH_CARDS)[number][] {
+  const fired = new Set(state.timedEvent.firedIds ?? []);
+  return FAMILY_EARTH_CARDS.filter((card) => !fired.has(card.id));
+}
+
+function fireFamilyCard(
+  state: GameState,
+  p: Player,
+  card: (typeof FAMILY_EARTH_CARDS)[number],
+): void {
+  p.cash += FAMILY_EARTH_CASH;
+  const paid = `+${formatMoney(FAMILY_EARTH_CASH)}.`;
+  state.pendingAnnouncement = {
+    kind: "info",
+    title: card.title,
+    body: youOrName(
+      p,
+      `${card.line}. ${paid}`,
+      `${rocketTitle(p)} — ${card.line}. ${paid}`,
+    ),
+  };
+  state.log.push(
+    `Ledger event: ${card.title} — ${rocketTitle(p)} ${paid} (Earth).`,
+  );
+  if (!state.timedEvent.firedIds.includes(card.id)) {
+    state.timedEvent.firedIds.push(card.id);
+  }
+  state.timedEvent.lastEventId = card.id;
+}
+
+/**
+ * After the Kostka transit gap, an Earth landing may draw one remaining
+ * family card (30%, then +10% per miss). Passes do not draw. Each card once.
+ */
+function tryFamilyOnEarthLanding(state: GameState, p: Player): void {
+  const te = state.timedEvent;
+  const deck = remainingFamilyCards(state);
+  if (deck.length === 0) return;
+  if ((te.earthTransits ?? 0) <= KOSTKA_TRANSIT_GAP) return;
+  if (p.eliminated) return;
+  if (state.pendingAnnouncement) return;
+  if (!te.familyChance || te.familyChance <= 0) {
+    te.familyChance = KOSTKA_BASE_CHANCE;
+  }
+  const u = charterEventRoll01(state, new Date(), 41 + (te.earthTransits ?? 0));
+  if (u >= te.familyChance) {
+    te.familyChance = Math.min(1, te.familyChance + KOSTKA_CHANCE_STEP);
+    return;
+  }
+  const pick = charterEventRoll01(state, new Date(), 43 + (te.earthTransits ?? 0));
+  const index = Math.min(deck.length - 1, Math.floor(pick * deck.length));
+  fireFamilyCard(state, p, deck[index]!);
 }
 
 function tryKostkaOnEarthLanding(state: GameState, p: Player): void {

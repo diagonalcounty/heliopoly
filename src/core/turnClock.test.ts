@@ -5,6 +5,8 @@
 import { applyAction, getLegalActions } from "./rules";
 import { createGame, currentPlayer } from "./state";
 import {
+  FAMILY_EARTH_CARDS,
+  FAMILY_EARTH_CASH,
   KOSTKA_CASH,
   KOSTKA_TRANSIT_GAP,
   noteEarthTransit,
@@ -245,6 +247,114 @@ function primePoolEvent(state: ReturnType<typeof createGame>, keep: TimedEventId
   assert(
     Math.abs((s.timedEvent.kostkaChance ?? 0) - 0.1) < 1e-9,
     "missed landing adds 10% to the next Earth landing",
+  );
+}
+
+{
+  const s = createGame({
+    shuffleSeats: false,
+    playerCount: 2,
+    humanSeat: true,
+    humanName: "Venture",
+    seed: 29,
+  });
+  const you = s.players[0]!;
+  const cash0 = you.cash;
+  s.timedEvent.firedIds.push("kostka_dog");
+  for (let i = 0; i < KOSTKA_TRANSIT_GAP; i++) {
+    noteEarthTransit(s, you, "land");
+    s.pendingAnnouncement = null;
+  }
+  assert(
+    !s.timedEvent.firedIds.some((id) => id.startsWith("family_")),
+    "family cards wait until after five Earth transits",
+  );
+  assert(you.cash === cash0, "no family cash during the gap");
+
+  noteEarthTransit(s, you, "pass");
+  assert(
+    !s.timedEvent.firedIds.some((id) => id.startsWith("family_")),
+    "a pass does not draw a family card",
+  );
+
+  s.timedEvent.familyChance = 1;
+  const seen = new Set<string>();
+  for (let i = 0; i < FAMILY_EARTH_CARDS.length; i++) {
+    noteEarthTransit(s, you, "land");
+    const id = s.timedEvent.lastEventId ?? "";
+    seen.add(id);
+    const card = FAMILY_EARTH_CARDS.find((c) => c.id === id);
+    assert(card, `draw ${i + 1} is a family card`);
+    assert(
+      s.pendingAnnouncement?.body.includes(card!.line),
+      `card text includes ${card!.line}`,
+    );
+    assert(
+      !s.pendingAnnouncement?.body.includes("Avery,"),
+      "swim meet line has no comma after Avery",
+    );
+    assert(
+      !/Roecker|last name/i.test(s.pendingAnnouncement?.body ?? ""),
+      "family cards use first names only",
+    );
+    s.pendingAnnouncement = null;
+    s.timedEvent.familyChance = 1;
+  }
+  assert(seen.size === 3, "the deck draws each family card once");
+  assert(
+    you.cash === cash0 + FAMILY_EARTH_CASH * 3,
+    "each family card pays +200 to the rocket that landed",
+  );
+  const after = you.cash;
+  noteEarthTransit(s, you, "land");
+  assert(you.cash === after, "the family deck does not redraw");
+}
+
+{
+  const s = createGame({
+    shuffleSeats: false,
+    playerCount: 2,
+    humanSeat: true,
+    humanName: "Venture",
+    seed: 31,
+  });
+  const p = s.players[0]!;
+  s.timedEvent.firedIds.push("kostka_dog");
+  for (let i = 0; i < KOSTKA_TRANSIT_GAP + 1; i++) {
+    noteEarthTransit(s, p, "pass");
+  }
+  s.timedEvent.familyChance = 1;
+  s.pendingAnnouncement = { kind: "info", title: "Hold", body: "already up" };
+  noteEarthTransit(s, p, "land");
+  assert(
+    !s.timedEvent.firedIds.some((id) => id.startsWith("family_")),
+    "a family card waits when another card is already up",
+  );
+  assert(s.timedEvent.familyChance === 1, "a blocked landing does not burn the draw");
+}
+
+{
+  const s = createGame({
+    shuffleSeats: false,
+    playerCount: 2,
+    humanSeat: true,
+    humanName: "Venture",
+    seed: 37,
+  });
+  const p = s.players[0]!;
+  s.timedEvent.firedIds.push("kostka_dog");
+  for (let i = 0; i < KOSTKA_TRANSIT_GAP + 1; i++) {
+    noteEarthTransit(s, p, "pass");
+  }
+  s.timedEvent.familyChance = 1e-15;
+  noteEarthTransit(s, p, "land");
+  assert(
+    !s.timedEvent.firedIds.some((id) => id.startsWith("family_")),
+    "a near-zero roll misses the family deck",
+  );
+  assert(
+    Math.abs((s.timedEvent.familyChance ?? 0) - 0.1) < 1e-9,
+    "a missed Earth landing adds 10% to the next family draw",
   );
 }
 

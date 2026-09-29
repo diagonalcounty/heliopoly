@@ -185,6 +185,7 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
       vibeKickChecked: false,
       earthTransits: 0,
       kostkaChance: 0,
+      familyChance: 0,
     },
     config: {
       ...config,

@@ -287,6 +287,13 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
       <td>They adopt a dog named Kostka. <strong>+200</strong>.</td>
     </tr>
     <tr>
+      <td><strong>Adalynn, Ainsley, Avery and Alanna</strong></td>
+      <td>+</td>
+      <td>Earth landing only, after the same <strong>5 Earth transits</strong>. Own draw, not Kostka’s roll and not the round pool. First eligible landing is <strong>30%</strong>, then +<strong>10%</strong> on a miss. Each card once.</td>
+      <td>The rocket that just landed on Earth</td>
+      <td>Attend Adalynn's graduation. Take Ainsley to get her driver's license. Go to a swim meet for Avery and Alanna. Each pays <strong>+200</strong>.</td>
+    </tr>
+    <tr>
       <td><strong>You vibe-coded the rules</strong></td>
       <td>+ / −</td>
       <td>First time the expedition reaches <strong>round 60</strong>, one <strong>50%</strong> roll (hit or miss — never retries). Not in the standard pool.</td>
