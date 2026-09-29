@@ -24,6 +24,10 @@
         if (h === "beta.heliopoly.live" || h === "preview.heliopoly.live") {
           document.documentElement.classList.add("is-beta");
         }
+        var proto = location.protocol;
+        if (proto === "file:" || proto === "heliopoly:") {
+          document.documentElement.classList.add("packaged-app");
+        }
       })();
     </script>
   </head>
@@ -99,20 +103,34 @@
           </div>
         </div>
         <p class="support-strip" role="note">
-          Free in the browser.
-          <a
-            href="https://apps.apple.com/us/app/heliopoly/id6801637953"
-            target="_blank"
-            rel="noopener"
-            >Support the game on the App Store</a
-          >
-          ($3.99 · iPhone &amp; iPad · no Wi‑Fi needed) ·
-          <a
-            href="https://github.com/diagonalcounty/heliopoly"
-            target="_blank"
-            rel="noopener"
-            >GitHub</a
-          >
+          <span class="support-strip-web">
+            Free in the browser.
+            <a
+              href="https://apps.apple.com/us/app/heliopoly/id6801637953"
+              target="_blank"
+              rel="noopener"
+              >Support the game on the App Store</a
+            >
+            ($3.99 · iPhone &amp; iPad · no Wi‑Fi needed) ·
+            <a
+              href="https://github.com/diagonalcounty/heliopoly"
+              target="_blank"
+              rel="noopener"
+              >GitHub</a
+            >
+          </span>
+          <span class="support-strip-ios">
+            <a href="https://heliopoly.live/" target="_blank" rel="noopener"
+              >heliopoly.live</a
+            >
+            ·
+            <a
+              href="https://github.com/diagonalcounty/heliopoly"
+              target="_blank"
+              rel="noopener"
+              >GitHub</a
+            >
+          </span>
         </p>
       </header>
 
@@ -837,12 +855,22 @@ Name your rocket. Then Launch.</p>
             <button type="button" id="botevo-drop" class="eac-primary">Drop</button>
           </div>
           <div id="botevo-end" class="eac-win hidden" aria-live="polite">
-            <p class="eac-win-title">Topped out</p>
-            <p id="botevo-end-blurb" class="hint">A column filled to the top. Play again from Lab when you are ready.</p>
-            <div class="eac-win-actions">
-              <button type="button" id="botevo-again" class="eac-primary">Play again</button>
-              <button type="button" id="botevo-done" class="eac-secondary">Back to Lab</button>
-            </div>
+            <article class="botevo-card botevo-end-card">
+              <div
+                class="botevo-card-art"
+                role="img"
+                aria-label="The clerk"
+                style="background-image: url('/handbook/cards/clerk-canonical.jpg')"
+              ></div>
+              <div class="botevo-card-copy">
+                <p class="botevo-card-kicker">The clerk</p>
+                <h3 id="botevo-end-title">Congratulations, you made it to level 1.0.</h3>
+                <div class="eac-win-actions">
+                  <button type="button" id="botevo-again" class="eac-primary">Play again</button>
+                  <button type="button" id="botevo-done" class="eac-secondary">Back to Lab</button>
+                </div>
+              </div>
+            </article>
           </div>
           </div>
         </div>

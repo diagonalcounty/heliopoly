@@ -597,7 +597,7 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
 <ul>
   <li><strong>Arcade</strong> — “On the rocket” / “Play for a minute.” Bot Evolution, Backup fuel, and Hull panel. They do not move your charter rocket. Arcade is the large door and the first tap.</li>
   <li><strong>Journey</strong> — “Fly the charter” / “Full game.” Name a rocket and Launch. Gravity Duel still happens inside a flight, on a blank lane.</li>
-  <li><strong>Lab</strong> — “Experiments” / “Nerdy tools.” Which is larger?, Deseret letters, Urinal-rule Parking, and Gravity Duel practice. End screens and economy setups sit behind <strong>Show experiments</strong>. Sim Lab (<code>npm run sim-lab</code>) stays on the balance host.</li>
+  <li><strong>Lab</strong> — “Experiments” / “Nerdy tools.” Which is larger?, Deseret letters, Urinal-rule Parking, and Gravity Duel practice. End screens and economy setups sit behind <strong>Show experiments</strong>. Sim Lab stays on the balance host.</li>
 </ul>
 <p>Lab stays locked until you leave one Arcade toy (<code>heliopoly.arcadeSessionsCompleted</code> on this device reaches 1). Leaving the toy does not open Lab for you. The header <strong>Home</strong> button brings the three doors back and does not quit a charter already in flight.</p>
 <p>Operators can open a drill without the unlock: <code>?lab=eastern-arabic-compare</code> (or <code>?lab=open</code>). <code>?arcade=egg-bot-evolution</code> opens that toy. Promoting any other drill onto Arcade needs a product sign-off that it is fun alone in about a minute.</p>

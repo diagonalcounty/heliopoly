@@ -126,6 +126,7 @@ import {
   queuePixelStrength,
   SHELL_FILL,
   quotaForState,
+  runLevelLine,
   resumeAfterMorph,
   socketJoins,
   startBotEvo,
@@ -593,7 +594,7 @@ const botEvoSaveTrackEl = document.getElementById("botevo-save-track")!;
 const botEvoFxEl = document.getElementById("botevo-fx")!;
 const botEvoPlayEl = document.getElementById("botevo-play")!;
 const botEvoEndEl = document.getElementById("botevo-end")!;
-const botEvoEndBlurb = document.getElementById("botevo-end-blurb")!;
+const botEvoEndTitle = document.getElementById("botevo-end-title")!;
 const botEvoDropBtn = document.getElementById("botevo-drop") as HTMLButtonElement;
 const botEvoPauseBtn = document.getElementById("botevo-pause") as HTMLButtonElement;
 const botEvoPausedEl = document.getElementById("botevo-paused")!;
@@ -2908,11 +2909,7 @@ function renderBotEvo(): void {
   botEvoPauseBtn.setAttribute("aria-pressed", botEvoPaused ? "true" : "false");
   botEvoDropBtn.disabled = lost || botEvoPaused || botEvoAwaitingStageAck;
   if (lost) {
-    const n = botEvoState.boxes;
-    botEvoEndBlurb.textContent =
-      n === 1
-        ? "A column filled to the top after 1 box. Play again when you’re ready."
-        : `A column filled to the top after ${n} boxes. Play again when you’re ready.`;
+    botEvoEndTitle.textContent = runLevelLine(botEvoState);
   }
 
   const live = liveChainCells(botEvoState.grid);

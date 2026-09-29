@@ -7,6 +7,7 @@ import readmeRaw from "../../README.md?raw";
 import privacyRaw from "../../public/privacy.html?raw";
 import type { HandbookSection, HandbookTopic } from "./content";
 import { mdToHtml } from "./mdToHtml";
+import { playerChangelogMarkdown, playerReadmeMarkdown } from "./playerManual";
 
 export function markdownTopic(
   id: string,
@@ -48,8 +49,8 @@ export function projectDocsSection(): HandbookSection {
     id: "project-docs",
     title: "Project",
     topics: [
-      markdownTopic("readme", "README", readmeRaw),
-      markdownTopic("changelog", "CHANGELOG", changelogRaw),
+      markdownTopic("readme", "README", playerReadmeMarkdown(readmeRaw)),
+      markdownTopic("changelog", "CHANGELOG", playerChangelogMarkdown(changelogRaw)),
       htmlMainTopic("privacy", "Privacy", privacyRaw),
     ],
   };

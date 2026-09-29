@@ -34,6 +34,8 @@ import {
   queueMosaicSpin,
   queuePixelStrength,
   recycleBottomRow,
+  runLevel,
+  runLevelLine,
   SHELL_FILL,
   connectorKind,
   eggTokenSvg,
@@ -649,6 +651,52 @@ assert(!socketsMeet("l-ne", "i", DIR_S), "L-NE has no south pin");
   assert(!banned.test(h3), "hint has no insider contrast");
   const h5 = playHint(5);
   assert(h5.includes("Link 5"), "in-play hint updates at 5");
+}
+
+{
+  let fresh = startBotEvo(9);
+  for (let i = 0; i < BOT_ROWS - 1; i++) fresh = dropPiece(fresh, 2, "dash");
+  fresh = dropPiece(fresh, 2, "dash");
+  assert(fresh.phase === "lost", "top-out before any box");
+  assert(fresh.boxes === 0, "dashes never morph");
+  const start = runLevel(fresh);
+  assert(start.major === 1 && start.minor === 0, "empty run is 1.0");
+  assert(runLevelLine(fresh) === "Congratulations, you made it to level 1.0.", "1.0 line");
+
+  const l2 = startBotEvo(8);
+  l2.level = 2;
+  l2.n = 3;
+  l2.barsCompletedThisStage = 1;
+  l2.segments = 3;
+  assert(runLevel(l2).major === 2 && runLevel(l2).minor === 3, "2.3 is Connect 3 bar 2");
+  assert(runLevel(l2).minor < quotaForStageBar(3, 1), "2.3 minor stays under the bar");
+  assert(runLevelLine(l2).includes("level 2.3"), "2.3 line");
+
+  const l7 = startBotEvoAt(6, 7);
+  l7.level = 7;
+  l7.barsCompletedThisStage = 0;
+  l7.segments = 2;
+  assert(runLevel(l7).major === 7 && runLevel(l7).minor === 2, "7.2 is first Connect 6 bar");
+  assert(quotaForStageBar(6, 0) === 6, "level 7 bar length is 6");
+  assert(runLevelLine(l7).includes("level 7.2"), "7.2 line");
+
+  const full = startBotEvoAt(4, 3);
+  full.level = 3;
+  full.barsCompletedThisStage = 0;
+  full.segments = 4;
+  assert(quotaForStageBar(4, 0) === 4, "level 3 bar length is 4");
+  const rolled = runLevel(full);
+  assert(rolled.major === 4 && rolled.minor === 0, "a full bar 3.4 is shown as 4.0");
+  assert(rolled.minor < quotaForStageBar(4, 1), "rolled minor is under the next bar");
+
+  const late = startBotEvoAt(6, 11);
+  late.level = 10;
+  late.barsCompletedThisStage = 3;
+  late.segments = 4;
+  const past = runLevel(late);
+  assert(past.major === 10 && past.minor === 4, "Connect 6 past level 8 keeps its minor");
+  assert(past.major > 8, "the run is past level 8");
+  assert(past.minor < quotaForStageBar(6, 3), "minor stays under that Connect 6 bar");
 }
 
 if (failed) {

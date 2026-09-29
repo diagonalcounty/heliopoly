@@ -1496,6 +1496,19 @@ body.home-open {
   display: none;
 }
 
+#botevo-end {
+  text-align: left;
+}
+
+#botevo-end .botevo-end-card {
+  width: min(100%, 520px);
+  margin: 0 auto;
+}
+
+#botevo-end .eac-win-actions {
+  justify-content: flex-start;
+}
+
 .eac-recap-vs {
   font-size: 0.8rem;
   color: var(--muted);
@@ -7342,4 +7355,8 @@ button:not(:disabled):active {
 }
 .support-strip a:hover {
   color: #c9dbff;
+}
+.packaged-app .support-strip-web,
+html:not(.packaged-app) .support-strip-ios {
+  display: none;
 }

@@ -222,6 +222,44 @@ export function quotaForState(state: BotState): number {
   return quotaForStageBar(state.n, state.barsCompletedThisStage);
 }
 
+export interface RunLevel {
+  major: number;
+  minor: number;
+}
+
+/**
+ * End-of-run level (#287). Major is the bar the player was on.
+ * Minor is filled cells on that bar. A full bar is the next major at .0
+ * (3.4 is shown as 4.0).
+ */
+export function runLevel(
+  state: Pick<BotState, "level" | "segments" | "n" | "barsCompletedThisStage">,
+): RunLevel {
+  let major = Math.max(1, state.level);
+  let minor = Math.max(0, state.segments);
+  let n = clampStage(state.n);
+  let bars = Math.max(0, state.barsCompletedThisStage);
+  for (let guard = 0; guard < 64; guard++) {
+    const bar = quotaForStageBar(n, bars);
+    if (minor < bar) return { major, minor };
+    minor -= bar;
+    major += 1;
+    bars += 1;
+    if (n < BOT_STAGE_MAX && bars >= 2) {
+      n = clampStage(n + 1);
+      bars = 0;
+    }
+  }
+  return { major, minor };
+}
+
+export function runLevelLine(
+  state: Pick<BotState, "level" | "segments" | "n" | "barsCompletedThisStage">,
+): string {
+  const { major, minor } = runLevel(state);
+  return `Congratulations, you made it to level ${major}.${minor}.`;
+}
+
 /**
  * Drop interval. C3–C5 stay at baseline (HITL: too fast by C5 when
  * career bars compounded). Speed ramps only on Connect 6, from the
