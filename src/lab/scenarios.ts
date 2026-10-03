@@ -215,8 +215,9 @@ export const LAB_SCENARIOS: LabScenario[] = [
   },
   {
     id: "urinal-rule-parking",
-    title: "Urinal-rule Parking",
-    blurb: "Orbit the apron. Leave a buffer. Land rude and the fine sticks.",
+    title: "Urinal-rule Parking (leave a gap)",
+    blurb:
+      "Leave an empty pad between ships when you can. Park beside someone when a gap was open, and you pay a fine. If no good pad is left, go around again.",
     group: "minigame",
     kind: "standalone",
     available: true,

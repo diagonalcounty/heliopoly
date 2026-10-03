@@ -192,8 +192,11 @@ import {
   type UrpState,
 } from "./lab/urpGrader";
 import {
+  URP_KICKER,
   URP_PRODUCT_BLURB,
+  URP_PRODUCT_TITLE,
   URP_SCENARIOS,
+  formatUrpCampaignTotals,
   formatUrpRunScore,
   getUrpScenario,
   isUrpScenarioUnlocked,
@@ -2304,7 +2307,7 @@ function showUrpResult(outcome: "good" | "fine"): void {
   urpResultEl.classList.toggle("is-good", outcome === "good");
   urpResultEl.classList.toggle("is-fine", outcome === "fine");
   urpResultHeadlineEl.textContent =
-    outcome === "good" ? "Clear. No fine." : "Fine sticks.";
+    outcome === "good" ? "Cleared. No fine." : "You pay a fine.";
   urpResultScoreEl.textContent = formatUrpRunScore(outcome, urpOrbitsUsed);
   const nxt = urpScenarioId ? nextUrpScenario(urpScenarioId) : null;
   const nextUnlocked =
@@ -2313,6 +2316,21 @@ function showUrpResult(outcome: "good" | "fine"): void {
     isUrpScenarioUnlocked(nxt, urpProgress);
   urpNextBtn.disabled = !nextUnlocked;
   urpNextBtn.textContent = nextUnlocked && nxt ? `Next · ${getUrpScenario(nxt).title}` : "Next";
+}
+
+function syncUrpWords(): void {
+  const title = document.getElementById("urp-title");
+  if (title) title.textContent = URP_PRODUCT_TITLE;
+  const kicker = document.querySelector("#urp-root .urp-shelf-kicker");
+  if (kicker) kicker.textContent = URP_KICKER;
+  urpBackShelfBtn.textContent = "List";
+  urpToShelfBtn.textContent = "List";
+  urpRetryBtn.textContent = "Try again";
+  urpOrbitBtn.textContent = "Go around";
+  urpOrbitBtn.setAttribute("aria-label", "Go around, next occupancy");
+  const hatchLabel = document.querySelector("#urp-root .urp-hatch-label");
+  if (hatchLabel) hatchLabel.textContent = "Hatch (door)";
+  urpHatchEl?.setAttribute("aria-label", "Hatch (door), approach");
 }
 
 function renderUrpShelf(): void {
@@ -2352,10 +2370,11 @@ function renderUrpShelf(): void {
     }
     urpShelfCardsEl.appendChild(btn);
   }
-  const t = urpProgress.totals;
-  urpCampaignTotalsEl.textContent = urpProgress.shelfOpen
-    ? `Shelf open · Clear ${t.clear} · Fine ${t.fine} · Orbit ${t.orbit}`
-    : `Clear ${t.clear} · Fine ${t.fine} · Orbit ${t.orbit}`;
+  urpCampaignTotalsEl.textContent = formatUrpCampaignTotals(
+    urpProgress.totals,
+    urpProgress.shelfOpen,
+  );
+  syncUrpWords();
 }
 
 function showUrpShelfView(): void {
@@ -2371,6 +2390,7 @@ function showUrpShelfView(): void {
 
 function renderUrp(): void {
   if (!urpState) return;
+  syncUrpWords();
   const screen = currentUrpScreen(urpState);
   const occ = new Set(screen.occupied);
   const playing = urpState.phase === "playing";
@@ -2391,7 +2411,7 @@ function renderUrp(): void {
     el.dataset.index = String(i);
     el.setAttribute(
       "aria-label",
-      you ? "Your ship" : occupied ? "Occupied pad" : "Empty pad",
+      you ? "Your ship" : occupied ? "Taken pad" : "Empty pad",
     );
     if (you) {
       el.innerHTML = urpRocketSvg(URP_PLAYER_COLOR);
@@ -2409,7 +2429,7 @@ function renderUrp(): void {
   urpOrbitBtn.setAttribute("aria-disabled", orbitOk ? "false" : "true");
   renderUrpHintPips();
   if (urpState.outcome === "good") urpSetStatus("Good job. No fine.", "good");
-  else if (urpState.outcome === "fine") urpSetStatus("Fine.", "fine");
+  else if (urpState.outcome === "fine") urpSetStatus("You pay a fine.", "fine");
   layoutUrpPads();
 }
 
@@ -2452,7 +2472,7 @@ function urpOrbit(): void {
   urpOrbitsUsed += 1;
   // Dead Orbit / jam looks: orbit is the skill — celebrate, do not punish.
   if (jammed) {
-    urpSetStatus("Orbit. No legal pad on that pass.", "good");
+    urpSetStatus("Go around. No pad you may use on that pass.", "good");
   } else {
     urpSetStatus("");
   }
