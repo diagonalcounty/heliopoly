@@ -241,6 +241,7 @@ assertMatch(names, /These are ideas, not a flight crew/, "Overview Goddard hook"
 assertMatch(names, /The history is not simple/, "Overview von Braun hook");
 assertMatch(names, /Robert Recorde — invented the equals sign \(=\) in 1557\./, "Overview Recorde hook");
 assertMatch(pilots, /the built thing that makes the idea work/, "The Clarke page");
+assertMatch(pilots, /make that same burn bigger/, "The Goddard page");
 assertMatch(pilots, /design your tools before they design you/, "The Asimov page");
 assertMatch(pilots, /gets people to back that launch/, "The Sagan page");
 assertMatch(pilots, /the main run of this game/, "The Ada page");
