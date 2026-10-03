@@ -26,9 +26,9 @@ const PILOT_ARTICLES: Record<string, string> = {
 <p>A Turing rival is pure logic under pressure (clear steps when the game is tight). When fuel and rent are tight, the better model of the board wins. The orbital ledger (the book in this space game) comes from his idea of computation (how computers work).</p>
 `,
   ada: `
-<p class="pilot-hook"><em>Ada Lovelace — often called the first computer programmer.</em></p>
-<p><strong>Ada Lovelace</strong> (Ada King, Countess of Lovelace) worked with Charles Babbage’s Analytical Engine designs in the 1840s. Her notes include what many historians treat as the first published algorithm intended for a machine.</p>
-<p>She saw that engines might manipulate symbols, not only numbers — art, music, and general thought. Mainline software and the quantum-era ledger all sit in that lineage.</p>
+<p class="pilot-hook"><em>Ada Lovelace — often called the first computer programmer (a person who writes what a computer should do).</em></p>
+<p>Ada Lovelace (Ada King, Countess of Lovelace, her title) worked with Charles Babbage's Analytical Engine (his planned machine) designs in the 1840s. Her notes include what many historians treat as the first published algorithm (a set of steps) meant for a machine.</p>
+<p>She saw that engines (machines) might work with symbols (marks that stand for things), not only numbers — art, music, and thought in general. That idea sits behind the ledger (the book) on the Mainline (the main run of this game).</p>
 `,
   sagan: `
 <p class="pilot-hook"><em>Astronomer who brought Cosmos to millions of living rooms.</em></p>
