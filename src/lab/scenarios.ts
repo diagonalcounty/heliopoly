@@ -12,6 +12,7 @@
 import { grantClaim } from "../core/claimLedger";
 import { applyAction, forceGravityDuel } from "../core/rules";
 import { createGame } from "../core/state";
+import { DUEL_SHELF_BLURB, DUEL_TITLE } from "../core/pilotCopy";
 import type { GameState } from "../core/types";
 
 /**
@@ -169,9 +170,8 @@ export const LAB_SCENARIOS: LabScenario[] = [
   },
   {
     id: "duel-you-challenger",
-    title: "Gravity Duel",
-    blurb:
-      "You arrive on a belt lane already held by a computer pilot. Pick High or Low, then roll. This replaces the current game.",
+    title: DUEL_TITLE,
+    blurb: DUEL_SHELF_BLURB,
     group: "minigame",
     kind: "game",
     available: true,

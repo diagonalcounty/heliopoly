@@ -876,7 +876,7 @@ The book keeps what you do.</p>
         <header class="handbook-header">
           <div>
             <p class="handbook-kicker">Crossing vectors</p>
-            <h2 id="duel-title">Gravity Duel</h2>
+            <h2 id="duel-title">Gravity Duel (lane fight)</h2>
           </div>
           <button
             type="button"
@@ -899,10 +899,7 @@ The book keeps what you do.</p>
         <div class="duel-body">
           <p id="duel-matchup" class="duel-matchup"></p>
           <p id="duel-status" class="mono"></p>
-          <p class="hint">
-            Stances stay secret until both pilots have rolled 2d6. You are on the
-            <strong>right</strong>.
-          </p>
+          <p class="hint" id="duel-hint">Your pick stays secret until both of you have rolled two dice. You are on the right.</p>
           <!-- Mirrored sides: left = opponent, right = human (#57) -->
           <div class="dice-stage" id="dice-stage">
             <div class="duel-side" id="duel-side-left" data-visual="left">
@@ -934,7 +931,7 @@ The book keeps what you do.</p>
                   data-visual="left"
                   data-roll
                 >
-                  Roll 2d6
+                  Roll dice
                 </button>
               </div>
             </div>
@@ -968,7 +965,7 @@ The book keeps what you do.</p>
                   data-visual="right"
                   data-roll
                 >
-                  Roll 2d6
+                  Roll dice
                 </button>
               </div>
             </div>

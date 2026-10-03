@@ -19,6 +19,17 @@ export function prevailsHeadline(p: Pick<Player, "name" | "agent">): string {
   return isSecondPerson(p) ? "You Prevail" : `${rocketTitle(p)} Prevails`;
 }
 
+
+export const DUEL_TITLE = "Gravity Duel (lane fight)";
+export const DUEL_HINT =
+  "Your pick stays secret until both of you have rolled two dice. You are on the right.";
+export const DUEL_ROLL_LABEL = "Roll dice";
+export const DUEL_PICKS_HIDDEN = "Picks stay hidden until both have rolled.";
+export const DUEL_PICKS_LOCKED = "Both picks are in. Roll when ready.";
+export const DUEL_TIE_HEADLINE = "Tie. You both keep the lane.";
+export const DUEL_SHELF_BLURB =
+  "You land on a lane the computer’s rocket already holds. Each of you secretly picks High or Low, then you both roll two dice. You do not see the other pick until both have rolled. The result says who keeps the lane. This throws away the big game and starts a new one.";
+
 /** "You win!" / "The Ada wins!" — duel splash & similar. Pass a display title. */
 export function winsHeadline(name: string): string {
   return name === "You" ? "You win!" : `${name} wins!`;
