@@ -936,8 +936,29 @@ body.home-open {
 }
 
 .botevo-intro.hidden,
-.botevo-table.hidden {
+.botevo-table.hidden,
+.botevo-resume.hidden {
   display: none;
+}
+
+.botevo-resume {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px 4px 4px;
+}
+
+.botevo-resume-line {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.botevo-resume-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .botevo-table {
@@ -6796,7 +6817,9 @@ button:not(:disabled):active {
 
   #botevo-root:not(.hidden) #botevo-begin,
   #botevo-root:not(.hidden) #botevo-pause,
-  #botevo-root:not(.hidden) #botevo-drop {
+  #botevo-root:not(.hidden) #botevo-drop,
+  #botevo-root:not(.hidden) #botevo-keep,
+  #botevo-root:not(.hidden) #botevo-start-over {
     min-width: 44px;
     min-height: 44px;
     pointer-events: auto;

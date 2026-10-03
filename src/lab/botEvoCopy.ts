@@ -8,6 +8,11 @@ import type { BotStage } from "./botEvolution";
 export const BOTEVO_TITLE = "Bot Evolution";
 export const BOTEVO_SAVE_ARIA = "Boxes to next stage";
 
+/** Resume gate (#301). Early reader; the line stays under 50 characters. */
+export const BOTEVO_RESUME_LINE = "You have a game saved on this device.";
+export const BOTEVO_KEEP_GOING = "Keep going";
+export const BOTEVO_START_OVER = "Start over";
+
 export function connectLabel(n: number): string {
   return `Connect ${n}`;
 }
