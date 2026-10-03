@@ -3979,7 +3979,7 @@ labShowExperimentsBtn.addEventListener("click", () => {
   const show = labOperatorEl.hidden;
   labOperatorEl.hidden = !show;
   labShowExperimentsBtn.setAttribute("aria-expanded", show ? "true" : "false");
-  labShowExperimentsBtn.textContent = show ? "Hide experiments" : "Show experiments";
+  labShowExperimentsBtn.textContent = show ? "Hide more tools" : "Show more tools";
 });
 syncLabDoor();
 document.body.classList.add("home-open");

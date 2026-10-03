@@ -17,17 +17,17 @@ export const HOME_DOOR_COPY = {
   arcade: {
     title: "Arcade",
     hook: "On the rocket",
-    kicker: "Play for a minute",
+    kicker: "A short play",
   },
   journey: {
     title: "Journey",
-    hook: "Fly the charter",
+    hook: "Fly the ship",
     kicker: "Full game",
   },
   lab: {
     title: "Lab",
-    hook: "Experiments",
-    kicker: "Nerdy tools",
+    hook: "Try things",
+    kicker: "More tools",
   },
 } as const;
 

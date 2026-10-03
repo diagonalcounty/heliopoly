@@ -159,9 +159,9 @@ export const LAB_SCENARIOS: LabScenario[] = [
   // —— Minigames, most mature first (menu order) ——
   {
     id: "egg-bot-evolution",
-    title: "Bot Evolution",
+    title: "Make a bigger bot",
     blurb:
-      "Drop bots into a 3-wide field. Link three whose pins touch; they become a box. Harder jobs need four, then five, then six, and the field gets wider. Your rocket on the board is unchanged.",
+      "Drop bots in a row. Touching ones join into a bigger bot. Rows get longer. The big game stays as you left it.",
     group: "minigame",
     kind: "standalone",
     available: true,
@@ -197,7 +197,7 @@ export const LAB_SCENARIOS: LabScenario[] = [
     id: "backup-fuel-pipes",
     title: "Backup fuel",
     blurb:
-      "Reroute backup fuel: rotate pipes on a 6×6 until the tank feeds the engine. Your rocket on the board is unchanged.",
+      "Turn the pipes so fuel can flow from the tank to the engine. The big game stays as you left it.",
     group: "minigame",
     kind: "standalone",
     available: true,
@@ -205,9 +205,9 @@ export const LAB_SCENARIOS: LabScenario[] = [
   },
   {
     id: "hull-panel",
-    title: "Hull panel",
+    title: "Slide puzzle",
     blurb:
-      "Slide numbered hull plates 1–8 back into order. Your rocket on the board is unchanged.",
+      "Slide the plates from 1 to 8 back in order. The big game stays as you left it.",
     group: "minigame",
     kind: "standalone",
     available: true,
