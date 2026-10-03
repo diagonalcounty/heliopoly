@@ -90,11 +90,11 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     id: "how-to-win",
     title: "How to win",
     html: `
-<p><strong>Last rocket flying wins.</strong> The others go bankrupt, get stranded, or quit.</p>
-<p>The ledger then writes your name into its history as one of the <strong>greatest of all kind</strong>.</p>
-<p>There is no round limit. There is no “enough money.” Last one standing is the record.</p>
-<p>When a rocket leaves, its deeds go back to the <strong>bank</strong>. Fuel depots on those deeds are gone.</p>
-<p>See <strong>Glossary</strong> for <em>turn</em>, <em>round</em>, and <em>rotation</em>. Ledger events use <strong>rounds</strong>. Full list: <strong>Ledger events</strong>.</p>
+<p><strong>Last rocket flying wins.</strong> The others go bankrupt (run out of money), get stranded (stuck with no way to fly), or quit.</p>
+<p>The ledger (the book) then writes your name into its history as one of the greatest.</p>
+<p>There is no round limit (the game does not stop on a count). No amount of money wins. The last rocket still flying is what counts.</p>
+<p>When a rocket leaves, its deeds (proof it owned those worlds) go back to the <strong>bank</strong>. Fuel depots (fuel stops it built) on those deeds are gone.</p>
+<p>See <strong>Glossary</strong> (the word list) for turn, round, and rotation. The ledger (the book) counts in rounds. Full list: <strong>Ledger events</strong>.</p>
 `,
   },
   {
