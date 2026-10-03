@@ -194,6 +194,15 @@ assertMatch(handbook, /You've struck liquid methane!/, "Propellant exact methane
 assertMatch(handbook, /Hydrogen \(H₂, can leak\)/, "Propellant hydrogen");
 assertMatch(handbook, /writes a deed \(proof you own a world\)/, "Propellant ledger");
 assertNo(handbook, /conservative operator/, "Propellant drops operator");
+assertMatch(handbook, /they fight a <strong>Gravity Duel<\/strong> \(a lane fight\)/, "Gravity Duel intro");
+assertMatch(handbook, /empty-stop marks/, "Gravity Duel start");
+assertMatch(handbook, /Tap <strong>Roll dice<\/strong> when asked/, "Gravity Duel roll");
+assertMatch(handbook, /a gentler burn, a smaller push/, "Gravity Duel both low");
+assertMatch(handbook, /that average starts at <strong>7<\/strong>/, "Gravity Duel mean");
+assertMatch(handbook, /If the loser is already on Earth, they cannot be shoved further back\./, "Gravity Duel Earth line");
+assertMatch(handbook, /dice fight you play now/, "Gravity Duel note");
+assertNo(handbook, /empty transit pips/, "Gravity Duel drops pips");
+assertNo(handbook, /Realtime \/ animated duels/, "Gravity Duel drops realtime note");
 
 
 console.log("playerManual: in-app README and CHANGELOG stay player-facing");

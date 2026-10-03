@@ -477,58 +477,58 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     id: "duel",
     title: "Gravity Duel",
     html: `
-<p>In the blank transit lanes — diamonds on the belt and other empty path nodes — Earth’s polite traffic rules do not apply. When two rockets try to share the same slingshot, they fight a <strong>Gravity Duel</strong> for the lane.</p>
+<p>On the blank lanes (empty stops) — the diamond marks on the belt and other empty stops — the polite rules from Earth do not apply. When two rockets try to share the same slingshot (the same empty stop), they fight a <strong>Gravity Duel</strong> (a lane fight) for the lane.</p>
 
 <h4>When does a duel start?</h4>
 <ul>
-  <li>You <strong>land</strong> on a <strong>blank / space</strong> node (not a planet, moon, or hub station).</li>
-  <li>Another living rocket is already there, or the lane has a remembered defender from a prior fight.</li>
-  <li>You are the <strong>challenger</strong> (arriver). The other pilot is the <strong>defender</strong>.</li>
+  <li>You land on a blank lane (an empty stop), not a planet, moon, or hub (a station).</li>
+  <li>Another rocket that is still flying is already there, or the lane remembers a defender from an earlier fight.</li>
+  <li>You are the <strong>challenger</strong> (you just arrived). The other pilot is the <strong>defender</strong> (they were already there).</li>
 </ul>
-<p>No duel on planets, moons, hubs, or Earth — only those empty transit pips.</p>
+<p>No lane fight on planets, moons, hubs (stations), or Earth — only those empty-stop marks.</p>
 
 <h4>How to play (human steps)</h4>
 <ol>
-  <li><strong>Pick a secret stance</strong> — <strong>Low</strong> or <strong>High</strong>. The opponent does the same. Neither of you sees the other’s choice yet.</li>
-  <li><strong>Roll 2d6</strong> when prompted (both sides roll).</li>
-  <li><strong>Reveal</strong> — stances and totals show together. The game picks a winner (or a tie) from the rules below.</li>
-  <li>Read the result on the same duel panel (names and dice stay visible), then continue.</li>
+  <li>Pick a secret stance (High or Low). The other rocket does the same. Neither of you sees the other's pick yet.</li>
+  <li>Tap <strong>Roll dice</strong> when asked. Both sides roll two dice.</li>
+  <li>Then the picks and the totals show together. The game picks a winner, or a tie, from the rules below.</li>
+  <li>Read the result on the same fight panel. Names and dice stay visible. Then continue.</li>
 </ol>
 
 <h4>How the winner is decided</h4>
-<p>Both pilots always roll <strong>2d6</strong>. What “good” means depends on the stance pair:</p>
+<p>Both pilots always roll two dice. What counts as better depends on the High and Low pair:</p>
 <table class="glossary">
   <thead><tr><th>Your stances</th><th>Who wins</th></tr></thead>
   <tbody>
     <tr>
       <td><strong>Both Low</strong></td>
-      <td>The <strong>lower</strong> dice total wins (gentler burn / tighter slot).</td>
+      <td>The lower dice total wins (a gentler burn, a smaller push).</td>
     </tr>
     <tr>
       <td><strong>Both High</strong></td>
-      <td>The <strong>higher</strong> dice total wins (harder burn / bigger swing).</td>
+      <td>The higher dice total wins (a harder burn, a bigger push).</td>
     </tr>
     <tr>
-      <td><strong>Mixed</strong> (one Low, one High)</td>
-      <td>Whichever total is <strong>closer to the running mean</strong> of all 2d6 rolls so far this game wins. (If no history yet, the mean defaults to <strong>7</strong>.)</td>
+      <td><strong>One Low and one High</strong></td>
+      <td>The total closer to the running mean (the average of every two-dice roll so far this game) wins. If there is no history yet, that average starts at <strong>7</strong>.</td>
     </tr>
   </tbody>
 </table>
-<p>If totals (or distances to the mean) are equal → <strong>tie</strong> (see stakes).</p>
-<p><strong>Tip:</strong> Low is a bet on rolling small; High on rolling large. Mixed turns the fight into “who is nearer average,” so a mid roll can beat a dramatic high or low.</p>
+<p>If the totals match, or both are the same distance from the average, it is a tie. See the stakes (what you win or lose) below.</p>
+<p><strong>Tip:</strong> Low is a bet on rolling small. High is a bet on rolling large. One of each turns the fight into who is nearer the average, so a middle roll can beat a very high or very low one.</p>
 
 <h4>Stakes</h4>
 <ul>
-  <li><strong>Loser</strong> — skips their <strong>next full seat turn</strong> (that skip also counts as a <strong>park</strong> for feral risk) <strong>and</strong> is <strong>knocked back one space</strong> on the Mainline (toward the previous beacon). Knockback can charge rent / Earth pay / leak at the new node; it does not start a second duel.</li>
-  <li><strong>Winner</strong> — gains a one-time <strong>rent waiver</strong> against the loser: the next time the winner would pay rent to that pilot’s claims, the fee is free (waiver consumed).</li>
-  <li><strong>Tie</strong> — both hold the lane; nobody skips, no knockback, no waiver. The next arrival may face the last roller as defender.</li>
-  <li>If the loser is already on <strong>Earth</strong>, they cannot be shoved further back.</li>
+  <li>The loser misses their next full turn. That skip also counts as a park (a stay-put) for feral risk (the chance of going wild). They move back one stop on the Mainline (the only path), toward the previous beacon (the stop behind them). That new stop can still charge rent, Earth pay, or a leak. It does not start a second lane fight.</li>
+  <li>The winner skips rent once against that loser. The next time the winner would pay rent on that pilot's claims, it is free. Then the skip is used up.</li>
+  <li><strong>Tie.</strong> You both keep the lane. Nobody misses a turn, nobody moves back, and nobody skips rent. The next rocket to arrive may face the last roller as the defender.</li>
+  <li>If the loser is already on Earth, they cannot be shoved further back.</li>
 </ul>
 
 <h4>What the panel is showing you</h4>
-<p>Your rocket is usually on the right when you are human; the rival on the left. Use <strong>Low</strong> / <strong>High</strong>, then <strong>Roll</strong>. AI seats lock and roll automatically. The result splash keeps the matchup context — it does not throw you into a blank full-screen with no names.</p>
+<p>Your rocket is usually on the right when you are the human player. The rival is on the left. Pick Low or High, then tap <strong>Roll dice</strong>. Computer rockets lock in and roll on their own. The result keeps the names. It does not throw you onto a blank screen with no names.</p>
 
-<p class="handbook-note">Realtime / animated duels are not in this build yet (see “Not yet”). The rules above are the live dice duel.</p>
+<p class="handbook-note">A moving, live-action duel is not in the game yet (see <strong>Not yet</strong>). The rules above are the dice fight you play now.</p>
 `,
   },
   {
