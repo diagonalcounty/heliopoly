@@ -78,7 +78,7 @@ export const SAME_LEAD_RATE = 0.55;
 export const SAME_HUNDREDS_TENS_RATE = 0.4;
 
 /** Handbook / drill one-liner for the place-value trap. */
-export const SAME_LEAD_HINT = "Same first digit — check the next place.";
+export const SAME_LEAD_HINT = "The first digits match. Check the next place.";
 
 export function tensPlace(n: number): number {
   return Math.floor(n / 10) % 10;

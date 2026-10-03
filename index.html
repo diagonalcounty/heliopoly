@@ -578,8 +578,8 @@ The book keeps what you do.</p>
       >
         <header class="handbook-header">
           <div>
-            <p class="handbook-kicker">Lab · literacy</p>
-            <h2 id="eac-title">Which is larger?</h2>
+            <p class="handbook-kicker">Lab · Eastern Arabic (number shapes)</p>
+            <h2 id="eac-title">Which is larger? · Eastern Arabic shapes</h2>
           </div>
           <button type="button" id="eac-close" class="handbook-close" aria-label="Close">
             ✕
@@ -587,22 +587,11 @@ The book keeps what you do.</p>
         </header>
         <div class="eac-body">
           <div class="eac-status-row">
-            <p id="eac-round" class="eac-round mono" aria-live="polite">Level 1 · one digit</p>
+            <p id="eac-round" class="eac-round mono" aria-live="polite">Level 1 · one digit (one place)</p>
             <p id="eac-attempts" class="eac-attempts mono" aria-live="polite">0 / 12</p>
           </div>
-          <p id="eac-place-hint" class="eac-place-hint hidden" aria-live="polite">Same first digit — check the next place.</p>
-          <p class="hint eac-hint">
-            Two numbers appear in Eastern Arabic digits. Choose the larger one by
-            tapping it, or use the arrow keys / <kbd>&lt;</kbd> <kbd>&gt;</kbd>
-            to point at that side.
-            You win by finishing three levels in a row—one-digit, then two-digit,
-            then three-digit—without help on those steps.
-            Same first digit — check the next place.
-            Need a hand? <strong>Hint</strong> reveals one number in familiar
-            Western digits, but that try won’t advance you; you’ll need to clear
-            the level again without a hint.
-            You have up to 12 tries. <strong>Reset</strong> starts over anytime.
-          </p>
+          <p id="eac-place-hint" class="eac-place-hint hidden" aria-live="polite">The first digits match. Check the next place.</p>
+          <p class="hint eac-hint">Two numbers show up in Eastern Arabic digits, other shapes for 0 to 9. Tap the larger one, or point to that side with the arrow keys. You win by finishing all three levels in a row with no hint on those tries. If the first digits match, check the next place. Hint shows one number in the digits you know, but that try does not count, and you must finish that level again with no hint. You get 12 tries. Reset starts over.</p>
           <div id="eac-play" class="eac-play">
             <div class="eac-choices" role="group" aria-label="Choose the larger number">
               <button type="button" class="eac-num" id="eac-left" data-side="left" aria-label="Left number">
@@ -622,10 +611,7 @@ The book keeps what you do.</p>
           </div>
           <div id="eac-end" class="eac-win hidden" aria-live="polite">
             <p id="eac-end-title" class="eac-win-title">Nice work</p>
-            <p id="eac-end-blurb" class="hint">
-              You finished all three levels without using a hint on those steps.
-              Here’s what you saw, with Western numbers alongside:
-            </p>
+            <p id="eac-end-blurb" class="hint">You finished all three levels with no hint on those tries. Here is what you saw, next to the numbers you already know:</p>
             <div id="eac-recap" class="eac-recap hidden" aria-label="Numbers you cleared"></div>
             <div class="eac-win-actions">
               <button type="button" id="eac-again" class="eac-primary">Play again</button>
