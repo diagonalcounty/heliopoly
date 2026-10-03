@@ -409,20 +409,20 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     id: "monopoly",
     title: "Systems & monopoly",
     html: `
-<p>Own <strong>every deed in a system</strong> → <strong>rent doubles</strong> on any landing there.</p>
+<p>Own every deed (proof you own each one) in a system (a group) and rent (what others pay you) doubles on any landing there.</p>
 <ul>
-  <li><strong>Mercury / Venus</strong> — single planet each</li>
-  <li><strong>Mars</strong> — Elon + Mars + Phobos + Deimos</li>
-  <li><strong>Jupiter</strong> — Holst + four moons</li>
-  <li><strong>Saturn</strong> — Daktulios + seven moons</li>
+  <li><strong>Mercury / Venus</strong> — each group is that one planet.</li>
+  <li><strong>Mars</strong> — Elon (the station) + Mars + Phobos + Deimos</li>
+  <li><strong>Jupiter</strong> — Holst (the station) + four moons</li>
+  <li><strong>Saturn</strong> — Daktulios (the station) + seven moons</li>
 </ul>
-<p><strong>Space stations</strong> (Elon · Holst Space Station · Daktulios) also form a railroad-style set of their own:</p>
+<p>The space stations (Elon · Holst Space Station · Daktulios) are also their own set:</p>
 <ul>
-  <li>Own <strong>2</strong> hubs → rent <strong>×2</strong> on those hubs</li>
-  <li>Own <strong>all 3</strong> → rent <strong>×4</strong> on those hubs</li>
+  <li>Own <strong>2</strong> hubs (stations) and rent (what others pay you) on those hubs is <strong>×2</strong>.</li>
+  <li>Own all <strong>3</strong> hubs and rent on those hubs is <strong>×4</strong>.</li>
 </ul>
-<p>System monopoly and the station network <em>stack</em> (e.g. full Mars + all hubs multiplies Elon by both).</p>
-<p>Earth is never a deed.</p>
+<p>A system monopoly (you own every world in that group) and the station set both count. For example, all of Mars plus all three stations multiplies Elon's rent by both.</p>
+<p>Earth is never a deed (it is never for sale).</p>
 `,
   },
   {

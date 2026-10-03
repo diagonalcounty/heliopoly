@@ -169,6 +169,15 @@ assertMatch(handbook, /parked \(staying put\)/, "Legend rocket");
 assertMatch(handbook, /Rings around the Sun, tinted by group/, "Legend rings");
 assertNo(handbook, /separate clip-art set/, "Legend drops clip-art");
 assertNo(handbook, /Diamond pips/, "Legend drops pips");
+assertMatch(handbook, /Own every deed \(proof you own each one\)/, "Monopoly intro");
+assertMatch(handbook, /each group is that one planet/, "Monopoly inner planets");
+assertMatch(handbook, /Elon \(the station\) \+ Mars \+ Phobos \+ Deimos/, "Monopoly Mars");
+assertMatch(handbook, /Holst \(the station\) \+ four moons/, "Monopoly Jupiter");
+assertMatch(handbook, /Daktulios \(the station\) \+ seven moons/, "Monopoly Saturn");
+assertMatch(handbook, /Own <strong>2<\/strong> hubs \(stations\)/, "Monopoly two hubs");
+assertMatch(handbook, /multiplies Elon's rent by both/, "Monopoly stack");
+assertMatch(handbook, /Earth is never a deed \(it is never for sale\)/, "Monopoly Earth");
+assertNo(handbook, /railroad-style/, "Monopoly drops railroad");
 
 
 console.log("playerManual: in-app README and CHANGELOG stay player-facing");
