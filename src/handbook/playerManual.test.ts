@@ -137,6 +137,16 @@ assertMatch(handbook, /one less stay-put on the count/, "Standard pool Tuesday b
 assertMatch(handbook, /That rocket loses <strong>2 fuel<\/strong>/, "Standard pool Error 47");
 assertNo(handbook, /The terminal dumps/, "Standard pool drops terminal dump");
 assertNo(handbook, /capped at tank max/, "Standard pool drops tank max");
+assertMatch(handbook, /This card keeps its own count/, "Rare Kostka trigger");
+assertMatch(handbook, /passes by Earth; a landing counts too/, "Rare Earth transits");
+assertMatch(handbook, /They adopt a dog named Kostka\. <strong>\+200<\/strong> \(money\)/, "Rare Kostka effect");
+assertMatch(handbook, /Attend Adalynn's graduation\. Take Ainsley to get her driver's license\. Go to a swim meet for Avery and Alanna\./, "Rare family sentences");
+assertMatch(handbook, /Each pays <strong>\+200<\/strong> \(money\)/, "Rare family pay");
+assertMatch(handbook, /not Kostka.s roll and not the round pool \(the usual set\)/, "Rare own roll");
+assertMatch(handbook, /the lead computer rocket is the chooser/, "Rare vibe who");
+assertMatch(handbook, /off the ledger \(out of the book\)/, "Rare vibe effect");
+assertNo(handbook, /Living human, else the lead AI/, "Rare drops old vibe who");
+assertNo(handbook, /this charter/, "Rare drops charter");
 
 
 console.log("playerManual: in-app README and CHANGELOG stay player-facing");
