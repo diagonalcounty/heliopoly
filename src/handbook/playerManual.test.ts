@@ -217,6 +217,13 @@ assertMatch(handbook, /does not become a sure thing on the next park/, "Feral la
 assertMatch(handbook, /Any fuel depot \(fuel stop\) on it is destroyed/, "Feral depot");
 assertNo(handbook, /software rots/, "Feral drops software rots");
 assertNo(handbook, /hardware junk/, "Feral drops hardware junk");
+assertMatch(handbook, /one ring of worlds \(one loop of worlds\)/, "Not yet hop");
+assertMatch(handbook, /by selling or swapping/, "Not yet trading");
+assertMatch(handbook, /not a price list you can use yet/, "Not yet fuel prices");
+assertMatch(handbook, /lane fight that plays out as it happens/, "Not yet live duel");
+assertMatch(handbook, /Those names are not other rockets/, "Not yet named lanes");
+assertNo(handbook, /Purchasable transfer nodes/, "Not yet drops transfer nodes");
+assertNo(handbook, /full matrix later/, "Not yet drops matrix");
 
 
 console.log("playerManual: in-app README and CHANGELOG stay player-facing");

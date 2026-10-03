@@ -610,14 +610,15 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     title: "Not yet",
     html: `
 <ul>
-  <li>Purchasable transfer nodes between rings</li>
-  <li>Player trading</li>
-  <li>Fuel prices by location (Earth cheapest is direction only; full matrix later)</li>
-  <li>Realtime Gravity Duel</li>
-  <li>Named transit lanes (figures not used as rival rockets — see design notes)</li>
+  <li>A buyable hop from one ring of worlds (one loop of worlds) to another. Not in the game yet.</li>
+  <li>Trading with another rocket yourself, by selling or swapping. Not in the game yet.</li>
+  <li>Fuel does not yet cost a different amount at each world. Earth being the cheapest is the plan, not a price list you can use yet.</li>
+  <li>A live Gravity Duel (a lane fight that plays out as it happens), not the turn-by-turn one already in Journey. Not in the game yet.</li>
+  <li>Named lanes. Not in the game yet. Those names are not other rockets.</li>
 </ul>
 `,
   },
+
 ];
 
 const rivalIndex = rivalPilotsIndexTopic();
