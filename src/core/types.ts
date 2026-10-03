@@ -385,6 +385,8 @@ export interface GameState {
   };
   config: GameConfig;
   rngState: number;
+  /** Lab/operator canned board (#107 scenarios) — never counts toward the win record (#342). */
+  isLabDrop?: boolean;
 }
 
 export type PlayerAction =
