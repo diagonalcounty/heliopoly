@@ -155,18 +155,11 @@
             <div class="announce-copy">
               <p class="announce-kicker">Welcome</p>
               <p class="tone">+</p>
-              <h2>The ledger is open</h2>
-              <p class="announce-body">This book keeps two truths.
-Contracts — who owns which world, who is owed.
-History — every rocket that lasted.
-
-Old Earth used public ledgers. Ethereum was one. Quantum machines broke those books.
-
-Money here is Angzarr (⍼). It is post-quantum. It still keeps a ledger.
-
-Last rocket flying is written as one of the greatest of all kind.
-
-Name your rocket. Then Launch.</p>
+              <h2>The book is open</h2>
+              <p class="announce-body">Name your rocket. Then launch.
+The last rocket still flying wins.
+Money is called Angzarr.
+The book keeps what you do.</p>
             </div>
           </div>
           </div>
@@ -387,7 +380,7 @@ Name your rocket. Then Launch.</p>
             class="home-door home-door-arcade"
             autofocus
           >
-            <span class="home-door-kicker">Play for a minute</span>
+            <span class="home-door-kicker">A short play</span>
             <span class="home-door-title">Arcade</span>
             <span class="home-door-hook">On the rocket</span>
           </button>
@@ -395,7 +388,7 @@ Name your rocket. Then Launch.</p>
             <button type="button" id="door-journey" class="home-door home-door-journey">
               <span class="home-door-kicker">Full game</span>
               <span class="home-door-title">Journey</span>
-              <span class="home-door-hook">Fly the charter</span>
+              <span class="home-door-hook">Fly the ship</span>
             </button>
             <button
               type="button"
@@ -404,10 +397,10 @@ Name your rocket. Then Launch.</p>
               aria-disabled="true"
               disabled
             >
-              <span class="home-door-kicker">Nerdy tools</span>
+              <span class="home-door-kicker">More tools</span>
               <span class="home-door-title">Lab</span>
-              <span class="home-door-hook">Experiments</span>
-              <span class="home-door-lock" id="door-lab-lock">Play one Arcade toy</span>
+              <span class="home-door-hook">Try things</span>
+              <span class="home-door-lock" id="door-lab-lock">Play one toy first</span>
             </button>
           </div>
         </div>
@@ -425,7 +418,7 @@ Name your rocket. Then Launch.</p>
       >
         <header class="handbook-header">
           <div>
-            <p class="handbook-kicker">Play for a minute</p>
+            <p class="handbook-kicker">A short play</p>
             <h2 id="arcade-title">Arcade</h2>
           </div>
           <button type="button" id="arcade-close" class="handbook-close" aria-label="Close">
@@ -434,7 +427,7 @@ Name your rocket. Then Launch.</p>
         </header>
         <div class="lab-body">
           <p class="hint lab-intro">
-            On the rocket. These leave your charter flight where it is.
+            On the rocket. The big game stays as you left it.
           </p>
           <div id="arcade-scenarios" class="lab-scenarios arcade-scenarios"></div>
         </div>
@@ -452,7 +445,7 @@ Name your rocket. Then Launch.</p>
       >
         <header class="handbook-header">
           <div>
-            <p class="handbook-kicker">Nerdy tools</p>
+            <p class="handbook-kicker">More tools</p>
             <h2 id="lab-title">Lab</h2>
           </div>
           <button type="button" id="lab-close" class="handbook-close" aria-label="Close">
@@ -460,11 +453,9 @@ Name your rocket. Then Launch.</p>
           </button>
         </header>
         <div class="lab-body">
-          <p class="lab-shelf-kicker">Experiments</p>
+          <p class="lab-shelf-kicker">Try things</p>
           <p class="hint lab-intro">
-            Drills and operator setups. Not more games. Number drills and
-            practice leave your rocket on the board. Gravity Duel practice
-            starts a new board.
+            Most of these leave the big game as you left it. Gravity Duel practice throws this game away and starts a new one.
           </p>
           <div id="lab-scenarios" class="lab-scenarios"></div>
           <button
@@ -474,11 +465,11 @@ Name your rocket. Then Launch.</p>
             aria-expanded="false"
             aria-controls="lab-operator-scenarios"
           >
-            Show experiments
+            Show more tools
           </button>
           <div id="lab-operator-scenarios" class="lab-scenarios" hidden></div>
           <p class="hint lab-sim-note">
-            Sim Lab (<code>npm run sim-lab</code>) is the balance host. It is not a toy here.
+            This is not another toy.
           </p>
         </div>
       </div>

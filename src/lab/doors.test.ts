@@ -33,11 +33,11 @@ assert(
   "exactly three doors in Arcade, Journey, Lab order",
 );
 assert(HOME_DOOR_COPY.arcade.hook === "On the rocket", "Arcade hook");
-assert(HOME_DOOR_COPY.arcade.kicker === "Play for a minute", "Arcade kicker");
-assert(HOME_DOOR_COPY.journey.hook === "Fly the charter", "Journey hook");
+assert(HOME_DOOR_COPY.arcade.kicker === "A short play", "Arcade kicker");
+assert(HOME_DOOR_COPY.journey.hook === "Fly the ship", "Journey hook");
 assert(HOME_DOOR_COPY.journey.kicker === "Full game", "Journey kicker");
-assert(HOME_DOOR_COPY.lab.hook === "Experiments", "Lab hook");
-assert(HOME_DOOR_COPY.lab.kicker === "Nerdy tools", "Lab kicker");
+assert(HOME_DOOR_COPY.lab.hook === "Try things", "Lab hook");
+assert(HOME_DOOR_COPY.lab.kicker === "More tools", "Lab kicker");
 assert(
   ARCADE_SESSIONS_KEY === "heliopoly.arcadeSessionsCompleted",
   "Lab gate key is documented",

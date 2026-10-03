@@ -542,13 +542,13 @@ test.describe("phone Lab sheet #193", () => {
       });
     });
     expect(report.length, "practice cards").toBeGreaterThanOrEqual(3);
-    expect(report.some((r) => r.title === "Bot Evolution"), "Arcade toy stays off Lab").toBe(
+    expect(report.some((r) => r.title === "Make a bigger bot"), "Arcade toy stays off Lab").toBe(
       false,
     );
     expect(report.some((r) => r.title === "Backup fuel"), "fuel toy stays off Lab").toBe(
       false,
     );
-    expect(report.some((r) => r.title === "Hull panel"), "slider toy stays off Lab").toBe(
+    expect(report.some((r) => r.title === "Slide puzzle"), "slider toy stays off Lab").toBe(
       false,
     );
     expect(
@@ -1254,13 +1254,13 @@ test.describe("home doors #275", () => {
     await bootHome(page);
     await expect(page.locator("#door-arcade")).toBeFocused();
     await expect(page.locator("#door-arcade")).toContainText("On the rocket");
-    await expect(page.locator("#door-arcade")).toContainText("Play for a minute");
-    await expect(page.locator("#door-journey")).toContainText("Fly the charter");
+    await expect(page.locator("#door-arcade")).toContainText("A short play");
+    await expect(page.locator("#door-journey")).toContainText("Fly the ship");
     await expect(page.locator("#door-journey")).toContainText("Full game");
-    await expect(page.locator("#door-lab")).toContainText("Experiments");
-    await expect(page.locator("#door-lab")).toContainText("Nerdy tools");
+    await expect(page.locator("#door-lab")).toContainText("Try things");
+    await expect(page.locator("#door-lab")).toContainText("More tools");
     await expect(page.locator("#door-lab")).toBeDisabled();
-    await expect(page.locator("#door-lab-lock")).toHaveText("Play one Arcade toy");
+    await expect(page.locator("#door-lab-lock")).toHaveText("Play one toy first");
     await expect(page.locator(".home-door")).toHaveCount(3);
 
     const arcade = await boxOf(page, "#door-arcade");
@@ -1314,7 +1314,7 @@ test.describe("home doors #275", () => {
     await page.locator("#door-lab").click();
     await expect(page.locator("#lab-root")).not.toHaveClass(/hidden/);
     await expect(page.locator("#lab-title")).toHaveText("Lab");
-    await expect(page.locator("#lab-root")).toContainText("Experiments");
+    await expect(page.locator("#lab-root")).toContainText("Try things");
     await expect(page.locator("#lab-root [data-scenario='egg-bot-evolution']")).toHaveCount(
       0,
     );
@@ -1329,7 +1329,7 @@ test.describe("home doors #275", () => {
       .locator('.lab-group-toggle[aria-controls="lab-group-items-end"]')
       .click();
     await expect(page.locator("[data-scenario='end-you-win']")).toBeVisible();
-    await expect(page.locator(".lab-sim-note")).toContainText("sim-lab");
+    await expect(page.locator(".lab-sim-note")).toContainText("This is not another toy");
     await page.locator("#lab-close").click();
     await expect(page.locator("#home-root")).not.toHaveClass(/hidden/);
     await expect(page.locator("#lab-root")).toHaveClass(/hidden/);
