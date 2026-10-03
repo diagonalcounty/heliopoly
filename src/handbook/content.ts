@@ -279,23 +279,23 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     <tr>
       <td><strong>Kostka</strong></td>
       <td>+</td>
-      <td>Own clock. After <strong>5 Earth transits</strong> this charter (any rocket, land or pass), the <strong>next Earth landing</strong> rolls <strong>30%</strong>. Each later Earth landing +<strong>10%</strong> (30 → 40 → 50 …). Not in the round pool. Fires at most once.</td>
+      <td>This card keeps its own count. After <strong>5 Earth transits</strong> (passes by Earth; a landing counts too) in this game, by any rocket, the next Earth landing rolls a <strong>30%</strong> chance. Each later Earth landing adds <strong>10%</strong> (30 → 40 → 50 …). Not in the round pool (the usual set). Happens at most once.</td>
       <td>The rocket that just landed on Earth</td>
-      <td>They adopt a dog named Kostka. <strong>+200</strong>.</td>
+      <td>They adopt a dog named Kostka. <strong>+200</strong> (money).</td>
     </tr>
     <tr>
       <td><strong>Adalynn, Ainsley, Avery and Alanna</strong></td>
       <td>+</td>
-      <td>Earth landing only, after the same <strong>5 Earth transits</strong>. Own draw, not Kostka’s roll and not the round pool. First eligible landing is <strong>30%</strong>, then +<strong>10%</strong> on a miss. Each card once.</td>
+      <td>Earth landing only, after the same <strong>5 Earth transits</strong> (passes by Earth; a landing counts too). This card has its own roll, not Kostka’s roll and not the round pool (the usual set). The first landing that counts is <strong>30%</strong>, then +<strong>10%</strong> each time the roll misses. Each of these happens once.</td>
       <td>The rocket that just landed on Earth</td>
-      <td>Attend Adalynn's graduation. Take Ainsley to get her driver's license. Go to a swim meet for Avery and Alanna. Each pays <strong>+200</strong>.</td>
+      <td>Attend Adalynn's graduation. Take Ainsley to get her driver's license. Go to a swim meet for Avery and Alanna. Each pays <strong>+200</strong> (money).</td>
     </tr>
     <tr>
       <td><strong>You vibe-coded the rules</strong></td>
       <td>+ / −</td>
-      <td>First time the expedition reaches <strong>round 60</strong>, one <strong>50%</strong> roll (hit or miss — never retries). Not in the standard pool.</td>
-      <td>Living human, else the lead AI (chooser). Victim is an AI rival.</td>
-      <td>Chooser <strong>kicks one AI rocket</strong> off the ledger. Human: click that rocket in standings.</td>
+      <td>The first time the expedition (this game) reaches <strong>round 60</strong> (a round is every rocket having one turn), one <strong>50%</strong> roll. Hit or miss — it never tries again. Not in the standard pool (the usual set).</td>
+      <td>You, if you are still flying. If not, the lead computer rocket is the chooser. The one who loses is a computer rival.</td>
+      <td>The chooser kicks one computer rocket off the ledger (out of the book). You tap that rocket in the standings (who is ahead).</td>
     </tr>
   </tbody>
 </table>
