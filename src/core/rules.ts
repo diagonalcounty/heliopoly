@@ -1932,6 +1932,13 @@ export function autoResolveCharterChoice(state: GameState): void {
   }
 }
 
+/** Legal vibe_kick targets for a human chooser (#341): living AI opponents. */
+export function vibeKickTargets(state: GameState, chooserId: string): Player[] {
+  return livingPlayers(state).filter(
+    (p) => p.id !== chooserId && p.agent === "ai",
+  );
+}
+
 export function applyCharterKick(
   state: GameState,
   chooserId: string,
@@ -1940,8 +1947,18 @@ export function applyCharterKick(
   const pc = state.pendingCharterChoice;
   if (!pc || pc.kind !== "vibe_kick" || pc.chooserId !== chooserId) return;
   const chooser = state.players.find((p) => p.id === chooserId);
+  if (!chooser) return;
+  if (!targetId) {
+    // No legal target (#341): the card fizzles instead of leaving a dead control.
+    state.pendingCharterChoice = null;
+    pushLog(
+      state,
+      `${rocketTitle(chooser)} finds no rocket to patch — the card fizzles.`,
+    );
+    return;
+  }
   const target = state.players.find((p) => p.id === targetId);
-  if (!chooser || !target || target.eliminated || target.id === chooser.id) {
+  if (!target || target.eliminated || target.id === chooser.id) {
     return;
   }
   // Human may only kick AI when a human is seated
