@@ -41,9 +41,9 @@ const PILOT_ARTICLES: Record<string, string> = {
 <p>His Three Laws of Robotics (his rules for robots) are a short way to say "design your tools before they design you." In orbital economics (money and fuel in this game) among the planets, contracts (deals) and claims (worlds you own) play a similar role.</p>
 `,
   clarke: `
-<p class="pilot-hook"><em>2001: A Space Odyssey; also predicted geostationary satellites.</em></p>
-<p><strong>Arthur C. Clarke</strong> co-created <em>2001</em> and wrote hard science fiction that treated space as engineering, not magic. Years before Sputnik, he described satellites parked in geostationary orbit — the same altitude that now carries much of Earth’s TV and weather data.</p>
-<p>Clarke’s lesson for the Mainline: the useful idea often arrives decades before the infrastructure.</p>
+<p class="pilot-hook"><em>2001: A Space Odyssey (a space story). Also predicted geostationary satellites (a satellite that stays over one spot on Earth).</em></p>
+<p>Arthur C. Clarke helped make <em>2001</em> and wrote hard science fiction (made-up stories that follow real engineering) that treated space as engineering, not magic. Years before Sputnik (the first satellite), he described satellites parked in geostationary orbit (the height where a satellite stays over one spot) — the same height that now carries much of Earth's TV and weather data.</p>
+<p>Clarke's lesson for the Mainline (the main run of this game): the useful idea often arrives decades (many years) before the infrastructure (the built thing that makes the idea work).</p>
 `,
   goddard: `
 <p class="pilot-hook"><em>American pioneer of liquid-fuel rockets (ideas, not a flight crew).</em></p>
