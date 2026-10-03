@@ -104,6 +104,7 @@ function labAis(s: GameState) {
 function tagLab(s: GameState, label: string): GameState {
   s.log.push(`—— Lab: ${label} ——`);
   s.turnDeltas = [`Lab · ${label}`];
+  s.isLabDrop = true;
   return s;
 }
 

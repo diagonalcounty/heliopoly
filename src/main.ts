@@ -34,6 +34,7 @@ import {
 import { rocketTitle, sanitizePilotName } from "./core/pilotNames";
 import { goingUnderFlags } from "./core/goingUnder";
 import { assetSheetRows } from "./core/claimLedger";
+import { recordJourneyWin } from "./core/journeyRecord";
 import {
   applyAction,
   resolveCharterChoiceIfAi,
@@ -558,6 +559,7 @@ const bodyTooltip = document.getElementById("body-tooltip")!;
 const endRoot = document.getElementById("end-root")!;
 const endTitle = document.getElementById("end-title")!;
 const endStory = document.getElementById("end-story")!;
+const endWinRecord = document.getElementById("end-win-record")!;
 const endBooks = document.getElementById("end-books") as HTMLTableElement;
 const endRanks = document.getElementById("end-ranks")!;
 const labRoot = document.getElementById("lab-root")!;
@@ -1490,6 +1492,17 @@ function showEndScreen(s: GameState): void {
   }
   endTitle.textContent = winner ? prevailsHeadline(winner) : "Game over";
   endStory.textContent = endScreenStory(s, winner);
+  if (winner?.agent === "human" && !s.isLabDrop) {
+    const wins = recordJourneyWin(pageStorage(), {
+      playerCount: s.config.playerCount,
+      difficulty: s.config.aiDifficulty,
+    });
+    endWinRecord.textContent = `You've beaten Heliopoly ${wins.length} time${wins.length === 1 ? "" : "s"} on this device.`;
+    endWinRecord.classList.remove("hidden");
+  } else {
+    endWinRecord.classList.add("hidden");
+    endWinRecord.textContent = "";
+  }
   renderEndBooks(s, winner);
   // Full field: flying first (by NW), then eliminated by exit round (earliest first)
   const flying = s.players
