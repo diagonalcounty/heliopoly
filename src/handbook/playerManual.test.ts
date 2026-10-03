@@ -147,6 +147,15 @@ assertMatch(handbook, /the lead computer rocket is the chooser/, "Rare vibe who"
 assertMatch(handbook, /off the ledger \(out of the book\)/, "Rare vibe effect");
 assertNo(handbook, /Living human, else the lead AI/, "Rare drops old vibe who");
 assertNo(handbook, /this charter/, "Rare drops charter");
+assertMatch(handbook, /two dice \(2d6\) set how far you can go/, "Turn flow Roll");
+assertMatch(handbook, /Stop short<\/strong> — optional/, "Turn flow Stop short");
+assertMatch(handbook, /Sell from far away/, "Turn flow remote sell");
+assertMatch(handbook, /unowned deed \(proof you buy that world\)/, "Turn flow buy window");
+assertMatch(handbook, /gravity well \(a strong pull, like a planet or moon\)/, "Turn flow gravity well");
+assertMatch(handbook, /decade bonus \(a big bonus each ten loops\)/, "Turn flow decade bonus");
+assertMatch(handbook, /warp charge \(a saved jump\)/, "Turn flow warp");
+assertNo(handbook, /shave spaces/, "Turn flow drops Break shave");
+assertNo(handbook, /one-click dump/, "Turn flow drops one-click dump");
 
 
 console.log("playerManual: in-app README and CHANGELOG stay player-facing");
