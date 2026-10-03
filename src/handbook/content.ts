@@ -330,7 +330,7 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     id: "legend",
     title: "Board legend",
     html: `
-<p>Every picture below is the <em>same paint</em> the board uses — not a separate clip-art set. When you buy a world, the picture itself changes.</p>
+<p>Every picture below is the same paint the board uses, not a second set of pictures. When you buy a world, the picture itself changes.</p>
 
 <h4>Bodies</h4>
 <div class="legend-grid">
@@ -341,7 +341,7 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
       <canvas data-legend="body" data-node="venus" data-w="48" data-h="48" aria-hidden="true"></canvas>
       <canvas data-legend="body" data-node="mercury" data-w="48" data-h="48" aria-hidden="true"></canvas>
     </div>
-    <div><strong>Painted planets</strong><br/>Earth, Mars, Venus, Mercury — each has its own surface.</div>
+    <div><strong>Painted planets</strong><br/>Earth, Mars, Venus, Mercury — each has its own ground.</div>
   </div>
   <div class="legend-item">
     <div class="legend-icons">
@@ -349,7 +349,7 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
       <canvas data-legend="body" data-node="titan" data-w="48" data-h="48" aria-hidden="true"></canvas>
       <canvas data-legend="body" data-node="phobos" data-w="48" data-h="48" aria-hidden="true"></canvas>
     </div>
-    <div><strong>Moons by system</strong><br/>Orange = Jupiter (Io, Europa, Ganymede, Callisto). Yellow = Saturn (Titan, Enceladus, …). Grey = Mars (Phobos, Deimos).</div>
+    <div><strong>Moons by group</strong><br/>Orange = Jupiter (Io, Europa, Ganymede, Callisto). Yellow = Saturn (Titan, Enceladus, and the rest). Grey = Mars (Phobos, Deimos).</div>
   </div>
   <div class="legend-item">
     <div class="legend-icons">
@@ -357,35 +357,35 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
       <canvas data-legend="body" data-node="holst" data-w="48" data-h="48" aria-hidden="true"></canvas>
       <canvas data-legend="body" data-node="daktulios" data-w="48" data-h="48" aria-hidden="true"></canvas>
     </div>
-    <div><strong>Ring stations</strong><br/>Elon (Mars, rust), Holst (Jupiter, amber), Daktulios (Saturn, gold). Hubs, not worlds.</div>
+    <div><strong>Ring stations</strong><br/>Elon (Mars, rust), Holst (Jupiter, amber — a warm orange), Daktulios (Saturn, gold). Hubs (stations, not worlds).</div>
   </div>
   <div class="legend-item">
     <div class="legend-icons">
       <canvas data-legend="body" data-node="t_ev" data-w="48" data-h="48" aria-hidden="true"></canvas>
       <canvas data-legend="body" data-node="belt1" data-w="48" data-h="48" aria-hidden="true"></canvas>
     </div>
-    <div><strong>Diamond pips</strong><br/>Cool blue = quiet transit. Red-tint = Gravity Duel country (belt / empty lanes).</div>
+    <div><strong>Diamond marks</strong><br/>Cool blue = a quiet pass. Red tint = Gravity Duel (a lane fight) country: the belt, or an empty lane.</div>
   </div>
 </div>
 
 <h4>Unowned vs claimed</h4>
-<p>The body stays the same. The <em>frame and name</em> tell you who holds the deed.</p>
+<p>The world picture stays the same. The frame and the name tell you who holds the deed (proof they own it).</p>
 <div class="legend-grid">
   <div class="legend-item">
     <canvas class="legend-scene" data-legend="scene" data-node="mars" data-w="140" data-h="88" aria-hidden="true"></canvas>
-    <div><strong>Unowned</strong><br/>Pale name, no halo. Anybody may buy it.</div>
+    <div><strong>Unowned</strong><br/>Pale name, no halo (no colored glow). Anybody may buy it.</div>
   </div>
   <div class="legend-item">
     <canvas class="legend-scene" data-legend="scene" data-node="mars" data-owner="1" data-w="140" data-h="88" aria-hidden="true"></canvas>
-    <div><strong>Your claim</strong><br/>Halo in your rocket color. Label becomes “Mars · Venture”.</div>
+    <div><strong>Your claim</strong> (a world you own).<br/>Halo (a glow) in your rocket color. The label becomes "Mars · Venture".</div>
   </div>
   <div class="legend-item">
     <canvas class="legend-scene" data-legend="scene" data-node="mars" data-owner="1" data-depot="1" data-w="140" data-h="88" aria-hidden="true"></canvas>
-    <div><strong>Claim + fuel depot</strong><br/>Same tank badge, parked on the body. Hubs cannot host pods.</div>
+    <div><strong>A claim plus a fuel depot</strong> (a fuel stop).<br/>The same tank badge sits on the world. Hubs (stations) cannot hold a fuel pod (a fuel tank).</div>
   </div>
   <div class="legend-item">
     <canvas data-legend="depot" data-w="48" data-h="48" aria-hidden="true"></canvas>
-    <div><strong>Fuel depot</strong><br/>Cyan tank with a gold band — the same badge the board paints on the body.</div>
+    <div><strong>Fuel depot</strong> (a fuel stop).<br/>A cyan (bright blue-green) tank with a gold band — the same badge the board paints on the world.</div>
   </div>
 </div>
 
@@ -396,11 +396,11 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
       <canvas data-legend="rocket" data-w="48" data-h="48" aria-hidden="true"></canvas>
       <canvas data-legend="rocket" data-moving="1" data-w="48" data-h="48" aria-hidden="true"></canvas>
     </div>
-    <div><strong>Rocket</strong><br/>Seat color. White outline when parked; gold outline while hopping.</div>
+    <div><strong>Rocket</strong><br/>Your seat color. White outline when parked (staying put); gold outline while hopping (moving).</div>
   </div>
   <div class="legend-item">
     <canvas data-legend="rings" data-w="48" data-h="48" aria-hidden="true"></canvas>
-    <div><strong>Dashed circles</strong><br/>Orbital rings from the Sun, tinted by system. Dim them with the Rings slider.</div>
+    <div><strong>Dashed circles</strong><br/>Rings around the Sun, tinted by group. Dim them with the Rings slider.</div>
   </div>
 </div>
 `,
