@@ -211,6 +211,12 @@ assertMatch(handbook, /Opportunity<\/strong> \(longest, hardest\)/, "Expedition 
 assertMatch(handbook, /not the rocket in the lead/, "Expedition prize cards");
 assertMatch(handbook, /This length is for <strong>Journey<\/strong>/, "Expedition speed");
 assertNo(handbook, /Stay and poke/, "Expedition drops poke");
+assertMatch(handbook, /because you sat still/, "Feral intro");
+assertMatch(handbook, /duel skip \(no move after a lane fight\)/, "Feral park");
+assertMatch(handbook, /does not become a sure thing on the next park/, "Feral later parks");
+assertMatch(handbook, /Any fuel depot \(fuel stop\) on it is destroyed/, "Feral depot");
+assertNo(handbook, /software rots/, "Feral drops software rots");
+assertNo(handbook, /hardware junk/, "Feral drops hardware junk");
 
 
 console.log("playerManual: in-app README and CHANGELOG stay player-facing");

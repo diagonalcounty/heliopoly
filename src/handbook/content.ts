@@ -580,15 +580,15 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     id: "feral",
     title: "Parking & feral claims",
     html: `
-<p>Claims go <strong>feral</strong> because the software rots. The pods throw errors. If you sit still, nobody pushes a patch. The <strong>ledger</strong> then drops the deed and marks the hardware junk.</p>
-<p>If your rocket <strong>does not move</strong> on a seat turn — camp, full break, failed leave, or duel skip — that is a <strong>park</strong>. Parks add up for the whole expedition. Moving later does <em>not</em> clear the count.</p>
+<p>A claim goes <strong>feral</strong> (the world goes wild) because you sat still. The ledger (the book) then drops the deed (proof you owned it).</p>
+<p>If your rocket does not move on a turn — a camp (a stay), a full break (a full stop), a failed leave (it could not leave), or a duel skip (no move after a lane fight) — that is a park (staying put). Parks add up for the whole expedition (this game). Moving later does not clear the count.</p>
 <ul>
-  <li>Parks <strong>1–4</strong> — no feral check yet.</li>
-  <li>Park <strong>5</strong> — <strong>each</strong> of your claims rolls: <strong>50%</strong> chance to go <strong>feral</strong>.</li>
-  <li>Each park after that closes <strong>half the remaining gap</strong> to 100% (75% → 87.5% → 93.75% …). Risk asymptotes toward certainty without a hard 100% cliff on park 6.</li>
+  <li>Parks <strong>1–4</strong> — no feral check yet (the game does not roll for a wild world yet).</li>
+  <li>Park <strong>5</strong> — each world you own rolls a <strong>50%</strong> chance to go feral (go wild).</li>
+  <li>Each park after that moves the chance halfway toward certain (75% → 87.5% → 93.75% …). It gets closer to certain. It does not become a sure thing on the next park.</li>
 </ul>
-<p><strong>Feral outcome:</strong> claim returns to the bank (unowned). Any fuel depot on it is <strong>destroyed</strong>. Other pilots may buy it again.</p>
-<p>Moving on a turn avoids adding a park <em>that turn</em>. Park count never resets. Check your park count on the turn panel.</p>
+<p>If it goes wild: the claim goes back to the bank and nobody owns it. Any fuel depot (fuel stop) on it is destroyed. Other pilots may buy it again.</p>
+<p>Moving on a turn means you do not add a park that turn. The park count never resets. Check your park count on the turn panel.</p>
 `,
   },
   {
