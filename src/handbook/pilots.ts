@@ -10,8 +10,8 @@ import type { HandbookTopic } from "./content";
 const PILOT_ARTICLES: Record<string, string> = {
   recorde: `
 <p class="pilot-hook"><em>Robert Recorde — invented the equals sign (=) in 1557.</em></p>
-<p><strong>Robert Recorde</strong> was a Welsh physician and mathematician. In <em>The Whetstone of Witte</em> he introduced the twin parallel lines of the <strong>equals sign</strong>, writing that no two things can be more equal.</p>
-<p>Every rent line, fuel equation, and ledger balance sheet still runs on his glyph. If Recorde is flying against you, remember: the ledger is older than the rocket — and more succinct math is how orbital economics keeps score.</p>
+<p>Robert Recorde was a Welsh (from Wales) physician (a doctor) and mathematician (a person who works with math). In his book <em>The Whetstone of Witte</em> he introduced the twin parallel lines (two matching lines) of the equals sign, writing that no two things can be more equal.</p>
+<p>Every rent line, every fuel equation (a fuel sum), and every ledger balance sheet (the book's page of what you have) still runs on his glyph (the = mark). If The Recorde is flying against you, remember: the ledger (the book) is older than the rocket, and succinct math (short and exact) is how orbital economics (money and fuel in this game) keeps score.</p>
 `,
   k127: `
 <p class="pilot-hook"><em>Khmer stele (Sambor) — early dated zero in a decimal place-value system (683&nbsp;CE).</em></p>
