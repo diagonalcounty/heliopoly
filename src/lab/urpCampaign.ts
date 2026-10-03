@@ -10,9 +10,10 @@ import {
   type UrpState,
 } from "./urpGrader";
 
-export const URP_PRODUCT_TITLE = "Urinal-rule Parking";
+export const URP_PRODUCT_TITLE = "Urinal-rule Parking (leave a gap)";
 export const URP_PRODUCT_BLURB =
-  "Orbit the apron. Leave a buffer. Land rude and the fine sticks.";
+  "Leave an empty pad between ships when you can. Park beside someone when a gap was open, and you pay a fine. If no good pad is left, go around again.";
+export const URP_KICKER = "Practice list";
 
 export const URP_PROGRESS_KEY = "heliopoly.lab.urp.campaign.v1";
 
@@ -37,33 +38,32 @@ export const URP_SCENARIOS: readonly UrpScenarioDef[] = [
   {
     id: "quiet-apron",
     order: 1,
-    title: "Quiet Apron",
-    blurb: "Sparse pads. Leave a buffer. Furthest empty that isn’t rude.",
+    title: "Quiet Apron (few ships)",
+    blurb: "Leave an empty pad between ships. Pick the farthest empty pad that still leaves a gap.",
   },
   {
     id: "rush-hour",
     order: 2,
-    title: "Rush Hour",
-    blurb:
-      "Seven pads. Crowded. ATC skips the legal pad sometimes — the fine still sticks.",
+    title: "Rush Hour (crowded)",
+    blurb: "Seven pads. Sometimes you are not shown a good pad. Park badly and you still pay a fine.",
   },
   {
     id: "both-sides-bad",
     order: 3,
-    title: "Both Sides Bad",
-    blurb: "One area is worse. Pick before you land.",
+    title: "Both Sides Bad (one is worse)",
+    blurb: "Pick your side before you land.",
   },
   {
     id: "dead-orbit",
     order: 4,
-    title: "Dead Orbit",
-    blurb: "Jam. No legal pad on this pass. Orbit is the move.",
+    title: "Dead Orbit (go around)",
+    blurb: "No pad you may use on this pass. Going around is the right move.",
   },
   {
     id: "final-approach",
     order: 5,
-    title: "Final Approach",
-    blurb: "Everything you’ve seen. Clear it.",
+    title: "Final Approach (the last one)",
+    blurb: "Use everything you’ve seen. Finish with no fine.",
   },
 ] as const;
 
@@ -372,5 +372,11 @@ export function startUrpScenario(
 export function formatUrpRunScore(outcome: "good" | "fine", orbitsUsed: number): string {
   const clear = outcome === "good" ? 1 : 0;
   const fine = outcome === "fine" ? 1 : 0;
-  return `Clear ${clear} · Fine ${fine} · Orbit ${orbitsUsed}`;
+  return `Cleared ${clear} · Fine ${fine} · Laps ${orbitsUsed}`;
+}
+
+/** Campaign totals strip. Clear/Orbit words only; shelf-open prefix stays. */
+export function formatUrpCampaignTotals(totals: UrpRunTotals, shelfOpen: boolean): string {
+  const line = `Cleared ${totals.clear} · Fine ${totals.fine} · Laps ${totals.orbit}`;
+  return shelfOpen ? `Shelf open · ${line}` : line;
 }

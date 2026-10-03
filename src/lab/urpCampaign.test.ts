@@ -8,6 +8,8 @@ import {
   URP_SCENARIOS,
   buildScenarioPool,
   emptyUrpProgress,
+  URP_KICKER,
+  formatUrpCampaignTotals,
   formatUrpRunScore,
   isUrpScenarioUnlocked,
   loadUrpProgress,
@@ -18,6 +20,7 @@ import {
   startUrpScenario,
   type UrpScenarioId,
 } from "./urpCampaign";
+import { LAB_SCENARIOS } from "./scenarios";
 import {
   canOrbit,
   currentUrpPair,
@@ -38,11 +41,21 @@ function assert(cond: unknown, msg: string): void {
   }
 }
 
-assert(URP_PRODUCT_TITLE === "Urinal-rule Parking", "human product title");
+assert(URP_PRODUCT_TITLE === "Urinal-rule Parking (leave a gap)", "human product title");
+assert(URP_KICKER === "Practice list", "practice list kicker");
 assert(
   URP_PRODUCT_BLURB ===
-    "Orbit the apron. Leave a buffer. Land rude and the fine sticks.",
-  "locked product blurb",
+    "Leave an empty pad between ships when you can. Park beside someone when a gap was open, and you pay a fine. If no good pad is left, go around again.",
+  "product sign",
+);
+assert(
+  formatUrpCampaignTotals({ clear: 0, fine: 0, orbit: 0 }, false) === "Cleared 0 · Fine 0 · Laps 0",
+  "totals at zero",
+);
+assert(
+  formatUrpCampaignTotals({ clear: 2, fine: 1, orbit: 3 }, true) ===
+    "Shelf open · Cleared 2 · Fine 1 · Laps 3",
+  "totals keep shelf-open prefix",
 );
 assert(URP_SCENARIOS.length === 5, "five scenarios on the shelf");
 assert(
@@ -108,13 +121,46 @@ assert(
 
 {
   assert(
-    formatUrpRunScore("good", 2) === "Clear 1 · Fine 0 · Orbit 2",
+    formatUrpRunScore("good", 2) === "Cleared 1 · Fine 0 · Laps 2",
     "run score clear line",
   );
   assert(
-    formatUrpRunScore("fine", 0) === "Clear 0 · Fine 1 · Orbit 0",
+    formatUrpRunScore("fine", 0) === "Cleared 0 · Fine 1 · Laps 0",
     "run score fine line",
   );
+}
+
+
+{
+  const want: Record<string, { title: string; blurb: string }> = {
+    "quiet-apron": {
+      title: "Quiet Apron (few ships)",
+      blurb: "Leave an empty pad between ships. Pick the farthest empty pad that still leaves a gap.",
+    },
+    "rush-hour": {
+      title: "Rush Hour (crowded)",
+      blurb: "Seven pads. Sometimes you are not shown a good pad. Park badly and you still pay a fine.",
+    },
+    "both-sides-bad": {
+      title: "Both Sides Bad (one is worse)",
+      blurb: "Pick your side before you land.",
+    },
+    "dead-orbit": {
+      title: "Dead Orbit (go around)",
+      blurb: "No pad you may use on this pass. Going around is the right move.",
+    },
+    "final-approach": {
+      title: "Final Approach (the last one)",
+      blurb: "Use everything you’ve seen. Finish with no fine.",
+    },
+  };
+  for (const sc of URP_SCENARIOS) {
+    assert(sc.title === want[sc.id]!.title, `${sc.id} title`);
+    assert(sc.blurb === want[sc.id]!.blurb, `${sc.id} blurb`);
+  }
+  const card = LAB_SCENARIOS.find((sc) => sc.id === "urinal-rule-parking");
+  assert(card?.title === URP_PRODUCT_TITLE, "lab shelf title");
+  assert(card?.blurb === URP_PRODUCT_BLURB, "lab shelf blurb");
 }
 
 const seeds = [1, 7, 42, 99, 188, 251, 20260911];
