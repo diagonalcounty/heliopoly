@@ -110,6 +110,15 @@ assertMatch(handbook, /duel skip \(no move after a lane fight\)/, "Glossary park
 assertMatch(handbook, /at the line between rounds/, "Glossary ledger event");
 assertMatch(handbook, /tap any beacon \(a marked stop\)/, "Glossary warp");
 assertNo(handbook, /Skipped seats still count/, "Glossary drops the old turn line");
+assertMatch(handbook, /cards that break up the ordinary play/, "Ledger events intro");
+assertMatch(handbook, /Timing \(the usual set\)/, "Ledger events timing heading");
+assertMatch(handbook, /halfway toward certain/, "Ledger events miss chance");
+assertMatch(handbook, /Tesla and Karen land only on the computer's rockets/, "Ledger events who");
+assertMatch(handbook, /Choices on the screen/, "Ledger events choices heading");
+assertMatch(handbook, /not these book surprises/, "Ledger events not-events line");
+assertNo(handbook, /Cadence \(standard pool\)/, "Ledger events drops Cadence heading");
+assertNo(handbook, /Picks &amp; UI/, "Ledger events drops Picks heading");
+assertNo(handbook, /break up the grind/, "Ledger events drops grind");
 
 
 console.log("playerManual: in-app README and CHANGELOG stay player-facing");

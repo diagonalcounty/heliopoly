@@ -143,15 +143,15 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     id: "ledger-alerts",
     title: "Ledger events",
     html: `
-<p>The ledger sometimes writes a surprise. These are <strong>ledger events</strong> — popups that break up the grind. They fire on <strong>round</strong> boundaries, not every seat turn. Each type fires <strong>at most once</strong> per expedition.</p>
+<p>The ledger (the book) sometimes writes a surprise. These are <strong>ledger events</strong>, cards that break up the ordinary play. They show between rounds (a round is every rocket having one turn), not on every single turn. Each kind happens at most once per expedition (this game).</p>
 
-<h3>Cadence (standard pool)</h3>
+<h3>Timing (the usual set)</h3>
 <ol>
-  <li>Wait <strong>5 rounds</strong> after game start or after the last alert fires.</li>
-  <li>Then each round rolls <strong>50%</strong> to fire; each <em>real</em> miss moves the chance halfway toward 100% (50% → 75% → 87.5% …).</li>
-  <li>On fire, wait 5 rounds again. Open popups do not burn midpoints without a roll.</li>
+  <li>Wait <strong>5 rounds</strong> (5 times that every rocket has had a turn) after the game starts, or after the last alert (a surprise card) shows.</li>
+  <li>Then each new round rolls a <strong>50%</strong> chance to show one. Each real miss (a roll that did not show a card) moves the chance halfway toward certain (50% → 75% → 87.5% …).</li>
+  <li>When one shows, wait 5 rounds again. A card that is still open does not move the chance up unless the game actually rolled.</li>
 </ol>
-<p><strong>Who</strong> is not always the whole table. The table below is the live rule. <strong>Insight</strong> never lets a − event hit the human seat (Tesla and Karen only land on AI).</p>
+<p>A surprise does not always hit everyone. The card list below is the rule that counts. <strong>Insight</strong> (the shortest game) never lets a minus event (a bad card) hit the human seat (you). Tesla and Karen land only on the computer's rockets.</p>
 
 <h3>Standard pool</h3>
 <table class="glossary">
@@ -300,11 +300,11 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
   </tbody>
 </table>
 
-<h3>Picks &amp; UI</h3>
+<h3>Choices on the screen</h3>
 <ul>
-  <li>When an alert needs a choice (Olbers, blockchain, vibe-kick), a hint appears under standings. Normal Roll / Move buttons stay locked until you finish the pick.</li>
-  <li><strong>Warp charges</strong> (King’s Quest or Strong Bad) stack; each charge is one teleport. Telemetry shows remaining warps when you have them.</li>
-  <li>Resource strikes (gusher), H₂ leaks, and Gravity Duel are <em>not</em> ledger events — different systems.</li>
+  <li>When an alert needs a choice (Olbers, blockchain, or vibe-kick), a hint shows under the standings (who is ahead). Roll and Move stay locked until you finish the choice.</li>
+  <li><strong>Warp charges</strong> (a saved jump) from King's Quest or Strong Bad stack (they add up). Each charge is one jump. The readout shows how many jumps you have left, when you have any.</li>
+  <li>A resource strike (a gusher, a supply burst), a hydrogen leak (H₂), and a Gravity Duel (a lane fight) are not ledger events (not these book surprises). They come from other parts of the game.</li>
 </ul>
 `,
   },
