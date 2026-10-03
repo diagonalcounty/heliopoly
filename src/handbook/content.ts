@@ -429,30 +429,28 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     id: "claims-ledger",
     title: "Dossier, mark & income",
     html: `
-<p>Click a rocket on <strong>On the ledger</strong> — name, cash, fuel, claims, anywhere on that seat’s row — to open its <strong>dossier</strong>. Each held claim is an asset: <strong>mark</strong> is what the bank pays on a dump (half the sticker; depot scrapped). <strong>MSRP</strong> is the bank sticker to claim an unowned body, not what your Venus is worth. <strong>Income</strong> is rent + fuel strikes while this rocket held the book. Earth land/pass cash is investor capital, not property income.</p>
-<p>Landing on your own claim and hitting <strong>Books</strong> in the pilot column opens the same dossier focused on that body. Remote path is unchanged: ledger row to dossier.</p>
-<p>Rival dossiers are public. The board already shows who owns what; the dossier is the books.</p>
-<p>When the ledger closes, the winning card shows a short <strong>held books</strong> table: Claim · Mark · Income · Book (mark + income). Sold or lost books drop off. Gifts and steals still count — they have a mark even with no cash in.</p>
+<p>Tap a rocket on <strong>On the ledger</strong> — name, cash, fuel, claims, anywhere on that seat's row — to open its <strong>dossier</strong> (its page of books). Each claim you hold is a thing you own. <strong>Mark</strong> is what the bank pays if you sell it for half (any fuel depot, a fuel stop, is scrapped). <strong>MSRP</strong> (the bank's list price) is what it costs to claim an unowned world, not what your Venus is worth now. <strong>Income</strong> is rent you collected, plus fuel strikes (money tied to fuel), while this rocket held the book. Cash from landing on or passing Earth is backer money, not rent from a world.</p>
+<p>Landing on your own claim and tapping <strong>Books</strong> in the pilot column (the side controls) opens the same dossier (page of books) on that world. From far away it is unchanged: the ledger row opens the dossier.</p>
+<p>Other rockets' pages are public (anyone can open them). The board already shows who owns what. The dossier (the page) is the books.</p>
+<p>When the ledger (the book) closes, the winning card shows a short table of worlds you still hold: Claim · Mark (half-price bank pay) · Income (rent you collected) · Book (mark + income). Sold or lost worlds drop off. Gifts and steals still count — they have a mark even if no cash came in.</p>
 <h3>Sell</h3>
-<p>Sell for <strong>half the deed price</strong>. The claim goes unowned. Any <strong>depot is scrapped</strong>. Use this when you would rather the body sit empty than go to a rival.</p>
+<p>Sell a world: sell for half the deed price. The claim goes unowned. Any fuel depot (fuel stop) is scrapped (thrown away). Use this when you would rather the world sit empty than go to a rival.</p>
 <h3>Auction</h3>
-<p>Put a claim up to the table and <strong>set your own reserve</strong>. Three prices matter:</p>
+<p>Put a claim up for the table and set your own reserve (the lowest price you will take). Three prices matter:</p>
 <ul>
-  <li><strong>Deed price (MSRP)</strong> — the board list price of the claim.</li>
-  <li><strong>Mark</strong> — half the deed. What the bank pays on a dump; the guaranteed floor.</li>
-  <li><strong>Reserve</strong> — your ask. Defaults to the mark; raise it up to the deed price when the table is flush (hub, monopoly piece, a depot that survives auction). The bank still pays only the mark if you later dump.</li>
+  <li><strong>Deed price (MSRP, the bank's list price)</strong> — the board's listed price of the claim.</li>
+  <li><strong>Mark</strong> — half the deed price. What the bank pays when you Sell a world. It is the lowest you are sure to get.</li>
+  <li><strong>Reserve</strong> (the lowest you will take) — your ask. It starts at the mark. Raise it up to the deed price when the table is flush (has money to spend): a hub (a station), a monopoly piece (a world in a full group), or a fuel depot (a fuel stop) that stays through the auction. The bank still pays only the mark if you later sell for half.</li>
 </ul>
-<p>Sim Lab’s property table uses the same words: deed price (MSRP), mark (half list, bank floor; depot not in the mark), and income (rent, plus fuel strikes when the ledger tracks them).</p>
-
-<p>Clearance is the winning bid, and it can sit above the mark. Rivals bid from the floor plus a premium for set-complete, hubs, and a depot that stays with the claim. Earth cash is liquidity only — it does not raise what a body is worth. On Normal and above, mark+1 is not a reliable snipe.</p>
-<p>Highest bid at or above your reserve wins. Ties go to the next seat after the seller.</p>
+<p>Clearance (the winning bid) can sit above the mark. Rivals bid from the floor (the lowest bid) and pay extra for a finished set, for hubs (stations), and for a fuel depot (a fuel stop) that stays with the claim. Earth cash is only money you can spend — it does not raise what a world is worth. On Normal and harder, one above the mark is not a sure cheap win.</p>
+<p>The highest bid at or above your reserve (the lowest you will take) wins. A tie goes to the next seat after the seller.</p>
 <ul>
   <li>You get the cash.</li>
-  <li>The buyer takes the claim. A <strong>depot stays</strong> with it.</li>
-  <li>You keep <strong>docking rights</strong>: the next time you <em>land</em> on that body, rent is free (failed leave still charges).</li>
+  <li>The buyer takes the claim. A fuel depot (a fuel stop) stays with it.</li>
+  <li>You keep docking rights (you may land there). The next time you land on that world, rent is free. A failed leave (you could not leave) still charges rent.</li>
 </ul>
-<p>If nobody meets the reserve, the auction is <strong>withdrawn</strong> — the claim stays yours, and you may still dump it for the mark. Dumping is a separate choice.</p>
-<p>Each claim may be auctioned <strong>once per turn</strong>; other claims can still list. After a withdrawn auction you may sell that claim or keep it. Sales are only before you roll or after you have landed (not while a path is in the air).</p>
+<p>If nobody meets the reserve (the lowest you will take), the auction is pulled back. The claim stays yours, and you may still Sell a world for the mark. Selling for half is a separate choice.</p>
+<p>Each claim may be auctioned once per turn. Other claims can still be listed. After a pulled-back auction you may sell that claim or keep it. Sales happen only before you roll, or after you have landed — not while a path is in the air (you have not landed yet).</p>
 `,
   },
   {
