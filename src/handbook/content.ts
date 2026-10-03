@@ -468,9 +468,9 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     id: "propellant",
     title: "Propellant",
     html: `
-<p><strong>Methane (CH₄)</strong> — stable tanks, no leaks: the conservative operator’s choice. Claim + fuel depot on <strong>Titan</strong> or <strong>Enceladus</strong> can fire a one-time <strong>resource strike</strong> (½ starting cash) — e.g. “You've struck liquid methane!”</p>
-<p><strong>Hydrogen (H₂)</strong> — cheaper leave burns, higher risk. <strong>Landing</strong> on a real body can rupture tanks: <strong>half your fuel</strong> and <strong>lose next turn</strong> to repair. Balanced by ice-strike potential on <strong>Enceladus, Mars, Europa, Ganymede</strong> (claim + depot).</p>
-<p>Strike pop-ups are sudden and short. The ledger records the strike the same as a deed.</p>
+<p><strong>Methane (CH₄, safer fuel)</strong> — tanks stay stable and do not leak. This is the careful choice. Refuel at the moons Titan and Enceladus. If you own Titan or Enceladus and have a fuel depot (a fuel stop) there, you can get a one-time resource strike (a one-time pay of half the money you started with). The popup says "You've struck liquid methane!"</p>
+<p><strong>Hydrogen (H₂, can leak)</strong> — cheaper to take off, and riskier. Landing on a real world (a planet or moon) can burst the tanks: you lose half your fuel and your next turn, to repair. You can also get an ice strike on Enceladus, Mars, Europa, or Ganymede if you own that world and have a fuel stop there. More icy places to refuel.</p>
+<p>A strike popup is sudden and short. The ledger (the book) writes the strike down the same way it writes a deed (proof you own a world).</p>
 `,
   },
   {

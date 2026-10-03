@@ -189,6 +189,11 @@ assertMatch(handbook, /Cost each circuit<\/strong> \(one full loop home\)/, "Fue
 assertMatch(handbook, /goes feral \(goes wild\), or you are out/, "Fuel depots resupply");
 assertMatch(handbook, /eliminated \(you are out\)/, "Fuel depots eliminated");
 assertNo(handbook, /planetoids only/, "Fuel depots drops planetoids only");
+assertMatch(handbook, /Methane \(CH₄, safer fuel\)/, "Propellant methane");
+assertMatch(handbook, /You've struck liquid methane!/, "Propellant exact methane line");
+assertMatch(handbook, /Hydrogen \(H₂, can leak\)/, "Propellant hydrogen");
+assertMatch(handbook, /writes a deed \(proof you own a world\)/, "Propellant ledger");
+assertNo(handbook, /conservative operator/, "Propellant drops operator");
 
 
 console.log("playerManual: in-app README and CHANGELOG stay player-facing");
