@@ -457,11 +457,11 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     id: "depots",
     title: "Fuel depots",
     html: `
-<p>You start with <strong>3 fuel depots</strong> in hand. Place them on <strong>planets or moons you own</strong> (planetoids only — <strong>not</strong> hub space stations like Holst / Elon / Daktulios).</p>
-<p>Depots boost rent and enable free refuel on that body (for you).</p>
-<p><strong>Cash cost (per circuit):</strong> your <strong>first</strong> depot after game start or after finishing a board rotation is <strong>free</strong>. Each additional depot that circuit costs <strong>10%</strong> of that body’s purchase price (e.g. a ⍼200 claim → ⍼20 to place the 2nd+ depot). Completing a circuit resets the free first placement.</p>
-<p><strong>Earth resupply:</strong> each full board circuit home grants <strong>+3 depots</strong> in hand again. Placed depots stay until feral/elimination.</p>
-<p>If a claim goes feral or you are eliminated, depots on those claims are <strong>destroyed</strong>.</p>
+<p>You start with <strong>3 fuel depots</strong> (fuel stops) in hand. <strong>Add fuel stop</strong> places one on a planet or moon you own. Worlds only — not a hub (a station) like Holst, Elon, or Daktulios.</p>
+<p>A fuel stop raises rent (what others pay you) and lets you Refuel there for free. Other rockets do not get that free refuel.</p>
+<p><strong>Cost each circuit</strong> (one full loop home): your first fuel stop after the game starts, or after you finish a loop, is free. Each extra fuel stop that loop costs 10% of that world's price (a world that costs 200 costs 20 for the 2nd stop and each one after). Finishing a loop makes the next first placement free again.</p>
+<p><strong>Earth resupply:</strong> each full loop home gives you +3 fuel stops in hand again. Stops you already placed stay until the world goes feral (goes wild), or you are out.</p>
+<p>If a claim goes feral (the world goes wild) or you are eliminated (you are out), fuel stops on those claims are destroyed.</p>
 `,
   },
   {
