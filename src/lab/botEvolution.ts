@@ -260,7 +260,7 @@ export function runLevelLine(
   state: Pick<BotState, "level" | "segments" | "n" | "barsCompletedThisStage">,
 ): string {
   const { major, minor } = runLevel(state);
-  return `Congratulations, you made it to level ${major}.${minor}.`;
+  return `You finished level ${major}.${minor}.`;
 }
 
 /**
