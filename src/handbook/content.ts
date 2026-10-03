@@ -101,39 +101,39 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     id: "glossary",
     title: "Glossary",
     html: `
-<p>Words we use the same way every time:</p>
+<p>Words the game uses the same way every time:</p>
 <table class="glossary">
   <thead><tr><th>Term</th><th>Meaning</th><th>Where you see it</th></tr></thead>
   <tbody>
     <tr>
       <td><strong>Turn</strong></td>
-      <td>One rocket’s seat at the table: from becoming current through end turn (roll + move, or skip, or park). Skipped seats still count as a turn for the seat clock.</td>
-      <td>“Turn N” in the log</td>
+      <td>Your rocket's chance to act, from when it is your go until you end the turn. You roll and move, skip, or park (stay put). A skip still counts as a turn on the seat clock (the count for that rocket).</td>
+      <td>Turn N in the log (the written record).</td>
     </tr>
     <tr>
       <td><strong>Round</strong></td>
-      <td>Everyone has had a seat turn — a full pass through the player order (including skips / parks).</td>
-      <td>“Round N” in the log</td>
+      <td>Every rocket has had one turn, including skips and parks (staying put). One full pass through the order.</td>
+      <td>Round N in the log.</td>
     </tr>
     <tr>
       <td><strong>Rotation</strong></td>
-      <td>One rocket completes a full circuit of the board path (leaves Earth and returns). Personal to that rocket.</td>
-      <td>Circuit complete line in the log</td>
+      <td>One rocket leaves Earth and comes all the way back. One full loop of the Mainline (the only path), for that rocket only.</td>
+      <td>In the log when that loop is done.</td>
     </tr>
     <tr>
       <td><strong>Park</strong></td>
-      <td>A seat turn where that rocket does <em>not</em> move (camp, full break, failed leave, duel skip). Cumulative park count drives feral risk.</td>
-      <td>Park count on the turn panel</td>
+      <td>A turn where that rocket stays put: a camp (a stay), a full break (a full stop), a failed leave (it could not leave), or a duel skip (no move after a lane fight). Parks add up, and the total raises feral risk (the risk of something going wild).</td>
+      <td>The park count on the turn panel.</td>
     </tr>
     <tr>
       <td><strong>Ledger event</strong></td>
-      <td>A timed popup that the ledger writes mid-game. Fires on <em>round</em> boundaries. See <strong>Ledger events</strong>.</td>
-      <td>Ledger event card · log lines</td>
+      <td>A card the ledger (the book) shows during the game, at the line between rounds (one round ends, the next starts). See <strong>Ledger events</strong>.</td>
+      <td>On the ledger event card and in the log.</td>
     </tr>
     <tr>
       <td><strong>Warp</strong></td>
-      <td>Board-wide teleport charge: instead of rolling, click any beacon. No en-route stops, rent, or duels; landing rules still apply at the destination.</td>
-      <td>Warp charges · King’s Quest / Strong Bad Email cards</td>
+      <td>A warp charge (a saved jump). Instead of rolling, tap any beacon (a marked stop). You do not stop on the way, so no rent (pay to the owner) and no lane fight on the way. The rules for landing still apply where you come down.</td>
+      <td>Warp charges, and on the King's Quest and Strong Bad Email cards.</td>
     </tr>
   </tbody>
 </table>
