@@ -178,6 +178,11 @@ assertMatch(handbook, /Own <strong>2<\/strong> hubs \(stations\)/, "Monopoly two
 assertMatch(handbook, /multiplies Elon's rent by both/, "Monopoly stack");
 assertMatch(handbook, /Earth is never a deed \(it is never for sale\)/, "Monopoly Earth");
 assertNo(handbook, /railroad-style/, "Monopoly drops railroad");
+assertMatch(handbook, /its page of books/, "Dossier intro");
+assertMatch(handbook, /You get the cash\./, "Dossier keeps cash line");
+assertMatch(handbook, /not a sure cheap win/, "Dossier clearance");
+assertMatch(handbook, /not while a path is in the air/, "Dossier sale timing");
+assertNo(handbook, /Sim Lab/, "Dossier drops Sim Lab");
 
 
 console.log("playerManual: in-app README and CHANGELOG stay player-facing");
