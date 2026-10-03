@@ -535,45 +535,45 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     id: "ai-difficulty",
     title: "Expedition",
     html: `
-<p>This is the <strong>expedition</strong> setting, chosen at <strong>New game</strong> and locked at Launch. It sets how involved the table is, how kind the ledger is, and how hard rivals play.</p>
+<p>This is the expedition (how long the game is), chosen at <strong>New game</strong> and locked when you launch. It sets how much is in play, how kind the ledger (the book) is, and how hard the other rockets play.</p>
 <table class="glossary">
   <thead>
     <tr>
       <th>Expedition</th>
-      <th>Session</th>
-      <th>Ledger</th>
-      <th>Rivals</th>
+      <th>How long</th>
+      <th>The book</th>
+      <th>Other rockets</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td><strong>1. Insight</strong></td>
-      <td>A look</td>
-      <td>− events never hit you (Tesla, Karen, hot mic, Error 47). Rivals cannot steal your deeds.</td>
-      <td>Soft. They land where the dice put them.</td>
+      <td><strong>Insight</strong> (shortest)</td>
+      <td>A short look.</td>
+      <td>Bad cards never hit you (Tesla, Karen, hot mic, Error 47). Rivals cannot steal your deeds (proof you own a world).</td>
+      <td>Soft (they play gently). They land where the dice put them.</td>
     </tr>
     <tr>
-      <td><strong>2. Curiosity</strong></td>
-      <td>Stay and poke (default)</td>
-      <td>Full pool. Prize cards go to one random rocket each fire.</td>
-      <td>Default table.</td>
+      <td><strong>Curiosity</strong> (stay and look)</td>
+      <td>Stay and look. This is the usual one.</td>
+      <td>The full set of cards. Prize cards go to one random rocket each time one shows.</td>
+      <td>The usual table.</td>
     </tr>
     <tr>
-      <td><strong>3. Voyager</strong></td>
-      <td>The long haul</td>
-      <td>Full pool.</td>
-      <td>Sharper — they play for deeds, hubs, and Earth.</td>
+      <td><strong>Voyager</strong> (long game)</td>
+      <td>A long game.</td>
+      <td>The full set of cards.</td>
+      <td>Sharper (they play harder). They go for deeds (worlds), hubs (stations), and Earth.</td>
     </tr>
     <tr>
-      <td><strong>4. Opportunity</strong></td>
-      <td>The long game</td>
-      <td>Full pool.</td>
-      <td>The table hunts monopolies and Earth landings.</td>
+      <td><strong>Opportunity</strong> (longest, hardest)</td>
+      <td>The longest, hardest game.</td>
+      <td>The full set of cards.</td>
+      <td>The table hunts monopolies (every world in a group) and Earth landings.</td>
     </tr>
   </tbody>
 </table>
-<p>Prize cards — King’s Quest, M&amp;Ms, Strong Bad, Belt ice, Tuesday boy, Olbers, steal — go to <strong>one random rocket that round</strong>, not the lead seat. See <strong>Ledger events</strong> for Who / Effect.</p>
-<p>Header <strong>Speed</strong> is animation only. Fun toys live on <strong>Arcade</strong>. The charter is <strong>Journey</strong>. Drills stay in the <strong>Lab</strong>.</p>
+<p>Prize cards — King's Quest, M&amp;Ms, Strong Bad, Belt ice, Tuesday boy, Olbers, and steal — go to one random rocket that round (every rocket has had one turn), not the rocket in the lead. See <strong>Ledger events</strong> for who it hits and what it does.</p>
+<p>The <strong>Speed</strong> control at the top only changes how fast the pictures move. Fun toys live on <strong>Arcade</strong>. This length is for <strong>Journey</strong> (the full game). Drills stay in the <strong>Lab</strong>.</p>
 `,
   },
   {

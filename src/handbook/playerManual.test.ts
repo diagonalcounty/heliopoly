@@ -203,6 +203,14 @@ assertMatch(handbook, /If the loser is already on Earth, they cannot be shoved f
 assertMatch(handbook, /dice fight you play now/, "Gravity Duel note");
 assertNo(handbook, /empty transit pips/, "Gravity Duel drops pips");
 assertNo(handbook, /Realtime \/ animated duels/, "Gravity Duel drops realtime note");
+assertMatch(handbook, /how long the game is/, "Expedition intro");
+assertMatch(handbook, /Insight<\/strong> \(shortest\)/, "Expedition Insight");
+assertMatch(handbook, /Curiosity<\/strong> \(stay and look\)/, "Expedition Curiosity");
+assertMatch(handbook, /Voyager<\/strong> \(long game\)/, "Expedition Voyager");
+assertMatch(handbook, /Opportunity<\/strong> \(longest, hardest\)/, "Expedition Opportunity");
+assertMatch(handbook, /not the rocket in the lead/, "Expedition prize cards");
+assertMatch(handbook, /This length is for <strong>Journey<\/strong>/, "Expedition speed");
+assertNo(handbook, /Stay and poke/, "Expedition drops poke");
 
 
 console.log("playerManual: in-app README and CHANGELOG stay player-facing");
