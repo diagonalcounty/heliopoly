@@ -63,5 +63,39 @@ assertNo(handbook, /Show experiments/, "Home doors drops Show experiments");
 assertNo(handbook, /balance host/, "Home doors drops the host name");
 assertNo(handbook, /product sign-off/, "Home doors drops the operators paragraph");
 
+assertMatch(
+  handbook,
+  /Heliopoly[\s\S]*Orbital Economics[\s\S]*rockets and buying worlds in space/,
+  "Read this first names the game",
+);
+assertMatch(handbook, /You buy claims \(you own a world\)/, "Read this first explains claims");
+assertMatch(handbook, /duel \(a lane fight\)/, "Read this first explains a duel");
+assertMatch(handbook, /There is no timer\. Last rocket flying wins\./, "Read this first keeps the timer line");
+assertMatch(handbook, /Close this with the Esc key/, "Read this first close line");
+assertNo(handbook, /github\.com\/diagonalcounty\/heliopoly/, "Read this first drops the source link");
+assertNo(handbook, /dim backdrop/, "Read this first drops the dim backdrop");
+assertNo(handbook, /Ethereum/, "ledger drops Ethereum");
+assertNo(handbook, /quantum/, "ledger drops quantum computers");
+assertMatch(handbook, /Angzarr is the money/, "ledger money line");
+assertMatch(handbook, /space book of who owns what/, "ledger AIL line");
+assertMatch(handbook, /Contracts \(deals\)/, "ledger contracts");
+assertMatch(handbook, /every expedition \(long trip\)/, "ledger history");
+assertMatch(handbook, /money for your first launch/, "ledger start cash");
+assertMatch(handbook, /The circuit \(the whole loop\)/, "Mainline circuit");
+assertMatch(handbook, /Earth<\/strong> → Venus → Mercury/, "Mainline keeps Earth to Mercury");
+assertMatch(handbook, /Elon → Mars → Phobos → Deimos/, "Mainline keeps the Mars system");
+assertMatch(handbook, /Homeward → <strong>Earth<\/strong>/, "Mainline keeps Homeward");
+assertMatch(handbook, /blank lanes \(empty stops, no world to buy\)/, "Mainline blank lanes");
+assertMatch(handbook, /one time around/, "Mainline rotation");
+assertNo(handbook, /blank transit lanes \(Gravity Duel country\)/, "Mainline drops Gravity Duel country lanes");
+assertMatch(handbook, /away from each planet's strong pull/, "hub stations wells");
+assertMatch(handbook, /rogue Tesla \(it flies wild\)/, "hub stations Tesla");
+assertMatch(handbook, /sun power for sale seemed possible/, "hub stations Elon");
+assertMatch(handbook, /His music, <em>The Planets<\/em>/, "hub stations Holst");
+assertMatch(handbook, /from the Greek for "ring"/, "hub stations Daktulios");
+assertMatch(handbook, /you own every world in that planet's group/, "hub stations monopoly");
+assertNo(handbook, /per-kilogram/, "hub stations drops per-kilogram");
+assertNo(handbook, /funded launch/, "ledger drops funded launch");
+
 
 console.log("playerManual: in-app README and CHANGELOG stay player-facing");

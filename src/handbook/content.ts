@@ -29,61 +29,58 @@ const LORE_TOPICS: HandbookTopic[] = [
     id: "welcome",
     title: "Read this first",
     html: `
-<p><strong>Heliopoly</strong> — <em>Orbital Economics</em> (1.5.0).</p>
-<p>You fly a rocket. You buy claims. You try not to go broke.</p>
-<p>Every buy, every rent, every duel is written to the <strong>ledger</strong>. The ledger is the official book of the Mainline. It is a contract book. It is also a history book.</p>
-<p>When you are the last rocket flying, the ledger writes your name as one of the <strong>greatest of all kind</strong>.</p>
+<p><strong>Heliopoly</strong> — <em>Orbital Economics</em> (rockets and buying worlds in space) (1.5.0).</p>
+<p>You fly a rocket. You buy claims (you own a world). You try not to go broke.</p>
+<p>Every buy, every rent, and every duel (a lane fight) is written in the <strong>ledger</strong> (the book that records it). The ledger is the official book of the Mainline (the path the rockets fly). It is a contract book (the deals) and a history book (what happened).</p>
+<p>When you are the last rocket still flying, the ledger (the book) writes your name as one of the greatest.</p>
 <p>There is no timer. Last rocket flying wins.</p>
-<p>Source: <a href="https://github.com/diagonalcounty/heliopoly" target="_blank" rel="noopener">github.com/diagonalcounty/heliopoly</a>.</p>
-<p>Close this manual with <kbd>Esc</kbd>, <strong>✕</strong>, or the dim backdrop.</p>
+<p>Close this with the Esc key, the <strong>✕</strong>, or a tap on the dark space around it.</p>
 `,
   },
   {
     id: "ledger",
     title: "The ledger & Angzarr (⍼)",
     html: `
-<p>On old Earth, people kept public <strong>ledgers</strong> — books of who paid whom. <strong>Ethereum</strong> was one of those books. It stored transactions.</p>
-<p>Then quantum computers learned to break those books.</p>
-<p>Money on the Mainline is <strong>Angzarr</strong>. You see it as <strong>⍼</strong> in front of the number (like ⍼150). Angzarr is <em>post-quantum</em> crypto: new math those machines cannot crack. It still keeps a <strong>ledger</strong>.</p>
-<p>The book itself is the <strong>AIL</strong> — Automated Interplanetary Asset Ledger. The AIL writes down two kinds of truth:</p>
+<p>Money on the Mainline (the path the rockets fly) is <strong>Angzarr</strong>. You see it as <strong>⍼</strong> in front of the number (like ⍼150). Angzarr is the money. The ledger (the book) still records every pay and own.</p>
+<p>The book itself is the <strong>AIL</strong> — Automated Interplanetary Asset Ledger (the space book of who owns what). The AIL writes down two kinds of truth:</p>
 <ol>
-  <li><strong>Contracts</strong> — who owns which world, who is owed rent, who paid for fuel.</li>
-  <li><strong>History</strong> — every expedition, every crash, every name that lasted.</li>
+  <li><strong>Contracts (deals)</strong> — who owns which world, who is owed rent, who paid for fuel.</li>
+  <li><strong>History</strong> — every expedition (long trip), every crash, every name that lasted.</li>
 </ol>
-<p>Nothing on the board counts until the ledger says so. If the ledger drops your deed, the claim goes back to the bank.</p>
-<p>Start cash is not a glitch. It is your first line in the book — a funded launch.</p>
+<p>Nothing on the board counts until the ledger (the book) says so. If the ledger drops your deed (your proof you own it), the claim (the world you own) goes back to the bank.</p>
+<p>Start cash is not a mistake. It is your first line in the book — money for your first launch.</p>
 `,
   },
   {
     id: "path",
     title: "The Mainline",
     html: `
-<p>Rockets fly one path. That path is the <strong>Mainline</strong>. You do not pick a shortcut.</p>
-<p>The circuit:</p>
+<p>Rockets fly one path, the <strong>Mainline</strong> (the only path). You do not pick a shortcut.</p>
+<p>The circuit (the whole loop):</p>
 <ol>
   <li><strong>Earth</strong> → Venus → Mercury</li>
   <li><strong>Mars system</strong> — Elon → Mars → Phobos → Deimos</li>
-  <li><strong>Asteroid belt</strong> — blank transit lanes (Gravity Duel country)</li>
-  <li><strong>Jupiter</strong> — Holst Space Station + Io, Europa, Ganymede, Callisto + blanks</li>
-  <li><strong>Saturn</strong> — Daktulios + Titan, Enceladus, Iapetus, Mimas, Rhea, Dione, Tethys + blanks</li>
+  <li><strong>Asteroid belt</strong> — blank lanes (empty stops, no world to buy), where a Gravity Duel (a lane fight) can happen.</li>
+  <li><strong>Jupiter</strong> — Holst Space Station + Io, Europa, Ganymede, Callisto + blank lanes (empty stops)</li>
+  <li><strong>Saturn</strong> — Daktulios + Titan, Enceladus, Iapetus, Mimas, Rhea, Dione, Tethys + blank lanes (empty stops)</li>
   <li>Homeward → <strong>Earth</strong></li>
 </ol>
-<p>One full loop home is a <strong>rotation</strong>.</p>
-<p>Blank lanes cost no leave fuel. They are not safe. Another rocket already there means a <strong>Gravity Duel</strong>.</p>
+<p>One full loop back to Earth is a <strong>rotation</strong> (one time around).</p>
+<p>Blank lanes (empty stops, no world to buy) cost no fuel to leave. They are not safe. Another rocket already there means a Gravity Duel (a lane fight).</p>
 `,
   },
   {
     id: "stations-lore",
     title: "Hub stations",
     html: `
-<p><strong>Elon</strong>, <strong>Holst</strong>, and <strong>Daktulios</strong> are stations, not worlds. They sit off the heavy wells. Ice and ore go through them. Own the hubs and you own the tollbooths.</p>
-<p>Stations can move. That is why a rogue Tesla never hits them. A fuel pod on a moon cannot move.</p>
+<p><strong>Elon</strong>, <strong>Holst</strong>, and <strong>Daktulios</strong> are stations, not worlds. They sit off the heavy wells (away from each planet's strong pull). Ice and ore (rock from mines) go through them. Own the hubs (these stations) and you own the tollbooths (you get paid when others pass).</p>
+<p>Stations can move. That is why a rogue Tesla (it flies wild) never hits them. A fuel pod (a fuel tank) on a moon cannot move.</p>
 <ul>
-  <li><strong>Elon (Mars)</strong> — named for the era that crashed per-kilogram launch cost and made commercial solar access imaginable.</li>
-  <li><strong>Holst (Jupiter)</strong> — after Gustav Holst; <em>The Planets</em> gave Jupiter a cultural boom long before a station hung in its sky.</li>
-  <li><strong>Daktulios (Saturn)</strong> — from the Greek for “ring”: the ring-station transit hub anchored in Saturn’s system.</li>
+  <li><strong>Elon (Mars)</strong> — named for the time that made each bit of a launch much cheaper, so sun power for sale seemed possible.</li>
+  <li><strong>Holst (Jupiter)</strong> — named for Gustav Holst. His music, <em>The Planets</em>, made people care about Jupiter long before a station hung in its sky.</li>
+  <li><strong>Daktulios (Saturn)</strong> — from the Greek for "ring": the ring station, a hub (things pass through it) set in Saturn's group.</li>
 </ul>
-<p>Own <strong>2</strong> hubs → hub rent <strong>×2</strong>. Own all <strong>3</strong> → hub rent <strong>×4</strong>. That stacks with a system monopoly.</p>
+<p>Own <strong>2</strong> hubs (these stations) and hub rent (what others pay you) is <strong>×2</strong>. Own all <strong>3</strong> and hub rent is <strong>×4</strong>. That adds on to a system monopoly (you own every world in that planet's group).</p>
 `,
   },
 ];
