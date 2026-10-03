@@ -21,9 +21,9 @@ const PILOT_ARTICLES: Record<string, string> = {
 <p>In Heliopoly the callsign (the name on the rocket) is on purpose: zero is not "nothing." It is structure (it holds a place). Without place-value (the place of a digit), you cannot keep a price, propellant (fuel), or a ledger (the book). The blank still counts.</p>
 `,
   turing: `
-<p class="pilot-hook"><em>Helped invent computer science; broke codes in World War II.</em></p>
-<p><strong>Alan Turing</strong> formalized what a computer can be (the Turing machine) and led work that cracked enemy codes at Bletchley Park. Textbooks place him at the root of both algorithms and modern computing ethics.</p>
-<p>A Turing rival is pure logic under pressure: when fuel and rent are tight, the better model of the board wins. Crypto, AI seats, and the whole orbital ledger sit downstream of his idea of computation.</p>
+<p class="pilot-hook"><em>Helped invent computer science (the study of what computers can do). Broke codes in World War II.</em></p>
+<p>Alan Turing formalized what a computer can be (the Turing machine, his model of what a computer can do) and led the work that cracked (broke) enemy codes at Bletchley Park (the place where that code work happened). Textbooks place him at the root (the start) of both algorithms (a set of steps) and modern computing ethics (what people should do with computers).</p>
+<p>A Turing rival is pure logic under pressure (clear steps when the game is tight). When fuel and rent are tight, the better model of the board wins. The orbital ledger (the book in this space game) comes from his idea of computation (how computers work).</p>
 `,
   ada: `
 <p class="pilot-hook"><em>Ada Lovelace — often called the first computer programmer.</em></p>
