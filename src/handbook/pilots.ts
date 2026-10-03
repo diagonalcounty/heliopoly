@@ -63,7 +63,7 @@ function articleFor(p: AiPilotDef): string {
     `<p class="pilot-hook"><em>${p.schoolHook}</em></p><p>Entry pending.</p>`;
   return `
 ${body}
-<p class="pilot-foot mono">See also Rival rockets index</p>
+<p class="pilot-foot mono">See the Overview page under Rival rockets.</p>
 `;
 }
 
@@ -77,11 +77,11 @@ export function rivalPilotsIndexTopic(): HandbookTopic {
     id: "rival-pilots-overview",
     title: "Overview",
     html: `
-<p>Each AI seat flies a <strong>named rocket</strong> — not a named pilot. Callsigns honor people and ideas behind <strong>number, notation, computation</strong>, and the culture of spaceflight (Civ-style civilopedia).</p>
-<p>You name <strong>your</strong> rocket at launch. Rivals draw from this short roster so every opponent has a page you can look up mid-expedition.</p>
-<p><strong>No modern astronaut flight crews</strong> as ship names — foundations of the ledger age better. Unused names may still label <strong>transit lanes</strong> later.</p>
+<p>Each rival flies a named rocket, not a named pilot. The callsign (the name painted on the rocket) honors people and ideas behind numbers, notation (how we write math), computation (how computers work), and the culture of spaceflight.</p>
+<p>You name your rocket at launch. Rivals come from this short list, so every opponent has a page you can look up during the expedition (this game).</p>
+<p>These are not modern astronaut crews used as ship names. The names come from the start of the ledger age (the age of the book). Unused names may still name lanes later. Those lanes are not in the game yet, and those names are not other rockets.</p>
 <ul class="pilot-index">${items}</ul>
-<p class="hint">Open a rocket entry below in this section.</p>
+<p>Open a rocket page below in this section.</p>
 `,
   };
 }

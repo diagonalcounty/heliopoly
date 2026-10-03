@@ -28,43 +28,42 @@ export const AI_PILOTS: readonly AiPilotDef[] = [
   {
     id: "k127",
     callsign: "K-127",
-    schoolHook:
-      "Khmer stele (Sambor) — early dated zero in a decimal place-value system (683 CE).",
+    schoolHook: "A Khmer stele (a carved stone at Sambor) — an early dated zero in a place-value system (the place of a digit matters: ones, tens, hundreds), 683 CE.",
   },
   {
     id: "turing",
     callsign: "Turing",
-    schoolHook: "Helped invent computer science; broke codes in World War II.",
+    schoolHook: "Helped invent computer science (the study of what computers can do). Broke codes in World War II.",
   },
   {
     id: "ada",
     callsign: "Ada",
-    schoolHook: "Ada Lovelace — often called the first computer programmer.",
+    schoolHook: "Ada Lovelace — often called the first computer programmer (a person who writes what a computer should do).",
   },
   {
     id: "sagan",
     callsign: "Sagan",
-    schoolHook: "Astronomer who brought Cosmos to millions of living rooms.",
+    schoolHook: "An astronomer (a person who studies space) who brought Cosmos (the TV series) to millions of living rooms.",
   },
   {
     id: "asimov",
     callsign: "Asimov",
-    schoolHook: "Science-fiction giant — robots, Foundation, and laws of robotics.",
+    schoolHook: "A giant of science fiction (made-up stories about science). Robots, Foundation (a book series), and laws of robotics (rules for robots).",
   },
   {
     id: "clarke",
     callsign: "Clarke",
-    schoolHook: "2001: A Space Odyssey; also predicted geostationary satellites.",
+    schoolHook: "2001: A Space Odyssey (a space story). Also predicted geostationary satellites (a satellite that stays over one spot on Earth).",
   },
   {
     id: "goddard",
     callsign: "Goddard",
-    schoolHook: "American pioneer of liquid-fuel rockets (ideas, not a flight crew).",
+    schoolHook: "An early leader of liquid-fuel rockets (rockets that burn liquid fuel). These are ideas, not a flight crew.",
   },
   {
     id: "von-braun",
     callsign: "von Braun",
-    schoolHook: "Heavy-lift rocketry that made crewed lunar flight possible (complex legacy).",
+    schoolHook: "Heavy-lift rocketry (rockets big enough to lift a lot) that made crewed flight to the Moon possible. The history is not simple.",
   },
 ] as const;
 

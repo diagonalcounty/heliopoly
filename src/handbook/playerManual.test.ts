@@ -224,6 +224,22 @@ assertMatch(handbook, /lane fight that plays out as it happens/, "Not yet live d
 assertMatch(handbook, /Those names are not other rockets/, "Not yet named lanes");
 assertNo(handbook, /Purchasable transfer nodes/, "Not yet drops transfer nodes");
 assertNo(handbook, /full matrix later/, "Not yet drops matrix");
+const pilots = readFileSync(new URL("pilots.ts", import.meta.url), "utf8");
+const names = readFileSync(new URL("../core/pilotNames.ts", import.meta.url), "utf8");
+assertMatch(pilots, /Each rival flies a named rocket, not a named pilot/, "Overview ships");
+assertMatch(pilots, /during the expedition \(this game\)/, "Overview list reason");
+assertMatch(pilots, /Those lanes are not in the game yet, and those names are not other rockets/, "Overview lanes");
+assertMatch(pilots, /Open a rocket page below in this section/, "Overview closer");
+assertMatch(pilots, /See the Overview page under Rival rockets\./, "Overview footer");
+assertMatch(names, /A Khmer stele \(a carved stone at Sambor\)/, "Overview K-127 hook");
+assertMatch(names, /Helped invent computer science \(the study of what computers can do\)/, "Overview Turing hook");
+assertMatch(names, /a person who writes what a computer should do/, "Overview Ada hook");
+assertMatch(names, /An astronomer \(a person who studies space\)/, "Overview Sagan hook");
+assertMatch(names, /made-up stories about science/, "Overview Asimov hook");
+assertMatch(names, /a satellite that stays over one spot on Earth/, "Overview Clarke hook");
+assertMatch(names, /These are ideas, not a flight crew/, "Overview Goddard hook");
+assertMatch(names, /The history is not simple/, "Overview von Braun hook");
+assertMatch(names, /Robert Recorde — invented the equals sign \(=\) in 1557\./, "Overview Recorde hook");
 
 
 console.log("playerManual: in-app README and CHANGELOG stay player-facing");
