@@ -3,6 +3,9 @@
  * Progressive Connect-N: start 3×8, morph ≥ N, widen after two bars.
  * Untimed. No Mainline / src/core.
  *
+ * Visit save (#301): localStorage key `heliopoly.botEvolutionSave`.
+ * Same device-only pattern as the Lab unlock. Journey is not involved.
+ *
  * Grammar: every piece is a centered plus with unused arms erased.
  * Connection uses socket flags, not sprite shape. No rotation — each
  * piece id is a fixed bot. Shell color is by connector family
@@ -994,4 +997,191 @@ export function fallingOccupies(
     state.fallRow === r &&
     state.aimCol === c
   );
+}
+
+
+/** Device save for one Bot Evolution visit (#301). Not the Journey charter. */
+export const BOT_EVO_SAVE_KEY = "heliopoly.botEvolutionSave";
+
+export interface BotEvoStorage {
+  getItem(key: string): string | null;
+  setItem(key: string, value: string): void;
+  removeItem(key: string): void;
+}
+
+/** Settled board plus the chrome flags needed to reopen the same visit. */
+export interface BotEvoSave {
+  v: 1;
+  state: BotState;
+  paused: boolean;
+  awaitingStageAck: boolean;
+  ackedN: BotStage | null;
+}
+
+const PIECE_ID_SET: ReadonlySet<string> = new Set(PIECE_IDS);
+
+function isPieceId(value: unknown): value is PieceId {
+  return typeof value === "string" && PIECE_ID_SET.has(value);
+}
+
+function isBotStage(value: unknown): value is BotStage {
+  return value === 3 || value === 4 || value === 5 || value === 6;
+}
+
+function isUint(value: unknown): value is number {
+  return (
+    typeof value === "number" &&
+    Number.isInteger(value) &&
+    value >= 0 &&
+    value < 4294967296
+  );
+}
+
+function parseGrid(value: unknown, cols: number): BotGrid | null {
+  if (!Array.isArray(value) || value.length !== BOT_ROWS) return null;
+  const grid: BotGrid = [];
+  for (const row of value) {
+    if (!Array.isArray(row) || row.length !== cols) return null;
+    const next: (PieceId | null)[] = [];
+    for (const cell of row) {
+      if (cell === null) next.push(null);
+      else if (isPieceId(cell)) next.push(cell);
+      else return null;
+    }
+    grid.push(next);
+  }
+  return grid;
+}
+
+function parsePieceList(value: unknown, exact: number | null): PieceId[] | null {
+  if (!Array.isArray(value)) return null;
+  if (exact !== null && value.length !== exact) return null;
+  if (exact === null && value.length > PIECE_IDS.length) return null;
+  const out: PieceId[] = [];
+  for (const item of value) {
+    if (!isPieceId(item)) return null;
+    out.push(item);
+  }
+  return out;
+}
+
+function parseState(value: unknown): BotState | null {
+  if (!value || typeof value !== "object") return null;
+  const raw = value as Record<string, unknown>;
+  if (!isBotStage(raw.n)) return null;
+  const grid = parseGrid(raw.grid, raw.n);
+  const queue = parsePieceList(raw.queue, BOT_QUEUE);
+  const bag = parsePieceList(raw.bag, null);
+  if (!grid || !queue || !bag || !isPieceId(raw.current)) return null;
+  if (!isUint(raw.aimCol) || raw.aimCol >= raw.n) return null;
+  const phase = raw.phase;
+  if (
+    phase !== "aiming" &&
+    phase !== "falling" &&
+    phase !== "morphing" &&
+    phase !== "lost"
+  ) {
+    return null;
+  }
+  let fallRow: number | null = null;
+  if (raw.fallRow === null) fallRow = null;
+  else if (isUint(raw.fallRow) && raw.fallRow < BOT_ROWS) fallRow = raw.fallRow;
+  else return null;
+  if (phase === "falling" && fallRow === null) return null;
+  if (!isUint(raw.level) || raw.level < 1) return null;
+  if (!isUint(raw.segments) || !isUint(raw.boxes)) return null;
+  if (!isUint(raw.barsCompletedThisStage)) return null;
+  if (!isUint(raw.rng) || !isUint(raw.lockTicks)) return null;
+  if (!isUint(raw.pendingPromotions)) return null;
+  if (typeof raw.pendingWiden !== "boolean") return null;
+  if (!Array.isArray(raw.recycleSharp) || raw.recycleSharp.length !== BOT_QUEUE) {
+    return null;
+  }
+  if (!raw.recycleSharp.every((flag) => typeof flag === "boolean")) return null;
+  return {
+    grid,
+    queue,
+    current: raw.current,
+    aimCol: raw.aimCol,
+    fallRow,
+    level: raw.level,
+    segments: raw.segments,
+    boxes: raw.boxes,
+    n: raw.n,
+    barsCompletedThisStage: raw.barsCompletedThisStage,
+    phase,
+    rng: raw.rng,
+    bag,
+    lockTicks: raw.lockTicks,
+    justMorphed: [],
+    recycleSharp: raw.recycleSharp.slice(),
+    justRecycled: [],
+    pendingPromotions: raw.pendingPromotions,
+    pendingWiden: raw.pendingWiden,
+  };
+}
+
+function parseSave(value: unknown): BotEvoSave | null {
+  if (!value || typeof value !== "object") return null;
+  const raw = value as Record<string, unknown>;
+  if (raw.v !== 1) return null;
+  const state = parseState(raw.state);
+  if (!state) return null;
+  if (typeof raw.paused !== "boolean") return null;
+  if (typeof raw.awaitingStageAck !== "boolean") return null;
+  if (!(raw.ackedN === null || isBotStage(raw.ackedN))) return null;
+  return {
+    v: 1,
+    state,
+    paused: raw.paused,
+    awaitingStageAck: raw.awaitingStageAck,
+    ackedN: raw.ackedN,
+  };
+}
+
+export function readBotEvoSave(storage: BotEvoStorage | null): BotEvoSave | null {
+  if (!storage) return null;
+  let raw: string | null;
+  try {
+    raw = storage.getItem(BOT_EVO_SAVE_KEY);
+  } catch {
+    return null;
+  }
+  if (!raw) return null;
+  try {
+    return parseSave(JSON.parse(raw));
+  } catch {
+    return null;
+  }
+}
+
+export function writeBotEvoSave(
+  storage: BotEvoStorage | null,
+  save: BotEvoSave,
+): void {
+  if (!storage) return;
+  const settled = parseSave({
+    ...save,
+    v: 1,
+    state: {
+      ...save.state,
+      justMorphed: [],
+      justRecycled: [],
+    },
+  });
+  if (!settled) return;
+  try {
+    storage.setItem(BOT_EVO_SAVE_KEY, JSON.stringify(settled));
+  } catch {
+    /* private mode */
+  }
+}
+
+export function clearBotEvoSave(storage: BotEvoStorage | null): void {
+  if (!storage) return;
+  try {
+    storage.removeItem(BOT_EVO_SAVE_KEY);
+  } catch {
+    /* private mode */
+  }
 }

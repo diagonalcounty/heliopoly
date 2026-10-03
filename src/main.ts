@@ -127,10 +127,14 @@ import {
   SHELL_FILL,
   quotaForState,
   runLevelLine,
+  clearBotEvoSave,
+  readBotEvoSave,
   resumeAfterMorph,
   socketJoins,
   startBotEvo,
   tick,
+  writeBotEvoSave,
+  type BotEvoSave,
   type BotGrid,
   type BotStage,
   type BotState,
@@ -139,7 +143,10 @@ import {
   type RecycledBot,
 } from "./lab/botEvolution";
 import {
+  BOTEVO_KEEP_GOING,
+  BOTEVO_RESUME_LINE,
   BOTEVO_SAVE_ARIA,
+  BOTEVO_START_OVER,
   connectLabel,
   playHint,
   stageTeach,
@@ -604,6 +611,10 @@ const botEvoPausedEl = document.getElementById("botevo-paused")!;
 const botEvoIntroEl = document.getElementById("botevo-intro")!;
 const botEvoTableEl = document.getElementById("botevo-table")!;
 const botEvoBeginBtn = document.getElementById("botevo-begin") as HTMLButtonElement;
+const botEvoResumeEl = document.getElementById("botevo-resume")!;
+const botEvoResumeLineEl = document.getElementById("botevo-resume-line")!;
+const botEvoKeepBtn = document.getElementById("botevo-keep") as HTMLButtonElement;
+const botEvoStartOverBtn = document.getElementById("botevo-start-over") as HTMLButtonElement;
 const botEvoCardTitleEl = document.getElementById("botevo-card-title")!;
 const botEvoCardBodyEl = document.getElementById("botevo-card-body")!;
 const botEvoHintEl = document.getElementById("botevo-hint")!;
@@ -2584,6 +2595,108 @@ function isBotEvoOpen(): boolean {
   return !botEvoRoot.classList.contains("hidden");
 }
 
+function botEvoStorage(): Pick<Storage, "getItem" | "setItem" | "removeItem"> | null {
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+}
+
+function hideBotEvoResumeGate(): void {
+  botEvoResumeEl.classList.add("hidden");
+}
+
+/** Last visit on this device. Does not clear the save. */
+function persistBotEvo(): void {
+  if (!botEvoState) return;
+  writeBotEvoSave(botEvoStorage(), {
+    v: 1,
+    state: botEvoState,
+    paused: botEvoPaused,
+    awaitingStageAck: botEvoAwaitingStageAck,
+    ackedN: botEvoAckedN,
+  });
+}
+
+function showBotEvoResumeGate(): void {
+  clearBotEvoTimer();
+  clearBotEvoMorphTimer();
+  clearBotEvoRecycleTimer();
+  botEvoFaces.stop();
+  botEvoState = null;
+  botEvoPaused = false;
+  botEvoAwaitingStageAck = false;
+  botEvoAckedN = null;
+  botEvoResumeLineEl.textContent = BOTEVO_RESUME_LINE;
+  botEvoKeepBtn.textContent = BOTEVO_KEEP_GOING;
+  botEvoStartOverBtn.textContent = BOTEVO_START_OVER;
+  botEvoResumeEl.classList.remove("hidden");
+  botEvoIntroEl.classList.add("hidden");
+  botEvoTableEl.classList.add("hidden");
+}
+
+function seedBotEvoVisualFromState(): void {
+  botEvoPrevOcc = new Set();
+  botEvoPrevJoins = new Set();
+  if (!botEvoState) return;
+  botEvoBarView = {
+    level: botEvoState.level,
+    segments: botEvoState.segments,
+    boxes: botEvoState.boxes,
+    quota: quotaForState(botEvoState),
+  };
+  for (let r = 0; r < BOT_ROWS; r++) {
+    for (let c = 0; c < botEvoState.n; c++) {
+      if (botEvoState.grid[r]?.[c]) botEvoPrevOcc.add(`${r},${c}`);
+    }
+  }
+  botEvoPrevJoins = joinKeysFor(botEvoState.grid);
+}
+
+function resumeBotEvo(save: BotEvoSave): void {
+  clearBotEvoTimer();
+  clearBotEvoMorphTimer();
+  clearBotEvoRecycleTimer();
+  botEvoFaces.stop();
+  botEvoPaused = save.paused && save.state.phase !== "lost";
+  botEvoAwaitingStageAck =
+    save.awaitingStageAck && save.state.phase !== "lost";
+  botEvoAckedN = save.ackedN;
+  botEvoMorphSig = "";
+  botEvoRecyclePending = [];
+  botEvoRecycleFlying = false;
+  botEvoFxEl.replaceChildren();
+  botEvoState = save.state;
+  hideBotEvoResumeGate();
+  if (botEvoState.phase === "lost") {
+    botEvoPaused = false;
+    botEvoAwaitingStageAck = false;
+    botEvoAckedN = botEvoState.n;
+    botEvoIntroEl.classList.add("hidden");
+    botEvoTableEl.classList.remove("hidden");
+    seedBotEvoVisualFromState();
+    renderBotEvo();
+    return;
+  }
+  if (botEvoAwaitingStageAck) {
+    showBotEvoStageCard(botEvoState.n, botEvoAckedN !== null);
+    return;
+  }
+  botEvoIntroEl.classList.add("hidden");
+  botEvoTableEl.classList.remove("hidden");
+  seedBotEvoVisualFromState();
+  renderBotEvo();
+  botEvoFaces.start();
+  if (!botEvoPaused) armBotEvoTimer();
+  botEvoDropBtn.focus();
+}
+
+function startOverBotEvo(): void {
+  clearBotEvoSave(botEvoStorage());
+  startBotEvoPlay();
+}
+
 function clearBotEvoTimer(): void {
   if (botEvoTimer !== null) {
     window.clearTimeout(botEvoTimer);
@@ -3051,6 +3164,7 @@ function renderBotEvo(): void {
   });
 
   botEvoFaces.syncHosts(botEvoFaceHosts);
+  persistBotEvo();
 }
 
 function paintBotEvoStageCard(n: BotStage, isContinue: boolean): void {
@@ -3065,8 +3179,10 @@ function showBotEvoStageCard(n: BotStage, isContinue: boolean): void {
   botEvoFaces.stop();
   botEvoAwaitingStageAck = true;
   paintBotEvoStageCard(n, isContinue);
+  hideBotEvoResumeGate();
   botEvoIntroEl.classList.remove("hidden");
   botEvoTableEl.classList.add("hidden");
+  persistBotEvo();
   botEvoBeginBtn.focus();
 }
 
@@ -3104,6 +3220,7 @@ function showBotEvoIntro(): void {
   botEvoRecyclePending = [];
   botEvoRecycleFlying = false;
   botEvoState = null;
+  hideBotEvoResumeGate();
   paintBotEvoStageCard(3, false);
   botEvoIntroEl.classList.remove("hidden");
   botEvoTableEl.classList.add("hidden");
@@ -3125,6 +3242,7 @@ function startBotEvoPlay(): void {
   botEvoState = startBotEvo();
   botEvoAckedN = botEvoState.n;
   botEvoBarView = { level: 1, segments: 0, boxes: 0, quota: 3 };
+  hideBotEvoResumeGate();
   botEvoIntroEl.classList.add("hidden");
   botEvoTableEl.classList.remove("hidden");
   renderBotEvo();
@@ -3134,14 +3252,17 @@ function startBotEvoPlay(): void {
 }
 
 function openBotEvo(): void {
-  showBotEvoIntro();
+  const save = readBotEvoSave(botEvoStorage());
+  if (save) showBotEvoResumeGate();
+  else startBotEvoPlay();
   botEvoRoot.classList.remove("hidden");
   botEvoRoot.setAttribute("aria-hidden", "false");
   document.body.classList.add("handbook-open");
-  botEvoBeginBtn.focus();
+  if (save) botEvoKeepBtn.focus();
 }
 
 function closeBotEvo(): void {
+  persistBotEvo();
   clearBotEvoTimer();
   clearBotEvoMorphTimer();
   clearBotEvoRecycleTimer();
@@ -3265,6 +3386,7 @@ function closePipes(): void {
 }
 
 function botEvoPlayAgain(): void {
+  clearBotEvoSave(botEvoStorage());
   showBotEvoIntro();
 }
 
@@ -3850,6 +3972,12 @@ document.getElementById("eac-done")?.addEventListener("click", () => {
 document.getElementById("botevo-close")?.addEventListener("click", () => closeBotEvo());
 document.getElementById("botevo-backdrop")?.addEventListener("click", () => closeBotEvo());
 botEvoBeginBtn.addEventListener("click", () => dismissBotEvoStageCard());
+botEvoKeepBtn.addEventListener("click", () => {
+  const save = readBotEvoSave(botEvoStorage());
+  if (save) resumeBotEvo(save);
+  else startBotEvoPlay();
+});
+botEvoStartOverBtn.addEventListener("click", () => startOverBotEvo());
 document.getElementById("botevo-again")?.addEventListener("click", () => botEvoPlayAgain());
 document.getElementById("botevo-done")?.addEventListener("click", () => {
   closeBotEvo();

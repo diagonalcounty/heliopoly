@@ -45,9 +45,14 @@ import {
   socketCount,
   socketJoins,
   socketsMeet,
+  BOT_EVO_SAVE_KEY,
+  clearBotEvoSave,
+  readBotEvoSave,
   startBotEvo,
   startBotEvoAt,
   tick,
+  writeBotEvoSave,
+  type BotEvoStorage,
   type BotGrid,
   type BotState,
   type PieceId,
@@ -61,7 +66,10 @@ import {
   pickLookDir,
 } from "./botevoFaces";
 import {
+  BOTEVO_KEEP_GOING,
+  BOTEVO_RESUME_LINE,
   BOTEVO_SAVE_ARIA,
+  BOTEVO_START_OVER,
   BOTEVO_TITLE,
   connectLabel,
   playHint,
@@ -697,6 +705,78 @@ assert(!socketsMeet("l-ne", "i", DIR_S), "L-NE has no south pin");
   assert(past.major === 10 && past.minor === 4, "Connect 6 past level 8 keeps its minor");
   assert(past.major > 8, "the run is past level 8");
   assert(past.minor < quotaForStageBar(6, 3), "minor stays under that Connect 6 bar");
+}
+
+
+{
+  assert(BOTEVO_RESUME_LINE.length <= 50, "resume line stays within 50 characters");
+  assert(BOTEVO_RESUME_LINE === "You have a game saved on this device.", "resume line");
+  assert(BOTEVO_KEEP_GOING === "Keep going", "resume button");
+  assert(BOTEVO_START_OVER === "Start over", "start over button");
+  const banned = /webdist|npm|wrapper/i;
+  assert(!banned.test(BOTEVO_RESUME_LINE + BOTEVO_KEEP_GOING + BOTEVO_START_OVER), "resume copy has no wrapper talk");
+
+  const mem = new Map<string, string>();
+  const storage: BotEvoStorage = {
+    getItem: (key) => (mem.has(key) ? mem.get(key)! : null),
+    setItem: (key, value) => {
+      mem.set(key, value);
+    },
+    removeItem: (key) => {
+      mem.delete(key);
+    },
+  };
+  assert(readBotEvoSave(storage) === null, "no save means no resume prompt");
+  assert(readBotEvoSave(null) === null, "missing storage is no save");
+
+  let game = startBotEvo(42);
+  game = dropPiece(game, 0, "plus");
+  game.level = 4;
+  game.segments = 2;
+  game.boxes = 9;
+  game.justMorphed = ["1,0"];
+  game.justRecycled = [{ col: 0, piece: "dash" }];
+  writeBotEvoSave(storage, {
+    v: 1,
+    state: game,
+    paused: true,
+    awaitingStageAck: false,
+    ackedN: game.n,
+  });
+  const again = readBotEvoSave(storage);
+  assert(again !== null, "a visit writes a save");
+  assert(readBotEvoSave(storage) !== null, "leaving does not clear the save");
+  assert(mem.has(BOT_EVO_SAVE_KEY), "save uses the bot evolution key");
+  assert(again!.paused === true, "resume keeps pause");
+  assert(again!.ackedN === game.n, "resume keeps the acked stage");
+  assert(again!.state.level === 4, "resume keeps level");
+  assert(again!.state.segments === 2 && again!.state.boxes === 9, "resume keeps progress");
+  assert(JSON.stringify(again!.state.grid) === JSON.stringify(game.grid), "resume keeps the board");
+  assert(again!.state.current === game.current, "resume keeps the falling bot");
+  assert(again!.state.aimCol === game.aimCol && again!.state.fallRow === game.fallRow, "resume keeps the drop");
+  assert(again!.state.queue.join() === game.queue.join(), "resume keeps the queue");
+  assert(again!.state.justMorphed.length === 0, "resume does not replay a morph flash");
+  assert(again!.state.justRecycled.length === 0, "resume does not replay recycle");
+  const fresh = startBotEvo(42);
+  assert(JSON.stringify(again!.state.grid) !== JSON.stringify(fresh.grid), "saved board is not a new game");
+
+  storage.setItem(BOT_EVO_SAVE_KEY, "{");
+  assert(readBotEvoSave(storage) === null, "broken save is ignored");
+  storage.setItem(BOT_EVO_SAVE_KEY, JSON.stringify({ v: 1, state: { n: 3 }, paused: false, awaitingStageAck: false, ackedN: null }));
+  assert(readBotEvoSave(storage) === null, "partial save is ignored");
+
+  writeBotEvoSave(storage, {
+    v: 1,
+    state: game,
+    paused: false,
+    awaitingStageAck: true,
+    ackedN: 3,
+  });
+  assert(readBotEvoSave(storage)!.awaitingStageAck === true, "stage card can be restored");
+  clearBotEvoSave(storage);
+  assert(readBotEvoSave(storage) === null, "start over clears the save");
+  const restarted = startBotEvo(7);
+  assert(restarted.level === 1 && restarted.n === 3 && restarted.segments === 0 && restarted.boxes === 0, "start over begins at the first level");
 }
 
 if (failed) {
