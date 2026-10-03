@@ -5,8 +5,8 @@
  */
 import type { BotStage } from "./botEvolution";
 
-export const BOTEVO_TITLE = "Bot Evolution";
-export const BOTEVO_SAVE_ARIA = "Boxes to next stage";
+export const BOTEVO_TITLE = "Make a bigger bot";
+export const BOTEVO_SAVE_ARIA = "Joins to the next level";
 
 /** Resume gate (#301). Early reader; the line stays under 50 characters. */
 export const BOTEVO_RESUME_LINE = "You have a game saved on this device.";
@@ -14,7 +14,7 @@ export const BOTEVO_KEEP_GOING = "Keep going";
 export const BOTEVO_START_OVER = "Start over";
 
 export function connectLabel(n: number): string {
-  return `Connect ${n}`;
+  return `Join ${n}`;
 }
 
 export interface StageTeach {
@@ -37,22 +37,22 @@ export function stageTeach(n: BotStage, isContinue: boolean): StageTeach {
   const word = WORD[n];
   if (n === 3) {
     return {
-      title: "Simple bots. Link three.",
+      title: "Join three bots",
       bodyHtml:
-        "Link <strong>three</strong> bots whose pins touch. They become a box. Boxes fill the row at the top. Bots drop as they are — they do not turn. Fill a column to the top and the game ends.",
+        "Join three bots that touch. They become one bigger bot. Those fill the top row. Bots fall as they are and do not turn. A full column ends the game.",
       action: isContinue ? "Continue" : "Begin",
     };
   }
   if (n === 6) {
     return {
-      title: "Hardest job. Link six.",
-      bodyHtml: `The field is <strong>six</strong> across now and stays this wide. Link <strong>${word}</strong>. Pins touch; they become a box. They still do not turn.`,
+      title: "Hardest job. Join six.",
+      bodyHtml: `The board is <strong>six</strong> across now and stays this wide. Join <strong>${word}</strong> that touch. They become one bigger bot. They still do not turn.`,
       action: "Continue",
     };
   }
   return {
-    title: `Harder job. Link ${word}. Wider field.`,
-    bodyHtml: `The field is ${word} across. Link <strong>${word}</strong>. Pins touch; they become a box. They still do not turn.`,
+    title: `Harder job. Join ${word}. Wider board.`,
+    bodyHtml: `The board is ${word} across. Join <strong>${word}</strong> that touch. They become one bigger bot. They still do not turn.`,
     action: "Continue",
   };
 }
@@ -60,7 +60,7 @@ export function stageTeach(n: BotStage, isContinue: boolean): StageTeach {
 export function playHint(n: number): string {
   const widen =
     n < 6
-      ? " Later, the field gets wider."
+      ? " Later the board gets wider."
       : " This is as wide as it gets.";
-  return `Bots drop as they are — they do not turn. Tap a column to steer. Link ${n} whose pins touch; they become a box.${widen}`;
+  return `Bots fall as they are and do not turn. Tap a column to aim it. Join ${n} that touch. They become one bigger bot.${widen}`;
 }

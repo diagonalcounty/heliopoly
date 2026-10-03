@@ -169,12 +169,12 @@ import {
   EMPTY,
   continueTiles,
   isAdjacentToEmpty,
-  TILES_END_LINE,
   levelLabel,
   nextLevel,
   playAgainTiles,
   slideTile,
   startTiles,
+  tilesEndLine,
   tilesHint,
   type TileState,
 } from "./lab/slidingTiles";
@@ -3018,7 +3018,7 @@ function renderBotEvo(): void {
   botEvoStatusEl.textContent = lost ? "—" : connectLabel(botEvoState.n);
   botEvoHintEl.textContent = playHint(botEvoState.n);
   botEvoScoreEl.textContent =
-    botEvoState.boxes === 1 ? "1 box" : `${botEvoState.boxes} boxes`;
+    botEvoState.boxes === 1 ? "1 join" : `${botEvoState.boxes} joins`;
   renderBotEvoBar();
   botEvoPlayEl.classList.toggle("hidden", lost);
   botEvoEndEl.classList.toggle("hidden", !lost);
@@ -3292,16 +3292,12 @@ function renderPipes(): void {
   if (!pipesState) return;
   const won = pipesState.phase === "won";
   const flow = flowFromTank(pipesState);
-  pipesStatusEl.textContent = won ? "Flow restored" : "Tank → engine";
+  pipesStatusEl.textContent = won ? "Fuel gets through" : "Tank to engine";
   pipesRotatesEl.textContent =
-    pipesState.rotates === 1 ? "1 rotate" : `${pipesState.rotates} rotates`;
+    pipesState.rotates === 1 ? "1 turn" : `${pipesState.rotates} turns`;
   pipesEndEl.classList.toggle("hidden", !won);
   if (won) {
-    const n = pipesState.rotates;
-    pipesEndBlurb.textContent =
-      n === 1
-        ? "Backup fuel reaches the engine in 1 rotate."
-        : `Backup fuel reaches the engine in ${n} rotates.`;
+    pipesEndBlurb.textContent = "Backup fuel reaches the engine.";
   }
   pipesGridEl.replaceChildren();
   for (let r = 0; r < PIPE_GRID; r++) {
@@ -3324,7 +3320,7 @@ function renderPipes(): void {
           : kind === "engine"
             ? "Engine"
             : `Pipe ${r + 1},${c + 1}`;
-      btn.setAttribute("aria-label", won ? `${label}, locked` : `${label}, tap to rotate`);
+      btn.setAttribute("aria-label", won ? `${label}, locked` : `${label}, tap to turn`);
       btn.setAttribute("role", "gridcell");
       const glyph = document.createElement("span");
       glyph.className = "pipe-glyph";
@@ -3505,7 +3501,7 @@ function renderTiles(): void {
   tilesPlayEl.classList.toggle("hidden", runOver);
   tilesNextBtn.classList.toggle("hidden", !(won && upcoming));
   if (runOver) {
-    tilesEndBlurb.textContent = TILES_END_LINE;
+    tilesEndBlurb.textContent = tilesEndLine(tilesState.n, tilesState.round);
   }
   tilesGridEl.style.setProperty("--tiles-n", String(tilesState.n));
   tilesGridEl.replaceChildren();

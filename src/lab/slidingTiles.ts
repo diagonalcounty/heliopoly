@@ -199,7 +199,11 @@ export function levelLabel(state: Pick<TileState, "n" | "round">): string {
 }
 
 export function tilesHint(n: number): string {
-  return `Tap a plate next to the gap. Order 1–${n * n - 1} with the empty corner last.`;
+  return `Tap a piece next to the empty spot. Put 1 through ${n * n - 1} in order. The empty spot ends in the corner.`;
 }
 
-export const TILES_END_LINE = "Congratulations, you made it to level 7.49.";
+export function tilesEndLine(n: number, round: number): string {
+  return `You finished level ${n}.${round}.`;
+}
+
+export const TILES_END_LINE = tilesEndLine(7, 49);

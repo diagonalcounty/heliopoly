@@ -584,9 +584,9 @@ test.describe("phone Lab egg-bot-evolution #203", () => {
     await page.locator('#arcade-root .lab-scenario[data-scenario="egg-bot-evolution"]').click();
     await expect(page.locator("#botevo-root")).not.toHaveClass(/hidden/);
     await expect(page.locator("#botevo-intro")).not.toHaveClass(/hidden/);
-    await expect(page.locator("#botevo-title")).toHaveText("Bot Evolution");
-    await expect(page.locator("#botevo-card-title")).toContainText("Link three");
-    await expect(page.locator("#botevo-card-body")).toContainText("become a box");
+    await expect(page.locator("#botevo-title")).toHaveText("Make a bigger bot");
+    await expect(page.locator("#botevo-card-title")).toContainText("Join three");
+    await expect(page.locator("#botevo-card-body")).toContainText("one bigger bot");
     await expect(page.locator("#botevo-card-body")).not.toContainText(/blast|save, not/i);
     await expect(page.locator("#btn-lab")).toHaveAttribute("aria-label", "Home");
     const begin = await boxOf(page, "#botevo-begin");
@@ -594,13 +594,13 @@ test.describe("phone Lab egg-bot-evolution #203", () => {
     expect(begin.onControl, "elementFromPoint Begin").toBe(true);
     await page.locator("#botevo-begin").click();
     await expect(page.locator("#botevo-table")).not.toHaveClass(/hidden/);
-    await expect(page.locator("#botevo-status")).toHaveText("Connect 3");
+    await expect(page.locator("#botevo-status")).toHaveText("Join 3");
     await expect(page.locator("#botevo-bar")).toHaveAttribute(
       "aria-label",
-      "Boxes to next stage",
+      "Joins to the next level",
     );
     await expect(page.locator("#botevo-bar")).not.toHaveClass(/battery/);
-    await expect(page.locator("#botevo-hint")).toContainText("Link 3");
+    await expect(page.locator("#botevo-hint")).toContainText("Join 3");
     await expect(page.locator("#botevo-hint")).not.toContainText("chain of 5");
     await expect(page.locator("#botevo-hint")).not.toContainText(/blast|morph/i);
 

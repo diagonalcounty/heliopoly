@@ -635,16 +635,16 @@ assert(!socketsMeet("l-ne", "i", DIR_S), "L-NE has no south pin");
 
 
 {
-  assert(BOTEVO_TITLE === "Bot Evolution", "product title is Bot Evolution");
-  assert(BOTEVO_SAVE_ARIA === "Boxes to next stage", "progress aria is boxes, not battery or save");
-  assert(connectLabel(3) === "Connect 3", "HUD is Connect 3, not C3");
-  assert(connectLabel(6) === "Connect 6", "HUD is Connect 6");
+  assert(BOTEVO_TITLE === "Make a bigger bot", "product title is Make a bigger bot");
+  assert(BOTEVO_SAVE_ARIA === "Joins to the next level", "progress aria is joins, not battery or save");
+  assert(connectLabel(3) === "Join 3", "HUD is Join 3, not C3");
+  assert(connectLabel(6) === "Join 6", "HUD is Join 6");
   assert(!connectLabel(3).includes("C3"), "no cryptic C3");
   const t3 = stageTeach(3, false);
   assert(t3.action === "Begin", "first bay Begin");
   assert(t3.title.includes("three"), "Connect 3 teaches three");
   assert(t3.bodyHtml.includes("three"), "Connect 3 body names three");
-  assert(t3.bodyHtml.includes("become a box"), "Connect 3 says they become a box");
+  assert(t3.bodyHtml.includes("one bigger bot"), "Join three says they become one bigger bot");
   const banned = /blast|battery|cruise|C3|morph|save/i;
   assert(!banned.test(t3.title + t3.bodyHtml), "Connect 3 has no insider contrast");
   const t4 = stageTeach(4, true);
@@ -654,11 +654,16 @@ assert(!socketsMeet("l-ne", "i", DIR_S), "L-NE has no south pin");
   const t6 = stageTeach(6, true);
   assert(t6.title.toLowerCase().includes("six"), "Connect 6 teaches six");
   const h3 = playHint(3);
-  assert(h3.includes("Link 3"), "in-play hint uses 3");
+  assert(
+    h3 ===
+      "Bots fall as they are and do not turn. Tap a column to aim it. Join 3 that touch. They become one bigger bot. Later the board gets wider.",
+    "in-play hint for 3",
+  );
+  assert(h3.includes("Join 3"), "in-play hint uses Join 3");
   assert(!h3.includes("chain of 5"), "no leftover chain of 5 on Connect 3");
   assert(!banned.test(h3), "hint has no insider contrast");
   const h5 = playHint(5);
-  assert(h5.includes("Link 5"), "in-play hint updates at 5");
+  assert(h5.includes("Join 5"), "in-play hint updates at 5");
 }
 
 {
@@ -669,7 +674,7 @@ assert(!socketsMeet("l-ne", "i", DIR_S), "L-NE has no south pin");
   assert(fresh.boxes === 0, "dashes never morph");
   const start = runLevel(fresh);
   assert(start.major === 1 && start.minor === 0, "empty run is 1.0");
-  assert(runLevelLine(fresh) === "Congratulations, you made it to level 1.0.", "1.0 line");
+  assert(runLevelLine(fresh) === "You finished level 1.0.", "1.0 line");
 
   const l2 = startBotEvo(8);
   l2.level = 2;

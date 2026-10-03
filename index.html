@@ -656,11 +656,11 @@ The book keeps what you do.</p>
         </header>
         <div class="pipes-body">
           <div class="pipes-status-row">
-            <p id="pipes-status" class="pipes-status mono" aria-live="polite">Tank → engine</p>
-            <p id="pipes-rotates" class="pipes-rotates mono" aria-live="polite">0 rotates</p>
+            <p id="pipes-status" class="pipes-status mono" aria-live="polite">Tank to engine</p>
+            <p id="pipes-rotates" class="pipes-rotates mono" aria-live="polite">0 turns</p>
           </div>
           <p class="hint pipes-hint">
-            Tap a segment to rotate it. Complete a path from the tank to the engine.
+            Tap a pipe to turn it. Make a path from the tank to the engine.
           </p>
           <div id="pipes-play" class="pipes-play">
             <div class="pipes-legend" aria-hidden="true">
@@ -671,11 +671,11 @@ The book keeps what you do.</p>
             <div id="pipes-grid" class="pipes-grid" role="grid" aria-label="Backup fuel pipes"></div>
           </div>
           <div id="pipes-end" class="eac-win hidden" aria-live="polite">
-            <p class="eac-win-title">Flow restored</p>
+            <p class="eac-win-title">Fuel gets through</p>
             <p id="pipes-end-blurb" class="hint">Backup fuel reaches the engine.</p>
             <div class="eac-win-actions">
               <button type="button" id="pipes-again" class="eac-primary">Play again</button>
-              <button type="button" id="pipes-done" class="eac-secondary">Back to Lab</button>
+              <button type="button" id="pipes-done" class="eac-secondary">Back to Arcade</button>
             </div>
           </div>
         </div>
@@ -693,8 +693,8 @@ The book keeps what you do.</p>
       >
         <header class="handbook-header">
           <div>
-            <p class="handbook-kicker">Play for a minute</p>
-            <h2 id="tiles-title">Hull panel</h2>
+            <p class="handbook-kicker">A short play</p>
+            <h2 id="tiles-title">Slide puzzle</h2>
           </div>
           <button type="button" id="tiles-close" class="handbook-close" aria-label="Close">
             ✕
@@ -702,14 +702,14 @@ The book keeps what you do.</p>
         </header>
         <div class="tiles-body">
           <div class="tiles-status-row">
-            <p id="tiles-status" class="tiles-status mono" aria-live="polite">Slide plates into order</p>
+            <p id="tiles-status" class="tiles-status mono" aria-live="polite">Put the pieces in order</p>
             <p id="tiles-moves" class="tiles-moves mono" aria-live="polite">0 moves</p>
           </div>
           <p id="tiles-hint" class="hint tiles-hint">
-            Tap a plate next to the gap. Order 1–8 with the empty corner last.
+            Tap a piece next to the empty spot. Put 1 through 8 in order. The empty spot ends in the corner.
           </p>
           <div id="tiles-play" class="tiles-play">
-            <div id="tiles-grid" class="tiles-grid" role="grid" aria-label="Hull panel"></div>
+            <div id="tiles-grid" class="tiles-grid" role="grid" aria-label="Slide puzzle"></div>
             <button type="button" id="tiles-next" class="eac-primary hidden">Next</button>
           </div>
           <div id="tiles-end" class="eac-win hidden" aria-live="polite">
@@ -721,10 +721,10 @@ The book keeps what you do.</p>
                 style="background-image: url('/handbook/cards/clerk-canonical.jpg')"
               ></div>
               <div class="botevo-card-copy">
-                <h3 id="tiles-end-blurb">Congratulations, you made it to level 7.49.</h3>
+                <h3 id="tiles-end-blurb">You finished level 7.49.</h3>
                 <div class="eac-win-actions">
                   <button type="button" id="tiles-again" class="eac-primary">Play again</button>
-                  <button type="button" id="tiles-done" class="eac-secondary">Back to Lab</button>
+                  <button type="button" id="tiles-done" class="eac-secondary">Back to Arcade</button>
                 </div>
               </div>
             </article>
@@ -793,7 +793,7 @@ The book keeps what you do.</p>
         <header class="handbook-header">
           <div>
             <p class="handbook-kicker">Play for a minute</p>
-            <h2 id="botevo-title">Bot Evolution</h2>
+            <h2 id="botevo-title">Make a bigger bot</h2>
           </div>
           <button type="button" id="botevo-close" class="handbook-close" aria-label="Close">
             ✕
@@ -817,11 +817,11 @@ The book keeps what you do.</p>
               ></div>
               <div class="botevo-card-copy">
                 <p class="botevo-card-kicker">The clerk</p>
-                <h3 id="botevo-card-title">Simple bots. Link three.</h3>
+                <h3 id="botevo-card-title">Join three bots</h3>
                 <p id="botevo-card-body" class="botevo-card-body">
-                  Link <strong>three</strong> bots whose pins touch. They become
-                  a box. Boxes fill the row at the top. Bots drop as they are —
-                  they do not turn. Fill a column to the top and the game ends.
+                  Join three bots that touch. They become one bigger bot. Those
+                  fill the top row. Bots fall as they are and do not turn. A full
+                  column ends the game.
                 </p>
                 <button type="button" id="botevo-begin" class="eac-primary">Begin</button>
               </div>
@@ -829,12 +829,12 @@ The book keeps what you do.</p>
           </div>
           <div id="botevo-table" class="botevo-table hidden">
           <div class="botevo-hud">
-            <p id="botevo-status" class="botevo-level" aria-live="polite">Connect 3</p>
+            <p id="botevo-status" class="botevo-level" aria-live="polite">Join 3</p>
             <div
               id="botevo-bar"
               class="botevo-save"
               role="meter"
-              aria-label="Boxes to next stage"
+              aria-label="Joins to the next level"
               aria-valuemin="0"
               aria-valuenow="0"
               aria-valuemax="3"
@@ -842,11 +842,11 @@ The book keeps what you do.</p>
               <div id="botevo-save-track" class="botevo-save-track" aria-hidden="true"></div>
             </div>
           </div>
-          <p id="botevo-score" class="botevo-score hidden" aria-live="polite">0 boxes</p>
+          <p id="botevo-score" class="botevo-score hidden" aria-live="polite">0 joins</p>
           <div id="botevo-fx" class="botevo-fx" aria-hidden="true"></div>
           <p id="botevo-hint" class="hint botevo-hint">
-            Bots drop as they are — they do not turn. Tap a column to steer.
-            Link 3 whose pins touch; they become a box. Later, the field gets
+            Bots fall as they are and do not turn. Tap a column to aim it.
+            Join 3 that touch. They become one bigger bot. Later the board gets
             wider.
           </p>
           <div id="botevo-play" class="botevo-play">
@@ -871,10 +871,10 @@ The book keeps what you do.</p>
               ></div>
               <div class="botevo-card-copy">
                 <p class="botevo-card-kicker">The clerk</p>
-                <h3 id="botevo-end-title">Congratulations, you made it to level 1.0.</h3>
+                <h3 id="botevo-end-title">You finished level 1.0.</h3>
                 <div class="eac-win-actions">
                   <button type="button" id="botevo-again" class="eac-primary">Play again</button>
-                  <button type="button" id="botevo-done" class="eac-secondary">Back to Lab</button>
+                  <button type="button" id="botevo-done" class="eac-secondary">Back to Arcade</button>
                 </div>
               </div>
             </article>
