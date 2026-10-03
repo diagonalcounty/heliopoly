@@ -600,15 +600,14 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     id: "lab",
     title: "Home doors",
     html: `
-<p>The first screen is three doors. <strong>Arcade</strong> is the play room. <strong>Journey</strong> is this charter. <strong>Lab</strong> is experiments — not more games, and not where the fun toys live.</p>
+<p>The first screen is three doors. Arcade is a short play, on the rocket. Journey is the full game, where you fly the ship. Lab is more tools, not another toy.</p>
 <ul>
-  <li><strong>Arcade</strong> — “On the rocket” / “Play for a minute.” Bot Evolution, Backup fuel, and Hull panel. They do not move your charter rocket. Arcade is the large door and the first tap.</li>
-  <li><strong>Journey</strong> — “Fly the charter” / “Full game.” Name a rocket and Launch. Gravity Duel still happens inside a flight, on a blank lane.</li>
-  <li><strong>Lab</strong> — “Experiments” / “Nerdy tools.” Which is larger?, Deseret letters, Urinal-rule Parking, and Gravity Duel practice. End screens and economy setups sit behind <strong>Show experiments</strong>. Sim Lab stays on the balance host.</li>
+  <li>Arcade shows "On the rocket" and "A short play." The toys are Make a bigger bot, Backup fuel, and Slide puzzle. They leave the big game as you left it. Arcade is the large door and the first tap.</li>
+  <li>Journey shows "Fly the ship" and "Full game." Name your rocket and launch. Gravity Duel (a lane fight) can still happen during a flight, on an empty lane.</li>
+  <li>Lab shows "Try things" and "More tools." The drills are Which is larger?, Deseret letters (an old alphabet), Urinal-rule Parking (leave a gap), and Gravity Duel practice. More sit behind "Show more tools." The sheet says "This is not another toy."</li>
 </ul>
-<p>Lab stays locked until you leave one Arcade toy (<code>heliopoly.arcadeSessionsCompleted</code> on this device reaches 1). Leaving the toy does not open Lab for you. The header <strong>Home</strong> button brings the three doors back and does not quit a charter already in flight.</p>
-<p>Operators can open a drill without the unlock: <code>?lab=eastern-arabic-compare</code> (or <code>?lab=open</code>). <code>?arcade=egg-bot-evolution</code> opens that toy. Promoting any other drill onto Arcade needs a product sign-off that it is fun alone in about a minute.</p>
-<p>Gravity Duel practice, End, and Economy replace the current board. Number drills and the Arcade toys do not.</p>
+<p>Lab stays locked until you play one Arcade toy. The door says "Play one toy first." The Home button brings the three doors back. It does not end a flight that is already going.</p>
+<p>Gravity Duel practice throws the big game away and starts a new one. The other drills do not. The Arcade toys leave the big game as you left it.</p>
 `,
   },
   {
