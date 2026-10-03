@@ -96,6 +96,12 @@ assertMatch(handbook, /from the Greek for "ring"/, "hub stations Daktulios");
 assertMatch(handbook, /you own every world in that planet's group/, "hub stations monopoly");
 assertNo(handbook, /per-kilogram/, "hub stations drops per-kilogram");
 assertNo(handbook, /funded launch/, "ledger drops funded launch");
+assertMatch(handbook, /go bankrupt \(run out of money\)/, "How to win explains bankrupt");
+assertMatch(handbook, /one of the greatest/, "How to win drops greatest of all kind");
+assertNo(handbook, /greatest of all kind/, "How to win drops greatest of all kind phrase");
+assertMatch(handbook, /no round limit \(the game does not stop on a count\)/, "How to win round limit");
+assertMatch(handbook, /Fuel depots \(fuel stops it built\)/, "How to win depots");
+assertMatch(handbook, /Glossary<\/strong> \(the word list\)/, "How to win glossary pointer");
 
 
 console.log("playerManual: in-app README and CHANGELOG stay player-facing");
