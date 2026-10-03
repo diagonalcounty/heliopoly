@@ -21,6 +21,12 @@ import {
 import { walkMovePath } from "./core/path";
 import { PROPELLANTS } from "./core/propellant";
 import {
+  DUEL_HINT,
+  DUEL_PICKS_HIDDEN,
+  DUEL_PICKS_LOCKED,
+  DUEL_ROLL_LABEL,
+  DUEL_TIE_HEADLINE,
+  DUEL_TITLE,
   duelPunchLine,
   prevailsHeadline,
   winsHeadline,
@@ -1144,6 +1150,7 @@ function applyDuelShipNames(
 function showDuelResultFooter(s: GameState): void {
   const r = s.lastDuelResult;
   if (!r) return;
+  syncDuelWords();
   duelRoot.classList.remove("hidden");
   duelRoot.setAttribute("aria-hidden", "false");
   document.body.classList.add("handbook-open");
@@ -1153,7 +1160,7 @@ function showDuelResultFooter(s: GameState): void {
   applyDuelShipNames(s, r.challengerName, r.defenderName, r.nodeName);
   duelResultHeadline.textContent =
     r.outcome === "tie"
-      ? "Draw — both hold the lane"
+      ? DUEL_TIE_HEADLINE
       : winsHeadline(shipTitle(s, r.winnerName) || "Winner");
   const humanName = s.players.find((p) => p.agent === "human")?.name ?? null;
   const humanInDuel =
@@ -1284,9 +1291,20 @@ function paintDuelDice(
   }
 }
 
+function syncDuelWords(): void {
+  const title = document.getElementById("duel-title");
+  if (title) title.textContent = DUEL_TITLE;
+  const hint = document.getElementById("duel-hint");
+  if (hint) hint.textContent = DUEL_HINT;
+  duelRoot.querySelectorAll<HTMLButtonElement>("button[data-roll]").forEach((btn) => {
+    btn.textContent = DUEL_ROLL_LABEL;
+  });
+}
+
 function updateDuelModal(s: GameState | null): void {
   // Lab / AI resolve leaves await_duel before ceremony — keep panel + names visible
   if (s?.lastDuelResult && duelCeremonyOpen()) {
+    syncDuelWords();
     const r = s.lastDuelResult;
     duelRoot.classList.remove("hidden");
     duelRoot.setAttribute("aria-hidden", "false");
@@ -1307,6 +1325,7 @@ function updateDuelModal(s: GameState | null): void {
   const c = s.players.find((p) => p.id === d.challengerId)!;
   const def = s.players.find((p) => p.id === d.defenderId)!;
   const map = duelVisualMap(s, c.id, def.id);
+  syncDuelWords();
   duelRoot.classList.remove("hidden");
   duelRoot.setAttribute("aria-hidden", "false");
   document.body.classList.add("handbook-open");
@@ -1322,10 +1341,10 @@ function updateDuelModal(s: GameState | null): void {
   const mean = meanDiceTotal(s);
   duelStatus.textContent = [
     `Mean of game 2d6 totals: ${mean.toFixed(2)}`,
-    `Stances hidden until both have rolled`,
+    DUEL_PICKS_HIDDEN,
     d.challengerStance && d.defenderStance
-      ? "Both stances locked — roll when ready"
-      : "Choose High or Low on your side",
+      ? DUEL_PICKS_LOCKED
+      : "Choose High or Low on your side.",
   ].join("\n");
 
   syncDuelSideControls(s, d, map);
