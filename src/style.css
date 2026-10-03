@@ -4484,6 +4484,22 @@ button:not(:disabled):active {
 .charter-choice-hint.hidden {
   display: none;
 }
+.charter-choice-btn {
+  margin: 6px 6px 0 0;
+  padding: 6px 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  background: var(--accent-2);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.charter-choice-btn.secondary {
+  color: var(--accent-2);
+  background: transparent;
+  border: 1px solid rgba(255, 200, 87, 0.5);
+}
 .rank-row.vibe-kickable {
   cursor: pointer;
   outline: 1px solid rgba(255, 107, 122, 0.55);
@@ -4491,6 +4507,10 @@ button:not(:disabled):active {
 }
 .rank-row.vibe-kickable:hover {
   background: rgba(255, 107, 122, 0.12);
+}
+.rank-row.vibe-kick-selected {
+  outline: 2px solid rgba(255, 107, 122, 0.9);
+  background: rgba(255, 107, 122, 0.18);
 }
 .rankings {
   font-size: 0.8rem;
@@ -6460,6 +6480,32 @@ button:not(:disabled):active {
     overflow: hidden;
     text-overflow: clip;
     max-width: none;
+  }
+
+  /* #341 — vibe_kick rows must stay tappable even though #rankings (the
+     cash/fuel vitals strip) is pointer-events:none to block accidental
+     dossier opens. */
+  #app:has(.fleet-card.mode-standings) .rank-row.vibe-kickable {
+    pointer-events: auto;
+  }
+
+  /* #341 — the hint is force-hidden above, but the vibe_kick confirm /
+     cancel / no-legal-target controls have no other home on a phone,
+     so surface them above the compact roster while a pick is pending. */
+  #app:has(.fleet-card.mode-standings) .charter-choice-hint.vibe-kick-active {
+    display: flex !important;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    bottom: var(--play-thumbs-h);
+    z-index: 47;
+    margin: 0 0 6px;
+    padding: 8px 10px;
+    pointer-events: auto;
+    font-size: 0.78rem;
   }
 
   #app:has(.fleet-card.mode-standings) #pilot-controls {

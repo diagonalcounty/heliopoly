@@ -46,6 +46,7 @@ import {
   rankings,
   resignGame,
   resolveDuelAiFully,
+  vibeKickTargets,
 } from "./core/rules";
 import {
   isOlbersStation,
@@ -1907,6 +1908,9 @@ function standingsRowFromEvent(e: Event): HTMLElement | null {
   );
 }
 
+/** Rocket picked for the pending vibe_kick card, pending confirm (#341). */
+let vibeKickSelectedId: string | null = null;
+
 function onStandingsActivate(row: HTMLElement): void {
   if (!state || animating) return;
   const pc = state.pendingCharterChoice;
@@ -1914,13 +1918,34 @@ function onStandingsActivate(row: HTMLElement): void {
   if (pc?.kind === "vibe_kick" && kickId) {
     const chooser = state.players.find((x) => x.id === pc.chooserId);
     if (chooser?.agent === "human") {
-      void act({ type: "charter_kick", targetPlayerId: kickId });
+      vibeKickSelectedId = kickId;
+      render();
       return;
     }
   }
   const id = row.getAttribute("data-dossier-id");
   if (id) dossier.open(id);
 }
+
+document.getElementById("charter-choice-hint")?.addEventListener("click", (e) => {
+  if (!state) return;
+  const btn = (e.target as HTMLElement | null)?.closest?.(
+    "[data-charter-action]",
+  ) as HTMLElement | null;
+  if (!btn) return;
+  const choiceAction = btn.getAttribute("data-charter-action");
+  if (choiceAction === "vibe-kick-confirm") {
+    const targetId = vibeKickSelectedId;
+    if (!targetId) return;
+    vibeKickSelectedId = null;
+    void act({ type: "charter_kick", targetPlayerId: targetId });
+  } else if (choiceAction === "vibe-kick-cancel") {
+    vibeKickSelectedId = null;
+    render();
+  } else if (choiceAction === "vibe-kick-none") {
+    void act({ type: "charter_kick", targetPlayerId: "" });
+  }
+});
 
 rankingsEl.addEventListener("click", (e) => {
   const row = standingsRowFromEvent(e);
@@ -4493,11 +4518,16 @@ function renderSide(): void {
     })),
   ];
   const maxFuel = state.config.maxFuel;
-  const vibePick =
-    !!state.pendingCharterChoice &&
-    state.pendingCharterChoice.kind === "vibe_kick" &&
-    state.players.find((x) => x.id === state!.pendingCharterChoice!.chooserId)
-      ?.agent === "human";
+  const vibePc = state.pendingCharterChoice;
+  const vibeChooser =
+    vibePc?.kind === "vibe_kick"
+      ? state.players.find((x) => x.id === vibePc.chooserId)
+      : undefined;
+  const vibePick = vibeChooser?.agent === "human";
+  const vibeTargets = vibePick ? vibeKickTargets(state, vibeChooser!.id) : [];
+  if (!vibeTargets.some((t) => t.id === vibeKickSelectedId)) {
+    vibeKickSelectedId = null;
+  }
   rankingsEl.innerHTML = standingRows
     .map(({ pl, worth, rankLabel }) => {
       const active = pl.id === p.id && state!.phase !== "game_over";
@@ -4519,10 +4549,10 @@ function renderSide(): void {
           : pl.fuel <= 3
             ? " fuel-bar-amber"
             : "";
-      const kickable =
-        vibePick && !pl.eliminated && pl.agent === "ai"
-          ? " vibe-kickable"
-          : "";
+      const isKickTarget = vibeTargets.some((t) => t.id === pl.id);
+      const kickable = isKickTarget ? " vibe-kickable" : "";
+      const selected =
+        isKickTarget && pl.id === vibeKickSelectedId ? " vibe-kick-selected" : "";
       const name = escapeHtml(rocketTitle(pl));
       const rowTitle =
         kickable !== ""
@@ -4531,7 +4561,7 @@ function renderSide(): void {
       const kickAttr =
         kickable !== "" ? ` data-kick-id="${pl.id}"` : "";
       // Single-line markup: avoids anonymous whitespace grid items if pre-wrap sneaks back
-      return `<div class="rank-row rank-open${lead}${active ? " active" : ""}${pl.eliminated ? " out" : ""}${atRisk.atRisk ? " at-risk" : ""}${kickable}" data-dossier-id="${pl.id}"${kickAttr} role="button" tabindex="0" title="${rowTitle}" aria-label="${rowTitle}"><div class="swatch" style="background:${pl.color}" aria-hidden="true"></div><div class="rank-body"><div class="rank-top"><span class="rank-id">${rankLabel} ${name}${skip} · <span class="rank-prop">${plProp}</span>${riskBadge}</span><span class="rank-money"><span class="cash">${formatMoney(pl.cash)} cash</span> · NW ${formatMoney(worth)}</span></div><div class="rank-detail"><span class="fuel-bar${barTone}" title="Fuel ${pl.fuel} / ${maxFuel}" aria-label="Fuel ${pl.fuel} of ${maxFuel}">${bar}</span> <span class="fuel-n">${pl.fuel}</span> fuel · ${pl.properties.length} claims · ${at}</div></div></div>`;
+      return `<div class="rank-row rank-open${lead}${active ? " active" : ""}${pl.eliminated ? " out" : ""}${atRisk.atRisk ? " at-risk" : ""}${kickable}${selected}" data-dossier-id="${pl.id}"${kickAttr} role="button" tabindex="0" title="${rowTitle}" aria-label="${rowTitle}"><div class="swatch" style="background:${pl.color}" aria-hidden="true"></div><div class="rank-body"><div class="rank-top"><span class="rank-id">${rankLabel} ${name}${skip} · <span class="rank-prop">${plProp}</span>${riskBadge}</span><span class="rank-money"><span class="cash">${formatMoney(pl.cash)} cash</span> · NW ${formatMoney(worth)}</span></div><div class="rank-detail"><span class="fuel-bar${barTone}" title="Fuel ${pl.fuel} / ${maxFuel}" aria-label="Fuel ${pl.fuel} of ${maxFuel}">${bar}</span> <span class="fuel-n">${pl.fuel}</span> fuel · ${pl.properties.length} claims · ${at}</div></div></div>`;
     })
     .join("");
 
@@ -4542,14 +4572,34 @@ function renderSide(): void {
     const humanChooser =
       pc &&
       state.players.find((x) => x.id === pc.chooserId)?.agent === "human";
-    if (pc && humanChooser) {
+    choiceHint.classList.toggle(
+      "vibe-kick-active",
+      !!pc && !!humanChooser && pc.kind === "vibe_kick",
+    );
+    if (pc && humanChooser && pc.kind === "vibe_kick") {
+      choiceHint.classList.remove("hidden");
+      if (vibeTargets.length === 0) {
+        choiceHint.innerHTML =
+          `<span>Vibe-code authority: no computer rocket left to remove.</span> ` +
+          `<button type="button" class="charter-choice-btn" data-charter-action="vibe-kick-none">Continue</button>`;
+      } else if (vibeKickSelectedId) {
+        const targetName = escapeHtml(
+          rocketTitle(state.players.find((x) => x.id === vibeKickSelectedId)!),
+        );
+        choiceHint.innerHTML =
+          `<span>Remove ${targetName} from the ledger?</span> ` +
+          `<button type="button" class="charter-choice-btn" data-charter-action="vibe-kick-confirm">Confirm</button> ` +
+          `<button type="button" class="charter-choice-btn secondary" data-charter-action="vibe-kick-cancel">Cancel</button>`;
+      } else {
+        choiceHint.textContent =
+          "Vibe-code authority: tap an AI rocket in standings to remove them.";
+      }
+    } else if (pc && humanChooser) {
       choiceHint.classList.remove("hidden");
       choiceHint.textContent =
-        pc.kind === "vibe_kick"
-          ? "Vibe-code authority: click an AI rocket in standings to remove them."
-          : pc.kind === "olbers_station"
-            ? "Olbers award: click a station hub (Elon · Holst · Daktulios) on the board."
-            : "Blockchain reassignment: click an opponent claim on the board.";
+        pc.kind === "olbers_station"
+          ? "Olbers award: click a station hub (Elon · Holst · Daktulios) on the board."
+          : "Blockchain reassignment: click an opponent claim on the board.";
     } else {
       choiceHint.classList.add("hidden");
       choiceHint.textContent = "";
