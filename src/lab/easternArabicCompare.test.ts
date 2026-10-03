@@ -4,6 +4,7 @@
  */
 import {
   MAX_COMPARE_ROUNDS,
+  SAME_LEAD_HINT,
   applyCompareChoice,
   largerSide,
   makeUnequalPair,
@@ -13,6 +14,7 @@ import {
   type CompareRound,
   type Rng,
 } from "./easternArabicCompare";
+import { COMPARE_HINT_REST, NUMBER_SCRIPT_PACKS, compareHint } from "./numberScripts";
 
 let failed = 0;
 function assert(cond: unknown, msg: string): void {
@@ -127,6 +129,76 @@ function inRange(n: number, round: CompareRound): boolean {
 
 {
   assert(MAX_COMPARE_ROUNDS === 12, "attempt cap unchanged");
+}
+
+
+{
+  assert(
+    SAME_LEAD_HINT === "The first digits match. Check the next place.",
+    "same-lead miss copy",
+  );
+  const rest =
+    "You win by finishing all three levels in a row with no hint on those tries. If the first digits match, check the next place. Hint shows one number in the digits you know, but that try does not count, and you must finish that level again with no hint. You get 12 tries. Reset starts over.";
+  assert(COMPARE_HINT_REST === rest, "shared hint rest");
+  const expect: Record<string, { kicker: string; title: string; lead: string; levels: string[] }> = {
+    "eastern-arabic": {
+      kicker: "Lab · Eastern Arabic (number shapes)",
+      title: "Which is larger? · Eastern Arabic shapes",
+      lead: "Two numbers show up in Eastern Arabic digits, other shapes for 0 to 9. Tap the larger one, or point to that side with the arrow keys.",
+      levels: [
+        "Level 1 · one digit (one place)",
+        "Level 2 · two digits (two places)",
+        "Level 3 · three digits (three places)",
+      ],
+    },
+    chinese: {
+      kicker: "Lab · Chinese (number marks)",
+      title: "Which is larger? · Chinese marks",
+      lead: "Two numbers show up as Chinese number marks (〇一二三四五六七八九), one mark per place. Tap the larger one.",
+      levels: [
+        "Level 1 · one digit (one place)",
+        "Level 2 · two digits (two places)",
+        "Level 3 · three digits (three places)",
+      ],
+    },
+    korean: {
+      kicker: "Lab · Korean (number words)",
+      title: "Which is larger? · Korean words",
+      lead: "Two numbers show up as Korean number words (영 일 이 삼 사 오 육 칠 팔 구), one word per place. Tap the larger one.",
+      levels: [
+        "Level 1 · one digit (one place)",
+        "Level 2 · two digits (two places)",
+        "Level 3 · three digits (three places)",
+      ],
+    },
+    hebrew: {
+      kicker: "Lab · Hebrew (number letters)",
+      title: "Which is larger? · Hebrew letters",
+      lead: "Two numbers show up as Hebrew number letters (א=1 … ט=9; ○ is 0), one mark per place. Tap the larger one.",
+      levels: [
+        "Level 1 · one digit (one place)",
+        "Level 2 · two digits (two places)",
+        "Level 3 · three digits (three places)",
+      ],
+    },
+    binary: {
+      kicker: "Lab · Binary (only 0 and 1)",
+      title: "Which is larger? · Binary (0 and 1)",
+      lead: "Two numbers show up in binary, a row of only 0 and 1. Read each row as a normal number and tap the larger one.",
+      levels: ["Level 1 · values 0–9", "Level 2 · values 10–99", "Level 3 · values 100–999"],
+    },
+  };
+  for (const [id, want] of Object.entries(expect)) {
+    const pack = NUMBER_SCRIPT_PACKS[id as keyof typeof NUMBER_SCRIPT_PACKS];
+    assert(pack.kicker === want.kicker, `${id} kicker`);
+    assert(pack.overlayTitle === want.title, `${id} title`);
+    assert(pack.hintLead === want.lead, `${id} hint lead`);
+    assert(compareHint(pack) === `${want.lead} ${rest}`, `${id} full hint is plain text`);
+    assert(!compareHint(pack).includes("<"), `${id} hint has no markup`);
+    assert(pack.levelLabel(1) === want.levels[0], `${id} level 1`);
+    assert(pack.levelLabel(2) === want.levels[1], `${id} level 2`);
+    assert(pack.levelLabel(3) === want.levels[2], `${id} level 3`);
+  }
 }
 
 if (failed) {

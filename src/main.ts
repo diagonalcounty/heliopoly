@@ -102,6 +102,7 @@ import {
   type CompareSide,
 } from "./lab/easternArabicCompare";
 import {
+  compareHint,
   formatNumberScript,
   NUMBER_SCRIPT_PACKS,
   STANDALONE_TO_SCRIPT,
@@ -2034,16 +2035,11 @@ function eacSetWestern(el: HTMLElement, value: number | null): void {
 
 function eacSyncChrome(): void {
   const pack = NUMBER_SCRIPT_PACKS[eacScript];
-  if (eacTitleEl) eacTitleEl.textContent = `Which is larger? · ${pack.shortName}`;
-  if (eacKickerEl) eacKickerEl.textContent = `Lab · ${pack.shortName}`;
+  if (eacTitleEl) eacTitleEl.textContent = pack.overlayTitle;
+  if (eacKickerEl) eacKickerEl.textContent = pack.kicker;
   if (eacHintEl) {
-    eacHintEl.innerHTML = `${pack.hintLead}
-      You win by finishing three levels in a row without help on those steps.
-      ${SAME_LEAD_HINT}
-      Need a hand? <strong>Hint</strong> reveals one number in familiar
-      Western digits, but that try won’t advance you; you’ll need to clear
-      the level again without a hint.
-      You have up to ${MAX_COMPARE_ROUNDS} tries. <strong>Reset</strong> starts over anytime.`;
+    // Plain text. The old Eastern Arabic hint used < > and innerHTML ate them as a tag.
+    eacHintEl.textContent = compareHint(pack);
   }
   // Binary / CJK / Hebrew may need slightly different glyph rendering
   eacRoot.dataset.script = eacScript;
@@ -2099,13 +2095,13 @@ function renderEac(): void {
     eacRoundEl.textContent = "Complete";
     eacEndTitle.textContent = "Nice work";
     eacEndBlurb.textContent =
-      "You finished all three levels without using a hint on those steps. Here’s what you saw, with Western numbers alongside:";
+      "You finished all three levels with no hint on those tries. Here is what you saw, next to the numbers you already know:";
     renderEacRecap();
     return;
   }
   if (eacState.phase === "lost") {
     eacRoundEl.textContent = "Out of tries";
-    eacEndTitle.textContent = "That’s all for this run";
+    eacEndTitle.textContent = "That’s all this time";
     eacEndBlurb.textContent = `You used all ${MAX_COMPARE_ROUNDS} tries before finishing the three levels. Play again when you’re ready.`;
     eacRecapEl.innerHTML = "";
     eacRecapEl.classList.add("hidden");
