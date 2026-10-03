@@ -176,7 +176,7 @@ The book keeps what you do.</p>
             <div id="setup-body" class="fleet-panel">
               <h2>New game</h2>
               <label class="player-count-field">
-                Total pilots (2–6)
+                Rockets (2–6)
                 <input
                   id="player-count"
                   type="number"
@@ -199,7 +199,7 @@ The book keeps what you do.</p>
               </label>
               <label class="check">
                 <input id="include-human" type="checkbox" checked />
-                Seat 1 is human
+                Rocket 1 is you
               </label>
               <label id="pilot-name-label">
                 Name your rocket
@@ -207,12 +207,12 @@ The book keeps what you do.</p>
                   id="pilot-name"
                   type="text"
                   maxlength="24"
-                  placeholder="Venture"
+                  placeholder="Comet"
                   autocomplete="nickname"
                 />
               </label>
               <fieldset class="propellant-field">
-                <legend>Your propellant</legend>
+                <legend>Propellant (fuel)</legend>
                 <label class="check">
                   <input
                     type="radio"
@@ -220,19 +220,19 @@ The book keeps what you do.</p>
                     value="methane"
                     checked
                   />
-                  Methane (CH₄) — stable; fuel strikes on Titan / Enceladus
+                  Methane (safer fuel). Refuel at the moons Titan and Enceladus.
                 </label>
                 <label class="check">
                   <input type="radio" name="propellant" value="hydrogen" />
-                  Hydrogen (H₂) — cheaper leave; leak risk; more ice-strike sites
+                  Hydrogen (can leak). Cheaper to take off. More icy places to refuel.
                 </label>
               </fieldset>
               <div class="ai-difficulty-row">
                 <fieldset class="propellant-field ai-difficulty-field">
-                  <legend>Expedition</legend>
+                  <legend>How long</legend>
                   <label class="check">
                     <input type="radio" name="ai-difficulty" value="easy" />
-                    1. Insight — a look
+                    1. Insight (shortest)
                   </label>
                   <label class="check">
                     <input
@@ -241,20 +241,20 @@ The book keeps what you do.</p>
                       value="normal"
                       checked
                     />
-                    2. Curiosity — stay and poke
+                    2. Curiosity (stay and look)
                   </label>
                   <label class="check">
                     <input type="radio" name="ai-difficulty" value="hard" />
-                    3. Voyager — the long haul
+                    3. Voyager (long game)
                   </label>
                   <label class="check">
                     <input type="radio" name="ai-difficulty" value="expert" />
-                    4. Opportunity — the long game
+                    4. Opportunity (longest, hardest)
                   </label>
                 </fieldset>
               </div>
               <button id="btn-new" type="button" class="primary">Launch</button>
-              <button id="btn-selfplay" type="button">Self-play burst</button>
+              <button id="btn-selfplay" type="button">Computer plays all</button>
             </div>
           </section>
 
@@ -284,20 +284,20 @@ The book keeps what you do.</p>
             </div>
             <div id="telemetry" class="telemetry"></div>
             <div class="dir-row hidden-vis" id="dir-row">
-              <span class="dir-label">Course</span>
+              <span class="dir-label">Which way</span>
               <div class="dir-stepper">
                 <button type="button" id="btn-dir-fwd" class="dir-btn" disabled>
-                  Prograde
+                  Forward
                 </button>
                 <button type="button" id="btn-dir-back" class="dir-btn" disabled>
-                  Retrograde
+                  Backward
                 </button>
               </div>
               <span id="dir-hint" class="dir-hint mono"></span>
             </div>
             <div class="break-row" id="break-row">
               <button type="button" id="btn-break-label" class="break-label" disabled>
-                Break
+                Stop short
               </button>
               <div class="break-stepper">
                 <button type="button" id="btn-break-minus" disabled>−</button>
@@ -312,9 +312,9 @@ The book keeps what you do.</p>
                 Roll
               </button>
               <button id="btn-buy" type="button" disabled>Buy</button>
-              <button id="btn-sell" type="button" disabled>Books</button>
+              <button id="btn-sell" type="button" disabled>Sell a world</button>
               <button id="btn-station" type="button" disabled>
-                Fuel depot
+                Add fuel stop
               </button>
               <button id="btn-end" type="button" disabled>End turn</button>
             </div>
@@ -348,16 +348,16 @@ The book keeps what you do.</p>
     <div id="auction-root" class="announce-screen hidden" aria-live="assertive">
       <div class="announce-card auction-card">
         <div class="announce-copy">
-          <p class="announce-kicker">Claim auction</p>
-          <h2 id="auction-title">Auction</h2>
+          <p class="announce-kicker">Auction (sale)</p>
+          <h2 id="auction-title">For sale</h2>
           <p id="auction-body" class="announce-body"></p>
           <div class="auction-actions">
-            <button type="button" id="auction-pass">Pass</button>
+            <button type="button" id="auction-pass">Don't bid</button>
             <label class="auction-bid-field">
-              Bid
+              Bid (offer)
               <input id="auction-amount" type="number" min="0" step="1" />
             </label>
-            <button type="button" id="auction-bid" class="primary">Bid</button>
+            <button type="button" id="auction-bid" class="primary">Bid (offer)</button>
           </div>
         </div>
       </div>
@@ -1027,16 +1027,16 @@ The book keeps what you do.</p>
     <!-- End game (KQ-inspired) -->
     <div id="end-root" class="end-screen hidden" aria-hidden="true">
       <div class="end-inner">
-        <p class="end-kicker">Written into the ledger</p>
+        <p class="end-kicker">Outlasted the others</p>
         <h2 id="end-title">Heliopoly</h2>
         <p id="end-story" class="end-story"></p>
-        <table id="end-books" class="end-books hidden" aria-label="Held books">
+        <table id="end-books" class="end-books hidden" aria-label="What they owned">
           <thead>
             <tr>
-              <th>Claim</th>
-              <th>Mark</th>
-              <th>Income</th>
-              <th>Book</th>
+              <th>World</th>
+              <th>Worth</th>
+              <th>Pays</th>
+              <th>Total</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -1044,12 +1044,12 @@ The book keeps what you do.</p>
         <div id="end-ranks" class="end-ranks mono"></div>
         <div class="end-actions">
           <button type="button" id="end-copy-log" class="end-copy-log">
-            Copy log
+            Copy the story
           </button>
           <button type="button" id="end-again" class="primary">
-            Rematch
+            Same setup
           </button>
-          <button type="button" id="end-close">New Game</button>
+          <button type="button" id="end-close">New game</button>
         </div>
       </div>
     </div>

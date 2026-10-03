@@ -940,7 +940,7 @@ async function openAuction(page: Page) {
     const body = document.getElementById("auction-body");
     if (body) {
       body.textContent =
-        "The Ada is auctioning Phobos. Reserve ⍺120. You have ⍺1000.";
+        "The Ada is selling Phobos. The lowest bid that counts is ⍺120. You have ⍺1000.";
     }
     const amount = document.getElementById(
       "auction-amount",
@@ -1074,16 +1074,16 @@ async function openEndScreen(page: Page) {
     root.classList.remove("hidden");
     root.setAttribute("aria-hidden", "false");
     const kicker = root.querySelector(".end-kicker");
-    if (kicker) kicker.textContent = "Greatest of all kind";
+    if (kicker) kicker.textContent = "Outlasted the others";
     const title = document.getElementById("end-title");
     if (title) title.textContent = "The Ada Prevails";
     const story = document.getElementById("end-story");
     if (story) {
       story.textContent = [
         "The Ada is the last pilot flying.",
-        "The ledger writes The Ada as one of the greatest of all kind.",
-        "The ledger ran 8 rounds.",
-        "Closing books: ⍺2100 net worth · 3 claims · 1 depot.",
+        "The book names The Ada the winner.",
+        "The game ran 8 trips around.",
+        "At the end: ⍺2100 · 3 worlds · 1 fuel stop.",
       ].join(" ");
     }
     const books = document.getElementById("end-books");
@@ -1165,7 +1165,7 @@ test.describe("phone end screen #178", () => {
     expect(again.onControl, "elementFromPoint Rematch").toBe(true);
     expect(again.center?.id).toBe("end-again");
     expect((await page.locator("#end-again").innerText()).trim()).toBe(
-      "Rematch",
+      "Same setup",
     );
 
     const close = await boxOf(page, "#end-close");
@@ -1175,7 +1175,7 @@ test.describe("phone end screen #178", () => {
     );
     expect(close.onControl, "elementFromPoint New Game").toBe(true);
     expect((await page.locator("#end-close").innerText()).trim()).toBe(
-      "New Game",
+      "New game",
     );
 
     const overRoll = await hitAt(page, rollThumb.x, rollThumb.y);

@@ -711,7 +711,7 @@ function loadStoredPilotName(): void {
     if (saved && /^captain$/i.test(saved.trim())) {
       localStorage.removeItem(PILOT_NAME_KEY);
       pilotNameInput.value = "";
-      pilotNameInput.placeholder = "Venture";
+      pilotNameInput.placeholder = "Comet";
       return;
     }
     if (saved) pilotNameInput.value = saved;
@@ -909,7 +909,7 @@ function paintAuctionPrompt(): void {
   const seller = state.players.find((p) => p.id === a.sellerId);
   const human = state.players.find((p) => p.agent === "human" && !p.eliminated);
   auctionTitle.textContent = node.name;
-  auctionBody.textContent = `${seller ? rocketTitle(seller) : "A rival"} is auctioning ${node.name}. Reserve ${formatMoney(a.reserve)}. You have ${formatMoney(human?.cash ?? 0)}.`;
+  auctionBody.textContent = `${seller ? rocketTitle(seller) : "Another rocket"} is selling ${node.name}. The lowest bid that counts is ${formatMoney(a.reserve)}. You have ${formatMoney(human?.cash ?? 0)}.`;
   auctionAmount.min = String(a.reserve);
   auctionAmount.max = String(human?.cash ?? 0);
   if (!auctionAmount.value) auctionAmount.value = String(a.reserve);
@@ -1419,17 +1419,17 @@ function waitForDuelResultDismiss(): Promise<void> {
 function endScreenStory(s: GameState, winner: Player | undefined): string {
   const reason =
     s.endReason ??
-    "Among the orbital lanes, one enterprise outlasted the rest.";
-  const lengthBit = ` The ledger ran ${s.round} round${s.round === 1 ? "" : "s"}.`;
+    "One rocket lasted longer than the others.";
+  const lengthBit = ` The game ran ${s.round} trip${s.round === 1 ? "" : "s"} around.`;
   if (!winner) return reason + lengthBit;
   const nw = formatMoney(netWorth(s, winner));
   const deeds = winner.properties.length;
   const depots = winner.properties.filter((id) => s.stations[id]).length;
-  const history = ` The ledger writes ${rocketTitle(winner)} as one of the greatest of all kind.`;
+  const history = ` The book names ${rocketTitle(winner)} the winner.`;
   const empire =
     deeds > 0 || depots > 0
-      ? ` Closing books: ${nw} net worth · ${deeds} claim${deeds === 1 ? "" : "s"} · ${depots} depot${depots === 1 ? "" : "s"}.`
-      : ` Closing books: ${nw} net worth.`;
+      ? ` At the end: ${nw} · ${deeds} world${deeds === 1 ? "" : "s"} · ${depots} fuel stop${depots === 1 ? "" : "s"}.`
+      : ` At the end: ${nw}.`;
   return reason + history + lengthBit + empire;
 }
 
@@ -1456,10 +1456,10 @@ function showEndScreen(s: GameState): void {
   const kicker = document.querySelector(".end-kicker") as HTMLElement | null;
   if (kicker) {
     kicker.textContent = winner
-      ? "Greatest of all kind"
-      : "The ledger records";
+      ? "Outlasted the others"
+      : "The book writes the end";
   }
-  endTitle.textContent = winner ? prevailsHeadline(winner) : "The ledger closes";
+  endTitle.textContent = winner ? prevailsHeadline(winner) : "Game over";
   endStory.textContent = endScreenStory(s, winner);
   renderEndBooks(s, winner);
   // Full field: flying first (by NW), then eliminated by exit round (earliest first)
@@ -1841,7 +1841,7 @@ async function copyGameLog(feedbackBtn?: HTMLButtonElement): Promise<void> {
   const btn = feedbackBtn ?? btnCopyLog;
   try {
     await navigator.clipboard.writeText(text);
-    flashCopyButton(btn, btn === btnCopyLog ? "Copy" : "Copy log");
+    flashCopyButton(btn, btn === btnCopyLog ? "Copy" : "Copy the story");
   } catch {
     // Fallback for non-secure contexts
     const ta = document.createElement("textarea");
@@ -1853,7 +1853,7 @@ async function copyGameLog(feedbackBtn?: HTMLButtonElement): Promise<void> {
     ta.select();
     try {
       document.execCommand("copy");
-      flashCopyButton(btn, btn === btnCopyLog ? "Copy" : "Copy log");
+      flashCopyButton(btn, btn === btnCopyLog ? "Copy" : "Copy the story");
     } finally {
       document.body.removeChild(ta);
     }
@@ -4662,7 +4662,7 @@ function renderSide(): void {
     if (routeHoverStop !== null) routeHoverStop = null;
   }
 
-  btnSell.textContent = "Books";
+  btnSell.textContent = "Sell a world";
 
   if (legal.buy) btnBuy.textContent = `Buy (${formatMoney(legal.buyPrice)})`;
   else {
@@ -4681,8 +4681,8 @@ function renderSide(): void {
     const cost = legal.placeStationCost;
     btnStation.textContent =
       cost > 0
-        ? `Fuel depot ${formatMoney(cost)} (${p.stationsInHand} left)`
-        : `Fuel depot free (${p.stationsInHand} left)`;
+        ? `Add fuel stop ${formatMoney(cost)} (${p.stationsInHand} left)`
+        : `Add fuel stop free (${p.stationsInHand} left)`;
   } else {
     const here = getNode(state.board, p.position);
     if (state.owners[here.id] !== p.id) btnStation.textContent = "Depot (must own)";
