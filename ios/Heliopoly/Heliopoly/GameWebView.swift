@@ -47,8 +47,8 @@ struct GameWebView: UIViewRepresentable {
             context.coordinator.schemeHandler = schemeHandler
             context.coordinator.useCustomScheme = true
         } else if injectPhoneOverlay {
-            context.coordinator.onLoadFailed?(
-                "WebDist/index.html missing from the phone bundle. Run npm run ios:sync, then Clean Build the HeliopolyPhone scheme."
+            context.coordinator.reportLoadFailure(
+                "bundled index.html missing from the phone bundle"
             )
         }
 
@@ -175,6 +175,12 @@ struct GameWebView: UIViewRepresentable {
             self.injectPhoneOverlay = injectPhoneOverlay
         }
 
+        /// Player panel stays generic. Detail is for the device log only.
+        func reportLoadFailure(_ detail: String) {
+            NSLog("[heliopoly] game did not load: %@", detail)
+            onLoadFailed?("The game did not load.")
+        }
+
         func startLoadIfNeeded(in webView: WKWebView) {
             guard !didStartLoad else { return }
             didStartLoad = true
@@ -196,9 +202,7 @@ struct GameWebView: UIViewRepresentable {
                     subdirectory: "WebDist"
                 )
             else {
-                let msg =
-                    "WebDist/index.html missing. From the repo root run: npm run ios:sync"
-                onLoadFailed?(msg)
+                reportLoadFailure("bundled index.html missing")
                 return
             }
 
@@ -261,7 +265,7 @@ struct GameWebView: UIViewRepresentable {
             didFailProvisionalNavigation navigation: WKNavigation!,
             withError error: Error
         ) {
-            onLoadFailed?(error.localizedDescription)
+            reportLoadFailure(error.localizedDescription)
         }
 
         func webView(
@@ -269,7 +273,7 @@ struct GameWebView: UIViewRepresentable {
             didFail navigation: WKNavigation!,
             withError error: Error
         ) {
-            onLoadFailed?(error.localizedDescription)
+            reportLoadFailure(error.localizedDescription)
         }
 
         /// Keep navigation inside the bundled game (no silent jump to external sites).

@@ -115,6 +115,12 @@ struct GameWebView: UIViewRepresentable {
             self.onLoadFailed = onLoadFailed
         }
 
+        /// Player panel stays generic. Detail is for the device log only.
+        func reportLoadFailure(_ detail: String) {
+            NSLog("[heliopoly] game did not load: %@", detail)
+            onLoadFailed?("The game did not load.")
+        }
+
         func startLoadIfNeeded(in webView: WKWebView) {
             guard !didStartLoad else { return }
             didStartLoad = true
@@ -124,16 +130,14 @@ struct GameWebView: UIViewRepresentable {
         func loadBundledGame(into webView: WKWebView) {
             gameWebView = webView
             guard let root = WebDistRoot(bundle: .main) else {
-                onLoadFailed?(
-                    "WebDist/index.html missing. From the repo root run: npm run ios:sync"
-                )
+                reportLoadFailure("bundled index.html missing")
                 return
             }
             let server = LoopbackWebServer(rootURL: root.rootURL)
             do {
                 try server.start()
             } catch {
-                onLoadFailed?("Loopback server failed: \(error.localizedDescription)")
+                reportLoadFailure("loopback server failed: \(error.localizedDescription)")
                 return
             }
             httpServer = server
@@ -145,7 +149,7 @@ struct GameWebView: UIViewRepresentable {
                     if ok {
                         self.loadGameDocument()
                     } else {
-                        self.onLoadFailed?("Loopback warmup failed")
+                        self.reportLoadFailure("loopback warmup failed")
                     }
                 }
             }
@@ -220,7 +224,7 @@ struct GameWebView: UIViewRepresentable {
                 }
                 return
             }
-            onLoadFailed?(error.localizedDescription)
+            reportLoadFailure(error.localizedDescription)
         }
 
         /// Keep navigation inside the bundled game (no silent jump to external sites).
