@@ -9,6 +9,22 @@
 
 export const ROUND_LENGTH = 10;
 export const WIN_CORRECT = 8;
+
+export const DESERET_TITLE = "Deseret letters (old alphabet)";
+export const DESERET_KICKER = "Try things";
+export const DESERET_LOSE_TITLE = "That’s all this time";
+export const DESERET_HINT =
+  "A Deseret capital (old alphabet) shows. Two letters you know sit under it. Tap the match. Eight of ten wins the round. On a miss the right letter flashes, then the next one shows.";
+export const DESERET_SHELF_BLURB =
+  "Twelve capitals from Deseret, an old alphabet. Two letters you know: tap the match. Eight of ten wins. A miss shows the right letter.";
+
+export function deseretWinBlurb(correct: number): string {
+  return `You matched ${correct} of ${ROUND_LENGTH}. Eight wins the round.`;
+}
+
+export function deseretLoseBlurb(correct: number): string {
+  return `You matched ${correct} of ${ROUND_LENGTH}. Eight wins the round. Play again when you’re ready.`;
+}
 export const CHOICE_COUNT = 2;
 /** Seconds the alignment chart is on screen before the quiz (3, then 2, then 1). */
 export const PREVIEW_TICKS = 3;

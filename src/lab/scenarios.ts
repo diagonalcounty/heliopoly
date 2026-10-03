@@ -185,9 +185,9 @@ export const LAB_SCENARIOS: LabScenario[] = [
   },
   {
     id: "deseret-match",
-    title: "Deseret letters",
+    title: "Deseret letters (old alphabet)",
     blurb:
-      "Twelve Deseret capitals. Two Latin letters: pick the match. Eight of ten wins; misses show the answer.",
+      "Twelve capitals from Deseret, an old alphabet. Two letters you know: tap the match. Eight of ten wins. A miss shows the right letter.",
     group: "minigame",
     kind: "standalone",
     available: true,

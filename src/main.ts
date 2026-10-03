@@ -206,11 +206,16 @@ import {
   type UrpScenarioId,
 } from "./lab/urpCampaign";
 import {
+  DESERET_HINT,
   DESERET_INVENTORY,
+  DESERET_KICKER,
+  DESERET_LOSE_TITLE,
+  DESERET_TITLE,
   ROUND_LENGTH as DESERET_ROUND,
-  WIN_CORRECT as DESERET_WIN,
   advanceDeseret,
   applyDeseretChoice,
+  deseretLoseBlurb,
+  deseretWinBlurb,
   glyphChar,
   playAgainDeseret,
   startDeseretMatch,
@@ -3625,16 +3630,23 @@ function renderDeseret(): void {
   deseretScoreEl.textContent = deseretScoreLine(deseretState);
   deseretGlyphEl.classList.toggle("is-reveal", revealing);
 
+  const deseretTitleEl = document.getElementById("deseret-title");
+  const deseretKickerEl = document.querySelector("#deseret-root .handbook-kicker");
+  const deseretHintEl = document.querySelector("#deseret-root .deseret-hint");
+  if (deseretTitleEl) deseretTitleEl.textContent = DESERET_TITLE;
+  if (deseretKickerEl) deseretKickerEl.textContent = DESERET_KICKER;
+  if (deseretHintEl) deseretHintEl.textContent = DESERET_HINT;
+
   if (deseretState.phase === "won") {
     deseretStatusEl.textContent = "Round complete";
     deseretEndTitle.textContent = "Nice work";
-    deseretEndBlurb.textContent = `You matched ${deseretState.correct} of ${DESERET_ROUND} (need ${DESERET_WIN}).`;
+    deseretEndBlurb.textContent = deseretWinBlurb(deseretState.correct);
     return;
   }
   if (deseretState.phase === "lost") {
     deseretStatusEl.textContent = "Round over";
-    deseretEndTitle.textContent = "That’s all for this run";
-    deseretEndBlurb.textContent = `You matched ${deseretState.correct} of ${DESERET_ROUND}. Eight wins the round — play again when you’re ready.`;
+    deseretEndTitle.textContent = DESERET_LOSE_TITLE;
+    deseretEndBlurb.textContent = deseretLoseBlurb(deseretState.correct);
     return;
   }
   if (previewing) {

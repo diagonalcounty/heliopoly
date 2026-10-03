@@ -14,12 +14,20 @@ import {
   glyphChar,
   isCorrectChoice,
   latinLabels,
+  DESERET_HINT,
+  DESERET_KICKER,
+  DESERET_LOSE_TITLE,
+  DESERET_SHELF_BLURB,
+  DESERET_TITLE,
+  deseretLoseBlurb,
+  deseretWinBlurb,
   playAgainDeseret,
   startDeseretMatch,
   tickPreview,
   type DeseretState,
   type Rng,
 } from "./deseretMatch";
+import { LAB_SCENARIOS } from "./scenarios";
 
 let failed = 0;
 function assert(cond: unknown, msg: string): void {
@@ -199,6 +207,27 @@ function skipPreview(s: DeseretState): DeseretState {
   s = skipPreview(s);
   assert(s.phase === "playing", "after preview ticks, Play again is playing");
   assert(s.prompt.choices.length === CHOICE_COUNT, "Play again deal has 2 options");
+}
+
+
+{
+  assert(DESERET_TITLE === "Deseret letters (old alphabet)", "overlay and shelf title");
+  assert(DESERET_KICKER === "Try things", "overlay kicker");
+  assert(
+    DESERET_HINT ===
+      "A Deseret capital (old alphabet) shows. Two letters you know sit under it. Tap the match. Eight of ten wins the round. On a miss the right letter flashes, then the next one shows.",
+    "hint",
+  );
+  assert(deseretWinBlurb(8) === "You matched 8 of 10. Eight wins the round.", "win body");
+  assert(DESERET_LOSE_TITLE === "That’s all this time", "lose title");
+  assert(
+    deseretLoseBlurb(3) ===
+      "You matched 3 of 10. Eight wins the round. Play again when you’re ready.",
+    "lose body",
+  );
+  const card = LAB_SCENARIOS.find((sc) => sc.id === "deseret-match");
+  assert(card?.title === DESERET_TITLE, "shelf title");
+  assert(card?.blurb === DESERET_SHELF_BLURB, "shelf blurb");
 }
 
 if (failed) {
