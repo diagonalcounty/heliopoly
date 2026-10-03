@@ -183,6 +183,12 @@ assertMatch(handbook, /You get the cash\./, "Dossier keeps cash line");
 assertMatch(handbook, /not a sure cheap win/, "Dossier clearance");
 assertMatch(handbook, /not while a path is in the air/, "Dossier sale timing");
 assertNo(handbook, /Sim Lab/, "Dossier drops Sim Lab");
+assertMatch(handbook, /Add fuel stop<\/strong> places one/, "Fuel depots place");
+assertMatch(handbook, /not a hub \(a station\) like Holst, Elon, or Daktulios/, "Fuel depots hubs");
+assertMatch(handbook, /Cost each circuit<\/strong> \(one full loop home\)/, "Fuel depots circuit");
+assertMatch(handbook, /goes feral \(goes wild\), or you are out/, "Fuel depots resupply");
+assertMatch(handbook, /eliminated \(you are out\)/, "Fuel depots eliminated");
+assertNo(handbook, /planetoids only/, "Fuel depots drops planetoids only");
 
 
 console.log("playerManual: in-app README and CHANGELOG stay player-facing");
