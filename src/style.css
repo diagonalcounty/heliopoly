@@ -6286,8 +6286,7 @@ button:not(:disabled):active {
   }
 
   /* Square fits the leftover column above the chrome — never under the bar. */
-  #app:has(.fleet-card.mode-standings) .board-stage,
-  #app:has(.fleet-card.mode-standings) #board {
+  #app:has(.fleet-card.mode-standings) .board-stage {
     width: min(
       100%,
       calc(100dvh - var(--play-thumbs-h) - var(--play-header-h))
@@ -6299,6 +6298,24 @@ button:not(:disabled):active {
       calc(100dvh - var(--play-thumbs-h) - var(--play-header-h))
     ) !important;
     aspect-ratio: 1 / 1;
+    pointer-events: auto;
+  }
+
+  /*
+   * #314 — the canvas is a replaced element with its own intrinsic
+   * width/height attributes. Safari/WebKit does not apply the percentage
+   * term of `max-height: min(100%, calc(...))` to a replaced element the
+   * way it does to .board-stage above (a plain div) — it fell through to
+   * the raw calc() value, taller than the space .board-stage actually
+   * got, clipping the bottom of the board (Daktulios/Enceladus/Titan)
+   * behind the roster. .board-stage already resolves to the correct box
+   * in both engines, so just fill it instead of re-deriving the size.
+   */
+  #app:has(.fleet-card.mode-standings) #board {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
     pointer-events: auto;
   }
 
