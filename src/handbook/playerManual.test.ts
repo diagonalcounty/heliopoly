@@ -240,6 +240,7 @@ assertMatch(names, /a satellite that stays over one spot on Earth/, "Overview Cl
 assertMatch(names, /These are ideas, not a flight crew/, "Overview Goddard hook");
 assertMatch(names, /The history is not simple/, "Overview von Braun hook");
 assertMatch(names, /Robert Recorde — invented the equals sign \(=\) in 1557\./, "Overview Recorde hook");
+assertMatch(pilots, /catalog number for the stone/, "The K-127 page");
 assertMatch(pilots, /money and fuel in this game\) keeps score/, "The Recorde page");
 
 
