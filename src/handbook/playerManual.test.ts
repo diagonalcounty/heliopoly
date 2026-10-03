@@ -41,4 +41,27 @@ assertNo(changelogHtml, /ios:sync/, "in-app CHANGELOG keeps a sync command");
 const handbook = readFileSync(new URL("content.ts", import.meta.url), "utf8");
 assertNo(handbook, BANNED, "handbook content.ts still mentions build tooling");
 
+assertMatch(handbook, /The first screen is three doors/, "Home doors intro");
+assertMatch(
+  handbook,
+  /Arcade shows "On the rocket" and "A short play\."/,
+  "Home doors Arcade",
+);
+assertMatch(handbook, /Make a bigger bot, Backup fuel, and Slide puzzle/, "Home doors toys");
+assertMatch(handbook, /Journey shows "Fly the ship" and "Full game\."/, "Home doors Journey");
+assertMatch(handbook, /Deseret letters \(an old alphabet\)/, "Home doors Lab drills");
+assertMatch(handbook, /Show more tools/, "Home doors more tools");
+assertMatch(handbook, /Play one toy first/, "Home doors lock");
+assertMatch(
+  handbook,
+  /Gravity Duel practice throws the big game away and starts a new one/,
+  "Home doors last paragraph",
+);
+assertNo(handbook, /arcadeSessionsCompleted/, "Home doors drops the storage key");
+assertNo(handbook, /\?lab=/, "Home doors drops query strings");
+assertNo(handbook, /Show experiments/, "Home doors drops Show experiments");
+assertNo(handbook, /balance host/, "Home doors drops the host name");
+assertNo(handbook, /product sign-off/, "Home doors drops the operators paragraph");
+
+
 console.log("playerManual: in-app README and CHANGELOG stay player-facing");
