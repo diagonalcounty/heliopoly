@@ -15,8 +15,8 @@ struct ContentView: View {
             Color(red: 0.043, green: 0.063, blue: 0.125)
                 .ignoresSafeArea()
 
-            if let loadError {
-                errorPanel(message: loadError)
+            if loadError != nil {
+                errorPanel()
             } else {
                 // Do NOT ignoreSafeArea on the web view — WKWebView reports
                 // zero insets when edge-to-edge, so CSS safe-area padding fails
@@ -30,7 +30,7 @@ struct ContentView: View {
     }
 
     @ViewBuilder
-    private func errorPanel(message: String) -> some View {
+    private func errorPanel() -> some View {
         VStack(spacing: 16) {
             Text("HELIOPOLY")
                 .font(.system(size: 28, weight: .bold, design: .rounded))
@@ -41,15 +41,9 @@ struct ContentView: View {
                 .font(.subheadline)
                 .foregroundStyle(Color(red: 0.604, green: 0.659, blue: 0.78))
 
-            Text(message)
+            Text("The game did not load.")
                 .font(.footnote.monospaced())
                 .foregroundStyle(Color(red: 0.9, green: 0.42, blue: 0.48))
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 24)
-
-            Text("In Terminal: cd ~/code/heliopoly && npm run ios:sync\nThen rebuild in Xcode.")
-                .font(.caption)
-                .foregroundStyle(Color(red: 0.604, green: 0.659, blue: 0.78))
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 24)
         }
