@@ -36,9 +36,9 @@ const PILOT_ARTICLES: Record<string, string> = {
 <p>He is here as a visionary (a person who helps others see what is ahead), not a flight-crew callsign (not a crew name on the rocket). He stands for the culture that funded the next launch. Wonder is not soft. It is how orbital economics (money and fuel in this game) sells the sky (gets people to back that launch).</p>
 `,
   asimov: `
-<p class="pilot-hook"><em>Science-fiction giant — robots, Foundation, and laws of robotics.</em></p>
-<p><strong>Isaac Asimov</strong> wrote hundreds of books. Students meet him through robot stories and the <em>Foundation</em> series: big futures, clear rules, and the idea that ideas themselves can shape empires.</p>
-<p>His Three Laws of Robotics are classroom shorthand for “design your tools before they design you.” In orbital economics among the planets, contracts and claims play a similar role.</p>
+<p class="pilot-hook"><em>A giant of science fiction (made-up stories about science). Robots, Foundation (a book series), and laws of robotics (rules for robots).</em></p>
+<p>Isaac Asimov wrote hundreds of books. Students meet him through robot stories and the <em>Foundation</em> series (a book series): big futures, clear rules, and the idea that ideas themselves can shape empires (huge realms in those stories).</p>
+<p>His Three Laws of Robotics (his rules for robots) are a short way to say "design your tools before they design you." In orbital economics (money and fuel in this game) among the planets, contracts (deals) and claims (worlds you own) play a similar role.</p>
 `,
   clarke: `
 <p class="pilot-hook"><em>2001: A Space Odyssey; also predicted geostationary satellites.</em></p>
