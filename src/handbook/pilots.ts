@@ -46,9 +46,9 @@ const PILOT_ARTICLES: Record<string, string> = {
 <p>Clarke's lesson for the Mainline (the main run of this game): the useful idea often arrives decades (many years) before the infrastructure (the built thing that makes the idea work).</p>
 `,
   goddard: `
-<p class="pilot-hook"><em>American pioneer of liquid-fuel rockets (ideas, not a flight crew).</em></p>
-<p><strong>Robert Goddard</strong> launched the first liquid-fueled rocket in 1926. Newspapers mocked the idea of spaceflight; he kept filing patents and test-firing in New Mexico anyway.</p>
-<p>He is on the roster for the <em>physics of leave-burn</em>, not as a “famous astronaut.” Prove the burn, then scale it — that is still the ledger’s problem.</p>
+<p class="pilot-hook"><em>An early leader of liquid-fuel rockets (rockets that burn liquid fuel). These are ideas, not a flight crew.</em></p>
+<p>Robert Goddard launched the first liquid-fueled rocket (a rocket that burns liquid fuel) in 1926. Newspapers mocked (made fun of) the idea of spaceflight. He kept filing patents (official papers that protect an invention) and test-firing (launching test rockets) in New Mexico anyway.</p>
+<p>He is on the list for the physics of a leave-burn (how the burn that gets a rocket off a world works), not as a famous astronaut. Prove the burn, then scale it (make that same burn bigger). That is still the ledger's (the book's) problem.</p>
 `,
   "von-braun": `
 <p class="pilot-hook"><em>Heavy-lift rocketry that made crewed lunar flight possible.</em></p>
