@@ -102,6 +102,14 @@ assertNo(handbook, /greatest of all kind/, "How to win drops greatest of all kin
 assertMatch(handbook, /no round limit \(the game does not stop on a count\)/, "How to win round limit");
 assertMatch(handbook, /Fuel depots \(fuel stops it built\)/, "How to win depots");
 assertMatch(handbook, /Glossary<\/strong> \(the word list\)/, "How to win glossary pointer");
+assertMatch(handbook, /Words the game uses the same way every time/, "Glossary intro");
+assertMatch(handbook, /seat clock \(the count for that rocket\)/, "Glossary turn");
+assertMatch(handbook, /including skips and parks \(staying put\)/, "Glossary round");
+assertMatch(handbook, /One full loop of the Mainline \(the only path\)/, "Glossary rotation");
+assertMatch(handbook, /duel skip \(no move after a lane fight\)/, "Glossary park");
+assertMatch(handbook, /at the line between rounds/, "Glossary ledger event");
+assertMatch(handbook, /tap any beacon \(a marked stop\)/, "Glossary warp");
+assertNo(handbook, /Skipped seats still count/, "Glossary drops the old turn line");
 
 
 console.log("playerManual: in-app README and CHANGELOG stay player-facing");
