@@ -31,9 +31,9 @@ const PILOT_ARTICLES: Record<string, string> = {
 <p>She saw that engines (machines) might work with symbols (marks that stand for things), not only numbers — art, music, and thought in general. That idea sits behind the ledger (the book) on the Mainline (the main run of this game).</p>
 `,
   sagan: `
-<p class="pilot-hook"><em>Astronomer who brought Cosmos to millions of living rooms.</em></p>
-<p><strong>Carl Sagan</strong> made planetary science famous. Through the TV series <em>Cosmos</em>, books, and public talks, he argued that ordinary people could understand stars, evolution, and the fragile Earth.</p>
-<p>He is here as a <em>visionary</em>, not a flight-crew callsign: the culture that funded the next launch. Wonder is not soft; it is how orbital economics sells the sky.</p>
+<p class="pilot-hook"><em>An astronomer (a person who studies space) who brought Cosmos (the TV series) to millions of living rooms.</em></p>
+<p>Carl Sagan made planetary science (the study of planets) famous. Through the TV series <em>Cosmos</em>, books, and public talks, he argued that ordinary people could understand stars, evolution (how living things change over a long time), and the fragile Earth (an Earth that is easy to harm).</p>
+<p>He is here as a visionary (a person who helps others see what is ahead), not a flight-crew callsign (not a crew name on the rocket). He stands for the culture that funded the next launch. Wonder is not soft. It is how orbital economics (money and fuel in this game) sells the sky (gets people to back that launch).</p>
 `,
   asimov: `
 <p class="pilot-hook"><em>Science-fiction giant — robots, Foundation, and laws of robotics.</em></p>
