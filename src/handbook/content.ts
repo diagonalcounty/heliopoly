@@ -313,17 +313,17 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     title: "Roll, break, move & sell",
     html: `
 <ol>
-  <li><strong>Roll</strong> — 2d6 is your <em>maximum</em> travel (no move yet).</li>
-  <li><strong>Break</strong> — optional: shave spaces (−1 space = 0.5 fuel, −2 = 1 fuel, …). Stepper still works as fallback.</li>
-  <li><strong>Path preview</strong> — after you roll, a <em>thin line in your rocket color</em> shows full range. <strong>Click or tap a stop</strong> on that line to land there (sets break + moves). Hover a <em>path segment</em> for break fuel cost — planetoid hover inspect is separate.</li>
-  <li><strong>Move</strong> — travel (dice − break). Button switches from Roll → Move (or path click lands immediately).</li>
-  <li>After landing: <strong>Buy</strong> / <strong>Books</strong> (opens your dossier on that body) / Depot / End turn. Dump (½ price, depot scrapped) and auction live on the dossier row — not as a one-click dump from the pilot column.</li>
+  <li><strong>Roll</strong> — two dice (2d6) set how far you can go. You have not moved yet.</li>
+  <li><strong>Stop short</strong> — optional: cut spaces (−1 space costs 0.5 fuel, −2 costs 1 fuel, and so on). The + and − next to Stop short still work if you need them.</li>
+  <li><strong>Path preview</strong> — after you roll, a thin line in your rocket color shows how far you can go. Tap a stop on that line to land there (that sets Stop short and moves you). Hover a path piece to see the Stop short fuel cost. Hovering a world to inspect it is separate.</li>
+  <li><strong>Move</strong> — you travel (dice minus Stop short). The Roll button becomes your move, or a path tap lands you right away.</li>
+  <li>After landing: <strong>Buy</strong>, open that world's page (<strong>Books</strong>), <strong>Add fuel stop</strong>, or <strong>End turn</strong>. Selling at half price (any fuel stop on it is scrapped) and auctions live on that world's page — not as one tap from the side panel.</li>
 </ol>
-  <p><strong>Remote sell:</strong> you do not have to be on the claim. Click a rocket on <strong>On the ledger</strong> (any of that seat’s text) to open its dossier. On <em>your</em> turn you can <strong>sell</strong> any of your claims or <strong>auction</strong> it to the table at a reserve of your choosing. Each claim may be auctioned <strong>once per turn</strong>; you may list different claims in the same turn. If nobody meets your reserve, the auction is withdrawn — you may then sell that claim or keep it, but you cannot list it again this turn.</p>
-<p><strong>Buy window:</strong> you may claim an <em>unowned</em> deed underfoot when you land <em>or</em> later while you are still on it (before you leave) — e.g. after rent income on a following turn makes the price affordable.</p>
-<p>Landing is free. Leaving a gravity well costs fuel. Failed leave on an enemy claim charges rent again.</p>
-<p><strong>Earth pay</strong> is written to the ledger: <strong>⍼400</strong> when you <em>land</em> on Earth, <strong>⍼200</strong> when you <em>pass</em> Earth on a multi-space move (intermediate stop). Each completed board <strong>rotation</strong> adds <strong>⍼10</strong> to both amounts thereafter. Completing rotation <strong>10, 20, 30…</strong> also pays a one-time <strong>⍼1000</strong> decade bonus. Full circuit still resupplies fuel depots (+3 in hand).</p>
-<p><strong>Warp</strong> (from <strong>Ledger events</strong> — King’s Quest or Strong Bad Email): when you have a warp charge, <strong>click any board node</strong> instead of rolling. You teleport. No stops on the way. Landing rules still apply where you arrive.</p>
+<p><strong>Sell from far away:</strong> you do not have to be on the claim (the world you own). Tap a rocket on <strong>On the ledger</strong> (any of that seat's text) to open its page. On your turn you can <strong>Sell</strong> a world you own, or auction it to the table at a reserve (the lowest price you will take) you set. Each claim may be auctioned once per turn; you may list different claims in the same turn. If nobody meets your reserve, the auction is pulled back — you may then sell that claim or keep it, but you cannot list it again this turn.</p>
+<p><strong>Buy window:</strong> you may claim an unowned deed (proof you buy that world) underfoot when you land, or later while you are still on it (before you leave) — for example after rent (pay from others) on a later turn makes the price affordable.</p>
+<p>Landing is free. Leaving a gravity well (a strong pull, like a planet or moon) costs fuel. A failed leave on an enemy claim charges rent (pay to the owner) again.</p>
+<p><strong>Earth pay</strong> is written to the ledger (the book): <strong>⍼400</strong> when you land on Earth, <strong>⍼200</strong> when you pass Earth on a multi-space move (a stop on the way). Each completed rotation (one full loop home) adds <strong>⍼10</strong> to both amounts after that. Completing rotation 10, 20, 30… also pays a one-time <strong>⍼1000</strong> decade bonus (a big bonus each ten loops). A full loop still resupplies fuel depots (+3 fuel stops in hand).</p>
+<p><strong>Warp</strong> (from <strong>Ledger events</strong> — King’s Quest or Strong Bad Email): when you have a warp charge (a saved jump), tap any board stop instead of rolling. You jump there. No stops on the way. Landing rules still apply where you arrive.</p>
 `,
   },
   {
