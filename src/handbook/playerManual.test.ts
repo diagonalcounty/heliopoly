@@ -156,6 +156,19 @@ assertMatch(handbook, /decade bonus \(a big bonus each ten loops\)/, "Turn flow 
 assertMatch(handbook, /warp charge \(a saved jump\)/, "Turn flow warp");
 assertNo(handbook, /shave spaces/, "Turn flow drops Break shave");
 assertNo(handbook, /one-click dump/, "Turn flow drops one-click dump");
+assertMatch(handbook, /not a second set of pictures/, "Legend same paint");
+assertMatch(handbook, /each has its own ground/, "Legend planets");
+assertMatch(handbook, /Moons by group/, "Legend moons");
+assertMatch(handbook, /amber — a warm orange/, "Legend stations");
+assertMatch(handbook, /Diamond marks/, "Legend diamonds");
+assertMatch(handbook, /no halo \(no colored glow\)/, "Legend unowned");
+assertMatch(handbook, /The label becomes "Mars · Venture"/, "Legend your claim");
+assertMatch(handbook, /cannot hold a fuel pod \(a fuel tank\)/, "Legend depot on world");
+assertMatch(handbook, /cyan \(bright blue-green\)/, "Legend tank");
+assertMatch(handbook, /parked \(staying put\)/, "Legend rocket");
+assertMatch(handbook, /Rings around the Sun, tinted by group/, "Legend rings");
+assertNo(handbook, /separate clip-art set/, "Legend drops clip-art");
+assertNo(handbook, /Diamond pips/, "Legend drops pips");
 
 
 console.log("playerManual: in-app README and CHANGELOG stay player-facing");
