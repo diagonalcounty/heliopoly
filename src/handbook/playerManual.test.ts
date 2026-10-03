@@ -119,6 +119,24 @@ assertMatch(handbook, /not these book surprises/, "Ledger events not-events line
 assertNo(handbook, /Cadence \(standard pool\)/, "Ledger events drops Cadence heading");
 assertNo(handbook, /Picks &amp; UI/, "Ledger events drops Picks heading");
 assertNo(handbook, /break up the grind/, "Ledger events drops grind");
+assertMatch(handbook, /Once, that rocket gets <strong>⍼300<\/strong>/, "Standard pool Monolith");
+assertMatch(handbook, /free brake<\/strong> \(a free stop-short\)/, "Standard pool M&Ms");
+assertMatch(handbook, /a saved jump: tap any beacon/, "Standard pool King's Quest");
+assertMatch(handbook, /both can show in one expedition \(this game\)/, "Standard pool Strong Bad");
+assertMatch(handbook, /not past a full tank/, "Standard pool Arcadia");
+assertMatch(handbook, /fuel depot<\/strong> \(a fuel stop\) in hand/, "Standard pool Belt ice");
+assertMatch(handbook, /cash \(money\) now/, "Standard pool dividend");
+assertMatch(handbook, /gravity well \(a strong pull, like a planet or moon\)/, "Standard pool comet");
+assertMatch(handbook, /next rent \(pay to the owner\)/, "Standard pool holiday");
+assertMatch(handbook, /only computer-owned worlds count/, "Standard pool Tesla");
+assertMatch(handbook, /You tap the hub; the computer picks/, "Standard pool Olbers");
+assertMatch(handbook, /Insight: computer only/, "Standard pool Karen");
+assertMatch(handbook, /hubs cannot hold fuel pods/, "Standard pool invalid claim");
+assertMatch(handbook, /Pay <strong>50<\/strong> and miss the next turn/, "Standard pool Hot microphone");
+assertMatch(handbook, /one less stay-put on the count/, "Standard pool Tuesday boy");
+assertMatch(handbook, /That rocket loses <strong>2 fuel<\/strong>/, "Standard pool Error 47");
+assertNo(handbook, /The terminal dumps/, "Standard pool drops terminal dump");
+assertNo(handbook, /capped at tank max/, "Standard pool drops tank max");
 
 
 console.log("playerManual: in-app README and CHANGELOG stay player-facing");

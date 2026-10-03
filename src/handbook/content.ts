@@ -162,112 +162,112 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
       <td>+</td>
       <td>Pool</td>
       <td>Every active rocket</td>
-      <td>One-time <strong>⍼300</strong> on that rocket’s <em>next</em> Earth land or pass.</td>
+      <td>Once, that rocket gets <strong>⍼300</strong> the next time it lands on Earth or passes Earth.</td>
     </tr>
     <tr>
       <td><strong>Blue and brown M&amp;Ms are back</strong></td>
       <td>+</td>
       <td>Pool</td>
       <td>One random rocket this round</td>
-      <td>One <strong>free brake</strong> on that rocket’s next seat turn (unused token expires end of the turn).</td>
+      <td>One <strong>free brake</strong> (a free stop-short) on that rocket’s next turn. If unused, it goes away at the end of that turn.</td>
     </tr>
     <tr>
       <td><strong>King’s Quest speed-run record</strong></td>
       <td>+</td>
       <td>Pool</td>
       <td>One random rocket this round</td>
-      <td><strong>+1 warp charge</strong> (click any beacon instead of rolling). Landing rules still apply where they arrive.</td>
+      <td><strong>+1 warp charge</strong> (a saved jump: tap any beacon instead of rolling). Landing rules still apply where they arrive.</td>
     </tr>
     <tr>
       <td><strong>Strong Bad answers your email</strong></td>
       <td>+</td>
       <td>Pool</td>
       <td>One random rocket this round</td>
-      <td>Same warp as King’s Quest (separate card — both can fire in one expedition).</td>
+      <td>Same warp charge (a saved jump) as King’s Quest. This is a separate card — both can show in one expedition (this game).</td>
     </tr>
     <tr>
       <td><strong>Arcadia on the Mainline</strong> (Captain Harlock)</td>
       <td>+</td>
       <td>Pool</td>
       <td>Every active rocket</td>
-      <td><strong>+4 fuel</strong> (capped at tank max).</td>
+      <td><strong>+4 fuel</strong>, but not past a full tank.</td>
     </tr>
     <tr>
       <td><strong>Belt ice survey</strong></td>
       <td>+</td>
       <td>Pool</td>
       <td>One random rocket this round</td>
-      <td><strong>+1 fuel depot</strong> in hand.</td>
+      <td><strong>+1 fuel depot</strong> (a fuel stop) in hand.</td>
     </tr>
     <tr>
       <td><strong>Quantum ledger dividend</strong></td>
       <td>+</td>
       <td>Pool</td>
       <td>Every active rocket</td>
-      <td><strong>+⍼250</strong> cash now.</td>
+      <td><strong>+⍼250</strong> cash (money) now.</td>
     </tr>
     <tr>
       <td><strong>Comet dust trail</strong></td>
       <td>+</td>
       <td>Pool</td>
       <td>Every active rocket</td>
-      <td>Next <strong>leave burn</strong> from a gravity well costs <strong>0 fuel</strong> once.</td>
+      <td>Once, the next leave burn (fuel to leave) from a gravity well (a strong pull, like a planet or moon) costs <strong>0 fuel</strong>.</td>
     </tr>
     <tr>
       <td><strong>Port authority holiday</strong></td>
       <td>+</td>
       <td>Pool</td>
       <td>Every active rocket</td>
-      <td>Next <strong>rent that rocket would pay</strong> is waived once.</td>
+      <td>Once, the next rent (pay to the owner) that rocket would pay is skipped.</td>
     </tr>
     <tr>
       <td><strong>Rogue Tesla Roadster</strong></td>
       <td>−</td>
-      <td>Pool, only if a Jupiter or Saturn planetoid is owned (not hubs, not Mars, not inner system). Insight: only AI-owned planetoids count.</td>
+      <td>Pool, only if someone owns a Jupiter or Saturn planetoid (a world there — not hubs, not Mars, not the inner system). Insight (the shortest game): only computer-owned worlds count.</td>
       <td>One random matching owner</td>
-      <td>That deed is gone, and any fuel depot on it.</td>
+      <td>That deed (proof of ownership) is gone, and any fuel depot (fuel stop built there) on it.</td>
     </tr>
     <tr>
       <td><strong>Olbers’ paradox, Netflix optional</strong></td>
       <td>+</td>
       <td>Pool</td>
       <td>One random rocket this round (chooser)</td>
-      <td>Chooser warps to a station hub (Elon · Holst · Daktulios — not Earth) and collects <strong>⍼350</strong>. Human clicks the hub; AI auto-picks.</td>
+      <td>The chooser warps (jumps) to a station hub (Elon · Holst · Daktulios — not Earth) and gets <strong>⍼350</strong>. You tap the hub; the computer picks for its rockets.</td>
     </tr>
     <tr>
       <td><strong>Karen in the comments</strong></td>
       <td>−</td>
-      <td>Pool from <strong>round 30</strong>. Insight: only if an AI is still flying.</td>
-      <td>One random active rocket (Insight: AI only)</td>
-      <td>That rocket <strong>loses one full seat turn</strong>.</td>
+      <td>Pool from <strong>round 30</strong> on (a round is every rocket having one turn). Insight (the shortest game): only if a computer rocket is still flying.</td>
+      <td>One random active rocket (Insight: computer only)</td>
+      <td>That rocket loses one full turn.</td>
     </tr>
     <tr>
       <td><strong>Invalid claim on the ledger</strong></td>
       <td>+ / −</td>
-      <td>Pool, only if an opponent still holds a deed</td>
-      <td>One random rocket this round (chooser). Victim is the previous owner. Insight: cannot steal from the human.</td>
-      <td>Chooser takes one opponent claim. Planet/moon: free fuel depot. Hubs: deed only — no depot (hubs cannot host pods).</td>
+      <td>Pool, only if an opponent still holds a deed (proof they own a world)</td>
+      <td>One random rocket this round (the chooser). The victim is the previous owner. Insight (the shortest game): cannot take from you.</td>
+      <td>The chooser takes one opponent claim (a world they own). Planet or moon: free fuel depot (a fuel stop). Hubs: deed only — no depot (hubs cannot hold fuel pods).</td>
     </tr>
     <tr>
       <td><strong>Hot microphone</strong></td>
       <td>−</td>
       <td>Pool. Insight: only if an AI is still flying.</td>
       <td>One rocket (Insight: AI only)</td>
-      <td>Sings a Disney song into a live mic. Pay <strong>50</strong> and <strong>miss the next seat turn</strong>.</td>
+      <td>That rocket sings a Disney song into a live mic. Pay <strong>50</strong> and miss the next turn.</td>
     </tr>
     <tr>
       <td><strong>The Tuesday boy paradox</strong></td>
       <td>+</td>
       <td>Pool</td>
       <td>One random rocket this round</td>
-      <td>They prove it is <strong>13/27</strong>. Park count −1 (feral is one park further away).</td>
+      <td>They prove it is <strong>13/27</strong>. Park count −1 (one less stay-put on the count), so feral risk (going wild) is one park further away.</td>
     </tr>
     <tr>
       <td><strong>Error 47: not an object</strong></td>
       <td>−</td>
       <td>Pool. Insight: only if an AI is still flying.</td>
       <td>One rocket (Insight: AI only)</td>
-      <td>The terminal dumps <strong>2 fuel</strong>.</td>
+      <td>That rocket loses <strong>2 fuel</strong>.</td>
     </tr>
   </tbody>
 </table>
