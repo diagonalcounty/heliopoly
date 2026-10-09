@@ -216,9 +216,9 @@ export const LAB_SCENARIOS: LabScenario[] = [
   },
   {
     id: "urinal-rule-parking",
-    title: "Urinal-rule Parking",
+    title: "U.R.P.",
     blurb:
-      "You are the tower. Send each ship to a pad that leaves a gap. Closest to the hatch breaks a tie. A bad call costs a clearance.",
+      "Park rockets on the apron. Leave a gap between them. The gap gets wider and rockets start departing. How far can you get?",
     group: "minigame",
     kind: "standalone",
     available: true,

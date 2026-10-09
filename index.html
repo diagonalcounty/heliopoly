@@ -475,7 +475,7 @@ The book keeps what you do.</p>
       </div>
     </div>
 
-    <!-- Lab: Urinal-rule Parking campaign (#188 / #251) -->
+    <!-- Lab: U.R.P. (formerly Urinal-rule Parking) (#188 / #251) -->
     <div id="urp-root" class="handbook urp-overlay hidden" aria-hidden="true">
       <div class="handbook-backdrop" id="urp-backdrop"></div>
       <div
@@ -485,12 +485,12 @@ The book keeps what you do.</p>
         aria-labelledby="urp-title"
       >
         <header class="urp-header">
-          <h2 id="urp-title">Urinal-rule Parking</h2>
+          <h2 id="urp-title">U.R.P.</h2>
           <button type="button" id="urp-close" class="handbook-close" aria-label="Close">
             ✕
           </button>
         </header>
-        <p id="urp-sign" class="urp-sign">Each row is built from the level. Park the ships in order. Leave a gap when you can. Closest to the hatch breaks a tie.</p>
+        <p id="urp-sign" class="urp-sign">Park rockets on the apron. Leave a gap between them. The gap gets wider and rockets start departing. How far can you get?</p>
 
         <div id="urp-shelf" class="urp-shelf">
           <p class="urp-shelf-kicker">Practice list</p>
@@ -502,6 +502,24 @@ The book keeps what you do.</p>
           <div class="urp-play-top">
             <p id="urp-scenario-tag" class="urp-scenario-tag"></p>
             <button type="button" id="urp-back-shelf" class="urp-back-shelf">List</button>
+          </div>
+          <div class="urp-tower-hud">
+            <div class="urp-hud-row">
+              <span id="urp-stage-label" class="urp-stage-label">Stage 1: Gap One</span>
+              <span id="urp-score-label" class="urp-score-label">0 pts</span>
+            </div>
+            <div class="urp-hud-row">
+              <span id="urp-rule-label" class="urp-rule-label">Leave 1 empty</span>
+              <span id="urp-ship-label" class="urp-ship-label"></span>
+            </div>
+            <div id="urp-cl-row" class="urp-cl-row" aria-label="Clearances"></div>
+            <div class="urp-bar-row">
+              <span id="urp-bar-label" class="urp-bar-label">Bar 1 / 2</span>
+              <div class="urp-bar-track"><div id="urp-bar-fill" class="urp-bar-fill"></div></div>
+            </div>
+            <div id="urp-timer-track" class="urp-timer-track" hidden>
+              <div id="urp-timer-fill" class="urp-timer-fill"></div>
+            </div>
           </div>
           <div class="urp-meters">
             <p id="urp-orbits" class="urp-orbits" aria-live="polite">3/3</p>
@@ -539,7 +557,7 @@ The book keeps what you do.</p>
                 <line class="urp-hatch-seam" x1="40" y1="16" x2="40" y2="64" />
                 <polygon class="urp-hatch-chevron" points="40,24 51,44 29,44" />
               </svg>
-              <span class="urp-hatch-label">Hatch (door)</span>
+              <span class="urp-hatch-label">Launch bay</span>
             </div>
             <div class="urp-field">
               <svg id="urp-apron" class="urp-apron" aria-hidden="true"></svg>
@@ -552,14 +570,19 @@ The book keeps what you do.</p>
               </button>
             </div>
           </div>
+          <div id="urp-promote" class="urp-promote hidden" aria-live="polite">
+            <p id="urp-promote-title" class="urp-promote-title"></p>
+            <p id="urp-promote-sub" class="urp-promote-sub"></p>
+            <button type="button" id="urp-promote-btn" class="urp-result-btn is-primary">Continue</button>
+          </div>
           <div id="urp-result" class="urp-result hidden" aria-live="polite">
-            <img id="urp-clerk" class="urp-clerk" alt="The clerk" width="88" height="64" />
             <p id="urp-result-headline" class="urp-result-headline"></p>
+            <div id="urp-result-stats" class="urp-result-stats"></div>
             <p id="urp-result-score" class="urp-result-score"></p>
             <div class="urp-result-actions">
               <button type="button" id="urp-retry" class="urp-result-btn is-primary">Play again</button>
               <button type="button" id="urp-next" class="urp-result-btn" hidden>Next</button>
-              <button type="button" id="urp-to-shelf" class="urp-result-btn">Back to Lab</button>
+              <button type="button" id="urp-to-shelf" class="urp-result-btn">Back to Arcade</button>
             </div>
           </div>
         </div>

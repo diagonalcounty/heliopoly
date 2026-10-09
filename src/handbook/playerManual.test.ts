@@ -49,7 +49,7 @@ assertMatch(
 );
 assertMatch(
   handbook,
-  /Make a bigger bot, Backup fuel, Slide puzzle, and Urinal-rule Parking/,
+  /Make a bigger bot, Backup fuel, Slide puzzle, and U\.R\.P\./,
   "Home doors toys",
 );
 assertMatch(handbook, /Journey shows "Fly the ship" and "Full game\."/, "Home doors Journey");

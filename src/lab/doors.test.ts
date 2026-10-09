@@ -47,7 +47,7 @@ assert(
   const { arcade, lab } = classifyScenarios(LAB_SCENARIOS);
   assert(
     arcade.join(",") === ARCADE_SCENARIO_IDS.join(","),
-    "Arcade allowlist is Bot Evolution, Backup fuel, Hull panel, Urinal-rule Parking",
+    "Arcade allowlist is Bot Evolution, Backup fuel, Hull panel, U.R.P.",
   );
   assert(arcade.length === 4, "Arcade has four toys");
   assert(!arcade.includes("duel-you-challenger"), "Gravity Duel practice is not Arcade");

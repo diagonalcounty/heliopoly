@@ -597,7 +597,7 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     html: `
 <p>The first screen is three doors. Arcade is a short play, on the rocket. Journey is the full game, where you fly the ship. Lab is more tools, not another toy.</p>
 <ul>
-  <li>Arcade shows "On the rocket" and "A short play." The toys are Make a bigger bot, Backup fuel, Slide puzzle, and Urinal-rule Parking. They leave the big game as you left it. Arcade is the large door and the first tap.</li>
+  <li>Arcade shows "On the rocket" and "A short play." The toys are Make a bigger bot, Backup fuel, Slide puzzle, and U.R.P. They leave the big game as you left it. Arcade is the large door and the first tap.</li>
   <li>Journey shows "Fly the ship" and "Full game." Name your rocket and launch. Gravity Duel (a lane fight) can still happen during a flight, on an empty lane.</li>
   <li>Lab shows "Try things" and "More tools." The drills are Which is larger?, Deseret letters (an old alphabet), and Gravity Duel practice. More sit behind "Show more tools." The sheet says "This is not another toy."</li>
 </ul>
@@ -621,6 +621,42 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
 
 ];
 
+const ARCADE_TOPICS: HandbookTopic[] = [
+  {
+    id: "arcade-bot-evolution",
+    title: "Make a bigger bot",
+    html: `
+<p>Drop bots in a row. When two of the same kind touch, they join into a bigger bot. Rows get longer as you go.</p>
+<p>The game is on the rocket. It leaves the big game as you left it.</p>
+`,
+  },
+  {
+    id: "arcade-backup-fuel",
+    title: "Backup fuel",
+    html: `
+<p>Turn the pipes so fuel can flow from the tank to the engine. Each board gets harder.</p>
+<p>The game is on the rocket. It leaves the big game as you left it.</p>
+`,
+  },
+  {
+    id: "arcade-hull-panel",
+    title: "Slide puzzle",
+    html: `
+<p>Slide the plates from 1 to 8 back in order. The empty square moves.</p>
+<p>The game is on the rocket. It leaves the big game as you left it.</p>
+`,
+  },
+  {
+    id: "arcade-urp",
+    title: "U.R.P.",
+    html: `
+<p>The rules of this game are intentionally vague.</p>
+<p>You're welcome.</p>
+<p class="handbook-note">— the clerk</p>
+`,
+  },
+];
+
 const rivalIndex = rivalPilotsIndexTopic();
 /** Section already says Rival pilots — shorten index title. */
 const rivalIndexTopic: HandbookTopic = {
@@ -638,6 +674,11 @@ export const HANDBOOK_SECTIONS: HandbookSection[] = [
     id: "gameplay",
     title: "Gameplay",
     topics: GAMEPLAY_TOPICS,
+  },
+  {
+    id: "arcade",
+    title: "Arcade",
+    topics: ARCADE_TOPICS,
   },
   {
     id: "rival-pilots",
