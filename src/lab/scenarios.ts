@@ -40,7 +40,7 @@ export const LAB_GROUP_BLURBS: Record<LabScenarioGroup, string> = {
   "which-is-larger":
     "Pick the larger of two numbers, written in another numbering system.",
   minigame:
-    "Gravity Duel practice, Deseret letters, Urinal-rule Parking.",
+    "Gravity Duel practice and Deseret letters.",
   end: "How a game can end — you win, or the computer does.",
   economy:
     "Tight cash, going-under, remote sell, H₂ leak, parking/feral, hub ×4, stranded OUT, fuel strike.",
@@ -216,9 +216,9 @@ export const LAB_SCENARIOS: LabScenario[] = [
   },
   {
     id: "urinal-rule-parking",
-    title: "Urinal-rule Parking (leave a gap)",
+    title: "Urinal-rule Parking",
     blurb:
-      "Leave an empty pad between ships when you can. Park beside someone when a gap was open, and you pay a fine. If no good pad is left, go around again.",
+      "You are the tower. Send each ship to a pad that leaves a gap. Closest to the hatch breaks a tie. A bad call costs a clearance.",
     group: "minigame",
     kind: "standalone",
     available: true,

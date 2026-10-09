@@ -21,6 +21,7 @@ import {
   type UrpScenarioId,
 } from "./urpCampaign";
 import { LAB_SCENARIOS } from "./scenarios";
+import { URP_TOWER_BLURB, URP_TOWER_TITLE } from "./urpTower";
 import {
   canOrbit,
   currentUrpPair,
@@ -159,8 +160,8 @@ assert(
     assert(sc.blurb === want[sc.id]!.blurb, `${sc.id} blurb`);
   }
   const card = LAB_SCENARIOS.find((sc) => sc.id === "urinal-rule-parking");
-  assert(card?.title === URP_PRODUCT_TITLE, "lab shelf title");
-  assert(card?.blurb === URP_PRODUCT_BLURB, "lab shelf blurb");
+  assert(card?.title === URP_TOWER_TITLE, "lab shelf title");
+  assert(card?.blurb === URP_TOWER_BLURB, "lab shelf blurb");
 }
 
 const seeds = [1, 7, 42, 99, 188, 251, 20260911];

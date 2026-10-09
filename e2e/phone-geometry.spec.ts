@@ -541,7 +541,7 @@ test.describe("phone Lab sheet #193", () => {
         };
       });
     });
-    expect(report.length, "practice cards").toBeGreaterThanOrEqual(3);
+    expect(report.length, "practice cards").toBeGreaterThanOrEqual(2);
     expect(report.some((r) => r.title === "Make a bigger bot"), "Arcade toy stays off Lab").toBe(
       false,
     );
@@ -553,8 +553,8 @@ test.describe("phone Lab sheet #193", () => {
     );
     expect(
       report.some((r) => r.title === "Urinal-rule Parking"),
-      "URP uses a human title",
-    ).toBe(true);
+      "URP stays off Lab",
+    ).toBe(false);
     for (const row of report) {
       expect(row.title, `${row.title} is not kebab-case`).not.toMatch(
         /^[a-z]+(-[a-z]+)+$/,
@@ -832,21 +832,10 @@ test.describe("phone Gravity Duel #179", () => {
 
 async function openUrpFromLab(page: Page) {
   await bootSetup(page);
-  await page.evaluate(() => {
-    localStorage.setItem("heliopoly.arcadeSessionsCompleted", "1");
-  });
-  await page.locator("#btn-lab").click();
-  await expect(page.locator("#home-root")).not.toHaveClass(/hidden/);
-  await page.locator("#door-lab").click();
-  await expect(page.locator("#lab-root")).not.toHaveClass(/hidden/);
-  await page
-    .locator('.lab-group-toggle[aria-controls="lab-group-items-minigame"]')
-    .click();
-  await page.locator('#lab-root .lab-scenario[data-scenario="urinal-rule-parking"]').click();
+  await page.locator("#door-arcade").click();
+  await expect(page.locator("#arcade-root")).not.toHaveClass(/hidden/);
+  await page.locator("#arcade-root [data-scenario='urinal-rule-parking']").click();
   await expect(page.locator("#urp-root")).not.toHaveClass(/hidden/);
-  // #251's campaign shelf sits between the Lab menu and play; enter the
-  // first unlocked scenario so #urp-play (board, pads, hatch) is live.
-  await page.locator(".urp-shelf-card:not(.is-locked)").first().click();
   await expect(page.locator("#urp-play")).not.toHaveClass(/hidden/);
 }
 
@@ -1276,13 +1265,14 @@ test.describe("home doors #275", () => {
     await expect(page.locator("#arcade-root")).not.toHaveClass(/hidden/);
     await expect(page.locator("#home-root")).toHaveClass(/hidden/);
     const toys = page.locator("#arcade-scenarios .lab-scenario");
-    await expect(toys).toHaveCount(3);
+    await expect(toys).toHaveCount(4);
     await expect(toys.nth(0)).toHaveAttribute("data-scenario", "egg-bot-evolution");
     await expect(toys.nth(1)).toHaveAttribute("data-scenario", "backup-fuel-pipes");
     await expect(toys.nth(2)).toHaveAttribute("data-scenario", "hull-panel");
+    await expect(toys.nth(3)).toHaveAttribute("data-scenario", "urinal-rule-parking");
     await expect(
       page.locator("#arcade-root [data-scenario='urinal-rule-parking']"),
-    ).toHaveCount(0);
+    ).toHaveCount(1);
     await expect(
       page.locator("#arcade-root [data-scenario='eastern-arabic-compare']"),
     ).toHaveCount(0);

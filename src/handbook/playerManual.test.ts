@@ -47,7 +47,11 @@ assertMatch(
   /Arcade shows "On the rocket" and "A short play\."/,
   "Home doors Arcade",
 );
-assertMatch(handbook, /Make a bigger bot, Backup fuel, and Slide puzzle/, "Home doors toys");
+assertMatch(
+  handbook,
+  /Make a bigger bot, Backup fuel, Slide puzzle, and Urinal-rule Parking/,
+  "Home doors toys",
+);
 assertMatch(handbook, /Journey shows "Fly the ship" and "Full game\."/, "Home doors Journey");
 assertMatch(handbook, /Deseret letters \(an old alphabet\)/, "Home doors Lab drills");
 assertMatch(handbook, /Show more tools/, "Home doors more tools");

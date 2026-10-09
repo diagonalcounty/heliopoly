@@ -597,9 +597,9 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
     html: `
 <p>The first screen is three doors. Arcade is a short play, on the rocket. Journey is the full game, where you fly the ship. Lab is more tools, not another toy.</p>
 <ul>
-  <li>Arcade shows "On the rocket" and "A short play." The toys are Make a bigger bot, Backup fuel, and Slide puzzle. They leave the big game as you left it. Arcade is the large door and the first tap.</li>
+  <li>Arcade shows "On the rocket" and "A short play." The toys are Make a bigger bot, Backup fuel, Slide puzzle, and Urinal-rule Parking. They leave the big game as you left it. Arcade is the large door and the first tap.</li>
   <li>Journey shows "Fly the ship" and "Full game." Name your rocket and launch. Gravity Duel (a lane fight) can still happen during a flight, on an empty lane.</li>
-  <li>Lab shows "Try things" and "More tools." The drills are Which is larger?, Deseret letters (an old alphabet), Urinal-rule Parking (leave a gap), and Gravity Duel practice. More sit behind "Show more tools." The sheet says "This is not another toy."</li>
+  <li>Lab shows "Try things" and "More tools." The drills are Which is larger?, Deseret letters (an old alphabet), and Gravity Duel practice. More sit behind "Show more tools." The sheet says "This is not another toy."</li>
 </ul>
 <p>Lab stays locked until you play one Arcade toy. The door says "Play one toy first." The Home button brings the three doors back. It does not end a flight that is already going.</p>
 <p>Gravity Duel practice throws the big game away and starts a new one. The other drills do not. The Arcade toys leave the big game as you left it.</p>

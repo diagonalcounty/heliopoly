@@ -187,35 +187,18 @@ import {
   tilesHint,
   type TileState,
 } from "./lab/slidingTiles";
+import { buildResultsCard } from "./lab/resultsCard";
 import {
-  canOrbit,
-  currentUrpPair,
-  currentUrpScreen,
-  hintUrp,
-  landUrp,
-  orbitUrp,
-  selectUrpArea,
-  urpLooksChrome,
-  type UrpArea,
-  type UrpState,
-} from "./lab/urpGrader";
-import {
-  URP_KICKER,
-  URP_PRODUCT_BLURB,
-  URP_PRODUCT_TITLE,
-  URP_SCENARIOS,
-  formatUrpCampaignTotals,
-  formatUrpRunScore,
-  getUrpScenario,
-  isUrpScenarioUnlocked,
-  loadUrpProgress,
-  nextUrpScenario,
-  pairFullyJammed,
-  recordUrpRun,
-  saveUrpProgress,
-  startUrpScenario,
-  type UrpScenarioId,
-} from "./lab/urpCampaign";
+  URP_TOWER_BLURB,
+  URP_TOWER_TITLE,
+  assignUrpTower,
+  formatUrpTowerMeter,
+  formatUrpTowerStatus,
+  startUrpTower,
+  urpTowerLevelLabel,
+  urpTowerStatsLine,
+  type UrpTowerState,
+} from "./lab/urpTower";
 import {
   DESERET_HINT,
   DESERET_INVENTORY,
@@ -2221,14 +2204,10 @@ function closeEasternArabicCompare(): void {
   clearHandbookOpenIfIdle();
 }
 
-/** —— Urinal-rule Parking campaign (#188 / #251) —— */
+/** —— Urinal-rule Parking, control tower (#292) —— */
 const URP_ROCKET_COLORS = ["#e2b14a", "#3db8c5", "#d46a3a", "#7aa2ff", "#c86bdb"];
-const URP_PLAYER_COLOR = "#f4f0e0";
-let urpState: UrpState | null = null;
-let urpScenarioId: UrpScenarioId | null = null;
-let urpOrbitsUsed = 0;
-let urpProgress = loadUrpProgress();
-let urpFlashTimer = 0;
+const urpClerkEl = document.getElementById("urp-clerk") as HTMLImageElement;
+let urpState: UrpTowerState | null = null;
 let urpPadRo: ResizeObserver | null = null;
 
 function isUrpOpen(): boolean {
@@ -2248,10 +2227,9 @@ function urpRocketSvg(color: string): string {
   </svg>`;
 }
 
-function urpSetStatus(text: string, kind: "good" | "fine" | "" = ""): void {
+function urpSetStatus(text: string): void {
   urpStatusEl.textContent = text;
-  urpStatusEl.classList.toggle("is-good", kind === "good");
-  urpStatusEl.classList.toggle("is-fine", kind === "fine");
+  urpStatusEl.classList.remove("is-good", "is-fine");
 }
 
 function urpFieldEl(): HTMLElement {
@@ -2289,7 +2267,7 @@ function layoutUrpApron(pads: NodeListOf<HTMLElement>): void {
 function layoutUrpPads(): void {
   if (!urpState) return;
   const field = urpFieldEl();
-  const n = currentUrpScreen(urpState).padCount;
+  const n = urpState.padCount;
   const w = field.clientWidth;
   const h = field.clientHeight;
   if (w < 8 || h < 8) return;
@@ -2317,252 +2295,45 @@ function layoutUrpPads(): void {
   layoutUrpApron(pads);
 }
 
-function renderUrpAreas(): void {
-  if (!urpState) return;
-  const pair = currentUrpPair(urpState);
-  const playing = urpState.phase === "playing";
-  urpAreasEl.querySelectorAll<HTMLButtonElement>("[data-area]").forEach((btn) => {
-    const area = Number(btn.dataset.area) as UrpArea;
-    const selected = urpState!.selectedArea === area;
-    btn.classList.toggle("is-selected", selected);
-    btn.setAttribute("aria-pressed", selected ? "true" : "false");
-    btn.disabled = !playing;
-    const screen = pair[area]!;
-    const dots = btn.querySelector(".urp-area-dots");
-    if (dots) {
-      dots.replaceChildren();
-      const occ = new Set(screen.occupied);
-      for (let i = 0; i < screen.padCount; i++) {
-        const d = document.createElement("span");
-        d.className = "urp-area-dot" + (occ.has(i) ? " is-occupied" : " is-empty");
-        dots.appendChild(d);
-      }
-    }
-  });
-}
-
-function renderUrpHintPips(): void {
-  if (!urpState) return;
-  const charged = urpState.hintsLeft;
-  urpHintPipsEl.replaceChildren();
-  for (let i = 0; i < 2; i++) {
-    const pip = document.createElement("span");
-    pip.className = "urp-hint-pip" + (i < charged ? " is-charged" : "");
-    urpHintPipsEl.appendChild(pip);
-  }
-  urpHintBtn.disabled = urpState.phase !== "playing" || charged <= 0;
-  urpHintBtn.setAttribute("aria-label", `Hint, ${charged} remaining`);
-}
-
 function hideUrpResult(): void {
   urpResultEl.classList.add("hidden");
   urpResultEl.classList.remove("is-good", "is-fine");
 }
 
-function showUrpResult(outcome: "good" | "fine"): void {
-  urpResultEl.classList.remove("hidden");
-  urpResultEl.classList.toggle("is-good", outcome === "good");
-  urpResultEl.classList.toggle("is-fine", outcome === "fine");
-  urpResultHeadlineEl.textContent =
-    outcome === "good" ? "Cleared. No fine." : "You pay a fine.";
-  urpResultScoreEl.textContent = formatUrpRunScore(outcome, urpOrbitsUsed);
-  const nxt = urpScenarioId ? nextUrpScenario(urpScenarioId) : null;
-  const nextUnlocked =
-    outcome === "good" &&
-    nxt != null &&
-    isUrpScenarioUnlocked(nxt, urpProgress);
-  urpNextBtn.disabled = !nextUnlocked;
-  urpNextBtn.textContent = nextUnlocked && nxt ? `Next · ${getUrpScenario(nxt).title}` : "Next";
-}
-
-function syncUrpWords(): void {
-  const title = document.getElementById("urp-title");
-  if (title) title.textContent = URP_PRODUCT_TITLE;
-  const kicker = document.querySelector("#urp-root .urp-shelf-kicker");
-  if (kicker) kicker.textContent = URP_KICKER;
-  urpBackShelfBtn.textContent = "List";
-  urpToShelfBtn.textContent = "List";
-  urpRetryBtn.textContent = "Try again";
-  urpOrbitBtn.textContent = "Go around";
-  urpOrbitBtn.setAttribute("aria-label", "Go around, next occupancy");
-  const hatchLabel = document.querySelector("#urp-root .urp-hatch-label");
-  if (hatchLabel) hatchLabel.textContent = "Hatch (door)";
-  urpHatchEl?.setAttribute("aria-label", "Hatch (door), approach");
-}
-
-function renderUrpShelf(): void {
-  urpProgress = loadUrpProgress();
-  urpSignEl.textContent = URP_PRODUCT_BLURB;
-  urpShelfCardsEl.replaceChildren();
-  for (const sc of URP_SCENARIOS) {
-    const unlocked = isUrpScenarioUnlocked(sc.id, urpProgress);
-    const cleared = urpProgress.cleared.includes(sc.id);
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className =
-      "urp-shelf-card" +
-      (unlocked ? "" : " is-locked") +
-      (cleared ? " is-cleared" : "");
-    btn.disabled = !unlocked;
-    btn.setAttribute("role", "listitem");
-    btn.dataset.scenario = sc.id;
-    const ord = document.createElement("span");
-    ord.className = "urp-shelf-ord";
-    ord.textContent = String(sc.order);
-    const body = document.createElement("div");
-    body.className = "urp-shelf-body";
-    const title = document.createElement("p");
-    title.className = "urp-shelf-title";
-    title.textContent = sc.title;
-    const blurb = document.createElement("p");
-    blurb.className = "urp-shelf-blurb";
-    blurb.textContent = sc.blurb;
-    body.append(title, blurb);
-    const badge = document.createElement("span");
-    badge.className = "urp-shelf-badge";
-    badge.textContent = !unlocked ? "Locked" : cleared ? "Cleared" : "Open";
-    btn.append(ord, body, badge);
-    if (unlocked) {
-      btn.addEventListener("click", () => startUrpPlay(sc.id));
-    }
-    urpShelfCardsEl.appendChild(btn);
-  }
-  urpCampaignTotalsEl.textContent = formatUrpCampaignTotals(
-    urpProgress.totals,
-    urpProgress.shelfOpen,
-  );
-  syncUrpWords();
-}
-
-function showUrpShelfView(): void {
-  urpState = null;
-  urpScenarioId = null;
-  urpOrbitsUsed = 0;
-  hideUrpResult();
-  urpSetStatus("");
-  urpPlayEl.classList.add("hidden");
-  urpShelfEl.classList.remove("hidden");
-  renderUrpShelf();
-}
-
-function renderUrp(): void {
-  if (!urpState) return;
-  syncUrpWords();
-  const screen = currentUrpScreen(urpState);
-  const occ = new Set(screen.occupied);
-  const playing = urpState.phase === "playing";
-  urpOrbitsEl.textContent = urpLooksChrome(urpState);
-  renderUrpAreas();
-  urpPadsEl.replaceChildren();
-  for (let i = 0; i < screen.padCount; i++) {
-    const occupied = occ.has(i);
-    const you = urpState.lastLanded === i;
-    const el = document.createElement(occupied || you || !playing ? "div" : "button");
-    if (!occupied && !you && playing) (el as HTMLButtonElement).type = "button";
-    el.className = "urp-pad" + (occupied || you ? " is-occupied" : " is-empty");
-    if (you) {
-      el.classList.add("urp-just-landed");
-      if (urpState.outcome === "good") el.classList.add("is-good");
-      if (urpState.outcome === "fine") el.classList.add("is-fine");
-    }
-    el.dataset.index = String(i);
-    el.setAttribute(
-      "aria-label",
-      you ? "Your ship" : occupied ? "Taken pad" : "Empty pad",
-    );
-    if (you) {
-      el.innerHTML = urpRocketSvg(URP_PLAYER_COLOR);
-    } else if (occupied) {
-      const colorIdx = Math.max(0, screen.occupied.indexOf(i));
-      const color = URP_ROCKET_COLORS[colorIdx % URP_ROCKET_COLORS.length]!;
-      el.innerHTML = urpRocketSvg(color);
-    } else if (playing) {
-      el.addEventListener("click", () => urpLand(i));
-    }
-    urpPadsEl.appendChild(el);
-  }
-  const orbitOk = canOrbit(urpState);
-  urpOrbitBtn.disabled = !orbitOk;
-  urpOrbitBtn.setAttribute("aria-disabled", orbitOk ? "false" : "true");
-  renderUrpHintPips();
-  if (urpState.outcome === "good") urpSetStatus("Good job. No fine.", "good");
-  else if (urpState.outcome === "fine") urpSetStatus("You pay a fine.", "fine");
-  layoutUrpPads();
-}
-
-function urpFlashPad(index: number): void {
-  window.clearTimeout(urpFlashTimer);
-  urpPadsEl.querySelectorAll(".urp-flash").forEach((el) => el.classList.remove("urp-flash"));
-  const pad = urpPadsEl.querySelector(`[data-index="${index}"]`);
-  pad?.classList.add("urp-flash");
-  urpFlashTimer = window.setTimeout(() => {
-    urpPadsEl.querySelectorAll(".urp-flash").forEach((el) => el.classList.remove("urp-flash"));
-  }, 1200);
-}
-
-function urpWhoosh(): void {
-  if (!urpHatchEl) return;
-  urpHatchEl.classList.remove("urp-whoosh");
-  void urpHatchEl.offsetWidth;
-  urpHatchEl.classList.add("urp-whoosh");
-}
-
-function urpLand(index: number): void {
-  if (!urpState || !urpScenarioId) return;
-  const next = landUrp(urpState, index);
-  if (!next.ok || !next.state.outcome) return;
-  urpState = next.state;
-  urpProgress = recordUrpRun(urpProgress, {
-    scenarioId: urpScenarioId,
-    outcome: next.state.outcome,
-    orbitsUsed: urpOrbitsUsed,
+function showUrpResult(state: UrpTowerState): void {
+  const card = buildResultsCard({
+    gameName: URP_TOWER_TITLE,
+    level: urpTowerLevelLabel(state),
+    stats: urpTowerStatsLine(state),
   });
-  saveUrpProgress(urpProgress);
-  renderUrp();
-  showUrpResult(next.state.outcome);
+  urpClerkEl.src = card.image;
+  urpClerkEl.alt = "The clerk";
+  urpResultHeadlineEl.textContent = card.headline;
+  urpResultScoreEl.textContent = card.stats;
+  urpResultEl.classList.remove("hidden", "is-good", "is-fine");
+  urpNextBtn.hidden = true;
+  urpRetryBtn.textContent = "Play again";
+  urpToShelfBtn.textContent = "Back to Arcade";
 }
 
-function urpOrbit(): void {
-  if (!urpState || !canOrbit(urpState)) return;
-  const jammed = pairFullyJammed(currentUrpPair(urpState));
-  urpState = orbitUrp(urpState);
-  urpOrbitsUsed += 1;
-  // Dead Orbit / jam looks: orbit is the skill — celebrate, do not punish.
-  if (jammed) {
-    urpSetStatus("Go around. No pad you may use on that pass.", "good");
-  } else {
-    urpSetStatus("");
-  }
-  urpWhoosh();
-  renderUrp();
-}
-
-function urpHint(): void {
-  if (!urpState) return;
-  const next = hintUrp(urpState);
-  urpState = next.state;
-  renderUrpHintPips();
-  if (next.flashIndex != null) urpFlashPad(next.flashIndex);
-}
-
-function urpPickArea(area: UrpArea): void {
-  if (!urpState) return;
-  urpState = selectUrpArea(urpState, area);
-  renderUrp();
-}
-
-function startUrpPlay(id: UrpScenarioId): void {
-  if (!isUrpScenarioUnlocked(id, urpProgress)) return;
-  const sc = getUrpScenario(id);
-  urpScenarioId = id;
-  urpOrbitsUsed = 0;
-  urpState = startUrpScenario(id);
-  hideUrpResult();
-  urpSetStatus("");
-  urpSignEl.textContent = sc.blurb;
-  urpScenarioTagEl.textContent = sc.title;
+function beginUrpTower(): void {
+  urpState = startUrpTower();
+  urpRoot.classList.add("urp-tower");
+  urpSignEl.textContent = URP_TOWER_BLURB;
+  const title = document.getElementById("urp-title");
+  if (title) title.textContent = URP_TOWER_TITLE;
   urpShelfEl.classList.add("hidden");
+  urpShelfCardsEl.replaceChildren();
+  urpCampaignTotalsEl.textContent = "";
   urpPlayEl.classList.remove("hidden");
+  urpBackShelfBtn.hidden = true;
+  urpOrbitBtn.hidden = true;
+  urpHintBtn.hidden = true;
+  urpHintPipsEl.hidden = true;
+  urpAreasEl.hidden = true;
+  urpNextBtn.hidden = true;
+  urpHatchEl?.setAttribute("aria-label", "Hatch, the origin");
+  hideUrpResult();
   renderUrp();
   layoutUrpPads();
   if (!urpPadRo) {
@@ -2571,33 +2342,56 @@ function startUrpPlay(id: UrpScenarioId): void {
   }
 }
 
-function urpRetry(): void {
-  if (!urpScenarioId) return;
-  startUrpPlay(urpScenarioId);
+function renderUrp(): void {
+  if (!urpState) return;
+  const playing = urpState.phase === "playing";
+  const occ = new Set(urpState.occupied);
+  urpOrbitsEl.textContent = formatUrpTowerMeter(urpState);
+  urpScenarioTagEl.textContent = "Control tower";
+  urpPadsEl.replaceChildren();
+  for (let i = 0; i < urpState.padCount; i++) {
+    const occupied = occ.has(i);
+    const parked = urpState.lastParked === i;
+    const el = document.createElement(occupied || !playing ? "div" : "button");
+    if (!occupied && playing) (el as HTMLButtonElement).type = "button";
+    el.className = "urp-pad" + (occupied ? " is-occupied" : " is-empty");
+    if (parked && occupied) el.classList.add("is-good");
+    el.dataset.index = String(i);
+    const place = i === 0 ? "Hatch pad" : `Pad ${i + 1}`;
+    el.setAttribute("aria-label", occupied ? `${place}, ship parked` : place);
+    if (occupied) {
+      const color = URP_ROCKET_COLORS[i % URP_ROCKET_COLORS.length]!;
+      el.innerHTML = urpRocketSvg(color);
+    } else if (playing) {
+      el.addEventListener("click", () => urpAssign(i));
+    }
+    urpPadsEl.appendChild(el);
+  }
+  urpSetStatus(formatUrpTowerStatus(urpState));
+  if (urpState.phase === "over") showUrpResult(urpState);
+  else hideUrpResult();
+  layoutUrpPads();
 }
 
-function urpGoNext(): void {
-  if (!urpScenarioId) return;
-  const nxt = nextUrpScenario(urpScenarioId);
-  if (!nxt || !isUrpScenarioUnlocked(nxt, urpProgress)) return;
-  startUrpPlay(nxt);
+function urpAssign(index: number): void {
+  if (!urpState || urpState.phase !== "playing") return;
+  urpState = assignUrpTower(urpState, index).state;
+  renderUrp();
 }
 
 function openUrp(): void {
-  showUrpShelfView();
   urpRoot.classList.remove("hidden");
   urpRoot.setAttribute("aria-hidden", "false");
   document.body.classList.add("handbook-open");
+  beginUrpTower();
 }
 
 function closeUrp(): void {
   urpRoot.classList.add("hidden");
   urpRoot.setAttribute("aria-hidden", "true");
   urpState = null;
-  urpScenarioId = null;
-  urpOrbitsUsed = 0;
   hideUrpResult();
-  window.clearTimeout(urpFlashTimer);
+  noteArcadeSessionExit();
   clearHandbookOpenIfIdle();
 }
 
@@ -4033,18 +3827,8 @@ document.getElementById("eac-close")?.addEventListener("click", () => closeEaste
 document.getElementById("eac-backdrop")?.addEventListener("click", () => closeEasternArabicCompare());
 document.getElementById("urp-close")?.addEventListener("click", () => closeUrp());
 document.getElementById("urp-backdrop")?.addEventListener("click", () => closeUrp());
-urpOrbitBtn.addEventListener("click", () => urpOrbit());
-urpHintBtn.addEventListener("click", () => urpHint());
-urpBackShelfBtn.addEventListener("click", () => showUrpShelfView());
-urpRetryBtn.addEventListener("click", () => urpRetry());
-urpNextBtn.addEventListener("click", () => urpGoNext());
-urpToShelfBtn.addEventListener("click", () => showUrpShelfView());
-urpAreasEl.addEventListener("click", (e) => {
-  const btn = (e.target as HTMLElement).closest("[data-area]");
-  if (!(btn instanceof HTMLElement)) return;
-  const area = Number(btn.getAttribute("data-area"));
-  if (area === 0 || area === 1) urpPickArea(area);
-});
+urpRetryBtn.addEventListener("click", () => beginUrpTower());
+urpToShelfBtn.addEventListener("click", () => closeUrp());
 document.getElementById("eac-again")?.addEventListener("click", () => eacPlayAgain());
 document.getElementById("eac-done")?.addEventListener("click", () => {
   closeEasternArabicCompare();

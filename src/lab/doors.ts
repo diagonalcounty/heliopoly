@@ -48,6 +48,7 @@ export const ARCADE_SCENARIO_IDS = [
   "egg-bot-evolution",
   "backup-fuel-pipes",
   "hull-panel",
+  "urinal-rule-parking",
 ] as const;
 
 export type ArcadeScenarioId = (typeof ARCADE_SCENARIO_IDS)[number];

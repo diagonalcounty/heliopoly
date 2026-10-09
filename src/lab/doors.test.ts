@@ -47,18 +47,18 @@ assert(
   const { arcade, lab } = classifyScenarios(LAB_SCENARIOS);
   assert(
     arcade.join(",") === ARCADE_SCENARIO_IDS.join(","),
-    "Arcade allowlist is Bot Evolution, Backup fuel, Hull panel",
+    "Arcade allowlist is Bot Evolution, Backup fuel, Hull panel, Urinal-rule Parking",
   );
-  assert(arcade.length === 3, "Arcade has three toys");
+  assert(arcade.length === 4, "Arcade has four toys");
   assert(!arcade.includes("duel-you-challenger"), "Gravity Duel practice is not Arcade");
   assert(!arcade.includes("deseret-match"), "Deseret stays Lab");
-  assert(!arcade.includes("urinal-rule-parking"), "URP stays Lab");
+  assert(arcade.includes("urinal-rule-parking"), "URP is an Arcade toy");
   assert(!arcade.includes("eastern-arabic-compare"), "literacy stays Lab");
   assert(!arcade.includes("end-you-win"), "end screens stay Lab");
   assert(!arcade.includes("going-under-warnings"), "economy drills stay Lab");
   assert(lab.includes("duel-you-challenger"), "Lab keeps Gravity Duel practice");
   assert(lab.includes("deseret-match"), "Lab keeps Deseret");
-  assert(lab.includes("urinal-rule-parking"), "Lab keeps URP");
+  assert(!lab.includes("urinal-rule-parking"), "Lab does not keep URP");
   assert(lab.includes("eastern-arabic-compare"), "Lab keeps Eastern Arabic");
   assert(lab.includes("chinese-compare"), "Lab keeps Chinese");
   assert(lab.includes("korean-compare"), "Lab keeps Korean");

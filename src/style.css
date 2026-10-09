@@ -2393,6 +2393,31 @@ body.home-open {
   opacity: 0.45;
 }
 
+.urp-clerk {
+  width: 88px;
+  height: 64px;
+  object-fit: cover;
+  object-position: center 18%;
+  border-radius: 8px;
+  border: 2px solid #aa7942;
+  align-self: flex-start;
+}
+
+#urp-root.urp-tower .urp-areas,
+#urp-root.urp-tower .urp-hint-wrap,
+#urp-root.urp-tower #urp-orbit,
+#urp-root.urp-tower #urp-back-shelf,
+#urp-root.urp-tower #urp-next,
+#urp-root.urp-tower .urp-shelf {
+  display: none;
+}
+
+#urp-root.urp-tower .urp-orbits {
+  letter-spacing: 0.04em;
+  min-width: 0;
+  font-size: 0.85rem;
+}
+
 
 .urp-meters {
   display: flex;
