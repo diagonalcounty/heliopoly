@@ -831,7 +831,7 @@ test.describe("phone Gravity Duel #179", () => {
 });
 
 async function openUrpFromLab(page: Page) {
-  await bootSetup(page);
+  await bootHome(page);
   await page.locator("#door-arcade").click();
   await expect(page.locator("#arcade-root")).not.toHaveClass(/hidden/);
   await page.locator("#arcade-root [data-scenario='urinal-rule-parking']").click();
@@ -840,7 +840,7 @@ async function openUrpFromLab(page: Page) {
 }
 
 test.describe("urinal-rule-parking pads #225", () => {
-  test("landscape / wide: field has height; pads ≥44px; hatch left", async ({
+  test("landscape / wide: field has height; pads ≥44px in a row", async ({
     page,
     viewport,
   }) => {
@@ -856,19 +856,26 @@ test.describe("urinal-rule-parking pads #225", () => {
     await expect(pads.first()).toBeVisible();
     const n = await pads.count();
     expect(n, "pads rendered").toBeGreaterThanOrEqual(2);
+    const boxes = [];
     for (let i = 0; i < n; i++) {
       const pad = await boxOf(page, `#urp-pads .urp-pad:nth-child(${i + 1})`);
       expect(pad.width, `pad ${i} width`).toBeGreaterThanOrEqual(44);
       expect(pad.height, `pad ${i} height`).toBeGreaterThanOrEqual(44);
+      boxes.push(pad);
     }
+    const first = boxes[0]!;
+    const last = boxes[n - 1]!;
+    expect(last.x, "wide apron runs left to right").toBeGreaterThan(first.x + first.width * 0.5);
+    expect(Math.abs(last.top - first.top), "wide apron stays level").toBeLessThan(first.height);
+
     const empty = await boxOf(page, "#urp-pads .urp-pad.is-empty");
     expect(empty.onControl, "empty pad tappable").toBe(true);
-
-    const hatch = await boxOf(page, "#urp-root .urp-hatch");
-    expect(hatch.x, "hatch left of pads").toBeLessThan(field.x);
+    const pause = await boxOf(page, "#urp-pause");
+    expect(pause.height, "pause is a thumb target").toBeGreaterThanOrEqual(44);
+    expect(pause.onControl, "pause receives the tap").toBe(true);
   });
 
-  test("phone portrait: pads still ≥44px; hatch below field", async ({
+  test("phone portrait: diagonal pads ≥44px, hatch end at the bottom", async ({
     page,
     viewport,
   }) => {
@@ -880,13 +887,24 @@ test.describe("urinal-rule-parking pads #225", () => {
 
     const pads = page.locator("#urp-pads .urp-pad");
     await expect(pads.first()).toBeVisible();
+    const n = await pads.count();
+    const first = await boxOf(page, "#urp-pads .urp-pad:nth-child(1)");
+    const last = await boxOf(page, `#urp-pads .urp-pad:nth-child(${n})`);
+    expect(first.width).toBeGreaterThanOrEqual(44);
+    expect(first.height).toBeGreaterThanOrEqual(44);
+    expect(last.top + last.height / 2, "far pad is above the hatch pad").toBeLessThan(
+      first.top + first.height / 2,
+    );
+    expect(last.x, "apron climbs toward the right").toBeGreaterThan(first.x);
+
     const empty = await boxOf(page, "#urp-pads .urp-pad.is-empty");
     expect(empty.width).toBeGreaterThanOrEqual(44);
     expect(empty.height).toBeGreaterThanOrEqual(44);
     expect(empty.onControl, "portrait empty pad tappable").toBe(true);
 
-    const hatch = await boxOf(page, "#urp-root .urp-hatch");
-    expect(hatch.top, "hatch below pads").toBeGreaterThan(field.top);
+    const pause = await boxOf(page, "#urp-pause");
+    expect(pause.height, "pause is a thumb target").toBeGreaterThanOrEqual(44);
+    expect(pause.onControl, "pause receives the tap").toBe(true);
   });
 });
 

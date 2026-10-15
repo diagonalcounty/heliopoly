@@ -201,6 +201,7 @@ import {
   formatUrpTowerMeter,
   formatUrpTowerStatus,
   handleTimeout,
+  setUrpLayoutCap,
   stageConfig,
   startUrpTower,
   urpRuleText,
@@ -600,6 +601,8 @@ const urpBarLabelEl = document.getElementById("urp-bar-label")!;
 const urpBarFillEl = document.getElementById("urp-bar-fill")!;
 const urpTimerTrackEl = document.getElementById("urp-timer-track")!;
 const urpTimerFillEl = document.getElementById("urp-timer-fill")!;
+const urpPauseBtn = document.getElementById("urp-pause") as HTMLButtonElement;
+const urpPausedEl = document.getElementById("urp-paused")!;
 const urpPromoteEl = document.getElementById("urp-promote")!;
 const urpPromoteTitleEl = document.getElementById("urp-promote-title")!;
 const urpPromoteSubEl = document.getElementById("urp-promote-sub")!;
@@ -2234,13 +2237,16 @@ let urpState: UrpTowerState | null = null;
 let urpPadRo: ResizeObserver | null = null;
 let urpTimerInterval: number | null = null;
 let urpTimerStart = 0;
+let urpTimerSpent = 0;
+let urpPaused = false;
+let urpDepartTimer: number | null = null;
+const URP_PAD_AIM = 44;
+const URP_PAD_MAX = 56;
+const URP_PAD_GAP = 4;
+const URP_PAD_EDGE = 4;
 
 function isUrpOpen(): boolean {
   return !urpRoot.classList.contains("hidden");
-}
-
-function urpLandscape(): boolean {
-  return window.matchMedia("(min-aspect-ratio: 1/1)").matches;
 }
 
 function urpRocketSvg(color: string): string {
@@ -2296,6 +2302,31 @@ function layoutUrpApron(pads: NodeListOf<HTMLElement>): void {
   path.setAttribute("d", d);
 }
 
+function urpCenterSpan(w: number, h: number, size: number, tall: boolean): number {
+  const alongX = w - URP_PAD_EDGE * 2 - size;
+  const alongY = h - URP_PAD_EDGE * 2 - size;
+  if (alongX <= 0 || alongY <= 0) return 0;
+  return tall ? Math.hypot(alongX, alongY) : alongX;
+}
+
+function urpPadSize(w: number, h: number, n: number, tall: boolean): number {
+  const cross = tall ? w : h;
+  for (let size = URP_PAD_MAX; size >= 28; size--) {
+    if (size > cross - URP_PAD_EDGE * 2) continue;
+    const span = n <= 1 ? 0 : (n - 1) * (size + URP_PAD_GAP);
+    if (span <= urpCenterSpan(w, h, size, tall) + 0.01) return size;
+  }
+  return 28;
+}
+
+function urpPadsThatFit(w: number, h: number, tall: boolean): number {
+  let best = 4;
+  for (let n = 4; n <= 12; n++) {
+    if (urpPadSize(w, h, n, tall) >= URP_PAD_AIM) best = n;
+  }
+  return best;
+}
+
 function layoutUrpPads(): void {
   if (!urpState) return;
   const field = urpFieldEl();
@@ -2303,21 +2334,27 @@ function layoutUrpPads(): void {
   const w = field.clientWidth;
   const h = field.clientHeight;
   if (w < 8 || h < 8) return;
-  const landscape = urpLandscape();
-  const chord = landscape ? h * 0.88 : w * 0.88;
-  const gap = 4;
-  const size = Math.max(28, Math.min(56, Math.floor((chord - gap * (n - 1)) / n)));
+  const tall = h > w;
+  setUrpLayoutCap(urpPadsThatFit(w, h, tall));
+  const size = urpPadSize(w, h, n, tall);
   const pads = urpPadsEl.querySelectorAll<HTMLElement>(".urp-pad");
+  const r = size / 2;
   pads.forEach((el, i) => {
-    const t = n <= 1 ? 0.5 : i / (n - 1);
+    const t = n <= 1 ? 0 : i / (n - 1);
     let x: number;
     let y: number;
-    if (landscape) {
-      x = w / 2 - size / 2;
-      y = h * (0.06 + t * 0.88) - size / 2;
+    if (tall) {
+      const x0 = URP_PAD_EDGE + r;
+      const y0 = h - URP_PAD_EDGE - r;
+      const x1 = w - URP_PAD_EDGE - r;
+      const y1 = URP_PAD_EDGE + r;
+      x = x0 + (x1 - x0) * t - r;
+      y = y0 + (y1 - y0) * t - r;
     } else {
-      x = w * (0.06 + t * 0.88) - size / 2;
-      y = h / 2 - size / 2;
+      const span = n <= 1 ? 0 : (n - 1) * (size + URP_PAD_GAP);
+      const x0 = URP_PAD_EDGE + r + Math.max(0, (w - URP_PAD_EDGE * 2 - size - span) / 2);
+      x = x0 + t * span - r;
+      y = h / 2 - r;
     }
     el.style.width = `${size}px`;
     el.style.height = `${size}px`;
@@ -2339,30 +2376,82 @@ function urpStopTimer(): void {
   }
 }
 
-function urpStartTimer(): void {
+function urpClearDepartTimer(): void {
+  if (urpDepartTimer !== null) {
+    clearTimeout(urpDepartTimer);
+    urpDepartTimer = null;
+  }
+}
+
+function urpPaintTimer(elapsed: number): void {
+  if (!urpState) return;
+  const pct = Math.max(0, 1 - elapsed / urpState.timerMs);
+  urpTimerFillEl.style.width = `${pct * 100}%`;
+  urpTimerFillEl.classList.toggle("is-low", pct < 0.25);
+}
+
+function urpStartTimer(resume = false): void {
   urpStopTimer();
   if (!urpState) return;
   const stage = stageConfig(urpState);
-  if (!stage.timed) {
+  if (!stage.timed || urpState.phase !== "playing") {
     urpTimerTrackEl.hidden = true;
+    if (!resume) urpTimerSpent = 0;
     return;
   }
   urpTimerTrackEl.hidden = false;
-  urpTimerStart = Date.now();
-  urpTimerFillEl.style.width = "100%";
-  urpTimerFillEl.classList.remove("is-low");
+  if (!resume) urpTimerSpent = 0;
+  urpPaintTimer(urpTimerSpent);
+  if (urpPaused) return;
+  urpTimerStart = Date.now() - urpTimerSpent;
   urpTimerInterval = window.setInterval(() => {
-    if (!urpState || urpState.phase !== "playing") { urpStopTimer(); return; }
+    if (!urpState || urpState.phase !== "playing" || urpPaused) {
+      urpStopTimer();
+      return;
+    }
     const elapsed = Date.now() - urpTimerStart;
-    const pct = Math.max(0, 1 - elapsed / urpState.timerMs);
-    urpTimerFillEl.style.width = `${pct * 100}%`;
-    urpTimerFillEl.classList.toggle("is-low", pct < 0.25);
-    if (pct <= 0) {
+    urpPaintTimer(elapsed);
+    if (elapsed >= urpState.timerMs) {
+      urpTimerSpent = 0;
       urpStopTimer();
       urpState = handleTimeout(urpState);
       renderUrp();
     }
   }, 60);
+}
+
+function urpArmDepart(): void {
+  urpClearDepartTimer();
+  if (urpPaused || !urpState || urpState.pendingDeparture === null) return;
+  urpDepartTimer = window.setTimeout(() => {
+    urpDepartTimer = null;
+    if (!urpState || urpState.pendingDeparture === null || urpPaused) return;
+    urpState = acknowledgeDeparture(urpState);
+    renderUrp();
+    if (!urpPaused) urpStartTimer();
+  }, 550);
+}
+
+function urpSyncPause(): void {
+  const playing = !!urpState && urpState.phase === "playing";
+  urpPauseBtn.hidden = !playing;
+  urpPauseBtn.textContent = urpPaused ? "Resume" : "Pause";
+  urpPauseBtn.setAttribute("aria-pressed", urpPaused ? "true" : "false");
+  urpPausedEl.classList.toggle("hidden", !urpPaused || !playing);
+}
+
+function toggleUrpPause(): void {
+  if (!urpState || urpState.phase !== "playing") return;
+  urpPaused = !urpPaused;
+  if (urpPaused) {
+    if (urpTimerInterval !== null) urpTimerSpent = Date.now() - urpTimerStart;
+    urpStopTimer();
+    urpClearDepartTimer();
+  } else {
+    urpStartTimer(true);
+    urpArmDepart();
+  }
+  renderUrp();
 }
 
 function urpRenderHud(): void {
@@ -2427,6 +2516,9 @@ function showUrpResult(state: UrpTowerState): void {
 
 function beginUrpTower(): void {
   urpStopTimer();
+  urpClearDepartTimer();
+  urpPaused = false;
+  urpTimerSpent = 0;
   urpState = startUrpTower();
   urpRoot.classList.add("urp-tower");
   urpRoot.classList.remove("urp-danger");
@@ -2501,14 +2593,10 @@ function renderUrp(): void {
     urpPromoteEl.classList.add("hidden");
   }
 
+  urpSyncPause();
   if (urpState.pendingDeparture !== null) {
     urpStopTimer();
-    setTimeout(() => {
-      if (!urpState || urpState.pendingDeparture === null) return;
-      urpState = acknowledgeDeparture(urpState);
-      renderUrp();
-      urpStartTimer();
-    }, 550);
+    urpArmDepart();
   }
 
   if (urpState.phase === "over") {
@@ -2526,7 +2614,7 @@ function renderUrp(): void {
 }
 
 function urpAssign(index: number): void {
-  if (!urpState || urpState.phase !== "playing") return;
+  if (!urpState || urpState.phase !== "playing" || urpPaused) return;
   const result = assignUrpTower(urpState, index);
   urpState = result.state;
   if (result.accepted && result.sfx === "ok") urpStartTimer();
@@ -2558,6 +2646,9 @@ function openUrp(): void {
 
 function closeUrp(): void {
   urpStopTimer();
+  urpClearDepartTimer();
+  urpPaused = false;
+  urpTimerSpent = 0;
   urpRoot.classList.add("hidden");
   urpRoot.setAttribute("aria-hidden", "true");
   urpState = null;
@@ -3997,6 +4088,7 @@ document.getElementById("lab-backdrop")?.addEventListener("click", () => closeLa
 document.getElementById("eac-close")?.addEventListener("click", () => closeEasternArabicCompare());
 document.getElementById("eac-backdrop")?.addEventListener("click", () => closeEasternArabicCompare());
 document.getElementById("urp-close")?.addEventListener("click", () => closeUrp());
+urpPauseBtn.addEventListener("click", () => toggleUrpPause());
 document.getElementById("urp-backdrop")?.addEventListener("click", () => closeUrp());
 urpRetryBtn.addEventListener("click", () => beginUrpTower());
 urpToShelfBtn.addEventListener("click", () => closeUrp());

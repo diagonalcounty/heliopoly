@@ -2150,10 +2150,6 @@ body.home-open {
   background:
     radial-gradient(ellipse at 50% 18%, rgba(80, 110, 170, 0.18) 0%, transparent 55%),
     linear-gradient(180deg, #121a2e 0%, #0b1020 100%);
-  box-shadow:
-    inset 0 0 0 2px #c9a227,
-    inset 0 0 0 7px #0b1020,
-    inset 0 0 0 8px rgba(201, 162, 39, 0.35);
   overflow: hidden;
 }
 
@@ -2166,6 +2162,47 @@ body.home-open {
   padding: max(10px, env(safe-area-inset-top, 0px))
     max(12px, env(safe-area-inset-right, 0px)) 8px
     max(12px, env(safe-area-inset-left, 0px));
+}
+
+.urp-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.urp-pause {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(201, 162, 39, 0.55);
+  background: var(--btn);
+  color: var(--accent-2);
+  font-size: 0.85rem;
+  font-weight: 650;
+}
+
+.urp-pause[hidden] {
+  display: none;
+}
+
+.urp-paused {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(7, 11, 20, 0.72);
+  color: var(--accent-2);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.urp-paused.hidden {
+  display: none;
 }
 
 .urp-header h2 {
@@ -2409,7 +2446,10 @@ body.home-open {
 #urp-root.urp-tower #urp-back-shelf,
 #urp-root.urp-tower #urp-next,
 #urp-root.urp-tower .urp-shelf,
-#urp-root.urp-tower .urp-meters {
+#urp-root.urp-tower .urp-meters,
+#urp-root.urp-tower .urp-sign,
+#urp-root.urp-tower .urp-play-top,
+#urp-root.urp-tower .urp-hatch {
   display: none;
 }
 
@@ -2564,9 +2604,9 @@ body.home-open {
 }
 
 @keyframes urp-danger-flash {
-  0% { box-shadow: inset 0 0 0 2px #c9a227, inset 0 0 0 7px #0b1020, inset 0 0 0 8px rgba(201,162,39,0.35); }
-  30% { box-shadow: inset 0 0 0 2px #c9a227, inset 0 0 40px 4px rgba(224,80,64,0.25), inset 0 0 0 8px rgba(201,162,39,0.35); }
-  100% { box-shadow: inset 0 0 0 2px #c9a227, inset 0 0 0 7px #0b1020, inset 0 0 0 8px rgba(201,162,39,0.35); }
+  0%,
+  100% { box-shadow: none; }
+  30% { box-shadow: inset 0 0 40px 4px rgba(224, 80, 64, 0.25); }
 }
 
 /* Departure animation */
@@ -7761,5 +7801,10 @@ button:not(:disabled):active {
 }
 .packaged-app .support-strip-web,
 html:not(.packaged-app) .support-strip-ios {
+  display: none;
+}
+
+/* The installed app is the game. Website and GitHub links stay on the site. */
+.packaged-app .support-strip {
   display: none;
 }

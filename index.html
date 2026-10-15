@@ -486,9 +486,12 @@ The book keeps what you do.</p>
       >
         <header class="urp-header">
           <h2 id="urp-title">U.R.P.</h2>
-          <button type="button" id="urp-close" class="handbook-close" aria-label="Close">
-            ✕
-          </button>
+          <div class="urp-header-actions">
+            <button type="button" id="urp-pause" class="urp-pause" hidden>Pause</button>
+            <button type="button" id="urp-close" class="handbook-close" aria-label="Close">
+              ✕
+            </button>
+          </div>
         </header>
         <p id="urp-sign" class="urp-sign">Park rockets on the apron. Leave a gap between them. The gap gets wider and rockets start departing. How far can you get?</p>
 
@@ -562,6 +565,7 @@ The book keeps what you do.</p>
             <div class="urp-field">
               <svg id="urp-apron" class="urp-apron" aria-hidden="true"></svg>
               <div id="urp-pads" class="urp-pads" role="group" aria-label="Pads"></div>
+              <div id="urp-paused" class="urp-paused hidden" aria-live="polite">Paused</div>
             </div>
             <div class="urp-go-wrap">
               <p id="urp-status" class="urp-status" aria-live="polite"></p>

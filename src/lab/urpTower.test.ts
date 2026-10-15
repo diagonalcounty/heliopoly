@@ -12,11 +12,13 @@ import {
   assignUrpTower,
   barQuota,
   firstScreenFor,
+  generateScreen,
   formatUrpTowerMeter,
   formatUrpTowerStatus,
   gradeTower,
   handleTimeout,
   pointsForStage,
+  setUrpLayoutCap,
   stageConfig,
   startUrpTower,
   urpRuleText,
@@ -286,6 +288,19 @@ assert(barQuota(URP_STAGES[0]!, 0) === 3, "base bar quota for stage 1 is 3");
 assert(barQuota(URP_STAGES[0]!, 1) === 4, "bar quota grows with bars completed");
 assert(pointsForStage(0) === 100, "stage 1 pays 100");
 assert(pointsForStage(4) === 500, "stage 5 pays 500");
+
+// ── Layout cap: stop growing the apron, then pace departures ────────
+{
+  setUrpLayoutCap(6);
+  const opening = firstScreenFor(4);
+  assert(opening.padCount === 6, "stage 5 opening clamps to the layout cap");
+  assert(opening.occupied.every((i) => i < 6), "clamped opening stays on the apron");
+  const grown = generateScreen(3, 4, URP_STAGES[4]!, 8, 3);
+  assert(grown.padCount === 6, "later screens do not pass the layout cap");
+  setUrpLayoutCap(Number.POSITIVE_INFINITY);
+  const full = firstScreenFor(4);
+  assert(full.padCount === 9, "clearing the cap restores the scripted apron");
+}
 
 if (failed) {
   throw new Error(`${failed} assertion(s) failed`);

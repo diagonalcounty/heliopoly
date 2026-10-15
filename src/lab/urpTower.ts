@@ -28,6 +28,21 @@ export const URP_BASE_TIMER = 15000;
 export const URP_ROUNDS_PER_SIZE = 3;
 export const URP_STAGE_COUNT = 5;
 
+/**
+ * Most pads the current screen can show at a tappable size.
+ * Infinity keeps the scripted apron. A finite cap stops the row growing
+ * and, once departures are on, holds that apron so the job is pacing.
+ */
+let urpLayoutCap = Number.POSITIVE_INFINITY;
+
+export function setUrpLayoutCap(n: number): void {
+  if (!Number.isFinite(n)) {
+    urpLayoutCap = Number.POSITIVE_INFINITY;
+    return;
+  }
+  urpLayoutCap = Math.max(4, Math.min(12, Math.floor(n)));
+}
+
 // ── Stage config ─────────────────────────────────────────────────────
 
 export interface UrpStageConfig {
@@ -217,14 +232,22 @@ interface ScreenLayout {
   asks: number;
 }
 
+function clampLayout(layout: ScreenLayout): ScreenLayout {
+  if (!Number.isFinite(urpLayoutCap) || layout.padCount <= urpLayoutCap) return layout;
+  const padCount = urpLayoutCap;
+  const occupied = layout.occupied.filter((i) => i >= 0 && i < padCount);
+  const room = Math.max(1, padCount - occupied.length - 1);
+  return { padCount, occupied, asks: Math.max(1, Math.min(layout.asks, room)) };
+}
+
 export function firstScreenFor(stageIndex: number): ScreenLayout {
   switch (stageIndex) {
-    case 0: return { padCount: 4, occupied: [0], asks: 1 };
-    case 1: return { padCount: 6, occupied: [0], asks: 1 };
-    case 2: return { padCount: 7, occupied: [0, 6], asks: 1 };
-    case 3: return { padCount: 8, occupied: [0], asks: 1 };
-    case 4: return { padCount: 9, occupied: [0, 8], asks: 1 };
-    default: return { padCount: 4, occupied: [0], asks: 1 };
+    case 0: return clampLayout({ padCount: 4, occupied: [0], asks: 1 });
+    case 1: return clampLayout({ padCount: 6, occupied: [0], asks: 1 });
+    case 2: return clampLayout({ padCount: 7, occupied: [0, 6], asks: 1 });
+    case 3: return clampLayout({ padCount: 8, occupied: [0], asks: 1 });
+    case 4: return clampLayout({ padCount: 9, occupied: [0, 8], asks: 1 });
+    default: return clampLayout({ padCount: 4, occupied: [0], asks: 1 });
   }
 }
 
@@ -236,7 +259,7 @@ export function generateScreen(
   round: number,
 ): ScreenLayout {
   const rnd = mkRng(mixSeed(seed, screen));
-  const padCount = Math.min(stage.mx, stage.mn + sizeIndex);
+  const padCount = Math.min(stage.mx, stage.mn + sizeIndex, urpLayoutCap);
   const asks = Math.min(round, Math.max(1, padCount - 3));
   const maxOcc = Math.max(1, padCount - asks - 1);
   const minOcc = Math.max(1, Math.floor(padCount * 0.2));
@@ -300,6 +323,81 @@ export function startUrpTower(seed: number = (Date.now() ^ 0xa1b2) >>> 0): UrpTo
       correctIndex: null,
     },
     layout,
+  );
+}
+
+function bumpedScreen(state: UrpTowerState): {
+  screen: number;
+  round: number;
+  sizeIndex: number;
+} {
+  const screen = state.screen + 1;
+  let round = state.round + 1;
+  let sizeIndex = state.sizeIndex;
+  if (round > URP_ROUNDS_PER_SIZE) {
+    round = 1;
+    sizeIndex++;
+  }
+  return { screen, round, sizeIndex };
+}
+
+/** Drop the hatch-end ship so a full apron still has a hole to land in. */
+function openHoleIfFull(padCount: number, occupied: readonly number[]): readonly number[] {
+  if (occupied.length < padCount) return occupied;
+  const drop = Math.min(...occupied);
+  return occupied.filter((i) => i !== drop);
+}
+
+/**
+ * Next puzzle. Before the apron fills the screen, deal a new row.
+ * Once it is at the layout cap and ships are departing, keep the row
+ * and ask for one more landing into the pattern that is already there.
+ */
+function advanceUrpScreen(
+  state: UrpTowerState,
+  occupied: readonly number[],
+): UrpTowerState {
+  const stage = stageConfig(state);
+  const next = bumpedScreen(state);
+  const pacing =
+    stage.dep > 0 &&
+    Number.isFinite(urpLayoutCap) &&
+    state.padCount >= urpLayoutCap;
+  if (pacing) {
+    return {
+      ...state,
+      screen: next.screen,
+      round: next.round,
+      sizeIndex: next.sizeIndex,
+      isFirstScreen: false,
+      padCount: state.padCount,
+      occupied: openHoleIfFull(state.padCount, occupied),
+      playerParked: [],
+      asks: 1,
+      step: 0,
+      pendingDeparture: null,
+      note: "ask",
+      correctIndex: null,
+    };
+  }
+  const nextLayout = generateScreen(
+    state.seed,
+    next.screen,
+    stage,
+    next.sizeIndex,
+    next.round,
+  );
+  return screenState(
+    {
+      ...state,
+      screen: next.screen,
+      round: next.round,
+      sizeIndex: next.sizeIndex,
+      isFirstScreen: false,
+      note: "next",
+      correctIndex: null,
+    },
+    nextLayout,
   );
 }
 
@@ -422,41 +520,24 @@ export function assignUrpTower(state: UrpTowerState, index: number): UrpAssignRe
   const screenDone = step >= state.asks && pendingDeparture === null;
 
   if (screenDone) {
-    const nextScreen = state.screen + 1;
-    let nextRound = state.round + 1;
-    let nextSizeIndex = state.sizeIndex;
-    if (nextRound > URP_ROUNDS_PER_SIZE) {
-      nextRound = 1;
-      nextSizeIndex++;
-    }
-    const nextLayout = generateScreen(
-      state.seed,
-      nextScreen,
-      stage,
-      nextSizeIndex,
-      nextRound,
-    );
-
     return {
-      state: screenState(
+      state: advanceUrpScreen(
         {
           ...state,
-          screen: nextScreen,
+          occupied,
+          playerParked,
+          step,
           score,
           parks,
           stageParks,
           barFill,
           barsCompleted,
-          sizeIndex: nextSizeIndex,
-          round: nextRound,
-          isFirstScreen: false,
-          note: "next",
+          depCounter,
           lastParked: index,
           lastPoints: pts,
           tightPark: grade.tight,
-          correctIndex: null,
         },
-        nextLayout,
+        occupied,
       ),
       accepted: true,
       sfx: barDone ? "bar" : "ok",
@@ -494,36 +575,8 @@ export function acknowledgeDeparture(state: UrpTowerState): UrpTowerState {
   const occupied = state.occupied.filter((i) => i !== dep);
   const playerParked = state.playerParked.filter((i) => i !== dep);
 
-  // If screen is now done after departure, advance
   if (state.step >= state.asks) {
-    const stage = stageConfig(state);
-    const nextScreen = state.screen + 1;
-    let nextRound = state.round + 1;
-    let nextSizeIndex = state.sizeIndex;
-    if (nextRound > URP_ROUNDS_PER_SIZE) {
-      nextRound = 1;
-      nextSizeIndex++;
-    }
-    const nextLayout = generateScreen(
-      state.seed,
-      nextScreen,
-      stage,
-      nextSizeIndex,
-      nextRound,
-    );
-
-    return screenState(
-      {
-        ...state,
-        screen: nextScreen,
-        sizeIndex: nextSizeIndex,
-        round: nextRound,
-        isFirstScreen: false,
-        note: "next",
-        correctIndex: null,
-      },
-      nextLayout,
-    );
+    return advanceUrpScreen({ ...state, occupied, playerParked }, occupied);
   }
 
   return {
