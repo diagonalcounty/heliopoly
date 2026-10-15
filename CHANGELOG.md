@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+## [1.5.1] — 2026-10-15
+
+Bug-fix App Store patch. **https://beta.heliopoly.live/** tracks GitHub `main`. Do not stage heliopoly.live from this release.
+
+### Play / UX
+- **U.R.P. landscape pads (#346):** in full-screen landscape, parking pads no longer pile on top of each other — every pad stays visible and tappable. Portrait unchanged.
+- **Vibe kick target (#341):** the kick-out card lets you pick a target and confirm.
+- **Board clip on phone (#314):** with 4 or 6 rockets, the board no longer cuts off on phone-width Safari.
+- **Journey win record (#342):** remembers wins by player count and expedition.
+
+### iOS
+- **MARKETING_VERSION 1.5.1**, **CURRENT_PROJECT_VERSION 11** (Debug and Release). In-app V1 badge and Ops Manual welcome read **1.5.1**.
+- Build **10** uploaded with marketing 1.5.1 but WebDist still showed 1.5.0 in-app; **build 11** is the review binary.
+
+### Meta
+- Version **1.5.1** (package, V1 badge, Ops Manual welcome, README)
+
 ## [1.5.0] — 2026-09-24
 
 **https://beta.heliopoly.live/** tracks GitHub `main` as **1.5.0**. **https://heliopoly.live/** stays on its current build until the next Sunday unlock (staged separately).

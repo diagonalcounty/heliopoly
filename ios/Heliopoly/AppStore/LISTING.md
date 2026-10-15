@@ -1,7 +1,7 @@
 # Heliopoly — App Store Connect listing copy
 
 Paste these fields into **App Store Connect → Heliopoly → App Information / Version**.  
-Version aligned with Xcode: **1.5.0** (build **9**). iPhone and iPad.
+Version aligned with Xcode: **1.5.1** (build **11**). iPhone and iPad.
 
 ---
 
@@ -52,6 +52,16 @@ https://heliopoly.live/
 ```
 
 Adjust legal entity name to match your Apple Developer account / DUNS if different.
+
+---
+
+## Version 1.5.1 — What’s New
+
+```
+Fixes U.R.P. in landscape: icons no longer pile up.
+
+Also: kick-out card lets you pick a target, phone board no longer clips with 4 or 6 rockets, and Journey remembers wins by player count and expedition.
+```
 
 ---
 

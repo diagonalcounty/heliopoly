@@ -35,6 +35,7 @@ assertMatch(readmeHtml, /three doors/, "in-app README keeps the doors");
 assertMatch(readmeHtml, /Arcade/, "in-app README names Arcade");
 assertMatch(changelogHtml, /Home doors/, "in-app CHANGELOG keeps 1.5.0 doors");
 assertMatch(changelogHtml, /1\.5\.0/, "in-app CHANGELOG keeps 1.5.0");
+assertMatch(changelogHtml, /1\.5\.1/, "in-app CHANGELOG keeps 1.5.1");
 assertNo(changelogHtml, /MARKETING_VERSION/, "in-app CHANGELOG keeps a build version");
 assertNo(changelogHtml, /ios:sync/, "in-app CHANGELOG keeps a sync command");
 
