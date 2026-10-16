@@ -48,3 +48,7 @@ Optional: `npm run selfplay -- 5 4`
 - Game rules live in `src/core/**` (no DOM).
 - Browser shell: `src/main.ts`, handbook under `src/handbook/`.
 - Prefer small PRs over large rewrites.
+
+## Agent commit attribution
+
+Agent commits (Grok Build / Botly) must include `Agent` / `Pool` / `Host` trailers. See [`AGENTS.md`](AGENTS.md) and [toolbox commit-attribution](https://github.com/diagonalcounty/toolbox/blob/main/docs/commit-attribution.md).
