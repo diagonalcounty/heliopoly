@@ -136,7 +136,7 @@ import {
   SHELL_FILL,
   quotaForState,
   robotTallyLine,
-  runLevelLine,
+  runLevel,
   clearBotEvoSave,
   readBotEvoSave,
   resumeAfterMorph,
@@ -157,6 +157,7 @@ import {
   BOTEVO_RESUME_LINE,
   BOTEVO_SAVE_ARIA,
   BOTEVO_START_OVER,
+  BOTEVO_TITLE,
   connectLabel,
   playHint,
   stageTeach,
@@ -188,7 +189,7 @@ import {
   tilesHint,
   type TileState,
 } from "./lab/slidingTiles";
-import { buildResultsCard } from "./lab/resultsCard";
+import { buildResultsCard, mountResultsCard } from "./lab/resultsCard";
 import {
   URP_BARS_TO_PROMOTE,
   URP_MAX_CLEARANCES,
@@ -633,8 +634,11 @@ const botEvoSaveTrackEl = document.getElementById("botevo-save-track")!;
 const botEvoFxEl = document.getElementById("botevo-fx")!;
 const botEvoPlayEl = document.getElementById("botevo-play")!;
 const botEvoEndEl = document.getElementById("botevo-end")!;
-const botEvoEndTitle = document.getElementById("botevo-end-title")!;
-const botEvoEndRobots = document.getElementById("botevo-end-robots")!;
+const botEvoEndCardEl = document.getElementById("botevo-end-card")!;
+const botEvoEndActions = [
+  document.getElementById("botevo-again")!,
+  document.getElementById("botevo-done")!,
+];
 const botEvoDropBtn = document.getElementById("botevo-drop") as HTMLButtonElement;
 const botEvoPauseBtn = document.getElementById("botevo-pause") as HTMLButtonElement;
 const botEvoPausedEl = document.getElementById("botevo-paused")!;
@@ -3164,8 +3168,16 @@ function renderBotEvo(): void {
   botEvoPauseBtn.setAttribute("aria-pressed", botEvoPaused ? "true" : "false");
   botEvoDropBtn.disabled = lost || botEvoPaused || botEvoAwaitingStageAck;
   if (lost) {
-    botEvoEndTitle.textContent = runLevelLine(botEvoState);
-    botEvoEndRobots.textContent = robotTallyLine(botEvoState.robots);
+    const { major, minor } = runLevel(botEvoState);
+    mountResultsCard(
+      botEvoEndCardEl,
+      buildResultsCard({
+        gameName: BOTEVO_TITLE,
+        level: `${major}.${minor}`,
+        stats: `${robotTallyLine(botEvoState.robots)} · ${botEvoState.boxes === 1 ? "1 join" : `${botEvoState.boxes} joins`}`,
+      }),
+      botEvoEndActions,
+    );
   }
 
   const live = liveChainCells(botEvoState.grid);
