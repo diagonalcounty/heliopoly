@@ -192,7 +192,9 @@
       "images": [
         "public/handbook/cards/banners/clerk-kostka.jpg"
       ],
-      "posted": false
+      "posted": false,
+      "hold": true,
+      "holdReason": "Kostka: waiting on Jacob's OK"
     },
     {
       "id": "q20",
@@ -328,7 +330,8 @@
       "kind": "retro-joke",
       "text": "Happy Halloween from the Mainline (the path the rockets fly). 🎃\n\nThe scariest thing in Heliopoly isn't a monster. It's a nearly empty fuel tank on somebody else's moon.",
       "images": [],
-      "posted": false
+      "posted": false,
+      "onDate": "2026-10-31"
     },
     {
       "id": "q34",

@@ -1,6 +1,6 @@
 # X daily queue: Oct 20 – Nov 3, 2026 (3 a day)
 
-Account: @diagonalcounty. Goal: a steady posting history, not follower chasing. Machine-readable copy: `queue-daily.json` (the poster's `queue-next` reads it).
+Account: @diagonalcounty. Goal: a steady posting history, not follower chasing. Machine-readable copy: `queue-daily.json` (the poster's `queue-next` reads it). Optional item fields: `hold: true` skips an item; `notBefore` / `onDate` (YYYY-MM-DD, America/Chicago) delay it or pin it to one day. Skipped items don't block the ones after them.
 
 Rules used: facts only from the live 1.5.0 App Store listing and the 1.5.0 handbook; no 1.5.1 features, no price, no real people; plain clue for every game word; under 270 characters; 0–2 hashtags; App Store link on about 1 post in 4.
 
@@ -149,7 +149,7 @@ Images: `ios/Heliopoly/AppStore/screenshots/1.5.0/1320x2868/02-arcade.png`
 
 Images: `ios/Heliopoly/AppStore/screenshots/1.5.0/1320x2868/05-duel-manual.png`
 
-## q19 · 2026-10-26 midday · clerk
+## q19 · 2026-10-26 midday · clerk · HOLD (hold:true until Jacob OKs the Kostka card)
 
 > Clerk card: Kostka. 🐶
 >
@@ -255,7 +255,7 @@ Images: `public/handbook/cards/banners/clerk-gusher.jpg`
 
 Images: none
 
-## q33 · 2026-10-31 morning · retro-joke
+## q33 · 2026-10-31 morning · retro-joke · onDate 2026-10-31 (posts only on Halloween)
 
 > Happy Halloween from the Mainline (the path the rockets fly). 🎃
 >
