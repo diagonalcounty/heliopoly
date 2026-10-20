@@ -126,6 +126,30 @@ export interface RecycledBot {
   piece: PieceId;
 }
 
+/** Robot classes by the size of the group that morphed (#288). */
+export type RobotClass = "simple" | "medium" | "complex" | "advanced";
+
+export const ROBOT_CLASSES: readonly RobotClass[] = [
+  "simple",
+  "medium",
+  "complex",
+  "advanced",
+];
+
+export type RobotTally = Record<RobotClass, number>;
+
+export function emptyRobotTally(): RobotTally {
+  return { simple: 0, medium: 0, complex: 0, advanced: 0 };
+}
+
+/** 3 simple, 4 medium, 5 complex, 6+ advanced. Set by group size, not stage. */
+export function robotClassForGroup(size: number): RobotClass {
+  if (size >= 6) return "advanced";
+  if (size === 5) return "complex";
+  if (size === 4) return "medium";
+  return "simple";
+}
+
 export interface BotState {
   grid: BotGrid;
   queue: PieceId[];
@@ -136,6 +160,8 @@ export interface BotState {
   level: number;
   segments: number;
   boxes: number;
+  /** Robots built this run, by morphed group size (#288). */
+  robots: RobotTally;
   /** Stage N = width = morph threshold. Start 3; cap 6. */
   n: BotStage;
   /** Completed save bars at the current N (resets on widen). */
@@ -264,6 +290,22 @@ export function runLevelLine(
 }
 
 /**
+ * End-of-run robot tally (#288), e.g.
+ * "You built 12 simple, 5 medium, 2 complex, and 1 advanced robot."
+ * Classes with a zero count are left out.
+ */
+export function robotTallyLine(tally: RobotTally): string {
+  const parts = ROBOT_CLASSES.filter((c) => tally[c] > 0).map(
+    (c) => `${tally[c]} ${c}`,
+  );
+  if (!parts.length) return "You didn't build any robots.";
+  if (parts.length === 1) return `You built ${parts[0]} robot.`;
+  if (parts.length === 2) return `You built ${parts[0]} and ${parts[1]} robot.`;
+  const last = parts.pop();
+  return `You built ${parts.join(", ")}, and ${last} robot.`;
+}
+
+/**
  * Drop interval. C3–C5 stay at baseline (HITL: too fast by C5 when
  * career bars compounded). Speed ramps only on Connect 6, from the
  * bars completed at 6×8 — first C6 bar is still baseline.
@@ -295,6 +337,7 @@ function cloneGrid(grid: BotGrid): BotGrid {
 function cloneState(state: BotState): BotState {
   return {
     ...state,
+    robots: { ...state.robots },
     grid: cloneGrid(state.grid),
     queue: state.queue.slice(),
     bag: state.bag.slice(),
@@ -373,6 +416,7 @@ export function startBotEvo(seed?: number): BotState {
     level: 1,
     segments: 0,
     boxes: 0,
+    robots: emptyRobotTally(),
     n: BOT_STAGE_MIN,
     barsCompletedThisStage: 0,
     phase: "aiming",
@@ -792,6 +836,7 @@ function resolveMorphs(state: BotState): void {
       for (const k of g) kill.add(k);
     }
     for (const k of kill) flash.push(k);
+    for (const g of groups) state.robots[robotClassForGroup(g.length)] += 1;
     creditBoxes(state, groups.length);
     const grid = cloneGrid(state.grid);
     for (const k of kill) {
@@ -1091,6 +1136,17 @@ function parseState(value: unknown): BotState | null {
   if (!isUint(raw.level) || raw.level < 1) return null;
   if (!isUint(raw.segments) || !isUint(raw.boxes)) return null;
   if (!isUint(raw.barsCompletedThisStage)) return null;
+  // Saves from before #288 have no tally; start it at zero.
+  const robots = emptyRobotTally();
+  if (raw.robots !== undefined) {
+    if (!raw.robots || typeof raw.robots !== "object") return null;
+    const rawRobots = raw.robots as Record<string, unknown>;
+    for (const c of ROBOT_CLASSES) {
+      const n = rawRobots[c];
+      if (!isUint(n)) return null;
+      robots[c] = n;
+    }
+  }
   if (!isUint(raw.rng) || !isUint(raw.lockTicks)) return null;
   if (!isUint(raw.pendingPromotions)) return null;
   if (typeof raw.pendingWiden !== "boolean") return null;
@@ -1107,6 +1163,7 @@ function parseState(value: unknown): BotState | null {
     level: raw.level,
     segments: raw.segments,
     boxes: raw.boxes,
+    robots,
     n: raw.n,
     barsCompletedThisStage: raw.barsCompletedThisStage,
     phase,

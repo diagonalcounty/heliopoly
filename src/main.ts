@@ -135,6 +135,7 @@ import {
   queuePixelStrength,
   SHELL_FILL,
   quotaForState,
+  robotTallyLine,
   runLevelLine,
   clearBotEvoSave,
   readBotEvoSave,
@@ -633,6 +634,7 @@ const botEvoFxEl = document.getElementById("botevo-fx")!;
 const botEvoPlayEl = document.getElementById("botevo-play")!;
 const botEvoEndEl = document.getElementById("botevo-end")!;
 const botEvoEndTitle = document.getElementById("botevo-end-title")!;
+const botEvoEndRobots = document.getElementById("botevo-end-robots")!;
 const botEvoDropBtn = document.getElementById("botevo-drop") as HTMLButtonElement;
 const botEvoPauseBtn = document.getElementById("botevo-pause") as HTMLButtonElement;
 const botEvoPausedEl = document.getElementById("botevo-paused")!;
@@ -3163,6 +3165,7 @@ function renderBotEvo(): void {
   botEvoDropBtn.disabled = lost || botEvoPaused || botEvoAwaitingStageAck;
   if (lost) {
     botEvoEndTitle.textContent = runLevelLine(botEvoState);
+    botEvoEndRobots.textContent = robotTallyLine(botEvoState.robots);
   }
 
   const live = liveChainCells(botEvoState.grid);
