@@ -2,7 +2,7 @@
  * Shared results card (#296).
  * Run: npx tsx src/lab/resultsCard.test.ts
  */
-import { buildResultsCard, RESULTS_CLERK_IMAGE } from "./resultsCard";
+import { buildResultsCard, resultsCardMarkup, RESULTS_CLERK_IMAGE } from "./resultsCard";
 
 let failed = 0;
 function assert(cond: unknown, msg: string): void {
@@ -31,6 +31,16 @@ function assert(cond: unknown, msg: string): void {
     card.image === "/handbook/cards/clerk-canonical.jpg",
     "portrait is the canonical clerk",
   );
+}
+
+{
+  const html = resultsCardMarkup(
+    buildResultsCard({ gameName: "A <b>&", level: "7.4", stats: "" }),
+  );
+  assert(html.includes("clerk-canonical.jpg"), "markup opens on the clerk portrait");
+  assert(html.includes("Congratulations, you made it to level 7.4."), "markup has headline");
+  assert(html.includes("A &lt;b&gt;&amp;"), "game name is escaped");
+  assert(html.includes('class="results-card-actions"'), "markup has an action slot");
 }
 
 if (failed) {

@@ -871,22 +871,11 @@ The book keeps what you do.</p>
             <button type="button" id="botevo-drop" class="eac-primary">Drop</button>
           </div>
           <div id="botevo-end" class="eac-win hidden" aria-live="polite">
-            <article class="botevo-card botevo-end-card">
-              <div
-                class="botevo-card-art"
-                role="img"
-                aria-label="The clerk"
-                style="background-image: url('/handbook/cards/clerk-canonical.jpg')"
-              ></div>
-              <div class="botevo-card-copy">
-                <p class="botevo-card-kicker">The clerk</p>
-                <h3 id="botevo-end-title">You finished level 1.0.</h3>
-                <div class="eac-win-actions">
-                  <button type="button" id="botevo-again" class="eac-primary">Play again</button>
-                  <button type="button" id="botevo-done" class="eac-secondary">Back to Arcade</button>
-                </div>
-              </div>
-            </article>
+            <div id="botevo-end-card"></div>
+            <div class="eac-win-actions" id="botevo-end-actions">
+              <button type="button" id="botevo-again" class="eac-primary">Play again</button>
+              <button type="button" id="botevo-done" class="eac-secondary">Back to Arcade</button>
+            </div>
           </div>
           </div>
         </div>
