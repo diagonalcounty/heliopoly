@@ -1,0 +1,421 @@
+{
+  "account": "diagonalcounty",
+  "link": "https://apps.apple.com/app/id6801637953",
+  "notes": "Generated 2026-10-20. imageRoot: images resolve relative to the repo root (or the folder holding this file when copied off-repo).",
+  "items": [
+    {
+      "id": "q01",
+      "date": "2026-10-20",
+      "slot": "midday",
+      "kind": "gameplay",
+      "text": "Hello from Diagonal County! We make Heliopoly, a space board game for iPhone and iPad. Roll two dice, fly your rocket around the solar system, buy planets and moons, and try not to run out of fuel. 🚀\nhttps://apps.apple.com/app/id6801637953",
+      "images": [
+        "ios/Heliopoly/AppStore/screenshots/2752x2064/08-board.jpg"
+      ],
+      "posted": false
+    },
+    {
+      "id": "q02",
+      "date": "2026-10-20",
+      "slot": "evening",
+      "kind": "retro-joke",
+      "text": "You know you're a retro gamer when you still want to blow on things that don't have cartridges.\n\nHeliopoly has no cartridge. Please stop blowing on your phone.",
+      "images": [],
+      "posted": false
+    },
+    {
+      "id": "q03",
+      "date": "2026-10-21",
+      "slot": "morning",
+      "kind": "tip",
+      "text": "Heliopoly tip: landing is free. Leaving costs fuel.\n\nA gravity well (the pull that holds you near a planet) is easy to drop into and costly to climb out of. Check your tank before you get comfy. ⛽",
+      "images": [
+        "ios/Heliopoly/AppStore/screenshots/2752x2064/02-out.jpg"
+      ],
+      "posted": false
+    },
+    {
+      "id": "q04",
+      "date": "2026-10-21",
+      "slot": "midday",
+      "kind": "clerk",
+      "text": "Clerk card: Rogue Tesla Roadster. 🚗\n\nA red car is loose in space. If someone owns a world out by Jupiter or Saturn, it can smash one deed (proof you own it) and any fuel stop on it. Stations can move, so it never hits those.",
+      "images": [
+        "public/handbook/cards/banners/clerk-tesla.jpg"
+      ],
+      "posted": false
+    },
+    {
+      "id": "q05",
+      "date": "2026-10-21",
+      "slot": "evening",
+      "kind": "question",
+      "text": "Board game night question: were you the banker, or the kid who kept losing track of the money?\n\n(Heliopoly keeps a ledger, the game's record book, so every buy and rent gets written down for you.)",
+      "images": [],
+      "posted": false
+    },
+    {
+      "id": "q06",
+      "date": "2026-10-22",
+      "slot": "morning",
+      "kind": "devlog",
+      "text": "Dev log: you used to always go first in Heliopoly. Fair? Nope.\n\nNow the seat order (who goes when) gets shuffled every time you Launch, so sometimes an AI pilot rolls before you do. Character-building. 🎲 #indiedev",
+      "images": [],
+      "posted": false
+    },
+    {
+      "id": "q07",
+      "date": "2026-10-22",
+      "slot": "midday",
+      "kind": "gameplay",
+      "text": "Gravity Duel, the lane fight: land on an empty lane where another rocket waits, and you each secretly pick Low or High. Then you both roll two dice. The loser skips a turn and gets pushed back one stop. 🎲\nhttps://apps.apple.com/app/id6801637953",
+      "images": [
+        "ios/Heliopoly/AppStore/screenshots/2752x2064/07-gravity-duel.jpg"
+      ],
+      "posted": false
+    },
+    {
+      "id": "q08",
+      "date": "2026-10-22",
+      "slot": "evening",
+      "kind": "tip",
+      "text": "In Heliopoly, parking (staying put on your turn) has a catch. Park 5 times in one game and every world you own rolls a 50% chance to go feral (wild again, back to the bank).\n\nThe cosmos does not reward naps. 😴",
+      "images": [],
+      "posted": false
+    },
+    {
+      "id": "q09",
+      "date": "2026-10-23",
+      "slot": "morning",
+      "kind": "clerk",
+      "text": "Clerk card: Error 47, not an object. 💾\n\nThe clerk's beige computer throws an error, and one rocket loses 2 fuel. If you grew up with a beige computer, you know exactly how he feels.",
+      "images": [
+        "public/handbook/cards/banners/clerk-error47.jpg"
+      ],
+      "posted": false
+    },
+    {
+      "id": "q10",
+      "date": "2026-10-23",
+      "slot": "midday",
+      "kind": "question",
+      "text": "Quick poll for the retro crowd: 8-bit, 16-bit, or \"I had a calculator with one game on it\"? 🕹️",
+      "images": [],
+      "posted": false
+    },
+    {
+      "id": "q11",
+      "date": "2026-10-23",
+      "slot": "evening",
+      "kind": "gameplay",
+      "text": "Pick your fuel before you Launch.\n\nMethane: steady tanks, no leaks.\nHydrogen: cheaper to take off, but landing on a planet or moon can burst the tanks. You lose half your fuel and a turn to fix it.\n\nCareful or bold?",
+      "images": [
+        "ios/Heliopoly/AppStore/screenshots/2752x2064/05-leak.jpg"
+      ],
+      "posted": false
+    },
+    {
+      "id": "q12",
+      "date": "2026-10-24",
+      "slot": "morning",
+      "kind": "retro-joke",
+      "text": "You know you're a retro gamer when \"saving your game\" meant copying a long password onto the back of a cereal box.\n\nIn Heliopoly, the ledger (the game's record book) writes down every buy and rent for you. 📒",
+      "images": [],
+      "posted": false
+    },
+    {
+      "id": "q13",
+      "date": "2026-10-24",
+      "slot": "midday",
+      "kind": "tip",
+      "text": "Heliopoly tip: own every world in a system (a planet's group) and rent doubles there.\n\nThe Mars system is its ring station plus Mars, Phobos and Deimos. Collect the set, then wait for visitors. 💰\nhttps://apps.apple.com/app/id6801637953",
+      "images": [],
+      "posted": false
+    },
+    {
+      "id": "q14",
+      "date": "2026-10-24",
+      "slot": "evening",
+      "kind": "clerk",
+      "text": "Clerk card: Monolith on Earth's Moon.\n\nA tall black slab shows up, and every rocket gets ⍼300 (300 Angzarr, the game's money) the next time it lands on or passes Earth. Nobody knows who left it there. 🌕",
+      "images": [
+        "public/handbook/cards/banners/clerk-monolith.jpg"
+      ],
+      "posted": false
+    },
+    {
+      "id": "q15",
+      "date": "2026-10-25",
+      "slot": "morning",
+      "kind": "devlog",
+      "text": "Dev log: the starry sky behind the Heliopoly board used to be redrawn every single frame. Now we paint the stars once and reuse them, so your device does less work.\n\nThe stars did not notice. ✨ #gamedev",
+      "images": [],
+      "posted": false
+    },
+    {
+      "id": "q16",
+      "date": "2026-10-25",
+      "slot": "midday",
+      "kind": "question",
+      "text": "What's the best board game piece of all time?\n\nWe'll go first: a tiny rocket. Obviously. 🚀",
+      "images": [],
+      "posted": false
+    },
+    {
+      "id": "q17",
+      "date": "2026-10-25",
+      "slot": "evening",
+      "kind": "gameplay",
+      "text": "Got a minute? Heliopoly's Arcade door has quick toys: Bot Evolution, Backup Fuel and Hull Panel. They never move the rocket in your big game, so a quick play is safe. 🕹️\nhttps://apps.apple.com/app/id6801637953",
+      "images": [
+        "ios/Heliopoly/AppStore/screenshots/1.5.0/1320x2868/02-arcade.png"
+      ],
+      "posted": false
+    },
+    {
+      "id": "q18",
+      "date": "2026-10-26",
+      "slot": "morning",
+      "kind": "retro-joke",
+      "text": "You know you're a retro gamer when the game manual was your favorite thing in the box.\n\nHeliopoly has a whole Ops Manual inside: the rules, a word list, and a guide to every rival rocket. 📖",
+      "images": [
+        "ios/Heliopoly/AppStore/screenshots/1.5.0/1320x2868/05-duel-manual.png"
+      ],
+      "posted": false
+    },
+    {
+      "id": "q19",
+      "date": "2026-10-26",
+      "slot": "midday",
+      "kind": "clerk",
+      "text": "Clerk card: Kostka. 🐶\n\nAfter rockets pass Earth 5 times, each Earth landing has a chance to adopt a dog named Kostka, worth +200 Angzarr (the game's money). It can happen once a game. Best card? The clerk won't say.",
+      "images": [
+        "public/handbook/cards/banners/clerk-kostka.jpg"
+      ],
+      "posted": false
+    },
+    {
+      "id": "q20",
+      "date": "2026-10-26",
+      "slot": "evening",
+      "kind": "question",
+      "text": "Question for fans of old-school sci-fi movies and shows: what's the best spaceship ever put on a screen?\n\nWrong answers only. 👽",
+      "images": [],
+      "posted": false
+    },
+    {
+      "id": "q21",
+      "date": "2026-10-27",
+      "slot": "morning",
+      "kind": "tip",
+      "text": "Heliopoly has three ring stations (trade hubs, a bit like tollbooths in space).\n\nOwn 2 and their rent is ×2. Own all 3 and it's ×4. They sit right on the path every rocket flies.",
+      "images": [
+        "ios/Heliopoly/AppStore/screenshots/2752x2064/08-board.jpg"
+      ],
+      "posted": false
+    },
+    {
+      "id": "q22",
+      "date": "2026-10-27",
+      "slot": "midday",
+      "kind": "devlog",
+      "text": "Dev log: the pop-up clerk cards used to crop off the clerk's face. Rude.\n\nWe cut a new wide picture for each card, so his head, his stamp, the red car and the leaky tank all stay in frame. 🖼️",
+      "images": [
+        "public/handbook/cards/banners/clerk-canonical.jpg"
+      ],
+      "posted": false
+    },
+    {
+      "id": "q23",
+      "date": "2026-10-27",
+      "slot": "evening",
+      "kind": "retro-joke",
+      "text": "Heliopoly is a board game with no board to set up and no tiny pieces to lose under the couch.\n\nThe vacuum cleaner is disappointed. 🧹\nhttps://apps.apple.com/app/id6801637953",
+      "images": [],
+      "posted": false
+    },
+    {
+      "id": "q24",
+      "date": "2026-10-28",
+      "slot": "morning",
+      "kind": "gameplay",
+      "text": "How to win Heliopoly: be the last rocket flying.\n\nNo timer. No money target. The others go broke (out of money) or get stranded (stuck with no way to fly). The cosmos does not care about your schedule. 🌌",
+      "images": [],
+      "posted": false
+    },
+    {
+      "id": "q25",
+      "date": "2026-10-28",
+      "slot": "midday",
+      "kind": "clerk",
+      "text": "Clerk card: the Tuesday boy paradox. 🧮\n\nOne rocket proves the answer is 13/27 (a famous tricky math puzzle), and its park count goes down by one. Yes, this game rewards you for doing math.",
+      "images": [
+        "public/handbook/cards/banners/clerk-tuesday.jpg"
+      ],
+      "posted": false
+    },
+    {
+      "id": "q26",
+      "date": "2026-10-28",
+      "slot": "evening",
+      "kind": "question",
+      "text": "Arcade cabinet at the pizza place, console under the TV, or a handheld whose batteries died at the worst moment?\n\nWhere did you play the most as a kid? 🕹️",
+      "images": [],
+      "posted": false
+    },
+    {
+      "id": "q27",
+      "date": "2026-10-29",
+      "slot": "morning",
+      "kind": "tip",
+      "text": "Fuel stops! You start Heliopoly with 3 fuel depots (fuel stops) in hand. Put one on a world you own: it raises the rent there, and you refuel there for free.\n\nYour first one each loop costs nothing. ⛽",
+      "images": [],
+      "posted": false
+    },
+    {
+      "id": "q28",
+      "date": "2026-10-29",
+      "slot": "midday",
+      "kind": "gameplay",
+      "text": "Journey is Heliopoly's full game. Name your rocket, pick methane or hydrogen, and Launch against AI pilots from Mercury out to the Saturn moons. 2–6 rockets in all, and only one is flying at the end. 🚀\nhttps://apps.apple.com/app/id6801637953",
+      "images": [
+        "ios/Heliopoly/AppStore/screenshots/1.5.0/1320x2868/01-doors.png"
+      ],
+      "posted": false
+    },
+    {
+      "id": "q29",
+      "date": "2026-10-29",
+      "slot": "evening",
+      "kind": "retro-joke",
+      "text": "You know you're a retro gamer when you said \"one more turn\" at 9 p.m. and somehow it's now morning. 🌅",
+      "images": [],
+      "posted": false
+    },
+    {
+      "id": "q30",
+      "date": "2026-10-30",
+      "slot": "morning",
+      "kind": "devlog",
+      "text": "Dev log: when a Heliopoly game ends, the winner card now shows a neat table of the worlds you still hold: Claim, Mark (what the bank would pay), Income (rent you collected) and Book (both added up). It used to be one long sentence.",
+      "images": [],
+      "posted": false
+    },
+    {
+      "id": "q31",
+      "date": "2026-10-30",
+      "slot": "midday",
+      "kind": "clerk",
+      "text": "Clerk card: you struck it rich! ⛏️\n\nFly on methane, own Titan or Enceladus, put a fuel stop there, and a one-time strike can pay you half your starting money. The clerk brought a pickaxe. He does not know how to use it.",
+      "images": [
+        "public/handbook/cards/banners/clerk-gusher.jpg"
+      ],
+      "posted": false
+    },
+    {
+      "id": "q32",
+      "date": "2026-10-30",
+      "slot": "evening",
+      "kind": "question",
+      "text": "Be honest: do you read the rulebook first, or start playing and learn by losing? 📖",
+      "images": [],
+      "posted": false
+    },
+    {
+      "id": "q33",
+      "date": "2026-10-31",
+      "slot": "morning",
+      "kind": "retro-joke",
+      "text": "Happy Halloween from the Mainline (the path the rockets fly). 🎃\n\nThe scariest thing in Heliopoly isn't a monster. It's a nearly empty fuel tank on somebody else's moon.",
+      "images": [],
+      "posted": false
+    },
+    {
+      "id": "q34",
+      "date": "2026-10-31",
+      "slot": "midday",
+      "kind": "clerk",
+      "text": "Clerk card: Hot microphone. 🎤\n\nOne rocket starts singing into a live mic it thought was off. It pays 50 Angzarr (the game's money) and misses its next turn. The clerk is staying very, very quiet.",
+      "images": [
+        "public/handbook/cards/banners/clerk-hotmic.jpg"
+      ],
+      "posted": false
+    },
+    {
+      "id": "q35",
+      "date": "2026-10-31",
+      "slot": "evening",
+      "kind": "retro-joke",
+      "text": "Retro confession: we can still hum the dial-up modem sound from memory.\n\nHeliopoly needs no Wi-Fi at all, so your rockets will never have to hear it. 📞",
+      "images": [],
+      "posted": false
+    },
+    {
+      "id": "q36",
+      "date": "2026-11-01",
+      "slot": "morning",
+      "kind": "devlog",
+      "text": "Dev log: AI pilots used to let you win an auction by bidding one Angzarr over the minimum bid. On Normal and harder, they now push back.\n\nBargain hunting is still allowed. Easy bargains, less so. 🔨",
+      "images": [],
+      "posted": false
+    },
+    {
+      "id": "q37",
+      "date": "2026-11-01",
+      "slot": "midday",
+      "kind": "tip",
+      "text": "Heliopoly tip: Earth pays. Land on Earth for ⍼400, or fly past it for ⍼200 (⍼ is Angzarr, the game's money). Every full loop home adds a little more.\n\nEarth itself is never for sale. 🌍",
+      "images": [],
+      "posted": false
+    },
+    {
+      "id": "q38",
+      "date": "2026-11-01",
+      "slot": "evening",
+      "kind": "question",
+      "text": "If you could own one moon, which would you pick? Heliopoly has Io, Europa, Titan, Enceladus, Phobos and more.\n\nWe'd take Titan. It has methane, and methane is rocket fuel. 🌙\nhttps://apps.apple.com/app/id6801637953",
+      "images": [],
+      "posted": false
+    },
+    {
+      "id": "q39",
+      "date": "2026-11-02",
+      "slot": "morning",
+      "kind": "retro-joke",
+      "text": "You know you're a retro gamer when you trust dice more than any computer.\n\nGood news: every Heliopoly turn starts with two six-sided dice. 🎲",
+      "images": [],
+      "posted": false
+    },
+    {
+      "id": "q40",
+      "date": "2026-11-02",
+      "slot": "midday",
+      "kind": "clerk",
+      "text": "Clerk card: OUT. When a rocket goes broke or gets stranded (stuck with no way to fly), the clerk stamps it out of the game. Its worlds go back to the bank, and its fuel stops are gone.\n\nHe stamps very hard.",
+      "images": [
+        "public/handbook/cards/banners/clerk-out.jpg"
+      ],
+      "posted": false
+    },
+    {
+      "id": "q41",
+      "date": "2026-11-02",
+      "slot": "evening",
+      "kind": "gameplay",
+      "text": "Heliopoly's Lab door unlocks after you finish one Arcade toy. Inside are experiments like Gravity Duel practice and Deseret Letters (an old alphabet).\n\nNerdy? Yes. Proudly. 🧪",
+      "images": [
+        "ios/Heliopoly/AppStore/screenshots/1.5.0/1320x2868/01-doors.png"
+      ],
+      "posted": false
+    },
+    {
+      "id": "q42",
+      "date": "2026-11-03",
+      "slot": "morning",
+      "kind": "question",
+      "text": "Heliopoly's AI pilots come in Easy through Expert.\n\nDo you start on Easy and learn the ropes, or jump straight to Expert and lose with style? 🤖\nhttps://apps.apple.com/app/id6801637953",
+      "images": [],
+      "posted": false
+    }
+  ]
+}
