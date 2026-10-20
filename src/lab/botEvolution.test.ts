@@ -828,7 +828,7 @@ assert(!socketsMeet("l-ne", "i", DIR_S), "L-NE has no south pin");
   run.robots.complex += 1;
   assert(run.robots.simple === 2, "two simple from two 3-groups");
   assert(
-    robotTallyLine(run.robots) === "You built 2 simple, 1 medium, and 1 complex robot.",
+    robotTallyLine(run.robots) === "You built 2 simple robots, 1 medium robot, and 1 complex robot.",
     "mixed tally line",
   );
 }
@@ -836,17 +836,22 @@ assert(!socketsMeet("l-ne", "i", DIR_S), "L-NE has no south pin");
 {
   assert(
     robotTallyLine({ simple: 12, medium: 5, complex: 2, advanced: 1 }) ===
-      "You built 12 simple, 5 medium, 2 complex, and 1 advanced robot.",
+      "You built 12 simple robots, 5 medium robots, 2 complex robots, and 1 advanced robot.",
     "full tally line",
   );
   assert(
     robotTallyLine({ simple: 3, medium: 0, complex: 0, advanced: 0 }) ===
-      "You built 3 simple robot.",
+      "You built 3 simple robots.",
     "single class line",
   );
   assert(
+    robotTallyLine({ simple: 1, medium: 0, complex: 0, advanced: 0 }) ===
+      "You built 1 simple robot.",
+    "singular when count is 1",
+  );
+  assert(
     robotTallyLine({ simple: 3, medium: 0, complex: 0, advanced: 2 }) ===
-      "You built 3 simple and 2 advanced robot.",
+      "You built 3 simple robots and 2 advanced robots.",
     "two class line omits zeros",
   );
   assert(
