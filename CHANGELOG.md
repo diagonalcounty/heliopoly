@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [1.5.2] — 2026-10-20
+
+Web test build for Jacob's check on **https://preview.heliopoly.live/** (it forwards to beta). Not on the App Store; 1.5.1 is still in review.
+
+### Play / UX
+- **Robot count (#288):** when a Bot Evolution run ends, the clerk tells you how many robots you built, sorted by size: simple, medium, complex, and advanced.
+- **Clerk results card (#296):** Bot Evolution's end screen uses one shared card with the clerk's picture, your level, and your score line. Other Arcade games can use the same card later.
+
+### Meta
+- Version **1.5.2** (package, V1 badge, Ops Manual welcome, README)
+
 ## [1.5.1] — 2026-10-15
 
 Bug-fix App Store patch. **https://beta.heliopoly.live/** tracks GitHub `main`. Do not stage heliopoly.live from this release.

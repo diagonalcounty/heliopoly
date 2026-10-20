@@ -52,8 +52,8 @@ assert(
 {
   const label = modeSelectLabel("v1");
   assert(
-    label.includes("V1 Boardgame") && label.includes("1.5.1"),
-    `modeSelectLabel(v1) includes V1 Boardgame and 1.5.1 (got ${label})`,
+    label.includes("V1 Boardgame") && label.includes("1.5.2"),
+    `modeSelectLabel(v1) includes V1 Boardgame and 1.5.2 (got ${label})`,
   );
   assert(
     modeSelectLabel("v1", "1.2.0").includes("1.2.0"),
@@ -74,8 +74,8 @@ assert(
   );
 }
 
-assert(V1_BUILD === "1.5.1", "V1_BUILD matches package.json 1.5.1");
-assert(buildForMode("v1") === "1.5.1", "buildForMode v1 is 1.5.1");
+assert(V1_BUILD === "1.5.2", "V1_BUILD matches package.json 1.5.2");
+assert(buildForMode("v1") === "1.5.2", "buildForMode v1 is 1.5.2");
 assert(buildForMode("v2") === "2.x.x", "buildForMode v2 is 2.x.x");
 assert(buildForMode("v3") === "3.x.x", "buildForMode v3 is 3.x.x");
 assert(buildForMode("v4") === "4.x.x", "buildForMode v4 is 4.x.x");
