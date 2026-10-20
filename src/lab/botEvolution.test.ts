@@ -35,6 +35,8 @@ import {
   queuePixelStrength,
   recycleBottomRow,
   runLevel,
+  robotClassForGroup,
+  robotTallyLine,
   runLevelLine,
   SHELL_FILL,
   connectorKind,
@@ -782,6 +784,91 @@ assert(!socketsMeet("l-ne", "i", DIR_S), "L-NE has no south pin");
   assert(readBotEvoSave(storage) === null, "start over clears the save");
   const restarted = startBotEvo(7);
   assert(restarted.level === 1 && restarted.n === 3 && restarted.segments === 0 && restarted.boxes === 0, "start over begins at the first level");
+}
+
+// Robot tally (#288)
+{
+  const fresh = startBotEvo(11);
+  assert(
+    fresh.robots.simple === 0 && fresh.robots.medium === 0 &&
+      fresh.robots.complex === 0 && fresh.robots.advanced === 0,
+    "new run has no robots",
+  );
+  assert(robotClassForGroup(3) === "simple", "3 is simple");
+  assert(robotClassForGroup(4) === "medium", "4 is medium");
+  assert(robotClassForGroup(5) === "complex", "5 is complex");
+  assert(robotClassForGroup(6) === "advanced", "6 is advanced");
+  assert(robotClassForGroup(9) === "advanced", "9 is advanced");
+
+  // A group of exactly N at each stage.
+  const expect = { 3: "simple", 4: "medium", 5: "complex", 6: "advanced" } as const;
+  for (const n of [3, 4, 5, 6] as const) {
+    let s = startBotEvoAt(n, 70 + n);
+    for (let i = 0; i < n; i++) s = dropPiece(s, 1, "i");
+    const total = s.robots.simple + s.robots.medium + s.robots.complex + s.robots.advanced;
+    assert(total === 1, `one robot from a ${n}-group`);
+    assert(s.robots[expect[n]] === 1, `${n}-group is ${expect[n]}`);
+  }
+
+  // Class follows group size, not the stage: a 5-group made during Connect 3.
+  let big = startBotEvo(80);
+  for (const col of [0, 2]) {
+    big = dropPiece(big, col, "plus");
+    big = dropPiece(big, col, "plus");
+  }
+  assert(big.boxes === 0, "two 2-stacks do not morph yet");
+  big = dropPiece(big, 1, "plus");
+  assert(big.n === 3 && big.boxes === 1, "joined 5-group morphs once at Connect 3");
+  assert(big.robots.complex === 1 && big.robots.simple === 0, "5-group at Connect 3 is complex");
+
+  // Mixed run: 2 simple + 1 medium + 1 complex carried through a saved state.
+  let run = startBotEvo(81);
+  for (let k = 0; k < 2; k++) for (let i = 0; i < 3; i++) run = dropPiece(run, 1, "i");
+  run.robots.medium += 1;
+  run.robots.complex += 1;
+  assert(run.robots.simple === 2, "two simple from two 3-groups");
+  assert(
+    robotTallyLine(run.robots) === "You built 2 simple, 1 medium, and 1 complex robot.",
+    "mixed tally line",
+  );
+}
+
+{
+  assert(
+    robotTallyLine({ simple: 12, medium: 5, complex: 2, advanced: 1 }) ===
+      "You built 12 simple, 5 medium, 2 complex, and 1 advanced robot.",
+    "full tally line",
+  );
+  assert(
+    robotTallyLine({ simple: 3, medium: 0, complex: 0, advanced: 0 }) ===
+      "You built 3 simple robot.",
+    "single class line",
+  );
+  assert(
+    robotTallyLine({ simple: 3, medium: 0, complex: 0, advanced: 2 }) ===
+      "You built 3 simple and 2 advanced robot.",
+    "two class line omits zeros",
+  );
+  assert(
+    robotTallyLine({ simple: 0, medium: 0, complex: 0, advanced: 0 }) ===
+      "You didn't build any robots.",
+    "zero robots reads naturally",
+  );
+  let s = startBotEvo(82);
+  for (let i = 0; i < 3; i++) s = dropPiece(s, 1, "i");
+  const data = new Map<string, string>();
+  const storage: BotEvoStorage = {
+    getItem: (k) => data.get(k) ?? null,
+    setItem: (k, v) => void data.set(k, v),
+    removeItem: (k) => void data.delete(k),
+  };
+  writeBotEvoSave(storage, { v: 1, state: s, paused: false, awaitingStageAck: false, ackedN: 3 });
+  assert(readBotEvoSave(storage)!.state.robots.simple === 1, "tally survives a save");
+  const old = JSON.parse(data.get(BOT_EVO_SAVE_KEY)!);
+  delete old.state.robots;
+  data.set(BOT_EVO_SAVE_KEY, JSON.stringify(old));
+  assert(readBotEvoSave(storage)!.state.robots.simple === 0, "pre-#288 save loads with zero tally");
+  assert(startBotEvo(83).robots.simple === 0, "play again resets tally");
 }
 
 if (failed) {
