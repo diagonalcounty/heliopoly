@@ -291,18 +291,18 @@ export function runLevelLine(
 
 /**
  * End-of-run robot tally (#288), e.g.
- * "You built 12 simple, 5 medium, 2 complex, and 1 advanced robot."
+ * "You built 12 simple robots, 5 medium robots, 2 complex robots, and 1 advanced robot."
  * Classes with a zero count are left out.
  */
 export function robotTallyLine(tally: RobotTally): string {
   const parts = ROBOT_CLASSES.filter((c) => tally[c] > 0).map(
-    (c) => `${tally[c]} ${c}`,
+    (c) => `${tally[c]} ${c} ${tally[c] === 1 ? "robot" : "robots"}`,
   );
   if (!parts.length) return "You didn't build any robots.";
-  if (parts.length === 1) return `You built ${parts[0]} robot.`;
-  if (parts.length === 2) return `You built ${parts[0]} and ${parts[1]} robot.`;
+  if (parts.length === 1) return `You built ${parts[0]}.`;
+  if (parts.length === 2) return `You built ${parts[0]} and ${parts[1]}.`;
   const last = parts.pop();
-  return `You built ${parts.join(", ")}, and ${last} robot.`;
+  return `You built ${parts.join(", ")}, and ${last}.`;
 }
 
 /**
