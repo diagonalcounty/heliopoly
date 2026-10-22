@@ -20,3 +20,4 @@ export * from "./links";
 export * from "./goingUnder";
 export * from "./claimLedger";
 export * from "./gameplayMode";
+export * from "./duel";
