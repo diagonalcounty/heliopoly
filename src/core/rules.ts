@@ -64,6 +64,7 @@ import type {
   GameState,
   LastRoll,
   LegalActions,
+  MoveDirection,
   PendingAuction,
   Player,
   PlayerAction,
@@ -422,6 +423,7 @@ function advanceTurn(state: GameState): void {
   state.phase = "await_action";
   state.lastRoll = null;
   state.breakSpaces = 0;
+  state.doublesFlip = false;
   state.pendingDuel = null;
 
   if (forceEndByRounds(state)) return;
@@ -556,6 +558,8 @@ export function getLegalActions(state: GameState): LegalActions {
     moveDirection: "forward",
     directionLocked: true,
     canBidirectional: false,
+    doublesFlip: false,
+    doublesFlipOn: false,
   };
   // Charter alert pick in progress — no normal seat actions (#107)
   if (state.pendingCharterChoice) return empty;
@@ -647,6 +651,8 @@ export function getLegalActions(state: GameState): LegalActions {
       moveDirection: p.moveDirection,
       directionLocked: p.directionLocked,
       canBidirectional: p.canBidirectional,
+      doublesFlip: state.lastRoll.doubles === true,
+      doublesFlipOn: state.lastRoll.doubles === true && !!state.doublesFlip,
     };
   }
 
@@ -687,6 +693,8 @@ export function getLegalActions(state: GameState): LegalActions {
       moveDirection: p.moveDirection,
       directionLocked: p.directionLocked,
       canBidirectional: p.canBidirectional,
+      doublesFlip: false,
+      doublesFlipOn: false,
     };
   }
 
@@ -717,6 +725,8 @@ export function getLegalActions(state: GameState): LegalActions {
     moveDirection: p.moveDirection,
     directionLocked: p.directionLocked,
     canBidirectional: p.canBidirectional,
+    doublesFlip: false,
+    doublesFlipOn: false,
   };
 }
 
@@ -1026,7 +1036,25 @@ function applyKnockbackLanding(state: GameState, p: Player): void {
   }
 }
 
-function movePlayer(state: GameState, steps: number): void {
+/**
+ * #43: direction for this move. Doubles may flip it for one move only;
+ * `moveDirection` / `directionLocked` are never changed by the flip.
+ */
+export function effectiveMoveDirection(
+  state: GameState,
+  player: Player,
+): MoveDirection {
+  if (state.doublesFlip && state.phase === "await_move") {
+    return player.moveDirection === "forward" ? "backward" : "forward";
+  }
+  return player.moveDirection;
+}
+
+function movePlayer(
+  state: GameState,
+  steps: number,
+  dir: MoveDirection,
+): void {
   const p = currentPlayer(state);
   let pos = p.position;
   const startNode = getNode(state.board, pos);
@@ -1071,7 +1099,6 @@ function movePlayer(state: GameState, steps: number): void {
     p.directionLocked = true;
   }
 
-  const dir = p.moveDirection;
   const path = walkMovePath(state.board, pos, steps, dir);
   for (const frame of path.frames) {
     if (frame.passThrough) {
@@ -1722,6 +1749,7 @@ function doWarp(state: GameState, destination: string): void {
   p.movedThisTurn = true;
   state.lastRoll = null;
   state.breakSpaces = 0;
+  state.doublesFlip = false;
 
   pushLog(
     state,
@@ -1769,7 +1797,13 @@ function doMove(state: GameState): void {
     );
   }
   const steps = total - br;
+  const dir = effectiveMoveDirection(state, p);
+  const flipped = !!state.doublesFlip;
   state.breakSpaces = 0;
+  state.doublesFlip = false;
+  if (flipped) {
+    pushLog(state, `${rocketTitle(p)} rolled doubles and turns around for this move.`);
+  }
   if (steps <= 0) {
     pushLog(state, `${rocketTitle(p)} breaks full roll — stays put.`);
     delta(state, `stay (full break)`);
@@ -1778,7 +1812,7 @@ function doMove(state: GameState): void {
     return;
   }
   const from = p.position;
-  movePlayer(state, steps);
+  movePlayer(state, steps, dir);
   if (p.position !== from) {
     p.movedThisTurn = true;
   }
@@ -1944,6 +1978,7 @@ export function applyCharterOlbers(
   chooser.movedThisTurn = true;
   state.lastRoll = null;
   state.breakSpaces = 0;
+  state.doublesFlip = false;
   pushLog(
     state,
     `${rocketTitle(chooser)} warps ${fromName} → ${dest.name} (Olbers award · +${formatMoney(OLBERS_AWARD_CASH)}).`,
@@ -2070,6 +2105,7 @@ export function applyAction(state: GameState, action: PlayerAction): GameState {
       const roll = roll2d6(next, p);
       next.lastRoll = roll;
       next.breakSpaces = 0;
+      next.doublesFlip = false;
       p.rolledThisTurn = true;
       pushLog(
         next,
@@ -2090,6 +2126,11 @@ export function applyAction(state: GameState, action: PlayerAction): GameState {
       break;
     case "set_break":
       doSetBreak(next, action.spaces);
+      break;
+    case "set_doubles_flip":
+      if (getLegalActions(next).doublesFlip) {
+        next.doublesFlip = !!action.flip;
+      }
       break;
     case "move":
       doMove(next);

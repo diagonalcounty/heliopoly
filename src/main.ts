@@ -40,6 +40,7 @@ import {
   resolveCharterChoiceIfAi,
   depotPlaceCashCost,
   effectiveBreakFuelCost,
+  effectiveMoveDirection,
   getLegalActions,
   humanAuctionNeedsInput,
   meanDiceTotal,
@@ -693,6 +694,7 @@ const telemetryEl = document.getElementById("telemetry")!;
 const breakRow = document.getElementById("break-row")!;
 const breakCountEl = document.getElementById("break-count")!;
 const breakCostEl = document.getElementById("break-cost")!;
+const btnDoublesFlip = document.getElementById("btn-doubles-flip") as HTMLButtonElement;
 const btnBreakMinus = document.getElementById(
   "btn-break-minus",
 ) as HTMLButtonElement;
@@ -1581,7 +1583,7 @@ async function applyActionAnimated(
         before.board,
         from,
         steps,
-        actor.moveDirection,
+        effectiveMoveDirection(before, actor),
       );
       await animatePath(actor.id, path.frames, actor.agent === "ai");
     }
@@ -4362,6 +4364,13 @@ btnBreakPlus.addEventListener("click", () => {
   });
 });
 
+btnDoublesFlip.addEventListener("click", () => {
+  if (!state) return;
+  const legal = getLegalActions(state);
+  if (!legal.doublesFlip) return;
+  void act({ type: "set_doubles_flip", flip: !legal.doublesFlipOn });
+});
+
 function requestCourse(
   direction: "forward" | "backward",
 ): void {
@@ -4735,6 +4744,9 @@ function renderSide(): void {
     teleLines.push(
       `DICE ${roll.d1}+${roll.d2}=${roll.total} · break ${legal.breakSpaces} · move ${m}`,
     );
+    if (legal.doublesFlip) {
+      teleLines.push("Doubles! You may turn around for this move.");
+    }
     teleLines.push(
       p.freeLeavePending && legal.leaveBurnPreview === 0
         ? "leave burn FREE (comet dust)"
@@ -4829,11 +4841,16 @@ function renderSide(): void {
     } else {
       breakCostEl.title = "";
     }
+    btnDoublesFlip.hidden = !(legal.doublesFlip && can);
+    btnDoublesFlip.disabled = !can || animating;
+    btnDoublesFlip.classList.toggle("selected", legal.doublesFlipOn);
+    btnDoublesFlip.setAttribute("aria-pressed", String(legal.doublesFlipOn));
     btnBreakMinus.disabled = !can || legal.breakSpaces <= 0;
     btnBreakPlus.disabled =
       !can || legal.breakSpaces >= legal.maxBreak;
   } else {
     breakRow.classList.add("hidden-vis");
+    btnDoublesFlip.hidden = true;
     if (routeHoverStop !== null) routeHoverStop = null;
   }
 
@@ -5113,7 +5130,12 @@ function drawBoard(): void {
   if (state && humanRoutePreviewReady()) {
     const p = currentPlayer(state);
     const total = state.lastRoll!.total;
-    const path = walkMovePath(state.board, p.position, total, p.moveDirection);
+    const path = walkMovePath(
+      state.board,
+      p.position,
+      total,
+      effectiveMoveDirection(state, p),
+    );
     const startNode = board.nodes[p.position];
     const nodePoly: { x: number; y: number }[] = [];
     if (startNode) nodePoly.push({ x: px(startNode), y: py(startNode) });

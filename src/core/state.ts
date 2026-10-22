@@ -155,6 +155,7 @@ export function createGame(partial: Partial<GameConfig> = {}): GameState {
     gameTurn: 0,
     lastRoll: null,
     breakSpaces: 0,
+    doublesFlip: false,
     log: [
       `Heliopoly · Orbital Economics`,
       `Game start: ${count} pilots · bank ${formatMoney(config.startingCash)} each`,
