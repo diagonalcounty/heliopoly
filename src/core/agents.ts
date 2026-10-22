@@ -132,6 +132,12 @@ export function heuristicAI(
         return { type: "set_direction", direction: dir };
       }
     }
+    if (legal.doublesFlip) {
+      const wantFlip = chooseDoublesFlip(state, difficulty);
+      if (wantFlip !== legal.doublesFlipOn) {
+        return { type: "set_doubles_flip", flip: wantFlip };
+      }
+    }
     const br = chooseBreak(state, legal, difficulty);
     if (br !== state.breakSpaces) {
       return { type: "set_break", spaces: br };
@@ -318,6 +324,41 @@ function pathPassesEarth(
   const path = walkMovePath(state.board, fromId, steps, direction);
   if (path.endId === "earth") return false;
   return path.stops.some((id) => id === "earth");
+}
+
+/**
+ * #43: flip only when the turned-around landing beats staying the course by
+ * the same margins as `chooseMoveDirection`. Easy never flips.
+ */
+export function shouldAiDoublesFlip(
+  stayScore: number,
+  flipScore: number,
+  difficulty: AiDifficulty,
+): boolean {
+  if (difficulty === "easy") return false;
+  const need = difficulty === "expert" ? 3 : difficulty === "hard" ? 5 : 8;
+  return flipScore > stayScore + need;
+}
+
+/** Scores both ends with the full `total` (break is chosen after the flip). */
+function chooseDoublesFlip(state: GameState, difficulty: AiDifficulty): boolean {
+  const p = currentPlayer(state);
+  const total = state.lastRoll?.total ?? 0;
+  if (difficulty === "easy" || total <= 0) return false;
+  const flipDir = p.moveDirection === "forward" ? "backward" : "forward";
+  const scoreEnd = (dir: "forward" | "backward") =>
+    scoreLanding(
+      state,
+      p.id,
+      p.cash,
+      walkMovePath(state.board, p.position, total, dir).endId,
+      difficulty,
+    );
+  return shouldAiDoublesFlip(
+    scoreEnd(p.moveDirection),
+    scoreEnd(flipDir),
+    difficulty,
+  );
 }
 
 function chooseMoveDirection(

@@ -315,6 +315,7 @@ const GAMEPLAY_TOPICS: HandbookTopic[] = [
 <ol>
   <li><strong>Roll</strong> — two dice (2d6) set how far you can go. You have not moved yet.</li>
   <li><strong>Stop short</strong> — optional: cut spaces (−1 space costs 0.5 fuel, −2 costs 1 fuel, and so on). The + and − next to Stop short still work if you need them.</li>
+  <li><strong>Doubles</strong> (both dice show the same number): you may turn around for this one move. On your next turn you face your usual way again.</li>
   <li><strong>Path preview</strong> — after you roll, a thin line in your rocket color shows how far you can go. Tap a stop on that line to land there (that sets Stop short and moves you). Hover a path piece to see the Stop short fuel cost. Hovering a world to inspect it is separate.</li>
   <li><strong>Move</strong> — you travel (dice minus Stop short). The Roll button becomes your move, or a path tap lands you right away.</li>
   <li>After landing: <strong>Buy</strong>, open that world's page (<strong>Books</strong>), <strong>Add fuel stop</strong>, or <strong>End turn</strong>. Selling at half price (any fuel stop on it is scrapped) and auctions live on that world's page — not as one tap from the side panel.</li>
