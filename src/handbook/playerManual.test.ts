@@ -159,6 +159,7 @@ assertMatch(handbook, /unowned deed \(proof you buy that world\)/, "Turn flow bu
 assertMatch(handbook, /gravity well \(a strong pull, like a planet or moon\)/, "Turn flow gravity well");
 assertMatch(handbook, /decade bonus \(a big bonus each ten loops\)/, "Turn flow decade bonus");
 assertMatch(handbook, /warp charge \(a saved jump\)/, "Turn flow warp");
+assertMatch(handbook, /Doubles<\/strong> \(both dice show the same number\): you may turn around for this one move/, "Turn flow doubles flip");
 assertNo(handbook, /shave spaces/, "Turn flow drops Break shave");
 assertNo(handbook, /one-click dump/, "Turn flow drops one-click dump");
 assertMatch(handbook, /not a second set of pictures/, "Legend same paint");

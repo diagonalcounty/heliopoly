@@ -316,6 +316,8 @@ export interface GameState {
   lastRoll: LastRoll | null;
   /** Spaces of break (slowdown) after roll, before move. */
   breakSpaces: number;
+  /** #43: doubles let the pilot turn around for this one move (turn-scoped). */
+  doublesFlip: boolean;
   log: string[];
   /** Structured +/- lines for the pilot whose turn just ended / is active. */
   turnDeltas: string[];
@@ -393,6 +395,7 @@ export type PlayerAction =
   | { type: "refuel"; amount: number }
   | { type: "roll" }
   | { type: "set_break"; spaces: number }
+  | { type: "set_doubles_flip"; flip: boolean }
   | { type: "move" }
   | { type: "buy" }
   | { type: "sell"; nodeId: string }
@@ -453,4 +456,8 @@ export interface LegalActions {
   moveDirection: MoveDirection;
   directionLocked: boolean;
   canBidirectional: boolean;
+  /** #43: doubles rolled in await_move, so the pilot may turn around this move. */
+  doublesFlip: boolean;
+  /** #43: current value of the one-move flip. */
+  doublesFlipOn: boolean;
 }
