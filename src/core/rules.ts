@@ -15,6 +15,13 @@ import {
   tryConsumeLandingRight,
 } from "./claimLedger";
 import { formatMoney } from "./currency";
+import {
+  aiDuelStance,
+  duelWinner,
+  newPendingDuel,
+  pickDefender,
+  samePendingDuel,
+} from "./duel";
 import { gravityClassOf, leaveBurnCost } from "./fuel";
 import {
   GUSHER_BONUS,
@@ -54,12 +61,10 @@ import {
 } from "./turnClock";
 import type {
   AiDifficulty,
-  DuelStance,
   GameState,
   LastRoll,
   LegalActions,
   PendingAuction,
-  PendingDuel,
   Player,
   PlayerAction,
 } from "./types";
@@ -80,6 +85,7 @@ export function parkFeralChance(parkCount: number): number {
 }
 
 export { walkMovePath } from "./path";
+export { samePendingDuel } from "./duel";
 export type { MovePath, PathFrame } from "./path";
 
 /** Retain enough lines for marathon 4p charters (UI still shows a recent window). */
@@ -770,46 +776,13 @@ function applyLandingLeak(
   }
 }
 
-function othersOnNode(state: GameState, nodeId: string, exceptId: string): Player[] {
-  return state.players.filter(
-    (x) => !x.eliminated && x.position === nodeId && x.id !== exceptId,
-  );
-}
-
-function pickDefender(
-  state: GameState,
-  nodeId: string,
-  challengerId: string,
-): Player | null {
-  const others = othersOnNode(state, nodeId, challengerId);
-  if (others.length === 0) return null;
-  const mem = state.encounterMem[nodeId];
-  if (mem?.lastRollerId) {
-    const lr = others.find((o) => o.id === mem.lastRollerId);
-    if (lr) return lr;
-  }
-  if (mem?.championId) {
-    const ch = others.find((o) => o.id === mem.championId);
-    if (ch) return ch;
-  }
-  return others[0] ?? null;
-}
-
 function beginDuel(
   state: GameState,
   challenger: Player,
   defender: Player,
   nodeId: string,
 ): void {
-  state.pendingDuel = {
-    nodeId,
-    challengerId: challenger.id,
-    defenderId: defender.id,
-    challengerStance: null,
-    defenderStance: null,
-    challengerRoll: null,
-    defenderRoll: null,
-  };
+  state.pendingDuel = newPendingDuel(nodeId, challenger.id, defender.id);
   state.phase = "await_duel";
   // Keep turn on challenger for UI; AI defender resolved in apply/auto
   const idx = state.players.findIndex((p) => p.id === challenger.id);
@@ -872,36 +845,11 @@ function resolveDuelIfComplete(state: GameState): void {
     `Reveal: ${rocketTitle(c)} ${d.challengerStance.toUpperCase()} ${ct} · ${rocketTitle(def)} ${d.defenderStance.toUpperCase()} ${dt} · mean ${mean.toFixed(2)}`,
   );
 
-  let winner: Player | null = null;
-  let loser: Player | null = null;
-
-  if (d.challengerStance === "low" && d.defenderStance === "low") {
-    if (ct < dt) {
-      winner = c;
-      loser = def;
-    } else if (dt < ct) {
-      winner = def;
-      loser = c;
-    }
-  } else if (d.challengerStance === "high" && d.defenderStance === "high") {
-    if (ct > dt) {
-      winner = c;
-      loser = def;
-    } else if (dt > ct) {
-      winner = def;
-      loser = c;
-    }
-  } else {
-    const cDist = Math.abs(ct - mean);
-    const dDist = Math.abs(dt - mean);
-    if (cDist < dDist) {
-      winner = c;
-      loser = def;
-    } else if (dDist < cDist) {
-      winner = def;
-      loser = c;
-    }
-  }
+  const outcome = duelWinner(d.challengerStance, d.defenderStance, ct, dt, mean);
+  const winner: Player | null =
+    outcome === "challenger" ? c : outcome === "defender" ? def : null;
+  const loser: Player | null =
+    outcome === "challenger" ? def : outcome === "defender" ? c : null;
 
   const mem = state.encounterMem[d.nodeId] ?? {
     lastRollerId: null,
@@ -1843,16 +1791,11 @@ function autoDuelAi(state: GameState): void {
   const c = state.players.find((p) => p.id === d.challengerId)!;
   const def = state.players.find((p) => p.id === d.defenderId)!;
 
-  const pickStance = (pl: Player): DuelStance => {
-    // Slight fuel bias
-    return pl.fuel > 12 ? "high" : "low";
-  };
-
   if (c.agent === "ai" && d.challengerStance === null) {
-    d.challengerStance = pickStance(c);
+    d.challengerStance = aiDuelStance(c.fuel);
   }
   if (def.agent === "ai" && d.defenderStance === null) {
-    d.defenderStance = pickStance(def);
+    d.defenderStance = aiDuelStance(def.fuel);
   }
   if (
     d.challengerStance &&
@@ -2262,35 +2205,6 @@ export function applyAction(state: GameState, action: PlayerAction): GameState {
   }
 
   return next;
-}
-
-function sameLastRoll(a: LastRoll | null, b: LastRoll | null): boolean {
-  if (a === b) return true;
-  if (!a || !b) return false;
-  return (
-    a.d1 === b.d1 &&
-    a.d2 === b.d2 &&
-    a.total === b.total &&
-    a.doubles === b.doubles
-  );
-}
-
-/** Field-by-field PendingDuel equality (avoids JSON.stringify in the AI loop). */
-export function samePendingDuel(
-  a: PendingDuel | null,
-  b: PendingDuel | null,
-): boolean {
-  if (a === b) return true;
-  if (!a || !b) return false;
-  return (
-    a.nodeId === b.nodeId &&
-    a.challengerId === b.challengerId &&
-    a.defenderId === b.defenderId &&
-    a.challengerStance === b.challengerStance &&
-    a.defenderStance === b.defenderStance &&
-    sameLastRoll(a.challengerRoll, b.challengerRoll) &&
-    sameLastRoll(a.defenderRoll, b.defenderRoll)
-  );
 }
 
 /** Flush AI duel until needs human or done. */
