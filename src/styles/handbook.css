@@ -1,0 +1,831 @@
+body.handbook-open {
+  overflow: hidden;
+}
+
+/* Markdown docs in Ops Manual (README / CHANGELOG) */
+.md-doc {
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+.md-doc h1 {
+  font-size: 1.35rem;
+  margin: 0.4em 0 0.5em;
+}
+.md-doc h2 {
+  font-size: 1.15rem;
+  margin: 1em 0 0.4em;
+  color: var(--accent);
+}
+.md-doc h3 {
+  font-size: 1.02rem;
+  margin: 0.85em 0 0.35em;
+}
+.md-doc pre.md-pre {
+  overflow: auto;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #0a0e18;
+  border: 1px solid var(--border);
+  font-size: 0.78rem;
+}
+.md-doc hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1em 0;
+}
+
+/* —— Flight Handbook modal —— */
+.handbook {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+/* Ops Manual above Gravity Duel so rules can open mid-duel (#21) */
+#handbook-root.handbook {
+  z-index: 1060;
+}
+
+#duel-root.duel-overlay {
+  z-index: 1000;
+}
+
+/* Compact Ops Manual launch inside duel header */
+.duel-ops-manual {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 6px 12px 6px 6px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #1a2744;
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.duel-ops-manual:hover {
+  border-color: var(--accent);
+  color: var(--accent-2);
+}
+
+.duel-ops-manual .ops-manual-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  border-radius: 6px;
+  flex-shrink: 0;
+  background: #070b14;
+}
+
+.handbook.hidden {
+  display: none;
+}
+
+.handbook-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(4, 8, 18, 0.72);
+  cursor: pointer;
+}
+
+.handbook-panel {
+  position: relative;
+  z-index: 1;
+  /* Fixed frame so centered modal does not shrink/jump when tabs change */
+  width: min(860px, calc(100vw - 32px));
+  height: min(88vh, 900px);
+  max-height: min(88vh, 900px);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, #172038 0%, #10182c 100%);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+  overflow: hidden;
+}
+
+.handbook-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(20, 32, 60, 0.9);
+  flex-shrink: 0;
+}
+
+.handbook-header-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.handbook-header-icon {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  border-radius: 10px;
+  flex-shrink: 0;
+  background: #070b14;
+  border: 1px solid rgba(201, 162, 39, 0.35);
+}
+
+.handbook-kicker {
+  margin: 0 0 2px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent-2);
+}
+
+.handbook-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: var(--text);
+}
+
+.handbook-close {
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 12px;
+  font-size: 1.25rem;
+  line-height: 1;
+  background: var(--btn);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+/* Civ-style: category tabs, then entries for that category only */
+.handbook-section-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(10, 16, 32, 0.85);
+  flex-shrink: 0;
+}
+
+.handbook-section-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 14px;
+  border-radius: 10px 10px 0 0;
+  border: 1px solid var(--border);
+  border-bottom: none;
+  background: #121a30;
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.handbook-tab-icon {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  border-radius: 4px;
+  flex-shrink: 0;
+  background: #070b14;
+}
+
+.handbook-section-tab:hover {
+  color: var(--text);
+  background: #1a2438;
+}
+
+.handbook-section-tab.active {
+  background: linear-gradient(180deg, #243656 0%, #1a2844 100%);
+  color: var(--accent-2);
+  border-color: #c9a227;
+  box-shadow: 0 0 0 1px rgba(201, 162, 39, 0.25);
+}
+
+.handbook-body {
+  display: grid;
+  grid-template-columns: minmax(160px, 220px) 1fr;
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+
+  @media (max-width: 640px) {
+    .handbook-body {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto minmax(0, 1fr);
+    }
+
+    .handbook-toc {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      overflow-y: hidden;
+      border-right: none !important;
+      border-bottom: 1px solid var(--border);
+      max-height: none;
+      height: auto;
+      padding: 8px !important;
+      gap: 6px;
+    }
+
+    .handbook-toc-item {
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .handbook-section-tab {
+      border-radius: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+  }
+
+/**
+ * Ops Manual phone sheet (#124).
+ * iPhone / narrow Safari only. iPad mini 744+ keeps the framed modal.
+ */
+@media (max-width: 640px) {
+  #handbook-root.handbook {
+    padding: 0;
+    align-items: stretch;
+    justify-content: stretch;
+  }
+
+  #handbook-root .handbook-panel {
+    width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+    border: none;
+  }
+
+  #handbook-root .handbook-header {
+    padding-top: max(10px, var(--sat));
+    padding-left: max(12px, var(--sal));
+    padding-right: max(12px, var(--sar));
+    gap: 8px;
+  }
+
+  #handbook-root .handbook-header-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  #handbook-root .handbook-kicker {
+    display: none;
+  }
+
+  #handbook-root .handbook-header h2 {
+    font-size: 1.05rem;
+  }
+
+  #handbook-root .handbook-close {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  #handbook-root .handbook-section-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding-left: max(10px, var(--sal));
+    padding-right: max(10px, var(--sar));
+  }
+
+  #handbook-root .handbook-section-tab {
+    flex-shrink: 0;
+    min-height: 44px;
+  }
+
+  #handbook-root .handbook-article {
+    padding: 12px 14px max(28px, var(--sab));
+  }
+
+  #handbook-root .handbook-article-icon {
+    width: 52px;
+    height: 52px;
+  }
+
+  #handbook-root .handbook-article table,
+  #handbook-root .handbook-article pre,
+  #handbook-root .md-doc pre.md-pre {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Live rocket dossier (standings name click) */
+#dossier-root.handbook {
+  z-index: 1050;
+}
+
+.dossier-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.dossier-body {
+  overflow-y: auto;
+  padding: 12px 16px max(20px, var(--sab));
+  min-height: 0;
+}
+
+.dossier-vitals {
+  margin-bottom: 12px;
+}
+
+.dossier-meta {
+  margin: 0 0 6px;
+  font-size: 0.88rem;
+  line-height: 1.35;
+  color: var(--muted, #9aa7c2);
+}
+
+.dossier-tools {
+  margin: 8px 0;
+}
+
+.dossier-bio {
+  min-height: 36px;
+  padding: 6px 12px;
+}
+
+.dossier-rights {
+  margin: 8px 0 0;
+  color: var(--accent);
+  font-size: 0.88rem;
+}
+
+.dossier-group {
+  margin: 0 0 16px;
+}
+
+.dossier-group h3 {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+}
+
+.dossier-count {
+  font-weight: 500;
+  color: var(--muted, #9aa7c2);
+  font-size: 0.82rem;
+}
+
+.dossier-group ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.dossier-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+}
+
+.dossier-row-focus {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  border-top-color: var(--accent);
+}
+
+.dossier-row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.dossier-row-mark {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.dossier-row-sub,
+.dossier-row-book {
+  font-size: 0.8rem;
+  color: var(--muted, #9aa7c2);
+}
+
+.dossier-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.dossier-row-actions button {
+  min-height: 36px;
+  padding: 6px 10px;
+  font-size: 0.82rem;
+}
+
+.dossier-auction-form {
+  align-items: center;
+}
+
+.dossier-auction-form input {
+  width: 6.5rem;
+}
+
+#auction-root {
+  z-index: 1070;
+}
+
+.auction-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.auction-bid-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+}
+
+.auction-bid-field input {
+  width: 7rem;
+}
+
+@media (max-width: 640px) {
+  #dossier-root.handbook {
+    padding: 0;
+    align-items: stretch;
+    justify-content: stretch;
+  }
+
+  #dossier-root .handbook-panel {
+    width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+    border: none;
+  }
+
+  #dossier-root .handbook-header {
+    padding-top: max(10px, var(--sat));
+  }
+}
+
+.handbook-toc {
+  border-right: 1px solid var(--border);
+  overflow-x: hidden;
+  overflow-y: auto;
+  min-height: 0;
+  height: 100%;
+  max-height: none;
+  padding: 8px;
+  background: rgba(8, 12, 24, 0.35);
+}
+
+.handbook-article-section {
+  margin: 0 0 4px;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #c9a227;
+}
+
+.handbook-toc-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  margin-bottom: 4px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 600;
+  min-height: 44px;
+}
+
+.handbook-toc-icon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  border-radius: 6px;
+  flex-shrink: 0;
+  background: #070b14;
+  border: 1px solid rgba(201, 162, 39, 0.25);
+}
+
+.handbook-toc-label {
+  min-width: 0;
+}
+
+.handbook-article-title-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.handbook-article-title-row h3 {
+  margin: 0;
+}
+
+.handbook-article-icon {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  border-radius: 12px;
+  flex-shrink: 0;
+  background: #070b14;
+  border: 1px solid rgba(201, 162, 39, 0.35);
+}
+
+canvas.handbook-toc-icon,
+canvas.handbook-article-icon {
+  image-rendering: auto;
+  display: block;
+}
+
+.handbook-toc-item:hover {
+  background: rgba(110, 200, 255, 0.08);
+  color: var(--text);
+}
+
+.handbook-toc-item.active {
+  background: rgba(110, 200, 255, 0.14);
+  border-color: var(--border);
+  color: var(--accent);
+}
+
+.handbook-article {
+  overflow-x: hidden;
+  overflow-y: auto;
+  min-height: 0;
+  height: 100%;
+  max-height: none;
+  padding: 16px 18px 24px;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.handbook-article h3 {
+  margin: 0 0 12px;
+  font-size: 1.15rem;
+  color: var(--accent);
+}
+
+.handbook-article h4 {
+  margin: 1rem 0 0.5rem;
+  font-size: 0.95rem;
+  color: var(--accent-2);
+}
+
+.handbook-article p {
+  margin: 0 0 0.85rem;
+}
+
+.handbook-article ul,
+.handbook-article ol {
+  margin: 0 0 0.85rem;
+  padding-left: 1.25rem;
+}
+
+.handbook-article li {
+  margin-bottom: 0.35rem;
+}
+
+.handbook-article .pilot-hook {
+  color: var(--accent-2);
+  margin-bottom: 0.75rem;
+}
+
+.handbook-article .pilot-foot {
+  margin-top: 1.25rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.handbook-article .pilot-index {
+  margin: 0.75rem 0;
+  padding-left: 1.2rem;
+}
+
+.handbook-article .pilot-index li {
+  margin-bottom: 0.4rem;
+}
+
+.legend-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 8px 0 16px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border);
+  font-size: 0.88rem;
+  line-height: 1.35;
+  color: var(--text);
+}
+
+.legend-item img,
+.legend-item canvas {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: #070b14;
+  display: block;
+}
+
+.legend-item canvas.legend-scene {
+  width: 140px;
+  height: 88px;
+}
+
+.legend-icons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.legend-item strong {
+  color: var(--accent-2);
+}
+
+.handbook-article table.glossary {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  margin: 0.75rem 0 1rem;
+}
+
+.handbook-article table.glossary th,
+.handbook-article table.glossary td {
+  border: 1px solid var(--border);
+  padding: 8px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.handbook-article table.glossary th {
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--accent-2);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.handbook-article table.glossary code {
+  font-size: 0.8em;
+  color: var(--accent);
+}
+
+/* —— Body data table (Apollo-handbook style) —— */
+.handbook-article table.body-data {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 0.85rem;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  border: none;
+}
+.handbook-article table.body-data tr {
+  border-bottom: 1px solid rgba(201, 162, 39, 0.2);
+}
+.handbook-article table.body-data tr:last-child {
+  border-bottom: none;
+}
+.handbook-article table.body-data th,
+.handbook-article table.body-data td {
+  padding: 6px 8px 6px 0;
+  text-align: left;
+  vertical-align: top;
+}
+.handbook-article table.body-data th {
+  width: 210px;
+  color: var(--accent-2);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.handbook-article table.body-data td {
+  color: var(--text);
+  font-weight: 400;
+}
+.handbook-article table.body-data td em {
+  color: var(--muted);
+  font-style: normal;
+}
+
+.handbook-article kbd {
+  display: inline-block;
+  padding: 0.1em 0.4em;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: #0d1426;
+  font-size: 0.85em;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  vertical-align: middle;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  background: #24345f;
+  color: var(--accent);
+  border: 1px solid var(--border);
+}
+
+.badge.version-picker {
+  padding: 0;
+  max-width: 100%;
+  cursor: pointer;
+}
+
+.version-picker select {
+  display: inline-block;
+  vertical-align: middle;
+  margin: 0;
+  max-width: min(100%, 15rem);
+  padding: 0.15rem 1.25rem 0.15rem 0.45rem;
+  border: none;
+  border-radius: 999px;
+  background-color: transparent;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath fill='%236ec8ff' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.4rem center;
+  background-size: 0.55rem;
+  color: var(--accent);
+  font: inherit;
+  font-size: inherit;
+  font-weight: 600;
+  line-height: 1.3;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.version-picker select:hover,
+.version-picker select:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.version-picker select option {
+  background: #121a30;
+  color: var(--text);
+}
+
+.version-picker select option:disabled {
+  color: var(--muted);
+}
+

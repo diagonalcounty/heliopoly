@@ -1,0 +1,95 @@
+/* App Store support ask — free play stays primary */
+.support-strip {
+  margin: 0.45rem 0 0;
+  padding: 0 0.15rem 0.15rem;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: rgba(220, 230, 255, 0.72);
+  max-width: 52rem;
+}
+.support-strip a {
+  color: #9ec1ff;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.support-strip a:hover {
+  color: #c9dbff;
+}
+.packaged-app .support-strip-web,
+html:not(.packaged-app) .support-strip-ios {
+  display: none;
+}
+
+/* The installed app is the game. Website and GitHub links stay on the site. */
+.packaged-app .support-strip {
+  display: none;
+}
+
+/* Shared clerk results card (#296). Markup: src/lab/resultsCard.ts */
+.results-card {
+  display: grid;
+  grid-template-columns: minmax(96px, 34%) 1fr;
+  overflow: hidden;
+  width: min(100%, 520px);
+  margin: 0 auto;
+  border-radius: 14px;
+  border: 4px solid #aa7942;
+  background: #0c101c;
+  text-align: left;
+}
+
+.results-card-art {
+  min-height: 160px;
+  background: #0b1020 center 18% / cover no-repeat;
+}
+
+.results-card-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 16px 16px;
+}
+
+.results-card-kicker {
+  margin: 0;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #c9a227;
+}
+
+.results-card-headline {
+  margin: 0;
+  font-size: 1.15rem;
+  line-height: 1.2;
+}
+
+.results-card-stats {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.results-card-stats:empty {
+  display: none;
+}
+
+.results-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+@media (max-width: 520px) {
+  .results-card {
+    grid-template-columns: 1fr;
+  }
+
+  .results-card-art {
+    min-height: 140px;
+    height: 160px;
+  }
+}

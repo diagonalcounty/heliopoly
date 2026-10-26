@@ -1,0 +1,168 @@
+
+.hint {
+  margin: 8px 0 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.propellant-field {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 10px;
+  margin: 8px 0 4px;
+}
+
+.propellant-field legend {
+  padding: 0 6px;
+  font-size: 0.8rem;
+  color: var(--accent-2);
+}
+
+.propellant-field .check {
+  margin-bottom: 6px;
+}
+
+/* New game: expedition length (#195). Meter deleted. */
+.ai-difficulty-row {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 12px;
+  margin: 8px 0 4px;
+}
+
+.ai-difficulty-field {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+.ai-difficulty-field legend {
+  flex-shrink: 0;
+}
+
+.ai-difficulty-field .check {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  margin-bottom: 0;
+  min-height: 0;
+}
+
+.duration-meter {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #3d5a80;
+  background: linear-gradient(180deg, #121a2c 0%, #0c1220 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.35),
+    0 0 20px rgba(110, 200, 255, 0.12);
+  overflow: hidden;
+}
+
+.duration-meter-title {
+  text-align: center;
+  padding: 5px 3px 3px;
+  /* Slightly smaller than AI difficulty legend (0.8rem) so title wraps in ~2 lines */
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--accent-2);
+  line-height: 1.2;
+  border-bottom: 1px solid #243656;
+  text-shadow: none;
+}
+
+.duration-meter-body {
+  position: relative;
+  flex: 1 1 auto;
+  /* Fixed columns: rail | bars (clip) | ticks — bars cannot share tick space */
+  display: grid;
+  grid-template-columns: var(--dm-rail-col, 18px) minmax(0, 1fr) var(--dm-tick-col, 30px);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.duration-meter-rail-col {
+  position: relative;
+  grid-column: 1;
+  min-width: 0;
+}
+
+.duration-meter-rail {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #7dd3fc;
+}
+
+.duration-meter-bars {
+  position: relative;
+  grid-column: 2;
+  min-width: 0;
+  /* Hard clip: bars + glow never leave this cell */
+  overflow: hidden;
+  contain: paint;
+}
+
+.duration-meter-bar {
+  position: absolute;
+  left: 0;
+  transform: translateY(-50%);
+  pointer-events: none;
+  /* Never wider than the bars column (guards bad inline widths) */
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.duration-meter-ticks {
+  position: relative;
+  grid-column: 3;
+  z-index: 2;
+  min-width: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: #7dd3fc;
+  text-shadow: 0 0 6px rgba(125, 211, 252, 0.3);
+  /* Opaque column so no bar can show through under labels */
+  background: #0c1220;
+  box-shadow: -4px 0 6px 2px #0c1220;
+}
+
+.duration-meter-tick {
+  position: absolute;
+  right: 4px;
+  left: 2px;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  line-height: 1;
+  text-align: right;
+  /* Per-label shield if anything still bleeds */
+  background: #0c1220;
+  padding: 1px 0 1px 2px;
+}
+
+.duration-meter-tick-line {
+  display: inline-block;
+  vertical-align: middle;
+  height: 1px;
+  background: rgba(125, 211, 252, 0.45);
+  margin-right: 4px;
+  max-width: 40%;
+}
+
+@media (max-width: 420px) {
+  .ai-difficulty-row {
+    flex-direction: column;
+  }
+  .duration-meter {
+    align-self: center;
+  }
+}
+
