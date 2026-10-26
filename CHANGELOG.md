@@ -10,7 +10,7 @@ Web test build for Jacob's check on **https://preview.heliopoly.live/** (it forw
 - **Robot count (#288):** when a Bot Evolution run ends, the clerk tells you how many robots you built, sorted by size: simple, medium, complex, and advanced.
 - **Clerk results card (#296):** Bot Evolution's end screen uses one shared card with the clerk's picture, your level, and your score line. Other Arcade games can use the same card later.
 - **Doubles turn-around (#43):** roll doubles (both dice show the same number) and you may tap **Turn around** to fly the other way for that one move. Next turn you face your usual way again.
-- **Behind the scenes (#22, #24):** a tidy-up and more checks so the game keeps working the same.
+- **Behind the scenes (#22, #24, #165, #23):** a tidy-up and more checks so the game keeps working the same.
 
 ### Meta
 - Version **1.5.2** (package, V1 badge, Ops Manual welcome, README)
