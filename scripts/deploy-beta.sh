@@ -31,7 +31,20 @@ cd "$REPO_ROOT"
 
 BETA_ROOT="${HELIOPOLY_BETA_ROOT:-/var/www/heliopoly-beta}"
 BETA_URL="${HELIOPOLY_BETA_URL:-https://beta.heliopoly.live/}"
-PKG_VERSION="$(python3 -c 'import json; print(json.load(open("package.json"))["version"])')"
+# python3 on PATH can exist but fail to run (mini: /usr/local/bin/python3 is an
+# Intel-only binary -> "Bad CPU type"). Use the first one that actually runs.
+PYTHON3=""
+for cand in "$(command -v python3 2>/dev/null || true)" /usr/bin/python3; do
+  if [[ -n "$cand" ]] && "$cand" -c 'import sys' >/dev/null 2>&1; then
+    PYTHON3="$cand"
+    break
+  fi
+done
+if [[ -z "$PYTHON3" ]]; then
+  echo "deploy-beta: no working python3 (tried PATH and /usr/bin/python3)" >&2
+  exit 1
+fi
+PKG_VERSION="$("$PYTHON3" -c 'import json; print(json.load(open("package.json"))["version"])')"
 GIT_SHA="$(git rev-parse --short HEAD 2>/dev/null || echo unknown)"
 
 if [[ "$SKIP_BUILD" -ne 1 ]]; then
