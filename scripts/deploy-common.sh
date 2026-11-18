@@ -29,6 +29,21 @@ DEPLOY_TARGET="${HELIOPOLY_DEPLOY_USER}@${HELIOPOLY_DEPLOY_HOST}"
 SSH=(ssh -i "$SSH_KEY" -o BatchMode=yes -o StrictHostKeyChecking=accept-new)
 RSYNC_RSH="ssh -i $SSH_KEY -o BatchMode=yes -o StrictHostKeyChecking=accept-new"
 
+# python3 on PATH can exist but fail to run (mini: /usr/local/bin/python3 is an
+# Intel-only binary -> "Bad CPU type"). Use the first one that actually runs.
+# Remote `python3` over ssh (on the droplet) is unchanged.
+PYTHON3=""
+for cand in "$(command -v python3 2>/dev/null || true)" /usr/bin/python3; do
+  if [[ -n "$cand" ]] && "$cand" -c 'import sys' >/dev/null 2>&1; then
+    PYTHON3="$cand"
+    break
+  fi
+done
+if [[ -z "$PYTHON3" ]]; then
+  echo "deploy: no working python3 (tried PATH and /usr/bin/python3)" >&2
+  exit 1
+fi
+
 # Idempotent droplet install. Do not rsync -a into /etc/cron.d — archive mode
 # preserves a laptop uid and Debian cron then ignores the file (WRONG FILE OWNER).
 heliopoly_install_promote_cron() {

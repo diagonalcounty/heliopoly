@@ -31,7 +31,8 @@ cd "$REPO_ROOT"
 
 BETA_ROOT="${HELIOPOLY_BETA_ROOT:-/var/www/heliopoly-beta}"
 BETA_URL="${HELIOPOLY_BETA_URL:-https://beta.heliopoly.live/}"
-PKG_VERSION="$(python3 -c 'import json; print(json.load(open("package.json"))["version"])')"
+# PYTHON3 is resolved in deploy-common.sh (PATH, then /usr/bin/python3).
+PKG_VERSION="$("$PYTHON3" -c 'import json; print(json.load(open("package.json"))["version"])')"
 GIT_SHA="$(git rev-parse --short HEAD 2>/dev/null || echo unknown)"
 
 if [[ "$SKIP_BUILD" -ne 1 ]]; then
