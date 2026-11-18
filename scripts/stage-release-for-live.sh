@@ -15,9 +15,9 @@ ENABLED_AFTER="${2:-}"
 source "$(cd "$(dirname "$0")" && pwd)/deploy-common.sh"
 UNLOCK_PY="$REPO_ROOT/scripts/sunday-unlock.py"
 if [[ -z "$ENABLED_AFTER" ]]; then
-  ENABLED_AFTER="$(python3 "$UNLOCK_PY" next)"
+  ENABLED_AFTER="$("$PYTHON3" "$UNLOCK_PY" next)"
   echo "→ unlock (next Sunday 00:01 UTC): ${ENABLED_AFTER}"
-elif python3 "$UNLOCK_PY" validate "$ENABLED_AFTER"; then
+elif "$PYTHON3" "$UNLOCK_PY" validate "$ENABLED_AFTER"; then
   :
 elif [[ "${HELIOPOLY_UNLOCK_FORCE:-}" == "1" ]]; then
   echo "WARN: ${ENABLED_AFTER} is not Sunday 00:01 UTC; staging anyway (HELIOPOLY_UNLOCK_FORCE=1)" >&2

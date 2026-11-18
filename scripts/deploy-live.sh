@@ -73,7 +73,7 @@ rsync -avz --delete -e "$RSYNC_RSH" \
   --exclude '.promote-lock' \
   dist/ "${DEPLOY_TARGET}:${LIVE_ROOT}/"
 
-PKG_VERSION="$(python3 -c 'import json; print(json.load(open("package.json"))["version"])')"
+PKG_VERSION="$("$PYTHON3" -c 'import json; print(json.load(open("package.json"))["version"])')"
 heliopoly_install_promote_cron
 echo "→ retire pending.json so a far-future stage cannot overwrite this ship (#231)"
 heliopoly_retire_pending_after_live "$PKG_VERSION" "deploy-live.sh issue 231"
